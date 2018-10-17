@@ -10,6 +10,9 @@
 
     <name>OpenGate Device Agent Dispatchers</name>
     <description>Dispatchers of the OpenGate Device Agent</description>
+    <modules>
+        <module>opengate</module>
+    </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
