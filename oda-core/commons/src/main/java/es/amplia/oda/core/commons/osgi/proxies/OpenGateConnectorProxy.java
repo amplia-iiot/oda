@@ -1,0 +1,31 @@
+package es.amplia.oda.core.commons.osgi.proxies;
+
+import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+
+import org.osgi.framework.BundleContext;
+
+import java.util.Optional;
+
+public class OpenGateConnectorProxy implements OpenGateConnector, AutoCloseable {
+
+    private final OsgiServiceProxy<OpenGateConnector> proxy;
+
+	public OpenGateConnectorProxy(BundleContext bundleContext) {
+		proxy = new OsgiServiceProxy<>(OpenGateConnector.class, bundleContext);
+	}
+
+    @Override
+    public void uplink(byte[] payload) {
+        proxy.consumeFirst(connector -> connector.uplink(payload));
+    }
+
+    @Override
+    public boolean isConnected() {
+        return Optional.ofNullable(proxy.callFirst(OpenGateConnector::isConnected)).orElse(false);
+    }
+
+    @Override
+    public void close() {
+        proxy.close();
+    }
+}

@@ -23,6 +23,7 @@
 
         <apache.felix.plugin.version>3.3.0</apache.felix.plugin.version>
         <jacoco.version>0.8.1</jacoco.version>
+        <surefire.plugin.version>2.22.0</surefire.plugin.version>
 
         <lombok.version>1.18.2</lombok.version>
         <slf4j.version>1.7.22</slf4j.version>
@@ -53,6 +54,11 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${surefire.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -105,6 +111,12 @@
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito</artifactId>
                 <version>${powermockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jacoco</groupId>
+                <artifactId>org.jacoco.agent</artifactId>
+                <version>${jacoco.version}</version>
+                <classifier>runtime</classifier>
             </dependency>
 
             <dependency>
