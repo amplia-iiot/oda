@@ -31,7 +31,7 @@
         <hamcrest.version>1.3</hamcrest.version>
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
-        <powermockito.version>1.7.4</powermockito.version>
+        <powermock.version>1.7.4</powermock.version>
     </properties>
 
     <issueManagement></issueManagement>
@@ -109,13 +109,18 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
+                <artifactId>powermock-core</artifactId>
+                <version>${powermock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
                 <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermockito.version}</version>
+                <version>${powermock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
                 <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermockito.version}</version>
+                <version>${powermock.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jacoco</groupId>

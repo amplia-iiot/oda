@@ -12,6 +12,7 @@
     <description>Subsystems of the OpenGate Device Agent</description>
     <modules>
         <module>poller</module>
+        <module>sshserver</module>
     </modules>
 
     <parent>
