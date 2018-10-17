@@ -11,6 +11,11 @@
     <name>OpenGate Device Agent Connectors</name>
     <description>Connectors of the OpenGate Device Agent</description>
 
+    <modules>
+        <module>coap</module>
+        <module>mqtt</module>
+    </modules>
+
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
