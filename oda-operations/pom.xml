@@ -10,6 +10,9 @@
 
     <name>OpenGate Device Agent Operations</name>
     <description>Operations of the OpenGate Device Agent</description>
+    <modules>
+        <module>api</module>
+    </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
