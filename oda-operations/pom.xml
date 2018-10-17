@@ -12,6 +12,7 @@
     <description>Operations of the OpenGate Device Agent</description>
     <modules>
         <module>api</module>
+        <module>update</module>
     </modules>
 
     <parent>
