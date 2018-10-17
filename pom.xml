@@ -21,5 +21,6 @@
         <module>oda-connectors</module>
         <module>oda-demos</module>
         <module>oda-datastreams</module>
+        <module>oda-events</module>
     </modules>
 </project>
