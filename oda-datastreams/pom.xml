@@ -10,6 +10,9 @@
 
     <name>OpenGate Device Agent Datastreams</name>
     <description>Datastreams of the OpenGate Device Agent</description>
+    <modules>
+        <module>deviceinfo</module>
+    </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
