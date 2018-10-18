@@ -15,4 +15,4 @@ then
     PARAMS="$PARAMS -agentlib:jdwp=transport=dt_socket,server=y,address=$DEBUG_PORT,suspend=y"
 fi
 
-java $PARAMS -cp 'bin/*' org.apache.felix.main.Main
+java $PARAMS -cp 'bin/*' -Dlogback.configurationFile=conf/logback.xml org.apache.felix.main.Main

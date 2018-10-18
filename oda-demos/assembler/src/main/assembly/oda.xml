@@ -89,7 +89,7 @@
         </fileSet>
         <fileSet>
             <directory/>
-            <outputDirectory>log</outputDirectory>
+            <outputDirectory>logs</outputDirectory>
             <excludes>
                 <exclude>*/**</exclude>
             </excludes>
