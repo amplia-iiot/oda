@@ -13,6 +13,9 @@
     <modules>
         <module>api</module>
         <module>update</module>
+        <module>get</module>
+        <module>set</module>
+        <module>refreshinfo</module>
     </modules>
 
     <parent>
