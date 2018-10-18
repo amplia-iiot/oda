@@ -10,6 +10,9 @@
 
     <name>OpenGate Device Agent Demos</name>
     <description>Demos of the OpenGate Device Agent</description>
+    <modules>
+        <module>assembler</module>
+    </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>

@@ -1,0 +1,21 @@
+# SSH Profile
+
+# catch all exceptions from this script to avoid it aborting startup
+try {
+
+  # ensure Gogo commands are found first
+  SCOPE = 'gogo:*'
+
+  # alias to print full stack trace
+  e = { $exception printStackTrace }
+
+  # set prompt
+  prompt = 'ODA Remote! '
+
+  # print welcome message, unless we're explicitly told not to...
+  if { $.gosh_quiet } { } { cat ($0 resolve motd_remote) }
+} {
+    echo "$0: ERROR: $exception"
+}
+
+# end
