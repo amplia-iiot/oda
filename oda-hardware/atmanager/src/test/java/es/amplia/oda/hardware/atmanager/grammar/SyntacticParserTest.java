@@ -1,6 +1,5 @@
 package es.amplia.oda.hardware.atmanager.grammar;
 
-import es.amplia.oda.hardware.atmanager.grammar.SyntacticParser;
 import es.amplia.oda.hardware.atmanager.grammar.SyntacticParser.Tokens;
 
 import org.junit.Test;
@@ -36,15 +35,15 @@ public class SyntacticParserTest {
     }
 
     @Test
-    public void lettersAreUppercased() {
+    public void lettersAreUppercase() {
         String actual = assertTokens("a", Tokens.BASIC_NAME).getLastCommand();
-        assertEquals(actual, "A");
+        assertEquals("A", actual);
     }
 
     @Test
     public void number() {
         int actual = assertTokens("123", Tokens.NUMBER).getLastNumber();
-        assertEquals(actual, 123);
+        assertEquals(123, actual);
     }
 
     @Test
@@ -53,15 +52,41 @@ public class SyntacticParserTest {
     }
 
     @Test
+    public void decimals() {
+        double actual = assertTokens("123.456", Tokens.FLOAT).getLastFloat();
+        assertEquals(123.456, actual, 0.0001);
+    }
+
+    @Test
+    public void decimalsErrorNoDecimals() {
+        assertTokens("123.", Tokens.ERROR);
+    }
+
+    @Test
+    public void decimalsErrorDecimalsWithFinishDot() {
+        assertTokens("123.456.", Tokens.ERROR);
+    }
+
+    @Test
     public void ipAddress() {
         String actual = assertTokens("192.168.2.2",Tokens.IPV4).getLastIPAddress();
-        assertEquals(actual, "192.168.2.2");
+        assertEquals("192.168.2.2", actual);
+    }
+
+    @Test
+    public void ipAddressWithThreeOctetsError() {
+        assertTokens("192.168.2", Tokens.ERROR);
+    }
+
+    @Test
+    public void ipAddressWithFiveOctetsError() {
+        assertTokens("192.168.2.2.2", Tokens.ERROR);
     }
 
     @Test
     public void constant() {
         String actual = assertTokens("DGRAM", Tokens.CONSTANT).getLastConstant();
-        assertEquals(actual, "DGRAM");
+        assertEquals("DGRAM", actual);
     }
 
     @Test
@@ -97,27 +122,27 @@ public class SyntacticParserTest {
     @Test
     public void extendedName() {
         String actual = assertTokens("+a0!%-_./:", Tokens.EXTENDED_NAME, Tokens.COLON, Tokens.EOF).getLastCommand();
-        assertEquals(actual, "+A0!%-_./");
+        assertEquals("+A0!%-_./", actual);
     }
 
     @Test
     public void sParameter() {
         String actual = assertTokens("S13=2", Tokens.S_NAME, Tokens.EQUAL, Tokens.NUMBER, Tokens.EOF).getLastCommand();
-        assertEquals(actual, "S13");
+        assertEquals("S13", actual);
     }
 
     @Test
     public void string() {
         String expected = "This is text";
         String actual = assertTokens("\"" + expected + "\"", Tokens.STRING, Tokens.EOF).getLastString();
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test
     public void unfinishedString() {
         String expected = "This is text";
         String actual = assertTokens("\"" + expected, Tokens.STRING, Tokens.EOF).getLastString();
-        assertEquals(actual, expected);
+        assertEquals(expected, actual);
     }
 
     @Test

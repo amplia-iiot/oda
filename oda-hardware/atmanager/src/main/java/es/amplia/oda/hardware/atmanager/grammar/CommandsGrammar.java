@@ -23,6 +23,7 @@ public class CommandsGrammar {
      * <parameters> ::= <param>
      *               | <param>? COMMA <parameters>
      * <param> ::= NUMBER
+     *          | FLOAT
      *          | STRING
      */
     private List<ATCommand> commandsRead;
@@ -114,7 +115,7 @@ public class CommandsGrammar {
         if (t != Tokens.EQUAL && t != Tokens.EQUAL_QUESTION && t != Tokens.QUESTION) {
             commandsRead.add(ATCommand.extendedCommand(ATCommandType.ACTION, name.toString()));
         } else {
-            ATCommand c = command_end(name.toString());
+            ATCommand c = command_end(name);
             commandsRead.add(c);
         }
     }
@@ -146,7 +147,7 @@ public class CommandsGrammar {
             advance();
             List<String> params = null;
             t = syntacticParser.current();
-            if (t == Tokens.NUMBER || t == Tokens.STRING || t == Tokens.COMMA) {
+            if (t == Tokens.NUMBER || t == Tokens.FLOAT || t == Tokens.STRING || t == Tokens.COMMA) {
                 params = new ArrayList<>();
                 parameters(params);
             }
@@ -161,11 +162,16 @@ public class CommandsGrammar {
          * <parameters> ::= <param>
          *               | <param>? COMMA <parameters>
          * <param> ::= NUMBER
+         *          | FLOAT
          *          | STRING
          */
         if (syntacticParser.current() == Tokens.NUMBER) {
             Integer number = syntacticParser.getLastNumber();
             params.add(number.toString());
+            advance();
+        } else if (syntacticParser.current() == Tokens.FLOAT) {
+            Double lastFloat = syntacticParser.getLastFloat();
+            params.add(lastFloat.toString());
             advance();
         } else if (syntacticParser.current() == Tokens.STRING) {
             String param = syntacticParser.getLastString();

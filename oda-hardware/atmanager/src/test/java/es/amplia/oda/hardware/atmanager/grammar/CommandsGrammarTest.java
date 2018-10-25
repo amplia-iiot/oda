@@ -2,8 +2,6 @@ package es.amplia.oda.hardware.atmanager.grammar;
 
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 import es.amplia.oda.hardware.atmanager.api.ATCommandType;
-import es.amplia.oda.hardware.atmanager.grammar.CommandsGrammar;
-import es.amplia.oda.hardware.atmanager.grammar.GrammarException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class CommandsGrammarTest {
@@ -111,10 +110,21 @@ public class CommandsGrammarTest {
 
     @Test
     public void extendedSetCommandWithUnusualParameters() {
-        List<ATCommand> actual = commandsGrammar.parse("+CPIN=23,\"kkk;llll\"");
+        List<ATCommand> actual = commandsGrammar.parse("+CPIN=23,2.3,\"kkk;llll\"");
 
-        List<ATCommand> expected = Collections.singletonList(ATCommand.extendedSetCommand("+CPIN", Arrays.asList("23", "kkk;llll")));
+        List<ATCommand> expected =
+                Collections.singletonList(ATCommand.extendedSetCommand("+CPIN",
+                                          Arrays.asList("23", "2.3", "kkk;llll")));
         assertThat(actual, is(expected));
+    }
+
+    @Test
+    public void extendedSetCommandWithFloatParameter() {
+        List<ATCommand> expected = Collections.singletonList(ATCommand.extendedSetCommand("+BATTERY", "12.1234"));
+
+        List<ATCommand> actual = commandsGrammar.parse("+BATTERY=12.1234");
+
+        assertEquals(expected, actual);
     }
 
     @Test

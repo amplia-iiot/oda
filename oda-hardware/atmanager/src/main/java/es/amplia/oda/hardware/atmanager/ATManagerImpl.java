@@ -27,7 +27,7 @@ public class ATManagerImpl implements ATManager {
     private final Map<String, Function<ATCommand, ATResponse>> registeredCommands = new HashMap<>();
     private final ATParser atParser;
     private final OutputStream outputStream;
-    private final ScheduledExecutorService timemoutExecutor = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(1);
     private final Semaphore semaphore = new Semaphore(1, true);
 
     private CompletableFuture<ATResponse> commandFuture = null;
@@ -182,7 +182,7 @@ public class ATManagerImpl implements ATManager {
                 partialResponses = null;
                 body = null;
                 atParser.setResponseMode(cmd.getCommand());
-                timeoutTask = timemoutExecutor.schedule(this::commandTimeout, timeout, unit);
+                timeoutTask = timeoutExecutor.schedule(this::commandTimeout, timeout, unit);
                 sendToPeer("AT" + cmd.asWireString() + '\r');
 
                 return commandFuture;
