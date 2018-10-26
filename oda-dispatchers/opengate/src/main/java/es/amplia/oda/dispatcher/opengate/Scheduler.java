@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
@@ -35,9 +36,9 @@ class Scheduler {
 		Map<String, OutputDatastream> devicesToIotData = new HashMap<>();
 		
 		for(String id: ids) {
-			List<Event> recolectedValues = collector.getAndCleanCollectedValues(id);
-			if(recolectedValues != null) {
-				for(Event collectedValue: recolectedValues) {
+			List<Event> recollectedValues = collector.getAndCleanCollectedValues(id);
+			if(recollectedValues != null) {
+				for(Event collectedValue: recollectedValues) {
 					String deviceId = collectedValue.getDeviceId().equals("") ?
 							deviceInfoProvider.getDeviceId() : collectedValue.getDeviceId();
 					Datastream ds = locateDatapointList(devicesToIotData, collectedValue, deviceId);
@@ -55,12 +56,12 @@ class Scheduler {
 		}
 	}
 
-	private static Datastream locateDatapointList(Map<String, OutputDatastream> devicesToIotData, Event data,
+	private Datastream locateDatapointList(Map<String, OutputDatastream> devicesToIotData, Event data,
 												  String deviceId) {
 		String datastreamId = data.getDatastreamId();
 
-		devicesToIotData.putIfAbsent(deviceId,
-				new OutputDatastream(OPENGATE_VERSION, deviceId, data.getPath(), new HashSet<>()));
+		String[] path = getPath(deviceInfoProvider.getDeviceId(), deviceId, data.getPath());
+		devicesToIotData.putIfAbsent(deviceId, new OutputDatastream(OPENGATE_VERSION, deviceId, path, new HashSet<>()));
 
 		OutputDatastream iotData = devicesToIotData.get(deviceId);
 
@@ -72,4 +73,18 @@ class Scheduler {
 							return datastream;
 				});
 	}
+
+	private String[] getPath(String hostId, String deviceId, String[] path) {
+	    if (hostId == null) {
+	    	return null;
+		} else if (hostId.equals(deviceId)) {
+            return path;
+        } else if (path == null) {
+	    	return new String[] { hostId };
+        } else {
+            List<String> pathDevices = Arrays.stream(path).collect(Collectors.toList());
+            pathDevices.add(0, hostId);
+            return pathDevices.toArray(new String[0]);
+        }
+    }
 }

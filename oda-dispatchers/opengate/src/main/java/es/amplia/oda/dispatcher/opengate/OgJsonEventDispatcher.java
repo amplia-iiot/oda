@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
@@ -34,7 +35,7 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
         this.connector = connector;
     }
 
-    public void setReduceBandwidthMode(boolean reduceBandwidthMode) {
+    void setReduceBandwidthMode(boolean reduceBandwidthMode) {
     	this.reduceBandwidthMode = reduceBandwidthMode;
 	}
 
@@ -57,8 +58,10 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
 		Long at = null;
 
 		if (!reduceBandwidthMode) {
-			deviceId = event.getDeviceId().equals("") ? deviceInfoProvider.getDeviceId() : event.getDeviceId();
-			path = event.getPath();
+			String hostId = deviceInfoProvider.getDeviceId();
+			deviceId = event.getDeviceId();
+			deviceId = deviceId.equals("") ? hostId : deviceId;
+			path = getPath(hostId, deviceId, event.getPath());
 			at = event.getAt();
 		}
 
@@ -67,10 +70,24 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
 
 		return new OutputDatastream(OPENGATE_VERSION, deviceId, path, Collections.singleton(datastream));
     }
+
+	private String[] getPath(String hostId, String deviceId, String[] path) {
+        if (hostId == null) {
+            return null;
+		} else if (hostId.equals(deviceId)) {
+			return path;
+		} else if (path == null) {
+			return new String[] { hostId };
+		} else {
+			List<String> pathDevices = Arrays.stream(path).collect(Collectors.toList());
+			pathDevices.add(0, hostId);
+			return pathDevices.toArray(new String[0]);
+		}
+	}
     
-    public void setDatastreamIdsConfigured (Collection<Set<String>> config) {
+    void setDatastreamIdsConfigured (Collection<Set<String>> config) {
     	if (!datastreamIdsConfigured.isEmpty()) datastreamIdsConfigured.clear();
-    	config.forEach((ids)->datastreamIdsConfigured.addAll(ids));
+    	config.forEach(ids -> datastreamIdsConfigured.addAll(ids));
     }
     
     private boolean periodicSentConfigured (String datastreamId) {
@@ -88,13 +105,11 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
 	
 	private void saveCollectedValue(Event data, String datastreamId) {
 		logger.debug("Storing values {}", data);
-		if (data == null) return;
-			
-		List<Event> values = collectedValues.get(datastreamId);
-		if (values == null) {
-			values = new ArrayList<Event>();
-			collectedValues.put(datastreamId, values);
+		if (data == null) {
+			return;
 		}
+
+		List<Event> values = collectedValues.computeIfAbsent(datastreamId, key -> new ArrayList<>());
 		values.add(data);
 	}
 }

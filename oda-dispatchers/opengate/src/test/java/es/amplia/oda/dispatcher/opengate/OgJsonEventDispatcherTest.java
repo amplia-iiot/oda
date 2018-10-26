@@ -26,11 +26,13 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OgJsonEventDispatcherTest {
 
-    private final String TEST_DATASTREAM_ID = "testDatastream";
-    private final String TEST_DEVICE_ID = "testDevice";
-    private final String[] TEST_PATH = new String[]{"deviceA", "deviceB"};
-    private final Long TEST_AT = System.currentTimeMillis();
-    private final int TEST_VALUE = 20;
+    private static final String TEST_DATASTREAM_ID = "testDatastream";
+    private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_HOST_ID = "host";
+    private static final String[] TEST_PATH = new String[]{"deviceA", "deviceB"};
+    private static final String[] TEST_PATH_WITH_HOST = new String[]{"host","deviceA", "deviceB"};
+    private static final Long TEST_AT = System.currentTimeMillis();
+    private static final int TEST_VALUE = 20;
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
@@ -47,14 +49,15 @@ public class OgJsonEventDispatcherTest {
         Datapoint datapoint = new Datapoint(TEST_AT, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
         OutputDatastream output =
-                new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH, Collections.singleton(datastream));
+                new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH_WITH_HOST, Collections.singleton(datastream));
         byte[] payload = new byte[]{1, 2, 3, 4};
 
         when(mockedJsonWriter.dumpOutput(any())).thenReturn(payload);
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_ID);
 
         testEventDispatcher.publish(eventToTest);
 
-        verifyZeroInteractions(mockedDeviceInfoProvider);
+        verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedJsonWriter).dumpOutput(eq(output));
         verify(mockedConnector).uplink(eq(payload));
     }
