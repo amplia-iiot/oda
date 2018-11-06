@@ -17,31 +17,42 @@ class ConfigurationParser {
 
 	@Value
 	public static class Key {
-		Long seconds;
+		private long secondsFirstPoll;
+		private long secondsBetweenPolls;
 		@NonNull
-        DevicePattern deviceIdPattern;
+        private DevicePattern deviceIdPattern;
 	}
 	
 	static void parse(Dictionary<String, ?> properties, Map<Key, Set<String>> recolections) {
 		Enumeration<String> e = properties.keys();
         while(e.hasMoreElements()) {
             String key = e.nextElement();
-            String line = (String) properties.get(key);
-            String[] keyFields = key.split("\\s*(;\\s*)");
-            String idInKey;
-            DevicePattern deviceIdInField;
-            if(keyFields.length == 1) {
-            	idInKey = keyFields[0];
-            	deviceIdInField=DevicePattern.NullDevicePattern;
-            } else {
-            	idInKey = keyFields[0];
-            	deviceIdInField=new DevicePattern(keyFields[1]);
-            }
+            String value = (String) properties.get(key);
             try {
-            	Long secondsForCollection = Long.parseLong(line);
-            	add(recolections, new Key(secondsForCollection, deviceIdInField), idInKey);
-            } catch(NumberFormatException ex) {
-            	logger.info("Rejecting configuration '{}={}' because values are not numbers", key, line);
+				String[] keyFields = key.split("\\s*(;\\s*)");
+				String idInKey;
+				DevicePattern deviceIdInField;
+				if(keyFields.length == 1) {
+					idInKey = keyFields[0];
+					deviceIdInField=DevicePattern.NullDevicePattern;
+				} else {
+					idInKey = keyFields[0];
+					deviceIdInField=new DevicePattern(keyFields[1]);
+				}
+
+				String[] valueFields = value.split("\\s*(;\\s*)");
+				long firstPoll;
+				long secondsBetweenPolls;
+				if (valueFields.length == 1) {
+					firstPoll = Long.parseLong(valueFields[0]);
+					secondsBetweenPolls = firstPoll;
+				} else {
+					firstPoll = Long.parseLong(valueFields[0]);
+					secondsBetweenPolls = Long.parseLong(valueFields[1]);
+				}
+            	add(recolections, new Key(firstPoll, secondsBetweenPolls, deviceIdInField), idInKey);
+            } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+            	logger.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
             }
         }
 	}

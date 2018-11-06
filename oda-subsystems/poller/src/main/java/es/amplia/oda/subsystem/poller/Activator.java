@@ -52,8 +52,10 @@ public class Activator implements BundleActivator, ManagedService {
 		ConfigurationParser.parse(properties, recolections);
 		
 		recolections.forEach((key, ids) ->{
-			logger.debug("Scheduling recollection of ids={} for deviceIdPattern={} every {} seconds", ids, key.getDeviceIdPattern(), key.getSeconds());
-			executor.scheduleWithFixedDelay(() -> poller.runFor(key.getDeviceIdPattern(), ids), key.getSeconds(), key.getSeconds(), TimeUnit.SECONDS);
+			logger.debug("Scheduling recollection of ids={} for deviceIdPattern={} starting in {} seconds and every {} seconds",
+					ids, key.getDeviceIdPattern(), key.getSecondsFirstPoll(), key.getSecondsBetweenPolls());
+			executor.scheduleWithFixedDelay(() -> poller.runFor(key.getDeviceIdPattern(), ids),
+					key.getSecondsFirstPoll(), key.getSecondsBetweenPolls(), TimeUnit.SECONDS);
 		});
 	}
 

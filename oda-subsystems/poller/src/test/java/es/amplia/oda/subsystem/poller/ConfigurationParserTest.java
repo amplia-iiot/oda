@@ -44,7 +44,7 @@ public class ConfigurationParserTest {
 		assertEquals(1, recollections.size());
 		
 		Set<String> expected = asSet("id1");
-		assertEquals(expected, recollections.get(new ConfigurationParser.Key(3L,NullDevicePattern)));
+		assertEquals(expected, recollections.get(new ConfigurationParser.Key(3L,3L,NullDevicePattern)));
 	}
 	
 	@Test
@@ -58,7 +58,7 @@ public class ConfigurationParserTest {
 		
 		Set<String> expected = asSet("id1","id2");
 		
-		assertEquals(expected, recollections.get(new ConfigurationParser.Key(3L,NullDevicePattern)));
+		assertEquals(expected, recollections.get(new ConfigurationParser.Key(3L,3L,NullDevicePattern)));
 	}
 
 	@Test
@@ -70,8 +70,34 @@ public class ConfigurationParserTest {
 
         assertEquals(2, recollections.size());
 
-        assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L,NullDevicePattern)));
-        assertEquals(asSet("id2"), recollections.get(new ConfigurationParser.Key(4L,NullDevicePattern)));
+        assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L,3L,NullDevicePattern)));
+        assertEquals(asSet("id2"), recollections.get(new ConfigurationParser.Key(4L,4L,NullDevicePattern)));
+	}
+
+	@Test
+	public void propertiesWithDifferentFirstPollValueAreMappedToDifferentEntries() {
+		properties.put("id1", "3;3");
+		properties.put("id2", "4;3");
+
+		ConfigurationParser.parse(properties, recollections);
+
+		assertEquals(2, recollections.size());
+
+		assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L,3L,NullDevicePattern)));
+		assertEquals(asSet("id2"), recollections.get(new ConfigurationParser.Key(4L,3L,NullDevicePattern)));
+	}
+
+	@Test
+	public void propertiesWithDifferentSecondsBetweenPollsValueAreMappedToDifferentEntries() {
+		properties.put("id1", "3;3");
+		properties.put("id2", "3;4");
+
+		ConfigurationParser.parse(properties, recollections);
+
+		assertEquals(2, recollections.size());
+
+		assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L,3L,NullDevicePattern)));
+		assertEquals(asSet("id2"), recollections.get(new ConfigurationParser.Key(3L,4L,NullDevicePattern)));
 	}
 
 	@Test
@@ -82,8 +108,8 @@ public class ConfigurationParserTest {
 
         assertEquals(2, recollections.size());
 		
-		assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L, new DevicePattern("dev*"))));
-        assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L, new DevicePattern("sect*"))));
+		assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L, 3L, new DevicePattern("dev*"))));
+        assertEquals(asSet("id1"), recollections.get(new ConfigurationParser.Key(3L, 3L, new DevicePattern("sect*"))));
 	}
 
 	@Test
@@ -94,6 +120,6 @@ public class ConfigurationParserTest {
 		
 		assertEquals(1, recollections.size());
 		
-		assertEquals(asSet("id1","id2"), recollections.get(new ConfigurationParser.Key(3L, new DevicePattern("dev*"))));
+		assertEquals(asSet("id1","id2"), recollections.get(new ConfigurationParser.Key(3L, 3L,new DevicePattern("dev*"))));
 	}
 }
