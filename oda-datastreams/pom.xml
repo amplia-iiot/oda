@@ -12,6 +12,7 @@
     <description>Datastreams of the OpenGate Device Agent</description>
     <modules>
         <module>deviceinfo</module>
+        <module>gpio</module>
     </modules>
 
     <parent>
