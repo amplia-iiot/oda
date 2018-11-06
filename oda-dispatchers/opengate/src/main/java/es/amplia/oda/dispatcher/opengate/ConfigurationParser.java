@@ -12,7 +12,10 @@ public class ConfigurationParser {
 
 	private static final String REDUCE_BANDWIDTH_PROPERTY_NAME = "reduceBandwidthMode";
 
-	public static boolean getReduceBandwidthMode(Dictionary<String, ?> properties) {
+	// Hide public default constructor
+	private ConfigurationParser() {}
+
+	static boolean getReduceBandwidthMode(Dictionary<String, ?> properties) {
 		return Optional.ofNullable(properties.get(REDUCE_BANDWIDTH_PROPERTY_NAME))
 				.map(value -> Boolean.parseBoolean((String) value))
 				.orElse(false);
@@ -21,30 +24,36 @@ public class ConfigurationParser {
 	@Value
 	public static class Key {
 		@NonNull
-        Long seconds; // Only one filed for Key, is prepared for more fields in the future
+		private long secondsFirstDispatch;
+		@NonNull
+        private long secondsBetweenDispatches;
 	}
 	
-	public static void parse(Dictionary<String, ?> properties, Map<Key, Set<String>> recolections) {
+	static void parse(Dictionary<String, ?> properties, Map<Key, Set<String>> recolections) {
 		Enumeration<String> e = properties.keys();
         while(e.hasMoreElements()) {
             String key = e.nextElement();
-            String line = (String) properties.get(key);
+            String value = (String) properties.get(key);
             try {
-            	Long secondsForCollection = Long.parseLong(line);
-            	add(recolections, new Key(secondsForCollection), key);
-            } catch(NumberFormatException ex) {
-            	logger.info("Rejecting configuration '{}={}' because values are not numbers", key, line);
-            	continue;
+				String[] valueFields = value.split("\\s*(;\\s*)");
+				long secondsFirstDispatch;
+				long secondsBetweenDispatches;
+				if (valueFields.length == 1) {
+					secondsFirstDispatch = Long.parseLong(valueFields[0]);
+					secondsBetweenDispatches = secondsFirstDispatch;
+				} else {
+					secondsFirstDispatch = Long.parseLong(valueFields[0]);
+					secondsBetweenDispatches = Long.parseLong(valueFields[1]);
+				}
+            	add(recolections, new Key(secondsFirstDispatch, secondsBetweenDispatches), key);
+            } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
+            	logger.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
             }
         }
 	}
 
 	private static void add(Map<Key, Set<String>> map, Key key, String id) {
-		Set<String> set = map.get(key);
-		if(set==null) {
-			set = new HashSet<>();
-			map.put(key, set);
-		}
+		Set<String> set = map.computeIfAbsent(key, k -> new HashSet<>());
 		set.add(id);
 	}
 }

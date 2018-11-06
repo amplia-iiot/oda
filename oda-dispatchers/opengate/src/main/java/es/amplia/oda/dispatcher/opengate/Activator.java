@@ -18,7 +18,6 @@ import es.amplia.oda.operation.api.osgi.proxies.OperationUpdateProxy;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,9 @@ import java.util.concurrent.TimeUnit;
 
 public class Activator implements BundleActivator, ManagedService {
     private static final Logger logger = LoggerFactory.getLogger(Activator.class);
-    
+    private static final int SCHEDULERS_THREAD_POOL_SIZE = 10;
+    private static final int STOP_PENDING_OPERATIONS_TIMEOUT = 10;
+
     private ServiceRegistration<?> registration;
     private DatastreamSetterTypeMapperImpl datastreamsTypeMapper;
     private OpenGateConnectorProxy connector;
@@ -82,7 +83,7 @@ public class Activator implements BundleActivator, ManagedService {
     }
     
     @Override
-	public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
+	public void updated(Dictionary<String, ?> properties) {
 		if(properties==null) {
 			logger.info("Collection subsystem updated with null properties");
 			return;
@@ -92,7 +93,7 @@ public class Activator implements BundleActivator, ManagedService {
 		if(executor!=null) {
 			stopPendingOperations();
 		}
-		executor = new ScheduledThreadPoolExecutor(10); //TODO: Make this 10 configurable.
+		executor = new ScheduledThreadPoolExecutor(SCHEDULERS_THREAD_POOL_SIZE);
 
         eventDispatcher.setReduceBandwidthMode(ConfigurationParser.getReduceBandwidthMode(properties));
 
@@ -102,19 +103,23 @@ public class Activator implements BundleActivator, ManagedService {
 		eventDispatcher.setDatastreamIdsConfigured(schedules.values());
 		
 		schedules.forEach((key,ids)->{
-			logger.debug("Scheduling emission of ids={} for every {} seconds", ids, key.getSeconds());
-			executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), key.getSeconds(), key.getSeconds(), TimeUnit.SECONDS);			
+			logger.debug("Scheduling dispatch of ids={} strating in {} seconds, for every {} seconds", ids,
+                    key.getSecondsFirstDispatch(), key.getSecondsBetweenDispatches());
+			executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), key.getSecondsFirstDispatch(),
+                    key.getSecondsBetweenDispatches(), TimeUnit.SECONDS);
 		});
 	}
     
     private void stopPendingOperations() {
-		long timeout = 10; //TODO: Make this 10 configurable
+		long timeout = STOP_PENDING_OPERATIONS_TIMEOUT;
 		
 		executor.shutdown();
 		try {
 			executor.awaitTermination(timeout, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			logger.error("The shutdown of the pool of threads its taking more than {} seconds. Will not wait longer.", timeout);
+			logger.error("The shutdown of the pool of threads its taking more than {} seconds. Will not wait longer.",
+                    timeout);
+			Thread.currentThread().interrupt();
 		}
 	}
 
