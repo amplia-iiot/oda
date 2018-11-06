@@ -12,25 +12,25 @@ import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
 
-	private static final Logger logger = LoggerFactory.getLogger(Activator.class);
+    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
 
-	private ServiceRegistration<?> registration;
+    private ServiceRegistration<?> registration;
 
-	@Override
-	public void start(BundleContext context) {
-		logger.info("Starting Operation Get Activator");
-		DatastreamsGettersLocator datastreamsGettersLocator = new DatastreamsGettersLocatorOsgi(context);
-		DatastreamsGettersFinderImpl datastreamsGettersFinder = new DatastreamsGettersFinderImpl(datastreamsGettersLocator);
-		OperationGetDeviceParameters getter = new OperationGetDeviceParametersImpl(datastreamsGettersFinder);
+    @Override
+    public void start(BundleContext context) {
+        logger.info("Starting Operation Get Activator");
+        DatastreamsGettersLocator datastreamsGettersLocator = new DatastreamsGettersLocatorOsgi(context);
+        DatastreamsGettersFinderImpl datastreamsGettersFinder = new DatastreamsGettersFinderImpl(datastreamsGettersLocator);
+        OperationGetDeviceParameters getter = new OperationGetDeviceParametersImpl(datastreamsGettersFinder);
 
-		registration = context.registerService(OperationGetDeviceParameters.class.getName(), getter, null);
-		logger.info("Operation Get Activator started");
-	}
+        registration = context.registerService(OperationGetDeviceParameters.class.getName(), getter, null);
+        logger.info("Operation Get Activator started");
+    }
 
-	@Override
-	public void stop(BundleContext context) {
-		logger.info("Stopping Operation Get Activator");
-		registration.unregister();
-		logger.info("Operation Get Activator stopped");
-	}
+    @Override
+    public void stop(BundleContext context) {
+        logger.info("Stopping Operation Get Activator");
+        registration.unregister();
+        logger.info("Operation Get Activator stopped");
+    }
 }

@@ -10,19 +10,19 @@ import java.util.concurrent.CompletableFuture;
 
 public class OperationSetDeviceParametersProxy implements OperationSetDeviceParameters, AutoCloseable {
 
-	private final OsgiServiceProxy<OperationSetDeviceParameters> proxy;
-	
-	public OperationSetDeviceParametersProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(OperationSetDeviceParameters.class, bundleContext);
-	}
-	
-	@Override
-	public CompletableFuture<Result> setDeviceParameters(String deviceId, List<VariableValue> values) {
-		return proxy.callFirst(op -> op.setDeviceParameters(deviceId, values));
-	}
+    private final OsgiServiceProxy<OperationSetDeviceParameters> proxy;
+    
+    public OperationSetDeviceParametersProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(OperationSetDeviceParameters.class, bundleContext);
+    }
+    
+    @Override
+    public CompletableFuture<Result> setDeviceParameters(String deviceId, List<VariableValue> values) {
+        return proxy.callFirst(op -> op.setDeviceParameters(deviceId, values));
+    }
 
-	@Override
-	public void close() {
-		proxy.close();
-	}
+    @Override
+    public void close() {
+        proxy.close();
+    }
 }

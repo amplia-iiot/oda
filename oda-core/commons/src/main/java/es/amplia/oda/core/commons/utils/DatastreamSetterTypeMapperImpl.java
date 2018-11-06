@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 public class DatastreamSetterTypeMapperImpl implements DatastreamSetterTypeMapper, AutoCloseable {
 
-	private final ServiceTracker<DatastreamsSetter, DatastreamsSetter> serviceTracker;
+    private final ServiceTracker<DatastreamsSetter, DatastreamsSetter> serviceTracker;
     private static final Logger logger = LoggerFactory.getLogger(DatastreamSetterTypeMapperImpl.class);
 
     public DatastreamSetterTypeMapperImpl(BundleContext bundleContext) {
@@ -24,11 +24,11 @@ public class DatastreamSetterTypeMapperImpl implements DatastreamSetterTypeMappe
     
     @Value
     private static class Pair {
-    	String id;
-    	Type type;
+        String id;
+        Type type;
     }
-	@Override
-	public Type getTypeOf(String id) {
+    @Override
+    public Type getTypeOf(String id) {
         Object[] setters = serviceTracker.getServices();
         if(setters == null) {
             logger.warn("No service implementation of {} available in OSGi", DatastreamsSetter.class.getName());
@@ -47,13 +47,13 @@ public class DatastreamSetterTypeMapperImpl implements DatastreamSetterTypeMappe
             logger.debug("The type of '{}' is '{}'", id, found.getTypeName());
         else
             logger.debug("The type of '{}' is not found", id);
-		
+        
         return found;
-	}
+    }
 
-	@Override
-	public void close() {
-		serviceTracker.close();
-	}
+    @Override
+    public void close() {
+        serviceTracker.close();
+    }
 
 }

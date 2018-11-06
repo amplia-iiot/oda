@@ -20,34 +20,34 @@ public class Activator implements BundleActivator {
 
     private static final Logger logger = LoggerFactory.getLogger(Activator.class);
 
-	private DeviceInfoProviderProxy deviceInfoProvider;
-	private ATManagerProxy atManager;
-	private COAPConnector connector;
+    private DeviceInfoProviderProxy deviceInfoProvider;
+    private ATManagerProxy atManager;
+    private COAPConnector connector;
     private ConfigurationUpdateHandler configHandler;
-	private ConfigurableBundle configurableBundle;
-	private ServiceListenerBundle<DeviceInfoProvider> deviceInfoServiceListener;
-	private ServiceListenerBundle<ATManager> atManagerServiceListener;
+    private ConfigurableBundle configurableBundle;
+    private ServiceListenerBundle<DeviceInfoProvider> deviceInfoServiceListener;
+    private ServiceListenerBundle<ATManager> atManagerServiceListener;
 
-	private ServiceRegistration<OpenGateConnector> registration;
+    private ServiceRegistration<OpenGateConnector> registration;
 
-	@Override
-	public void start(BundleContext bundleContext) {
-	    logger.info("Starting COAP connector");
+    @Override
+    public void start(BundleContext bundleContext) {
+        logger.info("Starting COAP connector");
 
-		deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
-		atManager = new ATManagerProxy(bundleContext);
-		COAPClientFactory coapClientFactory = new COAPClientFactory(deviceInfoProvider, atManager);
-		connector = new COAPConnector(coapClientFactory);
-		configHandler = new ConfigurationUpdateHandlerImpl(connector);
-		configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
+        atManager = new ATManagerProxy(bundleContext);
+        COAPClientFactory coapClientFactory = new COAPClientFactory(deviceInfoProvider, atManager);
+        connector = new COAPConnector(coapClientFactory);
+        configHandler = new ConfigurationUpdateHandlerImpl(connector);
+        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
         deviceInfoServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,
                 this::onServiceChanged);
-		atManagerServiceListener = new ServiceListenerBundle<>(bundleContext, ATManager.class, this::onServiceChanged);
+        atManagerServiceListener = new ServiceListenerBundle<>(bundleContext, ATManager.class, this::onServiceChanged);
 
-		registration = bundleContext.registerService(OpenGateConnector.class, connector, null);
+        registration = bundleContext.registerService(OpenGateConnector.class, connector, null);
 
         logger.info("COAP connector started");
-	}
+    }
 
     void onServiceChanged() {
         logger.info("Device Info provider service changed. Applying COAP connector configuration");
@@ -59,17 +59,17 @@ public class Activator implements BundleActivator {
     }
 
     @Override
-	public void stop(BundleContext bundleContext) {
+    public void stop(BundleContext bundleContext) {
         logger.info("Stopping COAP connector");
 
         registration.unregister();
-		deviceInfoServiceListener.close();
-		atManagerServiceListener.close();
-		atManager.close();
-		configurableBundle.close();
-		connector.close();
-		deviceInfoProvider.close();
+        deviceInfoServiceListener.close();
+        atManagerServiceListener.close();
+        atManager.close();
+        configurableBundle.close();
+        connector.close();
+        deviceInfoProvider.close();
 
         logger.info("COAP connector stopped");
-	}
+    }
 }

@@ -8,19 +8,19 @@ import java.util.concurrent.CompletableFuture;
 
 public class DispatcherProxy implements Dispatcher, AutoCloseable {
 
-	private final OsgiServiceProxy<Dispatcher> proxy;
+    private final OsgiServiceProxy<Dispatcher> proxy;
 
-	public DispatcherProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(Dispatcher.class, bundleContext);
-	}
+    public DispatcherProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(Dispatcher.class, bundleContext);
+    }
 
-	@Override
-	public CompletableFuture<byte[]> process(byte[] input) {
-		return proxy.callFirst(dispatcher -> dispatcher.process(input));
-	}
+    @Override
+    public CompletableFuture<byte[]> process(byte[] input) {
+        return proxy.callFirst(dispatcher -> dispatcher.process(input));
+    }
 
-	@Override
-	public void close() {
-		proxy.close();
-	}
+    @Override
+    public void close() {
+        proxy.close();
+    }
 }

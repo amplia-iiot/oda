@@ -59,40 +59,40 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
     
     DatastreamsGetter getDatastreamsGetterForDeviceId() {
-    	return new DatastreamsGetter() {
-			@Override
-			public String getDatastreamIdSatisfied() {
-				return DatastreamIds.DEVICE_ID;
-			}
-			@Override
-			public List<String> getDevicesIdManaged() {
-				return Collections.singletonList("");
-			}
-			@Override
-			public CompletableFuture<CollectedValue> get(String device) {
-				return CompletableFuture.completedFuture(
-					new CollectedValue(System.currentTimeMillis(), getDeviceId())
-				);
-			}
-		};
+        return new DatastreamsGetter() {
+            @Override
+            public String getDatastreamIdSatisfied() {
+                return DatastreamIds.DEVICE_ID;
+            }
+            @Override
+            public List<String> getDevicesIdManaged() {
+                return Collections.singletonList("");
+            }
+            @Override
+            public CompletableFuture<CollectedValue> get(String device) {
+                return CompletableFuture.completedFuture(
+                    new CollectedValue(System.currentTimeMillis(), getDeviceId())
+                );
+            }
+        };
     }
 
     DatastreamsGetter getDatastreamsGetterForSerialNumber() {
-    	return new DatastreamsGetter() {
-			@Override
-			public String getDatastreamIdSatisfied() {
-				return DatastreamIds.SERIAL_NUMBER;
-			}
-			@Override
-			public List<String> getDevicesIdManaged() {
-				return Collections.singletonList("");
-			}
-			@Override
-			public CompletableFuture<CollectedValue> get(String device) {
-				return CompletableFuture.completedFuture(
-					new CollectedValue(System.currentTimeMillis(), serialNumber)
-				);
-			}
-		};
+        return new DatastreamsGetter() {
+            @Override
+            public String getDatastreamIdSatisfied() {
+                return DatastreamIds.SERIAL_NUMBER;
+            }
+            @Override
+            public List<String> getDevicesIdManaged() {
+                return Collections.singletonList("");
+            }
+            @Override
+            public CompletableFuture<CollectedValue> get(String device) {
+                return CompletableFuture.completedFuture(
+                    new CollectedValue(System.currentTimeMillis(), serialNumber)
+                );
+            }
+        };
     }
 }

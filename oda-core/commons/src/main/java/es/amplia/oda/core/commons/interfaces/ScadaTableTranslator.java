@@ -9,13 +9,13 @@ import lombok.Value;
  */
 public interface ScadaTableTranslator {
 
-	@Value
-	class ScadaInfo {
-		private int index;
-		private Object type;
-		private Object value;
-	}
-	
+    @Value
+    class ScadaInfo {
+        private int index;
+        private Object type;
+        private Object value;
+    }
+    
     /**
      * translate from the given Datastream info (device id and datastream id) to SCADA info (index and type).
      * @param info Datastream info to translate.

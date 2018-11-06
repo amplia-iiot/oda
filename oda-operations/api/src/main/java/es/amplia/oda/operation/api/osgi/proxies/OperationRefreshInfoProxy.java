@@ -9,19 +9,19 @@ import java.util.concurrent.CompletableFuture;
 
 public class OperationRefreshInfoProxy implements OperationRefreshInfo, AutoCloseable {
 
-	private final OsgiServiceProxy<OperationRefreshInfo> proxy;
+    private final OsgiServiceProxy<OperationRefreshInfo> proxy;
 
-	public OperationRefreshInfoProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(OperationRefreshInfo.class, bundleContext);
-	}
+    public OperationRefreshInfoProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(OperationRefreshInfo.class, bundleContext);
+    }
 
-	@Override
-	public CompletableFuture<Result> refreshInfo(String deviceId) {
-		return proxy.callFirst(op -> op.refreshInfo(deviceId));
-	}
+    @Override
+    public CompletableFuture<Result> refreshInfo(String deviceId) {
+        return proxy.callFirst(op -> op.refreshInfo(deviceId));
+    }
 
-	@Override
-	public void close() {
-		proxy.close();
-	}
+    @Override
+    public void close() {
+        proxy.close();
+    }
 }

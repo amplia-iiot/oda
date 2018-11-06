@@ -8,13 +8,13 @@ public class EventAdminProxy implements EventAdmin, AutoCloseable {
 
     private final OsgiServiceProxy<EventAdmin> proxy;
 
-	public EventAdminProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(EventAdmin.class, bundleContext);
-	}
+    public EventAdminProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(EventAdmin.class, bundleContext);
+    }
 
     @Override
     public void postEvent(Event event) {
-	    proxy.consumeFirst(eventAdmin -> eventAdmin.postEvent(event));
+        proxy.consumeFirst(eventAdmin -> eventAdmin.postEvent(event));
     }
 
     @Override

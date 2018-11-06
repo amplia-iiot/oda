@@ -5,8 +5,8 @@ package es.amplia.oda.core.commons.utils;
  */
 public class CommandExecutionException extends Exception {
 
-	private static final long serialVersionUID = 4453204819658040009L;
-	/**
+    private static final long serialVersionUID = 4453204819658040009L;
+    /**
      * Command causing the exception.
      */
     private final String command;

@@ -6,11 +6,11 @@ package es.amplia.oda.core.commons.gpio;
 public class GpioDeviceException extends RuntimeException {
 
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = -5153107718227453813L;
+     * 
+     */
+    private static final long serialVersionUID = -5153107718227453813L;
 
-	/**
+    /**
      * Constructor.
      * @param message Message explaining the GPIO device exception.
      */

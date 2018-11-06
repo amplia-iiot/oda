@@ -10,19 +10,19 @@ import java.util.concurrent.CompletableFuture;
 
 public class OperationUpdateProxy implements OperationUpdate, AutoCloseable {
 
-	private final OsgiServiceProxy<OperationUpdate> proxy;
-	
-	public OperationUpdateProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(OperationUpdate.class, bundleContext);
-	}
+    private final OsgiServiceProxy<OperationUpdate> proxy;
+    
+    public OperationUpdateProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(OperationUpdate.class, bundleContext);
+    }
 
-	@Override
-	public CompletableFuture<Result> update(String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements) {
-		return proxy.callFirst(op -> op.update(bundleName, bundleVersion, deploymentElements));
-	}
-	
-	@Override
-	public void close() {
-		proxy.close();
-	}
+    @Override
+    public CompletableFuture<Result> update(String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements) {
+        return proxy.callFirst(op -> op.update(bundleName, bundleVersion, deploymentElements));
+    }
+    
+    @Override
+    public void close() {
+        proxy.close();
+    }
 }

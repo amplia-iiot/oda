@@ -10,9 +10,9 @@ public class OpenGateConnectorProxy implements OpenGateConnector, AutoCloseable 
 
     private final OsgiServiceProxy<OpenGateConnector> proxy;
 
-	public OpenGateConnectorProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(OpenGateConnector.class, bundleContext);
-	}
+    public OpenGateConnectorProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(OpenGateConnector.class, bundleContext);
+    }
 
     @Override
     public void uplink(byte[] payload) {

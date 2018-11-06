@@ -8,9 +8,9 @@ public class ScadaTableInfoProxy implements ScadaTableInfo, AutoCloseable {
 
     private final OsgiServiceProxy<ScadaTableInfo> proxy;
 
-	public ScadaTableInfoProxy(BundleContext bundleContext) {
-		proxy = new OsgiServiceProxy<>(ScadaTableInfo.class, bundleContext);
-	}
+    public ScadaTableInfoProxy(BundleContext bundleContext) {
+        proxy = new OsgiServiceProxy<>(ScadaTableInfo.class, bundleContext);
+    }
 
     @Override
     public int getNumBinaryInputs() {

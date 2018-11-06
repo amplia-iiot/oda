@@ -18,8 +18,8 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 
 class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
 
-	private static final Logger logger = LoggerFactory.getLogger(OgJsonDispatcher.class);
-	
+    private static final Logger logger = LoggerFactory.getLogger(OgJsonDispatcher.class);
+    
     private final DeviceInfoProvider deviceInfoProvider;
     private final JsonWriter jsonWriter;
     private final OpenGateConnector connector;
@@ -36,80 +36,80 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
     }
 
     void setReduceBandwidthMode(boolean reduceBandwidthMode) {
-    	this.reduceBandwidthMode = reduceBandwidthMode;
-	}
+        this.reduceBandwidthMode = reduceBandwidthMode;
+    }
 
     @Override
     public void publish(Event event) {
-    	if (periodicSentConfigured(event.getDatastreamId())) {
-    		// If periodic sent is configured for the Datastream ID then save collected value
-    		saveCollectedValue(event, event.getDatastreamId());
-    	} else {
-    		// Else send the value
-	        OutputDatastream outputEvent = translateToOutputDatastream(event);
-	        byte[] payload = jsonWriter.dumpOutput(outputEvent);
-	        connector.uplink(payload);
-    	}
+        if (periodicSentConfigured(event.getDatastreamId())) {
+            // If periodic sent is configured for the Datastream ID then save collected value
+            saveCollectedValue(event, event.getDatastreamId());
+        } else {
+            // Else send the value
+            OutputDatastream outputEvent = translateToOutputDatastream(event);
+            byte[] payload = jsonWriter.dumpOutput(outputEvent);
+            connector.uplink(payload);
+        }
     }
 
     private OutputDatastream translateToOutputDatastream(Event event) {
-		String deviceId = null;
-		String[] path = null;
-		Long at = null;
+        String deviceId = null;
+        String[] path = null;
+        Long at = null;
 
-		if (!reduceBandwidthMode) {
-			String hostId = deviceInfoProvider.getDeviceId();
-			deviceId = event.getDeviceId();
-			deviceId = deviceId.equals("") ? hostId : deviceId;
-			path = getPath(hostId, deviceId, event.getPath());
-			at = event.getAt();
-		}
+        if (!reduceBandwidthMode) {
+            String hostId = deviceInfoProvider.getDeviceId();
+            deviceId = event.getDeviceId();
+            deviceId = deviceId.equals("") ? hostId : deviceId;
+            path = getPath(hostId, deviceId, event.getPath());
+            at = event.getAt();
+        }
 
-		Datapoint datapoint = new Datapoint(at, event.getValue());
-		Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
+        Datapoint datapoint = new Datapoint(at, event.getValue());
+        Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
 
-		return new OutputDatastream(OPENGATE_VERSION, deviceId, path, Collections.singleton(datastream));
+        return new OutputDatastream(OPENGATE_VERSION, deviceId, path, Collections.singleton(datastream));
     }
 
-	private String[] getPath(String hostId, String deviceId, String[] path) {
+    private String[] getPath(String hostId, String deviceId, String[] path) {
         if (hostId == null) {
             return null;
-		} else if (hostId.equals(deviceId)) {
-			return path;
-		} else if (path == null) {
-			return new String[] { hostId };
-		} else {
-			List<String> pathDevices = Arrays.stream(path).collect(Collectors.toList());
-			pathDevices.add(0, hostId);
-			return pathDevices.toArray(new String[0]);
-		}
-	}
+        } else if (hostId.equals(deviceId)) {
+            return path;
+        } else if (path == null) {
+            return new String[] { hostId };
+        } else {
+            List<String> pathDevices = Arrays.stream(path).collect(Collectors.toList());
+            pathDevices.add(0, hostId);
+            return pathDevices.toArray(new String[0]);
+        }
+    }
     
     void setDatastreamIdsConfigured (Collection<Set<String>> config) {
-    	if (!datastreamIdsConfigured.isEmpty()) datastreamIdsConfigured.clear();
-    	config.forEach(ids -> datastreamIdsConfigured.addAll(ids));
+        if (!datastreamIdsConfigured.isEmpty()) datastreamIdsConfigured.clear();
+        config.forEach(ids -> datastreamIdsConfigured.addAll(ids));
     }
     
     private boolean periodicSentConfigured (String datastreamId) {
-    	return datastreamIdsConfigured.contains(datastreamId);
+        return datastreamIdsConfigured.contains(datastreamId);
     }
 
-	@Override
-	public List<Event> getAndCleanCollectedValues(String id) {
-		List<Event> values = collectedValues.get(id);
-		if(values!=null) {
-			collectedValues.remove(id);
-		}
-		return values;
-	}
-	
-	private void saveCollectedValue(Event data, String datastreamId) {
-		logger.debug("Storing values {}", data);
-		if (data == null) {
-			return;
-		}
+    @Override
+    public List<Event> getAndCleanCollectedValues(String id) {
+        List<Event> values = collectedValues.get(id);
+        if(values!=null) {
+            collectedValues.remove(id);
+        }
+        return values;
+    }
+    
+    private void saveCollectedValue(Event data, String datastreamId) {
+        logger.debug("Storing values {}", data);
+        if (data == null) {
+            return;
+        }
 
-		List<Event> values = collectedValues.computeIfAbsent(datastreamId, key -> new ArrayList<>());
-		values.add(data);
-	}
+        List<Event> values = collectedValues.computeIfAbsent(datastreamId, key -> new ArrayList<>());
+        values.add(data);
+    }
 }

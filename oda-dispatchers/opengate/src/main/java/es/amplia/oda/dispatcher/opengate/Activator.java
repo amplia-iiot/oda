@@ -60,9 +60,9 @@ public class Activator implements BundleActivator, ManagedService {
         scheduler = new Scheduler(deviceInfoProvider, eventDispatcher, connector, jsonWriter);
         
         Dictionary<String, String> props = new Hashtable<>();
-	    props.put("service.pid", "es.amplia.opengate.oda.dispatchers.og_json");
-	    context.registerService(ManagedService.class.getName(), this, props);
-	    
+        props.put("service.pid", "es.amplia.opengate.oda.dispatchers.og_json");
+        context.registerService(ManagedService.class.getName(), this, props);
+        
         logger.info("OpenGate Json Dispatcher started");
     }
 
@@ -76,51 +76,51 @@ public class Activator implements BundleActivator, ManagedService {
         registration = null;
         datastreamsTypeMapper = null;
         if(executor!=null) {
-			stopPendingOperations();
-		}
-		executor = null;
-		scheduler = null;
+            stopPendingOperations();
+        }
+        executor = null;
+        scheduler = null;
     }
     
     @Override
-	public void updated(Dictionary<String, ?> properties) {
-		if(properties==null) {
-			logger.info("Collection subsystem updated with null properties");
-			return;
-		}
-		
-		logger.info("Dispatcher OG_JSON updated with {} properties", properties.size());
-		if(executor!=null) {
-			stopPendingOperations();
-		}
-		executor = new ScheduledThreadPoolExecutor(SCHEDULERS_THREAD_POOL_SIZE);
+    public void updated(Dictionary<String, ?> properties) {
+        if(properties==null) {
+            logger.info("Collection subsystem updated with null properties");
+            return;
+        }
+        
+        logger.info("Dispatcher OG_JSON updated with {} properties", properties.size());
+        if(executor!=null) {
+            stopPendingOperations();
+        }
+        executor = new ScheduledThreadPoolExecutor(SCHEDULERS_THREAD_POOL_SIZE);
 
         eventDispatcher.setReduceBandwidthMode(ConfigurationParser.getReduceBandwidthMode(properties));
 
-		Map<ConfigurationParser.Key, Set<String>> schedules  = new HashMap<>();
-		ConfigurationParser.parse(properties, schedules);
-		
-		eventDispatcher.setDatastreamIdsConfigured(schedules.values());
-		
-		schedules.forEach((key,ids)->{
-			logger.debug("Scheduling dispatch of ids={} strating in {} seconds, for every {} seconds", ids,
+        Map<ConfigurationParser.Key, Set<String>> schedules  = new HashMap<>();
+        ConfigurationParser.parse(properties, schedules);
+        
+        eventDispatcher.setDatastreamIdsConfigured(schedules.values());
+        
+        schedules.forEach((key,ids)->{
+            logger.debug("Scheduling dispatch of ids={} strating in {} seconds, for every {} seconds", ids,
                     key.getSecondsFirstDispatch(), key.getSecondsBetweenDispatches());
-			executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), key.getSecondsFirstDispatch(),
+            executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), key.getSecondsFirstDispatch(),
                     key.getSecondsBetweenDispatches(), TimeUnit.SECONDS);
-		});
-	}
+        });
+    }
     
     private void stopPendingOperations() {
-		long timeout = STOP_PENDING_OPERATIONS_TIMEOUT;
-		
-		executor.shutdown();
-		try {
-			executor.awaitTermination(timeout, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			logger.error("The shutdown of the pool of threads its taking more than {} seconds. Will not wait longer.",
+        long timeout = STOP_PENDING_OPERATIONS_TIMEOUT;
+        
+        executor.shutdown();
+        try {
+            executor.awaitTermination(timeout, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            logger.error("The shutdown of the pool of threads its taking more than {} seconds. Will not wait longer.",
                     timeout);
-			Thread.currentThread().interrupt();
-		}
-	}
+            Thread.currentThread().interrupt();
+        }
+    }
 
 }

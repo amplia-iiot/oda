@@ -69,8 +69,8 @@ public class ActivatorTest {
         when(mockedContext.getBundle()).thenReturn(mockedBundle);
         when(mockedBundle.getSymbolicName()).thenReturn(TEST_BUNDLE_NAME);
         
-		when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForDeviceId()).thenReturn(datastreamsGetterForDeviceId);
-		when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForSerialNumber()).thenReturn(datastreamsGetterForSerialNumber);
+        when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForDeviceId()).thenReturn(datastreamsGetterForDeviceId);
+        when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForSerialNumber()).thenReturn(datastreamsGetterForSerialNumber);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class ActivatorTest {
         testActivator.start(mockedContext);
 
         PowerMockito.whenNew(DeviceInfoDatastreamsGetter.class)
-        		.withNoArguments().thenReturn(mockedDeviceDatastreamsGetter);
+                .withNoArguments().thenReturn(mockedDeviceDatastreamsGetter);
         verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForDeviceId), any());
         verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForSerialNumber), any());
         verify(mockedContext).registerService(eq(DeviceInfoProvider.class), eq(mockedDeviceDatastreamsGetter), any());

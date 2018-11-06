@@ -31,7 +31,7 @@ public class CommandProcessor {
      * @throws CommandExecutionException Exception executing the command.
      */
     public static String execute(String command) throws CommandExecutionException {
-    	return execute(command, 5000);
+        return execute(command, 5000);
     }
     
     /**
@@ -42,14 +42,14 @@ public class CommandProcessor {
      * @throws CommandExecutionException Exception executing the command.
      */
     public static String execute(String command, long timeoutMillis) throws CommandExecutionException {
-    	Process processCommand = null;
+        Process processCommand = null;
         try {
             processCommand = Runtime.getRuntime().exec(command);
             if (!processCommand.waitFor(timeoutMillis, TimeUnit.MILLISECONDS)) {
-            	String message = "Timeout (" + timeoutMillis + " ms) reached executing command " + command;
+                String message = "Timeout (" + timeoutMillis + " ms) reached executing command " + command;
                 logger.error(message);
                 processCommand.destroy();
-            	throw new CommandExecutionException(command, message, new TimeoutException());
+                throw new CommandExecutionException(command, message, new TimeoutException());
             }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(processCommand.getInputStream()));

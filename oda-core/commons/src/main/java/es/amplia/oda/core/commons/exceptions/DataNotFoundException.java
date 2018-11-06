@@ -5,9 +5,9 @@ package es.amplia.oda.core.commons.exceptions;
  */
 public class DataNotFoundException extends RuntimeException {
 
-	private static final long serialVersionUID = 2074220411499422789L;
+    private static final long serialVersionUID = 2074220411499422789L;
 
-	/**
+    /**
      * Constructor.
      * @param message Exception message.
      */

@@ -11,22 +11,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
-	private static final Logger logger = LoggerFactory.getLogger(Activator.class);
+    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
 
-	private ServiceRegistration<?> registration;
+    private ServiceRegistration<?> registration;
 
-	@Override
-	public void start(BundleContext context) {
-		logger.info("Starting Operation RefreshInfo Activator");
-		DatastreamsGettersLocator datastreamsGettersLocator = new DatastreamsGettersLocatorOsgi(context);
-		registration = context.registerService(OperationRefreshInfo.class.getName(), new OperationRefreshInfoImpl(datastreamsGettersLocator), null);
-		logger.info("Operation RefreshInfo started");
-	}
+    @Override
+    public void start(BundleContext context) {
+        logger.info("Starting Operation RefreshInfo Activator");
+        DatastreamsGettersLocator datastreamsGettersLocator = new DatastreamsGettersLocatorOsgi(context);
+        registration = context.registerService(OperationRefreshInfo.class.getName(), new OperationRefreshInfoImpl(datastreamsGettersLocator), null);
+        logger.info("Operation RefreshInfo started");
+    }
 
-	@Override
-	public void stop(BundleContext context) {
-		logger.info("Stopping Operation RefreshInfo Activator");
-		registration.unregister();
-		logger.info("Operation RefreshInfo stopped");
-	}
+    @Override
+    public void stop(BundleContext context) {
+        logger.info("Stopping Operation RefreshInfo Activator");
+        registration.unregister();
+        logger.info("Operation RefreshInfo stopped");
+    }
 }
