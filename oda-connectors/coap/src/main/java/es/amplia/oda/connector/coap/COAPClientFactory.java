@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.connector.coap.at.ATUDPConnector;
 import es.amplia.oda.connector.coap.configuration.ConnectorConfiguration;
+
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.coap.Option;
 import org.eclipse.californium.core.coap.OptionSet;
@@ -12,12 +13,24 @@ import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.Endpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.elements.Connector;
+import org.eclipse.californium.elements.UDPConnector;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.*;
+import java.security.cert.Certificate;
 
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.ConnectorType;
 
 class COAPClientFactory {
 
-    static final String COAP_SCHEME = "coap";
+    private static final Logger LOGGER = LoggerFactory.getLogger(COAPClientFactory.class);
 
     static final long MS_PER_SECOND = 1000;
 
@@ -34,25 +47,58 @@ class COAPClientFactory {
     }
 
     CoapClient createClient(ConnectorConfiguration configuration) {
-        CoapClient client = new CoapClient.Builder(configuration.getRemoteHost(), configuration.getRemotePort())
-                                .scheme(COAP_SCHEME)
+        CoapClient client = new CoapClient.Builder(configuration.getHost(), configuration.getPort())
+                                .scheme(configuration.getScheme())
                                 .path(configuration.getPath(), configuration.getProvisionPath())
                                 .query()
                                 .create();
+        Connector connector = createConnectorFromConfiguration(configuration);
+        Endpoint endpoint = new CoapEndpoint(connector, NetworkConfig.getStandard());
+        client.setEndpoint(endpoint);
         client.setTimeout(configuration.getTimeout() * MS_PER_SECOND);
-
-        setConnectorFromType(client, configuration);
 
         return client;
     }
 
-    private void setConnectorFromType(CoapClient client, ConnectorConfiguration configuration) {
+    private Connector createConnectorFromConfiguration(ConnectorConfiguration configuration) {
         if (configuration.getType().equals(ConnectorType.AT)) {
-            Connector atConnector =
-                    new ATUDPConnector(atManager, configuration.getRemoteHost(), configuration.getRemotePort(),
-                            configuration.getLocalPort());
-            Endpoint endpoint = new CoapEndpoint(atConnector, NetworkConfig.getStandard());
-            client.setEndpoint(endpoint);
+            return new ATUDPConnector(atManager, configuration.getHost(), configuration.getPort(),
+                    configuration.getLocalPort());
+        } else if (configuration.getType().equals(ConnectorType.DTLS)){
+            try (FileInputStream keyStoreStream = new FileInputStream(configuration.getKeyStoreLocation());
+                 FileInputStream trustStoreStream = new FileInputStream(configuration.getTrustStoreLocation())) {
+                KeyStore keyStore = KeyStore.getInstance(configuration.getKeyStoreType());
+                keyStore.load(keyStoreStream, configuration.getKeyStorePassword().toCharArray());
+
+                KeyStore trustStore = KeyStore.getInstance(configuration.getTrustStoreType());
+                trustStore.load(trustStoreStream, configuration.getTrustStorePassword().toCharArray());
+                Certificate[] trustedCertificates = new Certificate[1];
+                trustedCertificates[0] = trustStore.getCertificate(configuration.getOpenGateCertificateAlias());
+
+                InetSocketAddress inetSocketAddress = new InetSocketAddress(configuration.getLocalPort());
+                DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(inetSocketAddress);
+                builder.setIdentity((PrivateKey) keyStore.getKey(configuration.getClientKeyAlias(), configuration.getKeyStorePassword().toCharArray()),
+                        keyStore.getCertificateChain(configuration.getClientKeyAlias()), false);
+                builder.setClientOnly();
+                builder.setTrustStore(trustedCertificates);
+                builder.setSupportedCipherSuites(new CipherSuite[]{ CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 });
+
+                return new DTLSConnector(builder.build());
+            } catch (IllegalStateException | GeneralSecurityException | IOException ex) {
+                LOGGER.error("Error creating CoAP DTLS Connector: {}", ex);
+                throw new ConfigurationException("Error creating Coap Connector: Invalid configuration");
+            }
+        } else {
+            UDPConnector udpConnector = new UDPConnector(new InetSocketAddress(configuration.getLocalPort()));
+            NetworkConfig config = NetworkConfig.getStandard();
+
+            udpConnector.setReceiverThreadCount(config.getInt(NetworkConfig.Keys.NETWORK_STAGE_RECEIVER_THREAD_COUNT));
+            udpConnector.setSenderThreadCount(config.getInt(NetworkConfig.Keys.NETWORK_STAGE_SENDER_THREAD_COUNT));
+            udpConnector.setReceiveBufferSize(config.getInt(NetworkConfig.Keys.UDP_CONNECTOR_RECEIVE_BUFFER));
+            udpConnector.setSendBufferSize(config.getInt(NetworkConfig.Keys.UDP_CONNECTOR_SEND_BUFFER));
+            udpConnector.setReceiverPacketSize(config.getInt(NetworkConfig.Keys.UDP_CONNECTOR_DATAGRAM_SIZE));
+
+            return udpConnector;
         }
     }
 
