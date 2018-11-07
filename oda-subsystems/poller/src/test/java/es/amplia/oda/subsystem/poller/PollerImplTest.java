@@ -13,7 +13,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 public class PollerImplTest {
@@ -43,7 +42,7 @@ public class PollerImplTest {
     private CompletableFuture<CollectedValue> futureForId2;
     
     private PollerImpl collector;
-    
+
     @Mock
     private DatastreamsGetterFinderImpl datastreamsGettersFinder;
     @Mock
@@ -100,7 +99,7 @@ public class PollerImplTest {
     }
     
     @Test
-    public void ifThereAreNoGetterSatisfiyingAnIdListRunForDoesntDoAnything() {
+    public void ifThereAreNoGetterSatisfyingAnIdListRunForDoesntDoAnything() {
         when(datastreamsGettersFinder.getGettersSatisfying(DEVICE_ID_PATTERN, ID1_AND_ID2))
                 .thenReturn(new DatastreamsGetterFinder.Return(Collections.emptyList(), ID1_AND_ID2));
         
