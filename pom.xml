@@ -218,6 +218,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>es.amplia.oda.connector</groupId>
+                <artifactId>coap</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>es.amplia.oda.event</groupId>
                 <artifactId>api</artifactId>
                 <version>${project.version}</version>

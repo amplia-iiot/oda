@@ -10,6 +10,7 @@
     <description>Demos of the OpenGate Device Agent</description>
     <modules>
         <module>assembler</module>
+        <module>coapagentassembler</module>
     </modules>
 
     <parent>
