@@ -1,22 +1,10 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
-import lombok.Data;
+import lombok.Value;
 
-/**
- * Device information configuration.
- */
-@Data
+@Value
 public class DeviceInfoConfiguration {
-    /**
-     * Device identifier preconfigured.
-     */
-    private final String deviceId;
-    /**
-     * API Key.
-     */
-    private final String apiKey;
-    /**
-     * Platform command to get the serial number.
-     */
-    private final String serialNumberCommand;
+    private String deviceId;
+    private String apiKey;
+    private String serialNumberCommand;
 }

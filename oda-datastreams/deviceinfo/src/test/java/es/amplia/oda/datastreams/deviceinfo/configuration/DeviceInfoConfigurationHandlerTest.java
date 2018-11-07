@@ -22,8 +22,10 @@ import static org.mockito.Mockito.verify;
 public class DeviceInfoConfigurationHandlerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
-    private static final String TEST_API_KEY = "aaaaaaaa-1b2b-ccdd-99zz-1q23456w7ee8";
+    private static final String TEST_API_KEY = "an-api-key";
     private static final String TEST_SERIAL_NUMBER_COMMAND  = "cmd-to-get --serial-number";
+    private static final DeviceInfoConfiguration TEST_CONFIGURATION =
+            new DeviceInfoConfiguration(TEST_DEVICE_ID, TEST_API_KEY, TEST_SERIAL_NUMBER_COMMAND);
 
     private static final String CURRENT_CONFIGURATION_FIELD_NAME = "currentConfiguration";
 
@@ -31,9 +33,6 @@ public class DeviceInfoConfigurationHandlerTest {
     private DeviceInfoDatastreamsGetter mockedDeviceInfoDatastreamsGetter;
     @InjectMocks
     private DeviceInfoConfigurationHandler testHandler;
-
-    @Mock
-    private DeviceInfoConfiguration mockedConfiguration;
 
     @Test
     public void testLoadConfiguration() {
@@ -93,11 +92,11 @@ public class DeviceInfoConfigurationHandlerTest {
     }
 
     @Test
-    public void testApplyConfiguration() throws Exception {
-        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, mockedConfiguration);
+    public void testApplyConfiguration() {
+        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
 
         testHandler.applyConfiguration();
 
-        verify(mockedDeviceInfoDatastreamsGetter).loadConfiguration(eq(mockedConfiguration));
+        verify(mockedDeviceInfoDatastreamsGetter).loadConfiguration(eq(TEST_CONFIGURATION));
     }
 }

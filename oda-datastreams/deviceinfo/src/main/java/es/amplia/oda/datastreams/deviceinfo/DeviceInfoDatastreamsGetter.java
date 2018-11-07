@@ -13,46 +13,43 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Datastreams getter with device information.
- */
 public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
-    /**
-     * Class logger.
-     */
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceInfoDatastreamsGetter.class);
+
+    static final String DEVICE_ID_DATASTREAM_ID = "deviceId";
+    static final String SERIAL_NUMBER_DATASTREAM_ID = "provision.device.serialNumber";
+
+    private final CommandProcessor commandProcessor;
 
     private String deviceId;
     private String apiKey;
     private String serialNumber;
 
-    /**
-     * Load the configuration of the device info datastreams getter.
-     * @param configuration Configuration to load.
-     * @throws CommandExecutionException Exception executing the configured commands.
-     */
-    public void loadConfiguration(DeviceInfoConfiguration configuration) throws CommandExecutionException {
+
+    DeviceInfoDatastreamsGetter(CommandProcessor commandProcessor) {
+        this.commandProcessor = commandProcessor;
+    }
+
+    public void loadConfiguration(DeviceInfoConfiguration configuration) {
         deviceId = configuration.getDeviceId();
         logger.info("Load new device identifier: {}", deviceId);
         apiKey = configuration.getApiKey();
         logger.info("Load new API key: {}", apiKey);
-        serialNumber = CommandProcessor.execute(configuration.getSerialNumberCommand());
-        logger.info("Load new serial number: {}", serialNumber);
+        try {
+            serialNumber = commandProcessor.execute(configuration.getSerialNumberCommand());
+            logger.info("Load new serial number: {}", serialNumber);
+        } catch (CommandExecutionException ex) {
+            logger.error("Error executing serial number command '{}': {}", configuration.getSerialNumberCommand(),
+                    ex);
+        }
     }
 
-    /**
-     * Get the device identifier.
-     * @return The preconfigured device identifier or, if not present, the serial number.
-     */
     @Override
     public String getDeviceId() {
         return deviceId != null ? deviceId : serialNumber;
     }
 
-    /**
-     * Get the API key.
-     * @return The device API key.
-     */
     @Override
     public String getApiKey() {
         return apiKey;
@@ -62,7 +59,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         return new DatastreamsGetter() {
             @Override
             public String getDatastreamIdSatisfied() {
-                return DatastreamIds.DEVICE_ID;
+                return DEVICE_ID_DATASTREAM_ID;
             }
             @Override
             public List<String> getDevicesIdManaged() {
@@ -81,7 +78,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         return new DatastreamsGetter() {
             @Override
             public String getDatastreamIdSatisfied() {
-                return DatastreamIds.SERIAL_NUMBER;
+                return SERIAL_NUMBER_DATASTREAM_ID;
             }
             @Override
             public List<String> getDevicesIdManaged() {
