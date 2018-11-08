@@ -2,6 +2,7 @@ package es.amplia.oda.hardware.jdkdio;
 
 import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.jdkdio.configuration.JDkDioConfigurationHandler;
 import es.amplia.oda.hardware.jdkdio.gpio.JdkDioGpioService;
 
@@ -27,7 +28,7 @@ public class Activator implements BundleActivator {
         gpioService = new JdkDioGpioService();
 
         JDkDioConfigurationHandler configHandler = new JDkDioConfigurationHandler(gpioService);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         gpioServiceRegistration = bundleContext.registerService(GpioService.class, gpioService, null);
 
         LOGGER.info("JDK Device I/O bundle started");

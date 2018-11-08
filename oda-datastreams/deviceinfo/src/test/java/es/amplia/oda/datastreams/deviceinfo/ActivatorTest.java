@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.deviceinfo;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
 import org.junit.Test;
@@ -33,7 +33,7 @@ public class ActivatorTest {
     @Mock
     private DeviceInfoConfigurationHandler mockedConfigHandler;
     @Mock
-    private ConfigurableBundle mockedConfigBundle;
+    private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private DatastreamsGetter datastreamsGetterForDeviceId;
     @Mock
@@ -53,13 +53,13 @@ public class ActivatorTest {
         when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForDeviceId()).thenReturn(datastreamsGetterForDeviceId);
         when(mockedDeviceDatastreamsGetter.getDatastreamsGetterForSerialNumber()).thenReturn(datastreamsGetterForSerialNumber);
         PowerMockito.whenNew(DeviceInfoConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundle.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(DeviceInfoDatastreamsGetter.class).withArguments(mockedCommandProcessor);
         PowerMockito.verifyNew(DeviceInfoConfigurationHandler.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(ConfigurableBundle.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(DeviceInfoProvider.class), eq(mockedDeviceDatastreamsGetter), any());
         verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForDeviceId), any());
         verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForSerialNumber), any());

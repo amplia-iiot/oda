@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.gpio;
 import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.osgi.proxies.GpioServiceProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.datastreams.gpio.configuration.DatastreamsGpioConfigurationHandler;
 import es.amplia.oda.event.api.EventDispatcherProxy;
@@ -39,7 +39,7 @@ public class ActivatorTest {
     @Mock
     private DatastreamsGpioConfigurationHandler mockedConfigHandler;
     @Mock
-    private ConfigurableBundle mockedConfigurableBundle;
+    private ConfigurableBundleImpl mockedConfigurableBundle;
     @Mock
     private ServiceListenerBundle<GpioService> mockedGpioServiceListener;
     @Mock
@@ -52,7 +52,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(GpioDatastreamsRegistry.class).withAnyArguments().thenReturn(mockedRegistry);
         PowerMockito.whenNew(DatastreamsGpioConfigurationHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundle.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class)
                 .withArguments(any(BundleContext.class), eq(GpioService.class), any())
                 .thenReturn(mockedGpioServiceListener);
@@ -68,7 +68,7 @@ public class ActivatorTest {
                 .withArguments(eq(mockedContext), eq(mockedGpioService), eq(mockedEventDispatcher));
         PowerMockito.verifyNew(DatastreamsGpioConfigurationHandler.class)
                 .withArguments(eq(mockedRegistry), eq(mockedGpioService));
-        PowerMockito.verifyNew(ConfigurableBundle.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         PowerMockito.verifyNew(ServiceListenerBundle.class)
                 .withArguments(eq(mockedContext), eq(GpioService.class), any(Runnable.class));
         PowerMockito.verifyNew(ServiceListenerBundle.class)

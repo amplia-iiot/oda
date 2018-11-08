@@ -1,10 +1,10 @@
 package es.amplia.oda.connector.thingstream;
 
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atserver.api.ATManagerProxy;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DispatcherProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.connector.thingstream.configuration.ConfigurationUpdateHandlerImpl;
 
@@ -41,7 +41,7 @@ public class ActivatorTest {
     @Mock
     private ConfigurationUpdateHandlerImpl mockedConfigHandler;
     @Mock
-    private ConfigurableBundle mockedConfigBundle;
+    private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private ServiceListenerBundle<ATManager> mockedAtManagerServiceListener;
     @Mock
@@ -54,7 +54,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(DispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcherProxy);
         PowerMockito.whenNew(ThingstreamConnector.class).withAnyArguments().thenReturn(mockedConnector);
         PowerMockito.whenNew(ConfigurationUpdateHandlerImpl.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundle.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedAtManagerServiceListener);
 
         testActivator.start(mockedContext);
@@ -64,7 +64,7 @@ public class ActivatorTest {
         PowerMockito.verifyNew(ThingstreamConnector.class)
                 .withArguments(eq(mockedATManagerProxy), eq(mockedDispatcherProxy));
         PowerMockito.verifyNew(ConfigurationUpdateHandlerImpl.class).withArguments(eq(mockedConnector));
-        PowerMockito.verifyNew(ConfigurableBundle.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         PowerMockito.verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(ATManager.class), any());
         verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
     }

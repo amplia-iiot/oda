@@ -2,10 +2,7 @@ package es.amplia.oda.datastreams.deviceinfo;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
-import es.amplia.oda.core.commons.utils.CommandProcessor;
-import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
-import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
 import org.osgi.framework.BundleActivator;
@@ -32,7 +29,7 @@ public class Activator implements BundleActivator {
         CommandProcessor commandProcessor = new CommandProcessorImpl();
         DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter = new DeviceInfoDatastreamsGetter(commandProcessor);
         ConfigurationUpdateHandler configHandler = new DeviceInfoConfigurationHandler(deviceInfoDatastreamsGetter);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
         deviceIdProviderRegistration =
                 bundleContext.registerService(DeviceInfoProvider.class, deviceInfoDatastreamsGetter, null);

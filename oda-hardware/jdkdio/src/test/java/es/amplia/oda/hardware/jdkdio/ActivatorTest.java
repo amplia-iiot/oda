@@ -1,7 +1,7 @@
 package es.amplia.oda.hardware.jdkdio;
 
 import es.amplia.oda.core.commons.gpio.GpioService;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.jdkdio.configuration.JDkDioConfigurationHandler;
 import es.amplia.oda.hardware.jdkdio.gpio.JdkDioGpioService;
 
@@ -34,7 +34,7 @@ public class ActivatorTest {
     @Mock
     private JDkDioConfigurationHandler mockedConfigHandler;
     @Mock
-    private ConfigurableBundle mockedConfigBundle;
+    private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private ServiceRegistration<GpioService> mockedRegistration;
 
@@ -42,13 +42,13 @@ public class ActivatorTest {
     public void start() throws Exception {
         PowerMockito.whenNew(JdkDioGpioService.class).withAnyArguments().thenReturn(mockedGpioService);
         PowerMockito.whenNew(JDkDioConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundle.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(JdkDioGpioService.class).withNoArguments();
         PowerMockito.verifyNew(JDkDioConfigurationHandler.class).withArguments(eq(mockedGpioService));
-        PowerMockito.verifyNew(ConfigurableBundle.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(GpioService.class), eq(mockedGpioService), any());
     }
 

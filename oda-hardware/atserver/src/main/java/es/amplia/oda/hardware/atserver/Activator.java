@@ -1,6 +1,7 @@
 package es.amplia.oda.hardware.atserver;
 
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
@@ -25,7 +26,7 @@ public class Activator implements BundleActivator {
                 new ServiceRegistrationManagerOsgi<>(bundleContext, ATManager.class);
         atServer = new ATServer(atManagerRegistrationManager);
         ATServerConfigurationUpdateHandler configHandler = new ATServerConfigurationUpdateHandler(atServer);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
         LOGGER.info("AT Server started");
     }

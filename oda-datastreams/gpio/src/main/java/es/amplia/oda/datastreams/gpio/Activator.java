@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.osgi.proxies.GpioServiceProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.datastreams.gpio.configuration.DatastreamsGpioConfigurationHandler;
@@ -39,7 +40,7 @@ public class Activator implements BundleActivator {
 
         ConfigurationUpdateHandler configurationHandler =
                 new DatastreamsGpioConfigurationHandler(registry, gpioService);
-        configurableBundle = new ConfigurableBundle(bundleContext, configurationHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationHandler);
         gpioServiceListener = new ServiceListenerBundle<>(bundleContext, GpioService.class,
                 () -> onServiceChanged(configurationHandler));
         deviceInfoProviderServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,

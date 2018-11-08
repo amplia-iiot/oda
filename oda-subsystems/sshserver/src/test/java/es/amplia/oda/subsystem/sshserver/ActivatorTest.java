@@ -1,6 +1,6 @@
 package es.amplia.oda.subsystem.sshserver;
 
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.subsystem.sshserver.configuration.SshConfigurationUpdateHandler;
 import es.amplia.oda.subsystem.sshserver.internal.ConfigurablePasswordAuthenticatorImpl;
@@ -46,7 +46,7 @@ public class ActivatorTest {
     @Mock
     private SshConfigurationUpdateHandler mockedConfigHandler;
     @Mock
-    private ConfigurableBundle mockedConfigBundle;
+    private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private ServiceListenerBundle<CommandProcessor> mockedServiceListener;
 
@@ -58,7 +58,7 @@ public class ActivatorTest {
                 .thenReturn(mockedPasswordAuthenticator);
         PowerMockito.whenNew(SshCommandShell.class).withAnyArguments().thenReturn(mockedSshCommandShell);
         PowerMockito.whenNew(SshConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundle.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedServiceListener);
 
         testActivator.start(mockedContext);
@@ -68,7 +68,7 @@ public class ActivatorTest {
         PowerMockito.verifyNew(SshCommandShell.class)
                 .withArguments(eq(mockedCommandProcessor), eq(mockedPasswordAuthenticator));
         PowerMockito.verifyNew(SshConfigurationUpdateHandler.class).withArguments(eq(mockedSshCommandShell));
-        PowerMockito.verifyNew(ConfigurableBundle.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         PowerMockito.verifyNew(ServiceListenerBundle.class)
                 .withArguments(eq(mockedContext), eq(CommandProcessor.class), any(Runnable.class));
     }

@@ -1,25 +1,23 @@
 package es.amplia.oda.core.commons.utils;
 
+import es.amplia.oda.core.commons.osgi.proxies.EventAdminProxy;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.*;
+import java.util.Collections;
 
-/**
- * Class implementing the OSGi ManagedService to allow the bundle configuration
- * and responsible to send an OSGi event notifying the result of the
- * configuration update.
- */
-public class ConfigurableBundleNotifierService implements ManagedService {
+public class ConfigurableBundleImpl implements ConfigurableBundle {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurableBundleNotifierService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurableBundleImpl.class);
 
     static final String CONFIGURATION_EVENT_BASE_TOPIC = "org/osgi/service/cm/ConfigurationEvent/";
     static final String CONFIGURATION_UPDATED_EVENT = "CM_UPDATED";
@@ -30,47 +28,36 @@ public class ConfigurableBundleNotifierService implements ManagedService {
     static final String CONFIGURATION_UPDATED_MESSAGE = "Configuration updated";
     static final String CONFIGURATION_DELETED_MESSAGE = "Configuration deleted";
 
-    private String bundleName;
+    private final String bundleName;
+    private final EventAdminProxy eventAdmin;
+    private final ConfigurationUpdateHandler handler;
+    private final List<ServiceRegistration<?>> serviceRegistrations;
 
-    private ConfigurationUpdateHandler handler;
+    private final ServiceRegistration<ManagedService> configServiceRegistration;
 
-    private EventAdmin eventAdmin;
 
-    private List<ServiceRegistration<?>> serviceRegistrations;
-
-    /**
-     * Constructor.
-     * @param bundleName Configurable bundle symbolic name.
-     * @param handler Configuration update handler.
-     * @param eventAdmin Event admin.
-     * @param serviceRegistrations Service Registrations.
-     */
-    public ConfigurableBundleNotifierService(String bundleName, ConfigurationUpdateHandler handler,
-                                             EventAdmin eventAdmin, List<ServiceRegistration<?>> serviceRegistrations) {
-        this.bundleName = bundleName;
+    public ConfigurableBundleImpl(BundleContext bundleContext, ConfigurationUpdateHandler handler,
+                                  List<ServiceRegistration<?>> serviceInterfacesToNotify) {
+        this.bundleName = bundleContext.getBundle().getSymbolicName();
+        this.eventAdmin = new EventAdminProxy(bundleContext);
         this.handler = handler;
-        this.eventAdmin = eventAdmin;
-        this.serviceRegistrations = serviceRegistrations;
+        this.serviceRegistrations = serviceInterfacesToNotify;
+
+        Dictionary<String, Object> managedServiceProps = new Hashtable<>();
+        managedServiceProps.put(Constants.SERVICE_PID, bundleName);
+        this.configServiceRegistration =
+                bundleContext.registerService(ManagedService.class, this, managedServiceProps);
     }
 
-    /**
-     * Constructor.
-     * @param bundleName Configurable bundle symbolic name.
-     * @param handler Configuration update handler.
-     * @param eventAdmin Event admin.
-     */
-    public ConfigurableBundleNotifierService(String bundleName, ConfigurationUpdateHandler handler,
-                                             EventAdmin eventAdmin) {
-        this(bundleName, handler, eventAdmin, Collections.emptyList());
+    public ConfigurableBundleImpl(BundleContext bundleContext, ConfigurationUpdateHandler handler) {
+        this(bundleContext, handler, Collections.emptyList());
     }
 
+    @Override
+    public void persistConfiguration(Dictionary<String, ?> props) {
+        configServiceRegistration.setProperties(props);
+    }
 
-
-    /**
-     * Update the configuration of the bundle.
-     * @param props Configuration properties.
-     * @throws ConfigurationException Exception during the configuration of the bundle.
-     */
     @Override
     public void updated(Dictionary<String, ?> props) throws ConfigurationException {
         String configurationEvent = null;
@@ -99,19 +86,10 @@ public class ConfigurableBundleNotifierService implements ManagedService {
         }
     }
 
-    /**
-     * Set service registrations properties to notify to service listeners.
-     * @param props Properties to set.
-     */
     private void setServiceRegistrationsProperties(Dictionary<String, ?> props) {
         serviceRegistrations.forEach(serviceRegistration -> serviceRegistration.setProperties(props));
     }
 
-    /**
-     * Notify the configuration result.
-     * @param type Configuration type.
-     * @param message Configuration result message.
-     */
     private void sendConfigurationEvent(String type, String message) {
         try {
             String topic = CONFIGURATION_EVENT_BASE_TOPIC + type;
@@ -122,7 +100,13 @@ public class ConfigurableBundleNotifierService implements ManagedService {
             Event event = new Event(topic, properties);
             eventAdmin.postEvent(event);
         } catch (Exception exception) {
-            logger.warn("Configuration update event cannot be sent: {}", exception.getMessage());
+            LOGGER.warn("Configuration update event cannot be sent: {}", exception.getMessage());
         }
+    }
+
+    @Override
+    public void close() {
+        configServiceRegistration.unregister();
+        eventAdmin.close();
     }
 }

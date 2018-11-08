@@ -1,6 +1,7 @@
 package es.amplia.oda.subsystem.sshserver;
 
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.subsystem.sshserver.configuration.SshConfigurationUpdateHandler;
@@ -34,7 +35,7 @@ public class Activator implements BundleActivator {
         ConfigurablePasswordAuthenticator passwordAuthenticator = new ConfigurablePasswordAuthenticatorImpl();
         sshCommandShell = new SshCommandShell(commandProcessor, passwordAuthenticator);
         configHandler = new SshConfigurationUpdateHandler(sshCommandShell);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         commandProcessorListenerBundle =
                 new ServiceListenerBundle<>(bundleContext, CommandProcessor.class, this::onServiceChanged);
 

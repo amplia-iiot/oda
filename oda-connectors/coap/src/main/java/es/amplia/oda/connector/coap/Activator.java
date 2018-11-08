@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.coap;
 
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atserver.api.ATManagerProxy;
 import es.amplia.oda.connector.coap.configuration.ConfigurationUpdateHandlerImpl;
@@ -39,7 +40,7 @@ public class Activator implements BundleActivator {
         COAPClientFactory coapClientFactory = new COAPClientFactory(deviceInfoProvider, atManager);
         connector = new COAPConnector(coapClientFactory);
         configHandler = new ConfigurationUpdateHandlerImpl(connector);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         deviceInfoServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,
                 this::onServiceChanged);
         atManagerServiceListener = new ServiceListenerBundle<>(bundleContext, ATManager.class, this::onServiceChanged);

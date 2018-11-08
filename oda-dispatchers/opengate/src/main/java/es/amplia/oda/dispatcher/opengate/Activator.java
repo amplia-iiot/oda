@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.DatastreamSetterTypeMapperImpl;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
@@ -68,7 +69,7 @@ public class Activator implements BundleActivator {
         Scheduler scheduler = new SchedulerImpl(deviceInfoProvider, eventDispatcher, connector, jsonWriter);
         DispatcherConfigurationUpdateHandler configHandler =
                 new DispatcherConfigurationUpdateHandler(executor, eventDispatcher, scheduler);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         
         LOGGER.info("OpenGate Dispatcher started");
     }

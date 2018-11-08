@@ -1,6 +1,7 @@
 package es.amplia.oda.subsystem.poller;
 
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersLocator;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersLocatorOsgi;
 import es.amplia.oda.event.api.EventDispatcherProxy;
@@ -37,7 +38,7 @@ public class Activator implements BundleActivator {
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         Poller poller = new PollerImpl(datastreamsGetterFinder, eventDispatcher);
         PollerConfigurationUpdateHandler configHandler = new PollerConfigurationUpdateHandler(executor, poller);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         
         LOGGER.info("Poller Subsystem started");
     }

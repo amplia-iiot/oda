@@ -7,6 +7,7 @@ import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.DispatcherProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 
 import org.osgi.framework.*;
@@ -41,7 +42,7 @@ public class Activator implements BundleActivator {
         deviceIdProvider = new DeviceInfoProviderProxy(bundleContext);
         ConfigurationUpdateHandlerImpl configUpdateHandler =
                 new ConfigurationUpdateHandlerImpl(connector, deviceIdProvider);
-        configurableBundle = new ConfigurableBundle(bundleContext, configUpdateHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configUpdateHandler);
         deviceInfoServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,
                 () -> onServiceChanged(configUpdateHandler));
 

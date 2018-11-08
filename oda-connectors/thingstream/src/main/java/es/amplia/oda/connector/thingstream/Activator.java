@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.thingstream;
 
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atserver.api.ATManagerProxy;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -36,7 +37,7 @@ public class Activator implements BundleActivator {
         connector = new ThingstreamConnector(atManager, dispatcher);
 
         ConfigurationUpdateHandler configHandler = new ConfigurationUpdateHandlerImpl(connector);
-        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
         atManagerServiceListener = new ServiceListenerBundle<>(bundleContext, ATManager.class,
                 () -> onServiceChanged(configHandler));
