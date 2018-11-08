@@ -42,5 +42,4 @@ public class RequestGetDeviceParameters extends Request {
     public static class VariableListElement {
         String variableName;
     }
-
 }

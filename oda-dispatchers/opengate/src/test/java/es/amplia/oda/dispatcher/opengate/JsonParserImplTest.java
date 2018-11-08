@@ -7,10 +7,11 @@ import com.google.gson.reflect.TypeToken;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class JsonParserImplTest {
     private final String SET_HEADER =
             "{" +
@@ -39,15 +41,11 @@ public class JsonParserImplTest {
                     "}" + //request
                     "}" + //operation
                     "}";
-    private JsonParserImpl jsonParser;
+
     @Mock
     private DatastreamSetterTypeMapper datastreamsTypeMapper;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        jsonParser = new JsonParserImpl(datastreamsTypeMapper);
-    }
+    @InjectMocks
+    private JsonParserImpl jsonParser;
 
     @Test(expected = IllegalArgumentException.class)
     public void forNull_ThrowsException() {
@@ -79,13 +77,13 @@ public class JsonParserImplTest {
     }
 
     @Test()
-    public void aValidJsonWithUnknownStruct_ReturnsAnEmptyStruct() {
+    public void aValidJsonWithUnknownStructReturnsAnEmptyStruct() {
         Input actual = jsonParser.parseInput("{\"a\":\"b\"}".getBytes());
         assertNotNull(actual);
     }
 
     @Test
-    public void aValidOperationWithoutRequest_ReturnsAnEmptyOperation() {
+    public void aValidOperationWithoutRequestReturnsAnEmptyOperation() {
         Input actual = jsonParser.parseInput("{\"operation\": {} }".getBytes());
 
         Input expected = new Input(new InputOperation(null));
@@ -251,7 +249,7 @@ public class JsonParserImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getDevicesParametersWithAParameterWithInvalidTypeForValue_Throws() {
+    public void getDevicesParametersWithAParameterWithInvalidTypeForValueThrows() {
         String json =
                 "{" +
                         "\"operation\": {" +
@@ -270,7 +268,7 @@ public class JsonParserImplTest {
     }
 
     @Test
-    public void getDevicesParametersWithAParameterWithAValueWithoutArray_Works() {
+    public void getDevicesParametersWithAParameterWithAValueWithoutArrayWorks() {
         String json =
                 "{" +
                         "\"operation\": {" +
@@ -305,7 +303,7 @@ public class JsonParserImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getDevicesParametersWithAParameterWithAValueWithAnArrayOfInvalidType_Throws() {
+    public void getDevicesParametersWithAParameterWithAValueWithAnArrayOfInvalidTypeThrows() {
         String json =
                 "{" +
                         "\"operation\": {" +
@@ -326,7 +324,7 @@ public class JsonParserImplTest {
     }
 
     @Test
-    public void completeGetDevice_Works() {
+    public void completeGetDeviceWorks() {
         String json =
                 "{" +
                         "\"operation\": {" +
@@ -375,7 +373,7 @@ public class JsonParserImplTest {
     }
 
     @Test
-    public void completeUpdate_Works() {
+    public void completeUpdateWorks() {
         String json =
                 "{" +
                         "\"operation\": {" +
@@ -462,7 +460,7 @@ public class JsonParserImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setDeviceParametersNeedsFieldvariableNameForEveryElementInVariableList() {
+    public void setDeviceParametersNeedsFieldVariableNameForEveryElementInVariableList() {
         String json = SET_HEADER + "," +
                 "\"value\": {" +
                 "\"array\": [" +
@@ -476,7 +474,7 @@ public class JsonParserImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void inASetDeviceParameters_VariableNameCannotBeAComplexJsonObject() {
+    public void inASetDeviceParametersVariableNameCannotBeAComplexJsonObject() {
         String json = SET_HEADER + "," +
                 "\"value\": {" +
                 "\"array\": [" +
@@ -490,7 +488,7 @@ public class JsonParserImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void inASetDeviceParameters_VariableNameMustBeAString() {
+    public void inASetDeviceParametersVariableNameMustBeAString() {
         String json = SET_HEADER + "," +
                 "\"value\": {" +
                 "\"array\": [" +
@@ -504,7 +502,7 @@ public class JsonParserImplTest {
     }
 
     @Test
-    public void inASetDeviceParameters_VariableNameIsSearchedInDatastreamsTypeMapper() {
+    public void inASetDeviceParametersVariableNameIsSearchedInDatastreamsTypeMapper() {
         String json = SET_HEADER + "," +
                 "\"value\": {" +
                 "\"array\": [" +
@@ -521,7 +519,7 @@ public class JsonParserImplTest {
     }
 
     @Test
-    public void inASetDeviceParameters_ANotRegisteredIdentifierLeavesTheValueToNull() {
+    public void inASetDeviceParametersANotRegisteredIdentifierLeavesTheValueToNull() {
         String json = SET_HEADER + "," +
                 "\"value\": {" +
                 "\"array\": [" +
@@ -532,21 +530,21 @@ public class JsonParserImplTest {
                 "]" +
                 "}" +
                 SET_FOOTER;
-        RequestSetDeviceParameters actual = (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
+        RequestSetDeviceParameters actual =
+                (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
 
-
-        RequestSetDeviceParameters.VariableListElement variableListElement = actual.getParameters().get(0).getValue().getArray().get(0);
+        RequestSetDeviceParameters.VariableListElement variableListElement =
+                actual.getParameters().get(0).getValue().getArray().get(0);
         assertNotNull(variableListElement);
         assertEquals("id1", variableListElement.getVariableName());
         assertNull(variableListElement.getVariableValue());
     }
 
     @Test
-    public void inASetDeviceParameters_ARegisteredIdentifierCreatesAnObjectOfTheCorrectType() {
+    public void inASetDeviceParametersARegisteredIdentifierCreatesAnObjectOfTheCorrectType() {
         String variableValue = "hi";
 
-        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<AClass>() {
-        }.getType());
+        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<AClass>() {}.getType());
 
         String json = SET_HEADER + "," +
                 "\"value\": {" +
@@ -558,18 +556,19 @@ public class JsonParserImplTest {
                 "]" +
                 "}" +
                 SET_FOOTER;
-        RequestSetDeviceParameters actual = (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
+        RequestSetDeviceParameters actual =
+                (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
 
 
-        RequestSetDeviceParameters.VariableListElement variableListElement = actual.getParameters().get(0).getValue().getArray().get(0);
+        RequestSetDeviceParameters.VariableListElement variableListElement =
+                actual.getParameters().get(0).getValue().getArray().get(0);
         AClass expected = new AClass(variableValue, 42);
         assertEquals(variableListElement.getVariableValue(), expected);
     }
 
     @Test
-    public void inASetDeviceParameters_ARegisteredListOfIntegersWorks() {
-        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<List<Integer>>() {
-        }.getType());
+    public void inASetDeviceParametersARegisteredListOfIntegersWorks() {
+        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<List<Integer>>() {}.getType());
 
         String json = SET_HEADER + "," +
                 "\"value\": {" +
@@ -581,20 +580,21 @@ public class JsonParserImplTest {
                 "]" +
                 "}" +
                 SET_FOOTER;
-        RequestSetDeviceParameters actual = (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
+        RequestSetDeviceParameters actual =
+                (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
 
 
-        RequestSetDeviceParameters.VariableListElement variableListElement = actual.getParameters().get(0).getValue().getArray().get(0);
+        RequestSetDeviceParameters.VariableListElement variableListElement =
+                actual.getParameters().get(0).getValue().getArray().get(0);
         List<Integer> expected = Arrays.asList(12, 34);
         assertEquals(variableListElement.getVariableValue(), expected);
     }
 
     @Test
-    public void inASetDeviceParameters_ARegisteredStringWorks() {
+    public void inASetDeviceParametersARegisteredStringWorks() {
         String variableValue = "hi";
 
-        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<String>() {
-        }.getType());
+        when(datastreamsTypeMapper.getTypeOf("id1")).thenReturn(new TypeToken<String>() {}.getType());
 
         String json = SET_HEADER + "," +
                 "\"value\": {" +
@@ -606,10 +606,12 @@ public class JsonParserImplTest {
                 "]" +
                 "}" +
                 SET_FOOTER;
-        RequestSetDeviceParameters actual = (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
+        RequestSetDeviceParameters actual =
+                (RequestSetDeviceParameters) jsonParser.parseInput(json.getBytes()).getOperation().getRequest();
 
 
-        RequestSetDeviceParameters.VariableListElement variableListElement = actual.getParameters().get(0).getValue().getArray().get(0);
+        RequestSetDeviceParameters.VariableListElement variableListElement =
+                actual.getParameters().get(0).getValue().getArray().get(0);
         assertEquals(variableListElement.getVariableValue(), variableValue);
     }
 

@@ -5,7 +5,6 @@ import es.amplia.oda.dispatcher.opengate.domain.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -15,12 +14,7 @@ import static org.junit.Assert.assertEquals;
 
 public class JsonWriterImplTest {
 
-    private JsonWriter jsonWriter;
-
-    @Before
-    public void setUp() {
-        jsonWriter = new JsonWriterImpl();
-    }
+    private final JsonWriter jsonWriter = new JsonWriterImpl();
 
     @Test
     public void genericResponse() {
@@ -95,5 +89,4 @@ public class JsonWriterImplTest {
                         "}";
         assertEquals(actual, expected);
     }
-
 }

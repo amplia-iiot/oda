@@ -14,11 +14,5 @@ public abstract class Request {
         this.timestamp = timestamp;
     }
 
-    //I'm not sure if a Visitor Pattern is the right thing to do, but that's my bet.
-    //Why? Because this should have been a "domain" class, by no means having
-    //logic implemented in it. So, this is a way to get the logic out of this class.
-    //And because right now there is two virtual functions needed, and it seems
-    //more plausible to need another one than to add another operation.
-    //Time will tell... (If I had to trust experience, this is going to be a complete failure)
     public abstract void accept(RequestVisitor visitor);
 }

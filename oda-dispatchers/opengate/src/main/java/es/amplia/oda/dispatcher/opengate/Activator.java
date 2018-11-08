@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.DatastreamSetterTypeMapperImpl;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
@@ -18,109 +19,82 @@ import es.amplia.oda.operation.api.osgi.proxies.OperationUpdateProxy;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class Activator implements BundleActivator, ManagedService {
-    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
-    private static final int SCHEDULERS_THREAD_POOL_SIZE = 10;
+public class Activator implements BundleActivator {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
+
+    private static final int NUM_THREADS = 10;
     private static final int STOP_PENDING_OPERATIONS_TIMEOUT = 10;
 
-    private ServiceRegistration<?> registration;
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
+
     private DatastreamSetterTypeMapperImpl datastreamsTypeMapper;
     private OpenGateConnectorProxy connector;
-    private ServiceRegistration<EventDispatcher> eventDispatcherServiceRegistration;
-    private OgJsonEventDispatcher eventDispatcher;
-    private ScheduledExecutorService executor;
-    private Scheduler scheduler;
+    private ConfigurableBundle configurableBundle;
+
+    private ServiceRegistration<Dispatcher> operationDispatcherRegistration;
+    private ServiceRegistration<EventDispatcher> eventDispatcherRegistration;
 
 
     @Override
-    public void start(BundleContext context) {
-        logger.info("Starting OpenGate Json Dispatcher");
-        datastreamsTypeMapper = new DatastreamSetterTypeMapperImpl(context);
+    public void start(BundleContext bundleContext) {
+        LOGGER.info("Starting OpenGate Dispatcher");
+
+        datastreamsTypeMapper = new DatastreamSetterTypeMapperImpl(bundleContext);
         JsonParser jsonParser = new JsonParserImpl(datastreamsTypeMapper);
         JsonWriter jsonWriter = new JsonWriterImpl();
-        OperationGetDeviceParameters operationGetDeviceParameters = new OperationGetDeviceParametersProxy(context);
-        OperationSetDeviceParameters operationSetDeviceParameters = new OperationSetDeviceParametersProxy(context);
-        OperationRefreshInfo operationRefreshInfo = new OperationRefreshInfoProxy(context);
-        OperationUpdate operationUpdate = new OperationUpdateProxy(context);
-        DeviceInfoProvider deviceInfoProvider = new DeviceInfoProviderProxy(context);
-        Dispatcher dispatcher = new OgJsonDispatcher(jsonParser, jsonWriter, deviceInfoProvider, operationGetDeviceParameters, operationSetDeviceParameters, operationRefreshInfo, operationUpdate);
-        registration = context.registerService(Dispatcher.class.getName(), dispatcher, null);
-        connector = new OpenGateConnectorProxy(context);
-        eventDispatcher = new OgJsonEventDispatcher(deviceInfoProvider, jsonWriter, connector);
-        eventDispatcherServiceRegistration = context.registerService(EventDispatcher.class, eventDispatcher, null);
-        scheduler = new Scheduler(deviceInfoProvider, eventDispatcher, connector, jsonWriter);
+        OperationGetDeviceParameters operationGetDeviceParameters = new OperationGetDeviceParametersProxy(bundleContext);
+        OperationSetDeviceParameters operationSetDeviceParameters = new OperationSetDeviceParametersProxy(bundleContext);
+        OperationRefreshInfo operationRefreshInfo = new OperationRefreshInfoProxy(bundleContext);
+        OperationUpdate operationUpdate = new OperationUpdateProxy(bundleContext);
+        DeviceInfoProvider deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
+        Dispatcher dispatcher =
+                new OpenGateOperationDispatcher(jsonParser, jsonWriter, deviceInfoProvider,
+                        operationGetDeviceParameters, operationSetDeviceParameters, operationRefreshInfo,
+                        operationUpdate);
+        operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
+
+        connector = new OpenGateConnectorProxy(bundleContext);
+        OpenGateEventDispatcher eventDispatcher = new OpenGateEventDispatcher(deviceInfoProvider, jsonWriter, connector);
+        eventDispatcherRegistration = bundleContext.registerService(EventDispatcher.class, eventDispatcher, null);
+
+        Scheduler scheduler = new SchedulerImpl(deviceInfoProvider, eventDispatcher, connector, jsonWriter);
+        DispatcherConfigurationUpdateHandler configHandler =
+                new DispatcherConfigurationUpdateHandler(executor, eventDispatcher, scheduler);
+        configurableBundle = new ConfigurableBundle(bundleContext, configHandler);
         
-        Dictionary<String, String> props = new Hashtable<>();
-        props.put("service.pid", "es.amplia.opengate.oda.dispatchers.og_json");
-        context.registerService(ManagedService.class.getName(), this, props);
-        
-        logger.info("OpenGate Json Dispatcher started");
+        LOGGER.info("OpenGate Dispatcher started");
     }
 
     @Override
-    public void stop(BundleContext context) {
-        logger.info("Stopping OpenGate Json Dispatcher");
-        if (registration != null) registration.unregister();
-        if (datastreamsTypeMapper != null) datastreamsTypeMapper.close();
-        if (eventDispatcherServiceRegistration != null) eventDispatcherServiceRegistration.unregister();
-        if (connector != null) connector.close();
-        registration = null;
-        datastreamsTypeMapper = null;
-        if(executor!=null) {
-            stopPendingOperations();
-        }
-        executor = null;
-        scheduler = null;
-    }
-    
-    @Override
-    public void updated(Dictionary<String, ?> properties) {
-        if(properties==null) {
-            logger.info("Collection subsystem updated with null properties");
-            return;
-        }
-        
-        logger.info("Dispatcher OG_JSON updated with {} properties", properties.size());
-        if(executor!=null) {
-            stopPendingOperations();
-        }
-        executor = new ScheduledThreadPoolExecutor(SCHEDULERS_THREAD_POOL_SIZE);
+    public void stop(BundleContext bundleContext) {
+        LOGGER.info("Stopping OpenGate Json Dispatcher");
 
-        eventDispatcher.setReduceBandwidthMode(ConfigurationParser.getReduceBandwidthMode(properties));
+        eventDispatcherRegistration.unregister();
+        operationDispatcherRegistration.unregister();
+        configurableBundle.close();
+        stopPendingOperations();
+        connector.close();
+        datastreamsTypeMapper.close();
 
-        Map<ConfigurationParser.Key, Set<String>> schedules  = new HashMap<>();
-        ConfigurationParser.parse(properties, schedules);
-        
-        eventDispatcher.setDatastreamIdsConfigured(schedules.values());
-        
-        schedules.forEach((key,ids)->{
-            logger.debug("Scheduling dispatch of ids={} strating in {} seconds, for every {} seconds", ids,
-                    key.getSecondsFirstDispatch(), key.getSecondsBetweenDispatches());
-            executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), key.getSecondsFirstDispatch(),
-                    key.getSecondsBetweenDispatches(), TimeUnit.SECONDS);
-        });
+        LOGGER.info("OpenGate Dispatcher stopped");
     }
     
     private void stopPendingOperations() {
-        long timeout = STOP_PENDING_OPERATIONS_TIMEOUT;
-        
         executor.shutdown();
         try {
-            executor.awaitTermination(timeout, TimeUnit.SECONDS);
+            executor.awaitTermination(STOP_PENDING_OPERATIONS_TIMEOUT, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            logger.error("The shutdown of the pool of threads its taking more than {} seconds. Will not wait longer.",
-                    timeout);
+            LOGGER.error("The shutdown of the pool of threads took longer than {} seconds: {}",
+                    STOP_PENDING_OPERATIONS_TIMEOUT, e);
             Thread.currentThread().interrupt();
         }
     }
-
 }

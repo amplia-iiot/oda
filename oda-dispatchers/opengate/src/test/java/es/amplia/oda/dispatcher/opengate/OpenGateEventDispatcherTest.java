@@ -20,11 +20,10 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class OgJsonEventDispatcherTest {
+public class OpenGateEventDispatcherTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -41,7 +40,7 @@ public class OgJsonEventDispatcherTest {
     @Mock
     private OpenGateConnector mockedConnector;
     @InjectMocks
-    private OgJsonEventDispatcher testEventDispatcher;
+    private OpenGateEventDispatcher testEventDispatcher;
 
     @Test
     public void testPublish() {
@@ -49,7 +48,8 @@ public class OgJsonEventDispatcherTest {
         Datapoint datapoint = new Datapoint(TEST_AT, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
         OutputDatastream output =
-                new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH_WITH_HOST, Collections.singleton(datastream));
+                new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH_WITH_HOST,
+                        Collections.singleton(datastream));
         byte[] payload = new byte[]{1, 2, 3, 4};
 
         when(mockedJsonWriter.dumpOutput(any())).thenReturn(payload);
@@ -67,7 +67,8 @@ public class OgJsonEventDispatcherTest {
         Event eventToTest = new Event(TEST_DATASTREAM_ID, "", null, TEST_AT, TEST_VALUE);
         Datapoint datapoint = new Datapoint(TEST_AT, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
-        OutputDatastream output = new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, null, Collections.singleton(datastream));
+        OutputDatastream output = new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, null,
+                Collections.singleton(datastream));
         byte[] payload = new byte[]{1, 2, 3, 4};
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);

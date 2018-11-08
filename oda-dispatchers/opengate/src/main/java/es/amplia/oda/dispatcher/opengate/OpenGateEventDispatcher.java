@@ -16,20 +16,20 @@ import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
-class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
+class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
 
-    private static final Logger logger = LoggerFactory.getLogger(OgJsonDispatcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
     
     private final DeviceInfoProvider deviceInfoProvider;
     private final JsonWriter jsonWriter;
     private final OpenGateConnector connector;
-    private Map<String, List<Event>> collectedValues = new HashMap<>();
-    private List<String> datastreamIdsConfigured = new ArrayList<>();
+    private final Map<String, List<Event>> collectedValues = new HashMap<>();
+    private final List<String> datastreamIdsConfigured = new ArrayList<>();
 
     private boolean reduceBandwidthMode = false;
 
-    OgJsonEventDispatcher(DeviceInfoProvider deviceInfoProvider, JsonWriter jsonWriter,
-                          OpenGateConnector connector) {
+    OpenGateEventDispatcher(DeviceInfoProvider deviceInfoProvider, JsonWriter jsonWriter,
+                            OpenGateConnector connector) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.jsonWriter = jsonWriter;
         this.connector = connector;
@@ -86,8 +86,10 @@ class OgJsonEventDispatcher implements EventDispatcher, EventCollector {
     }
     
     void setDatastreamIdsConfigured (Collection<Set<String>> config) {
-        if (!datastreamIdsConfigured.isEmpty()) datastreamIdsConfigured.clear();
-        config.forEach(ids -> datastreamIdsConfigured.addAll(ids));
+        if (!datastreamIdsConfigured.isEmpty()) {
+            datastreamIdsConfigured.clear();
+        }
+        config.forEach(datastreamIdsConfigured::addAll);
     }
     
     private boolean periodicSentConfigured (String datastreamId) {

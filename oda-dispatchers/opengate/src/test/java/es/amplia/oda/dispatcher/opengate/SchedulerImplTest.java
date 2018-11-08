@@ -18,10 +18,9 @@ import java.util.*;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class SchedulerTest {
+public class SchedulerImplTest {
     private static final String ID1 = "Id1";
     private static final String ID2 = "Id2";
 
@@ -64,9 +63,9 @@ public class SchedulerTest {
     private EventCollector collector;
     @Mock
     private OpenGateConnector connector;
-    private JsonWriter jsonWriter = new JsonWriterImpl();
+    private final JsonWriter jsonWriter = new JsonWriterImpl();
     
-    private Scheduler scheduler;
+    private SchedulerImpl schedulerImpl;
 
 
     @SafeVarargs
@@ -78,12 +77,12 @@ public class SchedulerTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         
-        scheduler = new Scheduler(deviceInfoProvider, collector, connector, jsonWriter);
+        schedulerImpl = new SchedulerImpl(deviceInfoProvider, collector, connector, jsonWriter);
     }
 
     @Test
     public void runForGetsValuesToSendFromCollector() {
-        scheduler.runFor(asSet(ID1));
+        schedulerImpl.runFor(asSet(ID1));
         
         verify(collector).getAndCleanCollectedValues(ID1);
     }
@@ -100,7 +99,7 @@ public class SchedulerTest {
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
         
-        scheduler.runFor(asSet(ID1));
+        schedulerImpl.runFor(asSet(ID1));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
         ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
@@ -126,7 +125,7 @@ public class SchedulerTest {
         when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV1);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
         
-        scheduler.runFor(asSet(ID1,ID2));
+        schedulerImpl.runFor(asSet(ID1,ID2));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
         ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
@@ -153,7 +152,7 @@ public class SchedulerTest {
         when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV2);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
         
-        scheduler.runFor(asSet(ID1,ID2));
+        schedulerImpl.runFor(asSet(ID1,ID2));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
         ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
@@ -168,7 +167,7 @@ public class SchedulerTest {
     public void ifThereAreNoCollectedValuesForAnId_NothingIsSent() {
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(null);
         
-        scheduler.runFor(asSet(ID1));
+        schedulerImpl.runFor(asSet(ID1));
         
         verify(connector, never()).uplink(any());
     }
@@ -192,7 +191,7 @@ public class SchedulerTest {
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
 
-        scheduler.runFor(asSet(ID1));
+        schedulerImpl.runFor(asSet(ID1));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
         ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
@@ -208,7 +207,7 @@ public class SchedulerTest {
     }
     
     private class IotDataBuilderT {
-        private List<OutputDatastream> currentList = new ArrayList<>();
+        private final List<OutputDatastream> currentList = new ArrayList<>();
         private OutputDatastream currentIotData;
         private Datastream currentDatastream;
         

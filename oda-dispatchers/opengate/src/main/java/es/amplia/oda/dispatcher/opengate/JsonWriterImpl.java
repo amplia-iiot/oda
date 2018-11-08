@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class JsonWriterImpl implements JsonWriter {
+
     private final Gson gson;
 
     JsonWriterImpl() {
@@ -15,5 +16,4 @@ public class JsonWriterImpl implements JsonWriter {
         String out = gson.toJson(output);
         return out.getBytes();
     }
-
 }

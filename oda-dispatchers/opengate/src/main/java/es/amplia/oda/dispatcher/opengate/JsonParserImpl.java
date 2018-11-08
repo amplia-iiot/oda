@@ -16,8 +16,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.List;
 
-public class JsonParserImpl implements JsonParser {
-    private static final Logger logger = LoggerFactory.getLogger(JsonParserImpl.class);
+class JsonParserImpl implements JsonParser {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonParserImpl.class);
 
     private static final String ID_ELEMENT = "id";
     private static final String DEVICE_ID_ELEMENT = "deviceId";
@@ -33,10 +34,10 @@ public class JsonParserImpl implements JsonParser {
         this.decoder = Charset.forName("UTF-8").newDecoder();
         this.gson = new GsonBuilder().
                 registerTypeHierarchyAdapter(Request.class, new RequestDeserializer()).
-                registerTypeHierarchyAdapter(RequestSetDeviceParameters.VariableListElement.class, new SetVariableListElementDeserializer(datastreamsTypeMapper)).
+                registerTypeHierarchyAdapter(RequestSetDeviceParameters.VariableListElement.class,
+                        new SetVariableListElementDeserializer(datastreamsTypeMapper)).
                 create();
     }
-
 
     @Override
     public Input parseInput(byte[] input) {
@@ -44,27 +45,25 @@ public class JsonParserImpl implements JsonParser {
 
         String json = convertByteArrayToStringCheckingErrors(input);
         try {
-            logger.debug("Translating '{}' to Operation", json);
+            LOGGER.debug("Translating '{}' to Operation", json);
             return gson.fromJson(json, Input.class);
         } catch (JsonParseException e) {
-            logger.info("Cannot parse message '{}' as json: {}", json, e.getMessage());
+            LOGGER.info("Cannot parse message '{}' as json: {}", json, e.getMessage());
             throw new IllegalArgumentException(e.getMessage());
         }
     }
-
 
     private String convertByteArrayToStringCheckingErrors(byte[] input) {
         try {
             CharBuffer buffer = decoder.decode(ByteBuffer.wrap(input));
             return buffer.toString();
         } catch (CharacterCodingException e) {
-            logger.info("Cannot parse bytes '{}' as UTF-8 String.", input);
+            LOGGER.info("Cannot parse bytes '{}' as UTF-8 String.", input);
             throw new IllegalArgumentException("Input string is not UTF-8 encoded");
         }
     }
 
     private static class RequestDeserializer implements JsonDeserializer<Request> {
-
         @Override
         public Request deserialize(JsonElement jsonElement, Type type, JsonDeserializationContext context) {
             JsonObject requestObject = jsonElement.getAsJsonObject();
@@ -105,10 +104,11 @@ public class JsonParserImpl implements JsonParser {
                     return new RequestOperationNotSupported(id, deviceId, timestamp, name);
             }
         }
-
     }
 
-    private static class SetVariableListElementDeserializer implements JsonDeserializer<RequestSetDeviceParameters.VariableListElement> {
+    private static class SetVariableListElementDeserializer
+            implements JsonDeserializer<RequestSetDeviceParameters.VariableListElement> {
+
         private final DatastreamSetterTypeMapper datastreamsTypeMapper;
 
         SetVariableListElementDeserializer(DatastreamSetterTypeMapper datastreamsTypeMapper) {
@@ -117,23 +117,25 @@ public class JsonParserImpl implements JsonParser {
 
         private static String getVariableName(JsonObject requestObject) {
             JsonElement nameElement = requestObject.get(VARIABLE_NAME_ELEMENT);
-            if (nameElement == null)
+            if (nameElement == null) {
                 throw new JsonParseException("The field 'variableName' is not present in a SET_DEVICE_PARAMETERS variable");
-            if (!nameElement.isJsonPrimitive())
+            }
+            if (!nameElement.isJsonPrimitive()) {
                 throw new JsonParseException("The field 'variableName' must be of type String");
+            }
             JsonPrimitive nameAsAPrimitive = nameElement.getAsJsonPrimitive();
-            if (!nameAsAPrimitive.isString())
+            if (!nameAsAPrimitive.isString()) {
                 throw new JsonParseException("The field 'variableName' must be of type String");
+            }
             return nameAsAPrimitive.getAsString();
         }
 
         @Override
-        public RequestSetDeviceParameters.VariableListElement deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+        public RequestSetDeviceParameters.VariableListElement deserialize(JsonElement json, Type typeOfT,
+                                                                          JsonDeserializationContext context) {
             JsonObject requestObject = json.getAsJsonObject();
             String variableName = getVariableName(requestObject);
-
             Type typeOfVariable = datastreamsTypeMapper.getTypeOf(variableName);
-
             Object variableValue = null;
             if (typeOfVariable != null) {
                 JsonElement variableValueElement = requestObject.get(VARIABLE_VALUE_ELEMENT);
@@ -141,6 +143,5 @@ public class JsonParserImpl implements JsonParser {
             }
             return new RequestSetDeviceParameters.VariableListElement(variableName, variableValue);
         }
-
     }
 }
