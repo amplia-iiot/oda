@@ -25,7 +25,7 @@ public class ConnectorConfigurationBuilderTest {
     private static final boolean DEFAULT_AUTOMATIC_RECONNECT = true;
     private static final int DEFAULT_CONNECTION_TIMEOUT = MqttConnectOptions.CONNECTION_TIMEOUT_DEFAULT;
     private static final int DEFAULT_KEEP_ALIVE_INTERVAL = MqttConnectOptions.KEEP_ALIVE_INTERVAL_DEFAULT;
-    private static final int DEFAULT_MAX_INFLIGHT = MqttConnectOptions.MAX_INFLIGHT_DEFAULT;
+    private static final int DEFAULT_MAX_IN_FLIGHT = MqttConnectOptions.MAX_INFLIGHT_DEFAULT;
     private static final boolean DEFAULT_CLEAN_SESSION = MqttConnectOptions.CLEAN_SESSION_DEFAULT;
     private static final int DEFAULT_LWT_QUALITY_OF_SERVICE = 1;
     private static final boolean DEFAULT_LWT_RETAINED = false;
@@ -84,7 +84,7 @@ public class ConnectorConfigurationBuilderTest {
         testBuilder.setAutomaticReconnect(AUTOMATIC_RECONNECT);
         testBuilder.setConnectionTimeout(CONNECTION_TIMEOUT);
         testBuilder.setKeepAliveInterval(KEEP_ALIVE_INTERVAL);
-        testBuilder.setMaxInflight(MAX_IN_FLIGHT);
+        testBuilder.setMaxInFlight(MAX_IN_FLIGHT);
         testBuilder.setCleanSession(CLEAN_SESSION);
         testBuilder.setUserName(USER_NAME);
         testBuilder.setPassword(PASSWORD);
@@ -214,7 +214,7 @@ public class ConnectorConfigurationBuilderTest {
     @Test
     public void testSetMaxInflight() {
         setMinimumConfigurationToBuild();
-        testBuilder.setMaxInflight(MAX_IN_FLIGHT);
+        testBuilder.setMaxInFlight(MAX_IN_FLIGHT);
 
         ConnectorConfiguration conf = testBuilder.build();
 
@@ -411,7 +411,7 @@ public class ConnectorConfigurationBuilderTest {
 
         ConnectorConfiguration conf = testBuilder.build();
 
-        assertEquals(DEFAULT_MAX_INFLIGHT, conf.getMqttConnectOptions().getMaxInflight());
+        assertEquals(DEFAULT_MAX_IN_FLIGHT, conf.getMqttConnectOptions().getMaxInflight());
     }
 
     @Test

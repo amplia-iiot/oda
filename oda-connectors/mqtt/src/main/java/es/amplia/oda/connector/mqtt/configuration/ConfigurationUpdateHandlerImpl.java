@@ -6,48 +6,23 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
 
-/**
- * MQTT connector configuration update handler implementing {@link ConfigurationUpdateHandler}
- */
-public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandler, ServiceListener {
+public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationUpdateHandlerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationUpdateHandlerImpl.class);
 
-    /**
-     * MQTT Connector to configure.
-     */
-    private MqttConnector connector;
+    private final MqttConnector connector;
+    private final DeviceInfoProvider deviceInfoProvider;
 
-    /**
-     * Device Identifier provider service tracker to use the device identifier to configure the connection properly.
-     */
-    private DeviceInfoProvider deviceInfoProvider;
-
-    /**
-     * Last properties to configure the MQTT connector.
-     */
     private Dictionary<String, ?> lastProperties;
-
-    /**
-     * MQTT connector configuration
-     */
     private ConnectorConfiguration currentConfiguration;
 
-
-    /**
-     * Constructor.
-     *
-     * @param connector2         MQTT connector to configure.
-     * @param deviceInfoProvider Device identifier provider service tracker.
-     */
     public ConfigurationUpdateHandlerImpl(MqttConnector connector2, DeviceInfoProvider deviceInfoProvider) {
         this.connector = connector2;
         this.deviceInfoProvider = deviceInfoProvider;
@@ -55,6 +30,8 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        LOGGER.info("Loading MQTT connector configuration");
+
         lastProperties = props;
 
         String deviceId = deviceInfoProvider.getDeviceId();
@@ -87,7 +64,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
             Optional.ofNullable((String) props.get(ConnectorConfiguration.MQTT_CONNECTOR_KEEP_ALIVE_INTERVAL_PROPERTY))
                     .ifPresent(value -> builder.setKeepAliveInterval(Integer.parseInt(value)));
             Optional.ofNullable((String) props.get(ConnectorConfiguration.MQTT_CONNECTOR_MAX_IN_FLIGHT_PROPERTY))
-                    .ifPresent(value -> builder.setMaxInflight(Integer.parseInt(value)));
+                    .ifPresent(value -> builder.setMaxInFlight(Integer.parseInt(value)));
             Optional.ofNullable((String) props.get(ConnectorConfiguration.MQTT_CONNECTOR_CLEAN_SESSION_PROPERTY))
                     .ifPresent(value -> builder.setCleanSession(Boolean.parseBoolean(value)));
             builder.setUserName(deviceId);
@@ -127,15 +104,10 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
         }
 
         currentConfiguration = builder.build();
+
+        LOGGER.info("MQTT connector configuration loaded");
     }
 
-    /**
-     * Parse the MQTT version.
-     *
-     * @param value MQTT version as String to parse.
-     * @return MQTT version as int according to MqttConnectOptions.
-     * @throws ConfigurationException Exception parsing MQTT version String.
-     */
     private int parseMqttVersion(String value) throws ConfigurationException {
         if (value.equals(ConnectorConfiguration.MQTT_VERSION_3_1))
             return MqttConnectOptions.MQTT_VERSION_3_1;
@@ -144,31 +116,20 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
         throw new ConfigurationException("Unsupported MQTT version");
     }
 
-    /**
-     * Get the resulting topic.
-     *
-     * @param baseTopic Base topic.
-     * @param deviceId  Device identifier.
-     * @return Resulting topic.
-     */
     private String getTopic(String baseTopic, String deviceId) {
         return baseTopic + "/" + deviceId;
     }
 
     @Override
-    public void applyConfiguration() throws Exception {
+    public void applyConfiguration() throws MqttException {
+        LOGGER.info("Apply MQTT connector configuration");
         connector.loadConfigurationAndInit(currentConfiguration);
     }
 
-    @Override
-    public void serviceChanged(ServiceEvent event) {
+    public void reapplyConfiguration() throws MqttException {
         if (lastProperties != null) {
-            try {
-                loadConfiguration(lastProperties);
-                applyConfiguration();
-            } catch (Exception e) {
-                logger.error("Can not reload MQTT connector configuration after DeviceInfoProvider service change");
-            }
+            loadConfiguration(lastProperties);
+            applyConfiguration();
         }
     }
 }

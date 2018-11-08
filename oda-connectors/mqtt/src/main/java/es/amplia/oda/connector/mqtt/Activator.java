@@ -6,89 +6,68 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.DispatcherProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundleNotifierService;
+import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 
 import org.osgi.framework.*;
-import org.osgi.service.cm.ManagedService;
-import org.osgi.service.event.EventAdmin;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 /**
  * MQTT external communications bundle activator.
  */
 public class Activator implements BundleActivator {
 
-    /**
-     * Class logger
-     */
-    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-    /**
-     * MQTT Connector
-     */
     private MqttConnector connector;
 
-    /**
-     * Device Identifier provider service listener.
-     */
-    private ConfigurationUpdateHandlerImpl deviceIdProviderServiceListener;
-
-    /**
-     * Event Admin service tracker.
-     */
-    private ServiceTracker<EventAdmin, EventAdmin> eventAdminServiceTracker;
-
-    /**
-     * Config service registration.
-     */
     private DispatcherProxy dispatcher;
+    private ConfigurableBundle configurableBundle;
+    private ServiceListenerBundle<DeviceInfoProvider> deviceInfoServiceListener;
+
     private ServiceRegistration<OpenGateConnector> openGateConnectorRegistration;
 
     private DeviceInfoProviderProxy deviceIdProvider;
-    private ServiceRegistration<ManagedService> configServiceRegistration;
 
     @Override
-    public void start(BundleContext bundleContext) throws InvalidSyntaxException {
-        logger.info("MQTT connector is starting");
+    public void start(BundleContext bundleContext) {
+        LOGGER.info("MQTT connector is starting");
 
         dispatcher = new DispatcherProxy(bundleContext);
         connector = new MqttConnector(dispatcher);
         openGateConnectorRegistration = bundleContext.registerService(OpenGateConnector.class, connector, null);
 
         deviceIdProvider = new DeviceInfoProviderProxy(bundleContext);
-        deviceIdProviderServiceListener = new ConfigurationUpdateHandlerImpl(connector, deviceIdProvider);
-        String bundleSymbolicName = bundleContext.getBundle().getSymbolicName();
-        bundleContext.addServiceListener(deviceIdProviderServiceListener, String.format("(%s=%s)", Constants.OBJECTCLASS, DeviceInfoProvider.class.getName()));
-        eventAdminServiceTracker = new ServiceTracker<>(bundleContext, EventAdmin.class, null);
-        eventAdminServiceTracker.open();
-        ConfigurableBundleNotifierService configService =
-                new ConfigurableBundleNotifierService(bundleSymbolicName, deviceIdProviderServiceListener,
-                        eventAdminServiceTracker.getService());
-        Dictionary<String, String> props = new Hashtable<>();
-        props.put("service.pid", bundleSymbolicName);
-        configServiceRegistration = bundleContext.registerService(ManagedService.class, configService, props);
+        ConfigurationUpdateHandlerImpl configUpdateHandler =
+                new ConfigurationUpdateHandlerImpl(connector, deviceIdProvider);
+        configurableBundle = new ConfigurableBundle(bundleContext, configUpdateHandler);
+        deviceInfoServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,
+                () -> onServiceChanged(configUpdateHandler));
 
-        logger.info("MQTT connector started");
+        LOGGER.info("MQTT connector started");
+    }
+
+    private void onServiceChanged(ConfigurationUpdateHandlerImpl configHandler) {
+        LOGGER.info("Device Info provider service changed. Reapplying last MQTT connector configuration");
+        try {
+            configHandler.reapplyConfiguration();
+        } catch (Exception e) {
+            LOGGER.warn("Error applying configuration");
+        }
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
-        logger.info("MQTT connector is stopping");
-
-        configServiceRegistration.unregister();
-        eventAdminServiceTracker.close();
-        deviceIdProvider.close();
-        bundleContext.removeServiceListener(deviceIdProviderServiceListener);
+        LOGGER.info("MQTT connector is stopping");
 
         openGateConnectorRegistration.unregister();
+        deviceInfoServiceListener.close();
+        configurableBundle.close();
+        deviceIdProvider.close();
         connector.close();
         dispatcher.close();
 
-        logger.info("MQTT connector stopped");
+        LOGGER.info("MQTT connector stopped");
     }
 }
