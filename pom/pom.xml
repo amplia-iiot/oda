@@ -10,11 +10,11 @@
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
-    <url></url>
+    <url>https://github.com/amplia-iiot/oda</url>
     <inceptionYear>2017</inceptionYear>
     <description>OpenGate multi-device agent implemented on top of the OSGi Framework</description>
 
-    <prerequisites></prerequisites>
+    <prerequisites/>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -49,13 +49,28 @@
         <powermock.version>1.7.4</powermock.version>
     </properties>
 
-    <issueManagement></issueManagement>
+    <issueManagement/>
 
-    <mailingLists></mailingLists>
+    <mailingLists/>
 
-    <scm></scm>
+    <scm>
+        <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
+        <url>scm:git:http://github.com/amplia-iiot/oda.git</url>
+        <developerConnection>scm:git:http://github.com/amplia-iiot/oda.git</developerConnection>
+    </scm>
 
-    <distributionManagement></distributionManagement>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>amplia-snapshots</id>
+            <name>Amplia Snapshots Repository</name>
+            <url>http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>amplia-releases</id>
+            <name>Amplia Release Repository</name>
+            <url>http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <pluginManagement>
@@ -288,8 +303,7 @@
         </dependencies>
     </dependencyManagement>
 
-    <profiles></profiles>
+    <profiles/>
 
-    <reporting></reporting>
-
+    <reporting/>
 </project>

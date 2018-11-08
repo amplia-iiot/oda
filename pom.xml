@@ -23,4 +23,23 @@
         <module>oda-connectors</module>
         <module>oda-demos</module>
     </modules>
+
+    <scm>
+        <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
+        <url>scm:git:http://github.com/amplia-iiot/oda.git</url>
+        <developerConnection>scm:git:http://github.com/amplia-iiot/oda.git</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>amplia-snapshots</id>
+            <name>Amplia Snapshots Repository</name>
+            <url>http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>amplia-releases</id>
+            <name>Amplia Release Repository</name>
+            <url>http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/</url>
+        </repository>
+    </distributionManagement>
 </project>
