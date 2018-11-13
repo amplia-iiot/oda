@@ -10,6 +10,7 @@
     <description>Dispatchers of the OpenGate Device Agent</description>
     <modules>
         <module>opengate</module>
+        <module>scada</module>
     </modules>
 
     <parent>
