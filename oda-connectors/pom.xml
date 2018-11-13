@@ -13,6 +13,7 @@
         <module>coap</module>
         <module>mqtt</module>
         <module>thingstream</module>
+        <module>dnp3</module>
     </modules>
 
     <parent>
