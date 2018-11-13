@@ -16,6 +16,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.Collections;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
@@ -43,13 +45,15 @@ public class ActivatorTest {
         PowerMockito.whenNew(JdkDioGpioService.class).withAnyArguments().thenReturn(mockedGpioService);
         PowerMockito.whenNew(JDkDioConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        when(mockedContext.registerService(eq(GpioService.class), any(), any())).thenReturn(mockedRegistration);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(JdkDioGpioService.class).withNoArguments();
         PowerMockito.verifyNew(JDkDioConfigurationHandler.class).withArguments(eq(mockedGpioService));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(GpioService.class), eq(mockedGpioService), any());
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler),
+                        eq(Collections.singletonList(mockedRegistration)));
     }
 
     @Test

@@ -11,6 +11,8 @@ import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
@@ -29,10 +31,11 @@ public class Activator implements BundleActivator {
         CommandProcessor commandProcessor = new CommandProcessorImpl();
         DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter = new DeviceInfoDatastreamsGetter(commandProcessor);
         ConfigurationUpdateHandler configHandler = new DeviceInfoConfigurationHandler(deviceInfoDatastreamsGetter);
-        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
-
         deviceIdProviderRegistration =
                 bundleContext.registerService(DeviceInfoProvider.class, deviceInfoDatastreamsGetter, null);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
+                Collections.singletonList(deviceIdProviderRegistration));
+
         datastreamsGetterRegistrationForDeviceId =
                 bundleContext.registerService(DatastreamsGetter.class,
                         deviceInfoDatastreamsGetter.getDatastreamsGetterForDeviceId(), null);
