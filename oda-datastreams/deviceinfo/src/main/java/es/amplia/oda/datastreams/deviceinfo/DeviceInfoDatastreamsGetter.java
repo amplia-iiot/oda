@@ -18,7 +18,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     private static final Logger logger = LoggerFactory.getLogger(DeviceInfoDatastreamsGetter.class);
 
     static final String DEVICE_ID_DATASTREAM_ID = "deviceId";
-    static final String SERIAL_NUMBER_DATASTREAM_ID = "provision.device.serialNumber";
+    static final String SERIAL_NUMBER_DATASTREAM_ID = "device.serialNumber";
 
     private final CommandProcessor commandProcessor;
 

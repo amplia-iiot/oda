@@ -12,6 +12,8 @@ import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
@@ -28,8 +30,9 @@ public class Activator implements BundleActivator {
         gpioService = new JdkDioGpioService();
 
         JDkDioConfigurationHandler configHandler = new JDkDioConfigurationHandler(gpioService);
-        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         gpioServiceRegistration = bundleContext.registerService(GpioService.class, gpioService, null);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
+                Collections.singletonList(gpioServiceRegistration));
 
         LOGGER.info("JDK Device I/O bundle started");
     }

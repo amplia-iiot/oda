@@ -13,6 +13,9 @@
         <module>coap</module>
         <module>mqtt</module>
         <module>thingstream</module>
+        <module>dnp3</module>
+        <module>websocket</module>
+        <module>http</module>
     </modules>
 
     <parent>
