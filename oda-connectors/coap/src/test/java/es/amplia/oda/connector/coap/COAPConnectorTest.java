@@ -27,13 +27,14 @@ import static org.mockito.Mockito.when;
 @PrepareForTest({Request.class})
 public class COAPConnectorTest {
 
+    private static final String COAP_SCHEME = "coap";
     private static final String TEST_HOST = "host.com";
     private static final String TEST_PATH = "path/to/somewhere";
     private static final String TEST_PROVISION_PATH = "provision";
     private static final byte[] TEST_PAYLOAD = "Test message".getBytes();
     private static final ConnectorConfiguration TEST_CONFIGURATION =
-            ConnectorConfiguration.builder().remoteHost(TEST_HOST).path(TEST_PATH).provisionPath(TEST_PROVISION_PATH)
-                    .build();
+            ConnectorConfiguration.builder().scheme(COAP_SCHEME).host(TEST_HOST).path(TEST_PATH)
+                    .provisionPath(TEST_PROVISION_PATH).build();
 
     private static final String NO_EXCEPTION_THROWN_MESSAGE = "No exception is thrown";
     private static final String CLIENT_FIELD_NAME = "client";
