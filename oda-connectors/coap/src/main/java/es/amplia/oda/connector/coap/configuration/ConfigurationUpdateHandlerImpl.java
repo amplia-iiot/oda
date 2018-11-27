@@ -3,6 +3,8 @@ package es.amplia.oda.connector.coap.configuration;
 import es.amplia.oda.connector.coap.COAPConnector;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
@@ -10,6 +12,8 @@ import java.util.Optional;
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.*;
 
 public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationUpdateHandlerImpl.class);
 
     static final String CONNECTOR_TYPE_PROPERTY_NAME = "type";
     static final String HOST_PROPERTY_NAME = "host";
@@ -39,6 +43,8 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        LOGGER.info("Loading CoAP connector configuration");
+
         ConnectorConfigurationBuilder builder = ConnectorConfiguration.builder();
         builder.scheme(COAP_SCHEME);
         builder.port(DEFAULT_COAP_PORT);
@@ -73,10 +79,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
         currentConfiguration = builder.build();
 
         validateCurrentConfiguration();
+
+        LOGGER.info("CoAP connector configuration loaded");
     }
 
     private void setConnectorType(ConnectorType connectorType, ConnectorConfigurationBuilder builder) {
-        if (connectorType.equals(ConnectorType.DTLS)) {
+        if (isDtlsConnectorType(connectorType)) {
             builder.scheme(COAP_SECURE_SCHEME);
             builder.port(DEFAULT_COAP_SECURE_PORT);
         }
@@ -84,20 +92,33 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     }
 
     private void validateCurrentConfiguration() {
-        if (currentConfiguration.getType().equals(ConnectorType.DTLS) &&
-                (currentConfiguration.getKeyStoreLocation() == null ||
-                 currentConfiguration.getKeyStorePassword() == null ||
-                 currentConfiguration.getTrustStoreLocation() == null ||
-                 currentConfiguration.getTrustStorePassword() == null)) {
+        if (isDtlsConnectorType(currentConfiguration.getType()) &&
+                (keyStoreIsNotConfigured() || trustStoreIsNotConfigured())) {
             currentConfiguration = null;
             throw new ConfigurationException("CoAP connector invalid configuration: Missing parameters for DTLS connector type");
         }
     }
 
+    private boolean trustStoreIsNotConfigured() {
+        return currentConfiguration.getTrustStoreLocation() == null ||
+                currentConfiguration.getTrustStorePassword() == null;
+    }
+
+    private boolean keyStoreIsNotConfigured() {
+        return currentConfiguration.getKeyStoreLocation() == null ||
+                currentConfiguration.getKeyStorePassword() == null;
+    }
+
+    private boolean isDtlsConnectorType(ConnectorType type) {
+        return type.equals(ConnectorType.DTLS);
+    }
+
     @Override
     public void applyConfiguration() {
+        LOGGER.info("Applying CoAP connector configuration");
         if (currentConfiguration != null) {
             connector.loadAndInit(currentConfiguration);
         }
+        LOGGER.info("CoAP connector configuration applied");
     }
 }

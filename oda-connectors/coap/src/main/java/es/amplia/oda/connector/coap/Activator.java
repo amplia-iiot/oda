@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
 
-    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private DeviceInfoProviderProxy deviceInfoProvider;
     private ATManagerProxy atManager;
@@ -33,7 +33,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) {
-        logger.info("Starting COAP connector");
+        LOGGER.info("Starting COAP connector");
 
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
         atManager = new ATManagerProxy(bundleContext);
@@ -47,21 +47,21 @@ public class Activator implements BundleActivator {
 
         registration = bundleContext.registerService(OpenGateConnector.class, connector, null);
 
-        logger.info("COAP connector started");
+        LOGGER.info("COAP connector started");
     }
 
     void onServiceChanged() {
-        logger.info("Device Info provider service changed. Applying COAP connector configuration");
+        LOGGER.info("Device Info provider service changed. Applying COAP connector configuration");
         try {
             configHandler.applyConfiguration();
         } catch (Exception e) {
-            logger.warn("Error applying configuration");
+            LOGGER.warn("Error applying configuration: {}", e);
         }
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
-        logger.info("Stopping COAP connector");
+        LOGGER.info("Stopping COAP connector");
 
         registration.unregister();
         deviceInfoServiceListener.close();
@@ -71,6 +71,6 @@ public class Activator implements BundleActivator {
         connector.close();
         deviceInfoProvider.close();
 
-        logger.info("COAP connector stopped");
+        LOGGER.info("COAP connector stopped");
     }
 }

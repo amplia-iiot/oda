@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class ATUDPConnector implements Connector {
 
-    private static final Logger logger = LoggerFactory.getLogger(ATUDPConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ATUDPConnector.class);
 
     static final long COMMAND_TIMEOUT = 10;
     static final String OPEN_SOCKET_AT_COMMAND = "+NSOCR";
@@ -31,10 +31,13 @@ public class ATUDPConnector implements Connector {
     static final String ARRIVE_SOCKET_MESSAGE_AT_EVENT = "+NSONMI";
     static final String READ_MESSAGE_AT_COMMAND = "+NSORF";
     static final String CLOSE_SOCKET_AT_COMMAND = "+NSOCL";
+    private static final int ARRIVED_AT_EVENT_PARAMS_NUM = 2;
+    private static final int GET_LOCAL_ADDRESS_PARAMS_NUM = 2;
 
     private static final Pattern OPEN_SOCKET_RESPONSE_PATTERN = Pattern.compile("[\\s\\r\\n]*(\\d+)[\\s\\r\\n]*");
     private static final Pattern READ_MESSAGE_RESPONSE_PATTERN =
             Pattern.compile("[\\s\\r\\n]*\\d+,\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3},\\d+,\\d+,([A-Fa-f0-9]+),\\d+[\\s\\r\\n]*");
+
 
     private final ATManager atManager;
     private final String remoteHost;
@@ -72,18 +75,18 @@ public class ATUDPConnector implements Connector {
             localAddress = getLocalAddress();
 
             if (localSocketId == -1 || localAddress == null) {
-                logger.error("Can not start the AT UPD connector");
+                LOGGER.error("Can not start the AT UPD connector");
                 return;
             }
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Can not start the AT UDP connector");
+            LOGGER.error("Can not start the AT UDP connector: {}", e);
             return;
         }
 
         try {
-            atManager.registerEvent(ARRIVE_SOCKET_MESSAGE_AT_EVENT, this::processArriveSocketMessageEvent);
+            atManager.registerEvent(ARRIVE_SOCKET_MESSAGE_AT_EVENT, this::processArrivedSocketMessageEvent);
         } catch (ATManager.AlreadyRegisteredException e) {
-            logger.warn("AT event {} already registered", ARRIVE_SOCKET_MESSAGE_AT_EVENT);
+            LOGGER.warn("AT event {} already registered: {}", ARRIVE_SOCKET_MESSAGE_AT_EVENT, e);
         }
 
         senderExecutor = Executors.newSingleThreadExecutor();
@@ -103,10 +106,10 @@ public class ATUDPConnector implements Connector {
             if (createSocketResponseMatcher.matches()) {
                 return Integer.parseInt(createSocketResponseMatcher.group(1));
             } else {
-                logger.warn("Invalid response to open socket command");
+                LOGGER.warn("Invalid response to open socket command");
             }
         } else {
-            logger.warn("Error executing create local socket command: {}", response.getErrorMsg());
+            LOGGER.warn("Error executing create local socket command: {}", response.getErrorMsg());
         }
 
         return -1;
@@ -123,27 +126,27 @@ public class ATUDPConnector implements Connector {
             if (partialResponses != null && !partialResponses.isEmpty()) {
                 ATEvent socketIdResponse = partialResponses.get(0);
 
-                if (socketIdResponse.getParameters().size() == 2) {
+                if (socketIdResponse.getParameters().size() == GET_LOCAL_ADDRESS_PARAMS_NUM) {
                     String ip = socketIdResponse.getParameters().get(1);
                     return new InetSocketAddress(ip, localPort);
                 } else {
-                    logger.warn("Invalid response to get address command");
+                    LOGGER.warn("Invalid response to get address command");
                 }
             } else {
-                logger.warn("Invalid response to get address command");
+                LOGGER.warn("Invalid response to get address command");
             }
         } else {
-            logger.warn("Error executing get address command: {}", response.getErrorMsg());
+            LOGGER.warn("Error executing get address command: {}", response.getErrorMsg());
         }
 
         return null;
     }
 
-    void processArriveSocketMessageEvent(ATEvent atEvent) {
+    void processArrivedSocketMessageEvent(ATEvent atEvent) {
         List<String> parameters = atEvent.getParameters();
 
-        if (parameters.size() != 2) {
-            logger.warn("Invalid parameters for Arrived socket message event");
+        if (parameters.size() != ARRIVED_AT_EVENT_PARAMS_NUM) {
+            LOGGER.warn("Invalid parameters for Arrived socket message event");
             return;
         }
 
@@ -153,7 +156,7 @@ public class ATUDPConnector implements Connector {
 
             receiverExecutor.submit(() -> readArrivedMessage(receivedSocketId, receivedMessageId));
         } catch (NumberFormatException e) {
-            logger.warn("Invalid parameters for Arrived socket message event");
+            LOGGER.warn("Invalid parameters for Arrived socket message event");
         }
     }
 
@@ -161,7 +164,7 @@ public class ATUDPConnector implements Connector {
         String msg = readMessage(socketId, messageId);
 
         if (msg == null) {
-            logger.warn("Error reading receive data in message {} from socket {}", messageId, socketId);
+            LOGGER.warn("Error reading receive data in message {} from socket {}", messageId, socketId);
             return;
         }
 
@@ -171,7 +174,7 @@ public class ATUDPConnector implements Connector {
 
             receiver.receiveData(rawData);
         } catch (DecoderException | UnknownHostException e) {
-            logger.warn("Error reading receive data in message {} from socket {}", messageId, socketId);
+            LOGGER.warn("Error reading receive data in message {} from socket {}: {}", messageId, socketId, e);
         }
     }
 
@@ -184,20 +187,20 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                logger.info("Message {} read from socket {}", messageId, socketId);
+                LOGGER.info("Message {} read from socket {}", messageId, socketId);
 
                 Matcher readResponseMatcher = READ_MESSAGE_RESPONSE_PATTERN.matcher(response.getBody());
                 if (readResponseMatcher.matches()) {
                     return readResponseMatcher.group(1);
                 } else {
-                    logger.warn("Invalid response to read message command");
+                    LOGGER.warn("Invalid response to read message command");
                 }
             } else {
-                logger.info("Error reading message {} from socket {}: {}", messageId, socketId,
+                LOGGER.info("Error reading message {} from socket {}: {}", messageId, socketId,
                         response.getErrorMsg());
             }
         } catch (ExecutionException | InterruptedException e) {
-            logger.warn("Error reading message {} from socket {}: {}", messageId, socketId, e.getMessage());
+            LOGGER.warn("Error reading message {} from socket {}: {}", messageId, socketId, e);
         }
 
         return null;
@@ -206,9 +209,9 @@ public class ATUDPConnector implements Connector {
     @Override
     public void send(RawData msg) {
         if (!running) {
-            logger.warn("AT UDP connector is not running");
+            LOGGER.warn("AT UDP connector is not running");
         } else if (msg == null) {
-            logger.warn("Message must not be null");
+            LOGGER.warn("Message must not be null");
         } else {
             String data = Hex.encodeHexString(msg.getBytes()).toUpperCase();
             senderExecutor.submit(() -> sendMessage(localSocketId, remoteHost, remotePort, msg.getSize(), data));
@@ -233,12 +236,12 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                logger.info("Message sent through socket {}", socketId);
+                LOGGER.info("Message sent through socket {}", socketId);
             } else {
-                logger.info("Error sending message through socket {}: {}", socketId, response.getErrorMsg());
+                LOGGER.info("Error sending message through socket {}: {}", socketId, response.getErrorMsg());
             }
         } catch (ExecutionException | InterruptedException e) {
-            logger.warn("Error sending message through socket {}: {}", socketId, e.getMessage());
+            LOGGER.warn("Error sending message through socket {}: {}", socketId, e);
         }
     }
 
@@ -277,12 +280,12 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                logger.info("Socket {} closed", localSocketId);
+                LOGGER.info("Socket {} closed", localSocketId);
             } else {
-                logger.info("Error closing socket {}: {}", localSocketId, response.getErrorMsg());
+                LOGGER.info("Error closing socket {}: {}", localSocketId, response.getErrorMsg());
             }
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Error closing socket {}: {}", localSocketId, e.getMessage());
+            LOGGER.error("Error closing socket {}: {}", localSocketId, e);
         }
     }
 

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 public class COAPConnector implements OpenGateConnector, AutoCloseable {
 
-    private static final Logger logger = LoggerFactory.getLogger(COAPConnector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(COAPConnector.class);
 
     private final COAPClientFactory coapClientFactory;
 
@@ -33,7 +33,7 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
         client = coapClientFactory.createClient(configuration);
         optionSet = coapClientFactory.createOptions(configuration);
 
-        logger.info("Connected to {} (timeout: {} seconds)", client.getURI(), client.getTimeout());
+        LOGGER.info("Connected to {} (timeout: {} seconds)", client.getURI(), client.getTimeout());
     }
 
     @Value
@@ -54,7 +54,7 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
         }
 
         Message message = new Message(payload);
-        logger.info("Sending message through COAP connector: {}", message);
+        LOGGER.info("Sending message through COAP connector: {}", message);
 
         Request request = (Request) Request.newPost().setPayload(message.getPayload()).setOptions(optionSet);
 
@@ -66,15 +66,15 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
             } else if (!CoAP.ResponseCode.isSuccess(response.getCode())) {
                 logErrorMessage(response.getCode().toString());
             } else {
-                logger.info("Message sent");
+                LOGGER.info("Message sent");
             }
         } catch (Exception e) {
-            logger.error("Exception sending message: {}", e.getMessage());
+            LOGGER.error("Exception sending message: {}", e);
         }
     }
 
     private void logErrorMessage(String errorMessage) {
-        logger.error("Error sending message through COAP connector: {}", errorMessage);
+        LOGGER.error("Error sending message through COAP connector: {}", errorMessage);
     }
 
     @Override
