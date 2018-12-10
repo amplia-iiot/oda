@@ -58,7 +58,7 @@ public class COAPClientFactoryTest {
     private static final String TEST_TRUST_STORE_TYPE = "JCEKS";
     private static final String TEST_TRUST_STORE_LOCATION = "location/to/truststore";
     private static final String TEST_TRUST_STORE_PASSWORD = "anotherPassword";
-    private static final String TEST_OPENGATE_CERTIFICATE_NAME = "opengateCertificate";
+    private static final String[] TEST_OPENGATE_CERTIFICATE_NAME = { "opengateCertificate", "letsEncryptCertificate" };
     private static final ConnectorConfiguration TEST_UDP_CONFIGURATION =
             ConnectorConfiguration.builder().scheme(COAP_SCHEME).host(TEST_HOST).port(TEST_PORT)
                     .localPort(TEST_LOCAL_PORT).path(TEST_PATH)
@@ -78,7 +78,7 @@ public class COAPClientFactoryTest {
                     .keyStorePassword(TEST_KEY_STORE_PASSWORD).clientKeyAlias(TEST_CLIENT_KEY_ALIAS)
                     .trustStoreType(TEST_TRUST_STORE_TYPE).trustStoreLocation(TEST_TRUST_STORE_LOCATION)
                     .trustStorePassword(TEST_TRUST_STORE_PASSWORD)
-                    .openGateCertificateAlias(TEST_OPENGATE_CERTIFICATE_NAME).build();
+                    .trustedCertificates(TEST_OPENGATE_CERTIFICATE_NAME).build();
 
 
     @Mock
@@ -175,11 +175,11 @@ public class COAPClientFactoryTest {
         KeyStore.getInstance(eq(TEST_TRUST_STORE_TYPE));
         verify(mockedKeyStore).load(eq(mockedFileInputStream), aryEq(TEST_KEY_STORE_PASSWORD.toCharArray()));
         verify(mockedKeyStore).load(eq(mockedFileInputStream), aryEq(TEST_TRUST_STORE_PASSWORD.toCharArray()));
-        verify(mockedKeyStore).getCertificate(eq(TEST_OPENGATE_CERTIFICATE_NAME));
+        verify(mockedKeyStore).getCertificate(eq(TEST_OPENGATE_CERTIFICATE_NAME[0]));
         PowerMockito.verifyNew(InetSocketAddress.class).withArguments(eq(TEST_LOCAL_PORT));
         PowerMockito.verifyNew(DtlsConnectorConfig.Builder.class).withArguments(eq(mockedAddress));
         verify(mockedBuilder).setClientOnly();
-        verify(mockedBuilder).setTrustStore(aryEq(new Certificate[] {mockedCertificate}));
+        verify(mockedBuilder).setTrustStore(aryEq(new Certificate[] {mockedCertificate, mockedCertificate}));
         verify(mockedBuilder).build();
         PowerMockito.verifyNew(DTLSConnector.class).withArguments(eq(mockedDtlsConfiguration));
         PowerMockito.verifyNew(CoapEndpoint.class)

@@ -26,7 +26,6 @@ public class ConnectorConfiguration {
     public static final String DEFAULT_MESSAGE_PROTOCOL_VERSION = "1.0.0";
     public static final String DEFAULT_KEY_STORE_TYPE = "JKS";
     public static final String DEFAULT_CLIENT_KEY_ALIAS = "client";
-    public static final String DEFAULT_OPENGATE_CERTIFICATE_ALIAS = "amplia";
 
     @Builder.Default
     private ConnectorType type = DEFAULT_CONNECTOR_TYPE;
@@ -54,6 +53,5 @@ public class ConnectorConfiguration {
     private String trustStoreType = DEFAULT_KEY_STORE_TYPE;
     private String trustStoreLocation;
     private String trustStorePassword;
-    @Builder.Default
-    private String openGateCertificateAlias = DEFAULT_OPENGATE_CERTIFICATE_ALIAS;
+    private String[] trustedCertificates;
 }

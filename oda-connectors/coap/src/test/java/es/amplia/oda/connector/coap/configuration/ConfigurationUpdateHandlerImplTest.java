@@ -17,6 +17,7 @@ import java.util.Hashtable;
 import static es.amplia.oda.connector.coap.configuration.ConfigurationUpdateHandlerImpl.*;
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.*;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
@@ -46,7 +47,7 @@ public class ConfigurationUpdateHandlerImplTest {
     private static final String TEST_TRUST_STORE_TYPE = "PKCS12";
     private static final String TEST_TRUST_STORE_LOCATION = "location/to/truststore";
     private static final String TEST_TRUST_STORE_PASSWORD = "anotherPassword";
-    private static final String TEST_OPENGATE_CERTIFICATE_NAME = "opengateCertificate";
+    private static final String[] TEST_TRUSTED_CERTIFICATES = {"opengateCertificate","othertrustedcertificate"};
 
     @Mock
     private COAPConnector mockedConnector;
@@ -140,7 +141,7 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(TRUST_STORE_TYPE_PROPERTY_NAME, TEST_TRUST_STORE_TYPE);
         props.put(TRUST_STORE_LOCATION_PROPERTY_NAME, TEST_TRUST_STORE_LOCATION);
         props.put(TRUST_STORE_PASSWORD_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
-        props.put(OPENGATE_CERTIFICATE_NAME_PROPERTY_NAME, TEST_OPENGATE_CERTIFICATE_NAME);
+        props.put(TRUSTED_CERTIFICATES_PROPERTY_NAME, String.join(TRUSTED_CERTIFICATES_SEPARATOR, TEST_TRUSTED_CERTIFICATES));
 
         testConfigHandler.loadConfiguration(props);
 
@@ -151,7 +152,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(TEST_TRUST_STORE_TYPE, conf.getTrustStoreType());
         assertEquals(TEST_TRUST_STORE_LOCATION, conf.getTrustStoreLocation());
         assertEquals(TEST_TRUST_STORE_PASSWORD, conf.getTrustStorePassword());
-        assertEquals(TEST_OPENGATE_CERTIFICATE_NAME, conf.getOpenGateCertificateAlias());
+        assertArrayEquals(TEST_TRUSTED_CERTIFICATES, conf.getTrustedCertificates());
     }
 
     @Test
@@ -165,6 +166,7 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(KEY_STORE_PASSWORD_PROPERTY_NAME, TEST_KEY_STORE_PASSWORD);
         props.put(TRUST_STORE_LOCATION_PROPERTY_NAME, TEST_TRUST_STORE_LOCATION);
         props.put(TRUST_STORE_PASSWORD_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
+        props.put(TRUSTED_CERTIFICATES_PROPERTY_NAME, String.join(TRUSTED_CERTIFICATES_SEPARATOR, TEST_TRUSTED_CERTIFICATES));
 
         testConfigHandler.loadConfiguration(props);
 
@@ -179,7 +181,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(DEFAULT_KEY_STORE_TYPE, conf.getTrustStoreType());
         assertEquals(TEST_TRUST_STORE_LOCATION, conf.getTrustStoreLocation());
         assertEquals(TEST_TRUST_STORE_PASSWORD, conf.getTrustStorePassword());
-        assertEquals(DEFAULT_OPENGATE_CERTIFICATE_ALIAS, conf.getOpenGateCertificateAlias());
+        assertArrayEquals(TEST_TRUSTED_CERTIFICATES, conf.getTrustedCertificates());
     }
 
     @Test(expected = ConfigurationException.class)

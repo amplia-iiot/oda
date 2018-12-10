@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.*;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.ConnectorType;
 
@@ -72,8 +73,10 @@ class COAPClientFactory {
 
                 KeyStore trustStore = KeyStore.getInstance(configuration.getTrustStoreType());
                 trustStore.load(trustStoreStream, configuration.getTrustStorePassword().toCharArray());
-                Certificate[] trustedCertificates = new Certificate[1];
-                trustedCertificates[0] = trustStore.getCertificate(configuration.getOpenGateCertificateAlias());
+                Certificate[] trustedCertificates =
+                        Arrays.stream(configuration.getTrustedCertificates())
+                                .map(certificateName -> getCertificateWithName(trustStore, certificateName.trim()))
+                                .toArray(Certificate[]::new);
 
                 InetSocketAddress inetSocketAddress = new InetSocketAddress(configuration.getLocalPort());
                 DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(inetSocketAddress);
@@ -84,7 +87,7 @@ class COAPClientFactory {
                 builder.setSupportedCipherSuites(new CipherSuite[]{ CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 });
 
                 return new DTLSConnector(builder.build());
-            } catch (IllegalStateException | GeneralSecurityException | IOException ex) {
+            } catch (IllegalArgumentException | IllegalStateException | GeneralSecurityException | IOException ex) {
                 LOGGER.error("Error creating CoAP DTLS Connector: {}", ex);
                 throw new ConfigurationException("Error creating Coap Connector: Invalid configuration");
             }
@@ -99,6 +102,15 @@ class COAPClientFactory {
             udpConnector.setReceiverPacketSize(config.getInt(NetworkConfig.Keys.UDP_CONNECTOR_DATAGRAM_SIZE));
 
             return udpConnector;
+        }
+    }
+
+    private Certificate getCertificateWithName(KeyStore trustStore, String certificateName) {
+        try {
+            return trustStore.getCertificate(certificateName);
+        } catch (KeyStoreException exception) {
+            LOGGER.error("Trusted certificate {} not found: {}", certificateName, exception);
+            return null;
         }
     }
 

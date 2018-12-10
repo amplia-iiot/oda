@@ -30,7 +30,9 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final String TRUST_STORE_TYPE_PROPERTY_NAME = "trustStoreType";
     static final String TRUST_STORE_LOCATION_PROPERTY_NAME = "trustStoreLocation";
     static final String TRUST_STORE_PASSWORD_PROPERTY_NAME = "trustStorePassword";
-    static final String OPENGATE_CERTIFICATE_NAME_PROPERTY_NAME = "openGateCertificateName";
+    static final String TRUSTED_CERTIFICATES_PROPERTY_NAME = "trustedCertificates";
+
+    static final String TRUSTED_CERTIFICATES_SEPARATOR = ",";
 
     private final COAPConnector connector;
 
@@ -73,8 +75,8 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                 .ifPresent(builder::trustStoreLocation);
         Optional.ofNullable((String) props.get(TRUST_STORE_PASSWORD_PROPERTY_NAME))
                 .ifPresent(builder::trustStorePassword);
-        Optional.ofNullable((String) props.get(OPENGATE_CERTIFICATE_NAME_PROPERTY_NAME))
-                .ifPresent(builder::openGateCertificateAlias);
+        Optional.ofNullable((String) props.get(TRUSTED_CERTIFICATES_PROPERTY_NAME))
+                .ifPresent(value -> builder.trustedCertificates(value.split(TRUSTED_CERTIFICATES_SEPARATOR)));
 
         currentConfiguration = builder.build();
 
@@ -101,7 +103,8 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     private boolean trustStoreIsNotConfigured() {
         return currentConfiguration.getTrustStoreLocation() == null ||
-                currentConfiguration.getTrustStorePassword() == null;
+                currentConfiguration.getTrustStorePassword() == null ||
+                currentConfiguration.getTrustedCertificates() == null;
     }
 
     private boolean keyStoreIsNotConfigured() {
