@@ -10,16 +10,6 @@ import java.util.Optional;
 
 public class ModbusMasterProxy implements ModbusMaster, AutoCloseable {
 
-    static <T> Consumer<T> throwingModbusExceptionWrapper(Consumer<T> consumer) {
-        return i -> {
-            try {
-                consumer.accept(i);
-            } catch (ModbusException ex) {
-                throw new RuntimeException(ex);
-            }
-        };
-    }
-
     private static final String NO_MODBUS_MASTER_AVAILABLE_MESSAGE = "No Modbus Master available";
 
     private final OsgiServiceProxy<ModbusMaster> proxy;
