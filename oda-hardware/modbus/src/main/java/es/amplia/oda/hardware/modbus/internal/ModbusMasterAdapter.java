@@ -10,14 +10,18 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
-public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaster {
+class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaster {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModbusMasterAdapter.class);
 
     private static final int ONE_ENTRY = 1;
     private static final int FIRST_INDEX = 0;
+    private static final String READING_OPERATION = "reading";
+    private static final String WRITING_OPERATION = "writing";
+    private static final String INPUT_DISCRETE_REG_TYPE = "input discrete";
+    private static final String COIL_REG_TYPE = "coil";
+    private static final String INPUT_REGISTER_REG_TYPE = "input register";
+    private static final String HOLDING_REGISTER_REG_TYPE = "holding register";
 
     private final T modbusMaster;
     private final ModbusTypeMapper modbusTypeMapper;
@@ -48,9 +52,15 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             BitVector bitVector =  modbusMaster.readInputDiscretes(unitId, ref, count);
             return modbusTypeMapper.mapBitVectorValues(bitVector);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error reading {} input discretes from {} of slave {}: {}", count, ref, unitId, exception);
-            throw new ModbusException("Error reading " + count + " input discretes from " + ref + " of slave " + unitId, exception);
+            throw createModbusException(READING_OPERATION, INPUT_DISCRETE_REG_TYPE, unitId, ref, count, exception);
         }
+    }
+
+    private ModbusException createModbusException(String operation, String registerType, int unitId, int ref, int count,
+                                      Exception exception) {
+        LOGGER.error("Error {} {} {}s from {} of slave {}: {}", operation, count, registerType, ref, unitId, exception);
+        return new ModbusException("Error " + operation + " " + count + " " + registerType + "s from " + ref +
+                " of slave " + unitId, exception);
     }
 
     @Override
@@ -64,8 +74,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             BitVector bitVector =  modbusMaster.readCoils(unitId, ref, count);
             return modbusTypeMapper.mapBitVectorValues(bitVector);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error reading {} coils from {} of slave {}: {}", count, ref, unitId, exception);
-            throw new ModbusException("Error reading " + count + " coils from " + ref + " of slave " + unitId, exception);
+            throw createModbusException(READING_OPERATION, COIL_REG_TYPE, unitId, ref, count, exception);
         }
     }
 
@@ -74,8 +83,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
         try {
             modbusMaster.writeCoil(unitId, ref, value);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error writing coil {} of slave {} with value {}: {}", unitId, ref, value, exception);
-            throw new ModbusException("Error writing coil " + ref + " of slave " + unitId + " with value " + value, exception);
+            throw createModbusException(WRITING_OPERATION, COIL_REG_TYPE, unitId, ref, ONE_ENTRY, exception);
         }
     }
 
@@ -85,8 +93,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             BitVector bitVector = modbusTypeMapper.mapValuesToBitVector(values);
             modbusMaster.writeMultipleCoils(unitId, ref, bitVector);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error writing {} coils from {} of slave {} with values {}: {}", values.length, ref, unitId, Arrays.toString(values), exception);
-            throw new ModbusException("Error writing " + values.length + " coils from " + ref + " of slave " + unitId + " with value " + Arrays.toString(values), exception);
+            throw createModbusException(WRITING_OPERATION, COIL_REG_TYPE, unitId, ref, values.length, exception);
         }
     }
 
@@ -101,8 +108,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             InputRegister[] inputRegisters =  modbusMaster.readInputRegisters(unitId, ref, count);
             return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error reading {} input registers from {} of slave {}: {}", count, ref, unitId, exception);
-            throw new ModbusException("Error reading " + count + " input registers from " + ref + " of slave " + unitId, exception);
+            throw createModbusException(READING_OPERATION, INPUT_REGISTER_REG_TYPE, unitId, ref, count, exception);
         }
     }
 
@@ -117,8 +123,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             InputRegister[] inputRegisters =  modbusMaster.readMultipleRegisters(unitId, ref, count);
             return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error reading {} holding registers from {} of slave {}: {}", count, ref, unitId, exception);
-            throw new ModbusException("Error reading " + count + " holding registers from " + ref + " of slave " + unitId, exception);
+            throw createModbusException(READING_OPERATION, HOLDING_REGISTER_REG_TYPE, unitId, ref, count, exception);
         }
     }
 
@@ -128,8 +133,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             com.ghgande.j2mod.modbus.procimg.Register j2Register = modbusTypeMapper.mapToJ2ModbusRegister(register);
             modbusMaster.writeSingleRegister(unitId, ref, j2Register);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error writing holding register {} of slave {} with value {}: {}", ref, unitId, register, exception);
-            throw new ModbusException("Error writing holding register " + ref + " of slave " + unitId +  " with value " + register, exception);
+            throw createModbusException(WRITING_OPERATION, HOLDING_REGISTER_REG_TYPE, unitId, ref, ONE_ENTRY, exception);
         }
     }
 
@@ -139,8 +143,8 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
             com.ghgande.j2mod.modbus.procimg.Register[] j2Registers = modbusTypeMapper.mapToJ2ModbusRegisters(registers);
             modbusMaster.writeMultipleRegisters(unitId, ref, j2Registers);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
-            LOGGER.error("Error writing holding registers from {} of slave {} with values {}: {}", ref, unitId, Arrays.toString(registers), exception);
-            throw new ModbusException("Error writing holding registers from " + ref + " of slave " + unitId +  " with values " + Arrays.toString(registers), exception);
+            throw createModbusException(WRITING_OPERATION, HOLDING_REGISTER_REG_TYPE, unitId, ref, registers.length,
+                    exception);
         }
     }
 
