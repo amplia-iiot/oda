@@ -26,7 +26,7 @@ class ModbusTypeMapper {
         return bitVector;
     }
 
-    Register[] mapInputRegister(InputRegister[] inputRegisters) {
+    Register[] mapInputRegisters(InputRegister[] inputRegisters) {
         return Arrays.stream(inputRegisters).map(inputRegister -> new Register(inputRegister.getValue()))
                 .toArray(Register[]::new);
     }

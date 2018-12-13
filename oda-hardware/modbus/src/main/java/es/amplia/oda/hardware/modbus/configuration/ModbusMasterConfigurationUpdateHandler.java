@@ -14,20 +14,24 @@ import java.util.function.Consumer;
 
 public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
-    private static final String TYPE_PROPERTY_NAME = "type";
-    private static final String ADDRESS_PROPERTY_NAME = "address";
-    private static final String PORT_PROPERTY_NAME = "port";
-    private static final String TIMEOUT_PROPERTY_NAME = "timeout";
-    private static final String RECONNECT_PROPERTY_NAME = "reconnect";
-    private static final String PORT_NAME_PROPERTY_NAME = "portName";
-    private static final String BAUD_RATE_PROPERTY_NAME = "baudRate";
-    private static final String FLOW_CONTROL_IN_PROPERTY_NAME = "flowControlIn";
-    private static final String FLOW_CONTROL_OUT_PROPERTY_NAME = "flowControlOut";
-    private static final String DATA_BITS_PROPERTY_NAME = "databits";
-    private static final String STOP_BITS_PROPERTY_NAME = "stopbits";
-    private static final String PARITY_PROPERTY_NAME = "parity";
-    private static final String ENCODING_PROPERTY_NAME = "encoding";
-    private static final String ECHO_PROPERTY_NAME = "echo";
+    static final String TYPE_PROPERTY_NAME = "type";
+    static final String ADDRESS_PROPERTY_NAME = "address";
+    static final String PORT_PROPERTY_NAME = "port";
+    static final String TIMEOUT_PROPERTY_NAME = "timeout";
+    static final String RECONNECT_PROPERTY_NAME = "reconnect";
+    static final String PORT_NAME_PROPERTY_NAME = "portName";
+    static final String BAUD_RATE_PROPERTY_NAME = "baudRate";
+    static final String FLOW_CONTROL_IN_PROPERTY_NAME = "flowControlIn";
+    static final String FLOW_CONTROL_OUT_PROPERTY_NAME = "flowControlOut";
+    static final String DATA_BITS_PROPERTY_NAME = "databits";
+    static final String STOP_BITS_PROPERTY_NAME = "stopbits";
+    static final String PARITY_PROPERTY_NAME = "parity";
+    static final String ENCODING_PROPERTY_NAME = "encoding";
+    static final String ECHO_PROPERTY_NAME = "echo";
+
+    static final String TCP_MODBUS_TYPE = "TCP";
+    static final String UDP_MODBUS_TYPE = "UDP";
+    static final String SERIAL_MODBUS_TYPE = "Serial";
 
 
     private final ModbusMasterManager modbusMasterManager;
@@ -43,9 +47,9 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     }
 
     private void prepareConfiguratorConsumers() {
-        configuratorConsumers.put("TCP", this::loadTCPConfiguration);
-        configuratorConsumers.put("UDP", this::loadUDPConfiguration);
-        configuratorConsumers.put("Serial", this::loadSerialConfiguration);
+        configuratorConsumers.put(TCP_MODBUS_TYPE, this::loadTCPConfiguration);
+        configuratorConsumers.put(UDP_MODBUS_TYPE, this::loadUDPConfiguration);
+        configuratorConsumers.put(SERIAL_MODBUS_TYPE, this::loadSerialConfiguration);
     }
 
     @Override

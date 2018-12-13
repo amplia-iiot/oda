@@ -99,7 +99,7 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
     public Register[] readInputRegisters(int unitId, int ref, int count){
         try {
             InputRegister[] inputRegisters =  modbusMaster.readInputRegisters(unitId, ref, count);
-            return modbusTypeMapper.mapInputRegister(inputRegisters);
+            return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             LOGGER.error("Error reading {} input registers from {} of slave {}: {}", count, ref, unitId, exception);
             throw new ModbusException("Error reading " + count + " input registers from " + ref + " of slave " + unitId, exception);
@@ -108,14 +108,14 @@ public class ModbusMasterAdapter<T extends AbstractModbusMaster> implements Modb
 
     @Override
     public Register readHoldingRegister(int unitId, int ref) {
-        return readInputRegisters(unitId, ref, ONE_ENTRY)[FIRST_INDEX];
+        return readHoldingRegisters(unitId, ref, ONE_ENTRY)[FIRST_INDEX];
     }
 
     @Override
     public Register[] readHoldingRegisters(int unitId, int ref, int count) {
         try {
             InputRegister[] inputRegisters =  modbusMaster.readMultipleRegisters(unitId, ref, count);
-            return modbusTypeMapper.mapInputRegister(inputRegisters);
+            return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             LOGGER.error("Error reading {} holding registers from {} of slave {}: {}", count, ref, unitId, exception);
             throw new ModbusException("Error reading " + count + " holding registers from " + ref + " of slave " + unitId, exception);
