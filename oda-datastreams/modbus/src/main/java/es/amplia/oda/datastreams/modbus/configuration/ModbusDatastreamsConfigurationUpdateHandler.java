@@ -27,7 +27,7 @@ public class ModbusDatastreamsConfigurationUpdateHandler implements Configuratio
 
 
     private final ModbusDatastreamsManager modbusDatastreamsManager;
-    private List<ModbusDatastreamsConfiguration> currentModbusDatastreamsConfigurations = new ArrayList<>();
+    private final List<ModbusDatastreamsConfiguration> currentModbusDatastreamsConfigurations = new ArrayList<>();
 
 
     public ModbusDatastreamsConfigurationUpdateHandler(ModbusDatastreamsManager modbusDatastreamsManager) {

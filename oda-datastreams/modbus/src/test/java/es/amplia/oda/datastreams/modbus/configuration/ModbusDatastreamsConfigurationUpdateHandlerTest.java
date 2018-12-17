@@ -13,8 +13,6 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)

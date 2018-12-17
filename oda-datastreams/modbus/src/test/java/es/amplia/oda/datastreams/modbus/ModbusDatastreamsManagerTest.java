@@ -50,6 +50,7 @@ public class ModbusDatastreamsManagerTest {
     @Mock
     private DatastreamsSetter mockedDatastreamsSetter;
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testLoadConfiguration() {
         ModbusDatastreamsConfiguration conf1 = ModbusDatastreamsConfiguration.builder()

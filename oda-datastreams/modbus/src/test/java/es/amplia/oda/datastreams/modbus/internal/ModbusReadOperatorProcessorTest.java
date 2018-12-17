@@ -43,7 +43,7 @@ public class ModbusReadOperatorProcessorTest {
 
     @Mock
     private Register mockedRegister;
-    private Register[] dummyRegisters = new Register[0];
+    private final Register[] dummyRegisters = new Register[0];
 
     @Test
     public void testReadBooleanFromInputDiscrete() {
