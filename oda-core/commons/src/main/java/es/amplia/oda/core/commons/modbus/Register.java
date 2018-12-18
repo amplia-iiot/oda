@@ -3,14 +3,15 @@ package es.amplia.oda.core.commons.modbus;
 public class Register {
 
     private static final int BITS_PER_BYTE = 8;
+    private static final int BYTES_PER_REGISTER = 2;
 
 
-    private final byte[] bytes = new byte[2];
+    private final byte[] bytes = new byte[BYTES_PER_REGISTER];
 
 
-    public Register(byte b1, byte b2) {
-        this.bytes[0] = b1;
-        this.bytes[1] = b2;
+    public Register(byte mostSignificantByte, byte leastSignificantByte) {
+        this.bytes[0] = mostSignificantByte;
+        this.bytes[1] = leastSignificantByte;
     }
 
     public Register(int value) {
