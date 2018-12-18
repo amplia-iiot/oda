@@ -1,8 +1,10 @@
 package es.amplia.oda.datastreams.modbus;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.osgi.proxies.ModbusMasterProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
+import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.modbus.configuration.ModbusDatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.modbus.internal.ModbusDatastreamsFactoryImpl;
@@ -16,6 +18,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -39,6 +42,8 @@ public class ActivatorTest {
     private ModbusDatastreamsConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundle;
+    @Mock
+    private ServiceListenerBundle<ModbusMaster> mockedModbusMasterListener;
 
     @Test
     public void testStart() throws Exception {
@@ -51,6 +56,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(ModbusDatastreamsConfigurationUpdateHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedModbusMasterListener);
 
         testActivator.start(mockedContext);
 
@@ -65,6 +71,18 @@ public class ActivatorTest {
         PowerMockito.verifyNew(ModbusDatastreamsConfigurationUpdateHandler.class)
                 .withArguments(eq(mockedModbusDatastreamsManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+        PowerMockito.verifyNew(ServiceListenerBundle.class)
+                .withArguments(eq(mockedContext), eq(ModbusMaster.class), any());
+        verify(mockedModbusMaster).connect();
+    }
+
+    @Test
+    public void testOnServiceChanged() {
+        Whitebox.setInternalState(testActivator, "modbusMaster", mockedModbusMaster);
+
+        testActivator.onServiceChanged();
+
+        verify(mockedModbusMaster).connect();
     }
 
     @Test
@@ -72,11 +90,13 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "modbusMaster", mockedModbusMaster);
         Whitebox.setInternalState(testActivator, "modbusDatastreamsManager", mockedModbusDatastreamsManager);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
+        Whitebox.setInternalState(testActivator, "modbusMasterListenerBundle", mockedModbusMasterListener);
 
         testActivator.stop(mockedContext);
 
-        verify(mockedModbusMaster).close();
-        verify(mockedModbusDatastreamsManager).close();
+        verify(mockedModbusMasterListener).close();
         verify(mockedConfigurableBundle).close();
+        verify(mockedModbusDatastreamsManager).close();
+        verify(mockedModbusMaster).close();
     }
 }

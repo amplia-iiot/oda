@@ -2,11 +2,9 @@ package es.amplia.oda.datastreams.modbus;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.osgi.proxies.ModbusMasterProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
-import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
-import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
+import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.modbus.configuration.ModbusDatastreamsConfigurationUpdateHandler;
 
 import es.amplia.oda.datastreams.modbus.internal.*;
@@ -18,6 +16,7 @@ public class Activator implements BundleActivator {
     private ModbusMasterProxy modbusMaster;
     private ModbusDatastreamsManager modbusDatastreamsManager;
     private ConfigurableBundle configurableBundle;
+    private ServiceListenerBundle<ModbusMaster> modbusMasterListenerBundle;
 
 
     @Override
@@ -34,12 +33,21 @@ public class Activator implements BundleActivator {
         ModbusDatastreamsConfigurationUpdateHandler configHandler =
                 new ModbusDatastreamsConfigurationUpdateHandler(modbusDatastreamsManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
+        modbusMasterListenerBundle =
+                new ServiceListenerBundle<>(bundleContext, ModbusMaster.class, this::onServiceChanged);
+        onServiceChanged();
+    }
+
+    void onServiceChanged() {
+        modbusMaster.connect();
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
+        modbusMasterListenerBundle.close();
         configurableBundle.close();
         modbusDatastreamsManager.close();
+        modbusMaster.disconnect();
         modbusMaster.close();
     }
 }
