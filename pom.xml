@@ -4,7 +4,7 @@
 
     <groupId>es.amplia.oda</groupId>
     <artifactId>oda-parent</artifactId>
-    <version>3.15.1-SNAPSHOT</version>
+    <version>3.16.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
