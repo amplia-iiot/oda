@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import static es.amplia.oda.connector.coap.at.ATUDPConnector.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -229,7 +228,7 @@ public class ATUDPConnectorTest {
 
         Whitebox.setInternalState(testConnector, "receiverExecutor", mockedReceiverExecutor);
 
-        testConnector.processArriveSocketMessageEvent(arriveSocketMessageEvent);
+        testConnector.processArrivedSocketMessageEvent(arriveSocketMessageEvent);
 
         verify(mockedReceiverExecutor).submit(any(Runnable.class));
     }
@@ -241,7 +240,7 @@ public class ATUDPConnectorTest {
 
         Whitebox.setInternalState(testConnector, "receiverExecutor", mockedReceiverExecutor);
 
-        testConnector.processArriveSocketMessageEvent(arriveSocketMessageEvent);
+        testConnector.processArrivedSocketMessageEvent(arriveSocketMessageEvent);
 
         verify(mockedReceiverExecutor, never()).submit(any(Runnable.class));
     }
@@ -254,7 +253,7 @@ public class ATUDPConnectorTest {
 
         Whitebox.setInternalState(testConnector, "receiverExecutor", mockedReceiverExecutor);
 
-        testConnector.processArriveSocketMessageEvent(arriveSocketMessageEvent);
+        testConnector.processArrivedSocketMessageEvent(arriveSocketMessageEvent);
 
         verify(mockedReceiverExecutor, never()).submit(any(Runnable.class));
     }

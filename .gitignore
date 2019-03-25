@@ -15,3 +15,6 @@ buildNumber.properties
 # IntelliJ
 .idea
 **/*.iml
+
+# Californium (CoAP)
+Californium.properties

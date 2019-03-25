@@ -36,7 +36,7 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>californium-core, element-connector, commons-codec</Embed-Dependency>
+                        <Embed-Dependency>californium-core, scandium, element-connector, commons-codec</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
@@ -81,6 +81,11 @@
         <dependency>
             <groupId>org.eclipse.californium</groupId>
             <artifactId>californium-core</artifactId>
+            <version>${eclipse.californium.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.californium</groupId>
+            <artifactId>scandium</artifactId>
             <version>${eclipse.californium.version}</version>
         </dependency>
         <dependency>

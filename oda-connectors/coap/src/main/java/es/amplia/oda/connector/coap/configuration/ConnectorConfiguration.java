@@ -8,40 +8,50 @@ import org.eclipse.californium.core.network.config.NetworkConfig;
 @Value
 @Builder
 public class ConnectorConfiguration {
+
     public enum ConnectorType {
-        OS,
+        UDP,
+        DTLS,
         AT
     }
 
-    private ConnectorType type;
+    public static final ConnectorType DEFAULT_CONNECTOR_TYPE = ConnectorType.UDP;
+    public static final String COAP_SCHEME = "coap";
+    public static final String COAP_SECURE_SCHEME = "coaps";
+    public static final int DEFAULT_COAP_PORT = NetworkConfig.getStandard().getInt(NetworkConfig.Keys.COAP_PORT);
+    public static final int DEFAULT_COAP_SECURE_PORT =
+            NetworkConfig.getStandard().getInt(NetworkConfig.Keys.COAP_SECURE_PORT);
+    public static final int DEFAULT_LOCAL_PORT = 4123;
+    public static final int DEFAULT_TIMEOUT = 30;
+    public static final String DEFAULT_MESSAGE_PROTOCOL_VERSION = "1.0.0";
+    public static final String DEFAULT_KEY_STORE_TYPE = "JKS";
+    public static final String DEFAULT_CLIENT_KEY_ALIAS = "client";
+
+    @Builder.Default
+    private ConnectorType type = DEFAULT_CONNECTOR_TYPE;
+    private String scheme;
     @NonNull
-    private String remoteHost;
-    private int remotePort;
+    private String host;
+    private int port;
     @NonNull
     private String path;
     @NonNull
     private String provisionPath;
-    private int localPort;
-    private long timeout;
-    private String messageProtocolVersion;
-
-    public static ConnectorConfigurationBuilder builder() {
-        return new DefaultConnectorConfigurationBuilder();
-    }
-
-    private static class DefaultConnectorConfigurationBuilder extends ConnectorConfigurationBuilder {
-
-        private static final int DEFAULT_COAP_PORT = NetworkConfig.getStandard().getInt(NetworkConfig.Keys.COAP_PORT);
-        private static final int DEFAULT_LOCAL_PORT = 4123;
-        private static final int DEFAULT_TIMEOUT = 30;
-        private static final String DEFAULT_MESSAGE_PROTOCOL_VERSION = "1.0.0";
-
-        DefaultConnectorConfigurationBuilder() {
-            super.type = ConnectorType.OS;
-            super.remotePort = DEFAULT_COAP_PORT;
-            super.localPort = DEFAULT_LOCAL_PORT;
-            super.timeout = DEFAULT_TIMEOUT;
-            super.messageProtocolVersion = DEFAULT_MESSAGE_PROTOCOL_VERSION;
-        }
-    }
+    @Builder.Default
+    private int localPort = DEFAULT_LOCAL_PORT;
+    @Builder.Default
+    private long timeout = DEFAULT_TIMEOUT;
+    @Builder.Default
+    private String messageProtocolVersion = DEFAULT_MESSAGE_PROTOCOL_VERSION;
+    @Builder.Default
+    private String keyStoreType = DEFAULT_KEY_STORE_TYPE;
+    private String keyStoreLocation;
+    private String keyStorePassword;
+    @Builder.Default
+    private String clientKeyAlias = DEFAULT_CLIENT_KEY_ALIAS;
+    @Builder.Default
+    private String trustStoreType = DEFAULT_KEY_STORE_TYPE;
+    private String trustStoreLocation;
+    private String trustStorePassword;
+    private String[] trustedCertificates;
 }

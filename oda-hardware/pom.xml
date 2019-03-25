@@ -13,6 +13,7 @@
         <module>atmanager</module>
         <module>atserver</module>
         <module>jdkdio</module>
+        <module>modbus</module>
     </modules>
 
     <parent>
