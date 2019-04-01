@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -10,6 +11,7 @@ import es.amplia.oda.event.api.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,14 +24,14 @@ class SchedulerImpl implements Scheduler {
     private final DeviceInfoProvider deviceInfoProvider;
     private final EventCollector collector;
     private final OpenGateConnector connector;
-    private final JsonWriter jsonWriter;
+    private final Serializer serializer;
 
     SchedulerImpl(DeviceInfoProvider deviceInfoProvider, EventCollector collector, OpenGateConnector connector,
-                  JsonWriter jsonWriter) {
+                  Serializer serializer) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.collector = collector;
         this.connector = connector;
-        this.jsonWriter = jsonWriter;
+        this.serializer = serializer;
     }
 
     @Override
@@ -51,11 +53,17 @@ class SchedulerImpl implements Scheduler {
                 LOGGER.info("No value recollected for Datastream {}", id);
             }
         }
-        
-        for(OutputDatastream data: devicesToIotData.values()) {
-            byte[] payload = jsonWriter.dumpOutput(data);
-            connector.uplink(payload);
-        }
+
+            for(OutputDatastream data: devicesToIotData.values()) {
+                try {
+                    byte[] payload = serializer.serialize(data);
+                    connector.uplink(payload);
+                } catch (IOException e) {
+                    LOGGER.error("Data from Dev:" + data.getDevice() +
+                            " Stream:" + data.getDatastreams() +
+                            " couldn't be serialized");
+                }
+            }
     }
 
     private Datastream locateDatapointList(Map<String, OutputDatastream> devicesToIotData, Event data,

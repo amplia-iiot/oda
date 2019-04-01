@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
@@ -9,7 +10,10 @@ import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 import es.amplia.oda.operation.api.OperationUpdate;
 
 import lombok.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -17,6 +21,8 @@ import java.util.stream.Collectors;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
 class OpenGateOperationDispatcher implements Dispatcher {
+
+    private static final Logger logger = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
 
     private static final String UPDATE_OPERATION = "UPDATE";
     private static final String REFRESH_INFO_OPERATION = "REFRESH_INFO";
@@ -26,8 +32,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private static final String SUCCESS_RESULT = "SUCCESS";
     private static final String ERROR_RESULT = "ERROR";
 
-    private final JsonParser jsonParser;
-    private final JsonWriter jsonWriter;
+    private final Serializer serializer;
     private final OperationGetDeviceParameters operationGetDeviceParameters;
     private final OperationRefreshInfo operationRefreshInfo;
     private final OperationSetDeviceParameters operationSetDeviceParameters;
@@ -35,15 +40,13 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private final DeviceInfoProvider deviceInfoProvider;
 
     OpenGateOperationDispatcher(
-            JsonParser jsonParser,
-            JsonWriter jsonWriter,
+            Serializer serializer,
             DeviceInfoProvider deviceInfoProvider,
             OperationGetDeviceParameters operationGetDeviceParameters,
             OperationSetDeviceParameters operationSetDeviceParameters,
             OperationRefreshInfo operationRefreshInfo,
             OperationUpdate operationUpdate) {
-        this.jsonParser = jsonParser;
-        this.jsonWriter = jsonWriter;
+        this.serializer = serializer;
         this.deviceInfoProvider = deviceInfoProvider;
         this.operationGetDeviceParameters = operationGetDeviceParameters;
         this.operationSetDeviceParameters = operationSetDeviceParameters;
@@ -264,11 +267,16 @@ class OpenGateOperationDispatcher implements Dispatcher {
         if (input == null) {
             throw new IllegalArgumentException("null parameter");
         }
-        Input parsedInput = jsonParser.parseInput(input);
+        Input parsedInput = null;
+        try {
+            parsedInput = serializer.deserialize(input, Input.class);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("couldn't deserialize input");
+        }
         if (parsedInput == null) {
             throw new IllegalArgumentException("null result of parsing");
         }
-        if (parsedInput.getOperation() == null){
+        if (parsedInput.getOperation() == null) {
             throw new IllegalArgumentException("null operation in result of parsing");
         }
         Request request = parsedInput.getOperation().getRequest();
@@ -306,7 +314,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 } else {
                     future.thenAccept(result -> {
                         Output output = translateToOutputUpdate(result, request.getId(), deviceIdForResponse);
-                        byte[] resultAsBytes = jsonWriter.dumpOutput(output);
+                        byte[] resultAsBytes = new byte[0];
+                        try {
+                            resultAsBytes = serializer.serialize(output);
+                        } catch (IOException e) {
+                            logger.error("Error serializing response message. Will send void bytearray as result");
+                        }
                         returnedFuture.complete(resultAsBytes);
                     });
                 }
@@ -322,7 +335,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 } else {
                     future.thenAccept(result -> {
                         Output output = translateToOutputRefresh(result, request.getId(), deviceIdForResponse);
-                        byte[] resultAsBytes = jsonWriter.dumpOutput(output);
+                        byte[] resultAsBytes = new byte[0];
+                        try {
+                            resultAsBytes = serializer.serialize(output);
+                        } catch (IOException e) {
+                            logger.error("Error serializing response message. Will send void bytearray as result");
+                        }
                         returnedFuture.complete(resultAsBytes);
                     });
                 }
@@ -339,7 +357,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 } else {
                     future.thenAccept(result -> {
                         Output output = translateToOutputGet(result, request.getId(), deviceIdForResponse);
-                        byte[] resultAsBytes = jsonWriter.dumpOutput(output);
+                        byte[] resultAsBytes = new byte[0];
+                        try {
+                            resultAsBytes = serializer.serialize(output);
+                        } catch (IOException e) {
+                            logger.error("Error serializing response message. Will send void bytearray as result");
+                        }
                         returnedFuture.complete(resultAsBytes);
                     });
                 }
@@ -356,7 +379,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 } else {
                     future.thenAccept(result -> {
                         Output output = translateToOutputSet(result, request.getId(), deviceIdForResponse);
-                        byte[] resultAsBytes = jsonWriter.dumpOutput(output);
+                        byte[] resultAsBytes = new byte[0];
+                        try {
+                            resultAsBytes = serializer.serialize(output);
+                        } catch (IOException e) {
+                            logger.error("Error serializing response message. Will send void bytearray as result");
+                        }
                         returnedFuture.complete(resultAsBytes);
                     });
                 }
@@ -377,7 +405,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                         "Operation not supported by the device", null);
         Output output = new Output(OPENGATE_VERSION, new OutputOperation(notSupportedResponse));
 
-        return jsonWriter.dumpOutput(output);
+        try {
+            return serializer.serialize(output);
+        } catch (IOException e) {
+            logger.error("Error serializing response message. Will send void bytearray as result");
+            return new byte[0];
+        }
     }
 
     private List<OperationSetDeviceParameters.VariableValue> parseInput(

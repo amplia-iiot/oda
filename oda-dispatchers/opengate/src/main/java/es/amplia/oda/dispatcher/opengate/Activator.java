@@ -2,11 +2,12 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.DatastreamSetterTypeMapperImpl;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
@@ -36,7 +37,6 @@ public class Activator implements BundleActivator {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
 
-    private DatastreamSetterTypeMapperImpl datastreamsTypeMapper;
     private OpenGateConnectorProxy connector;
     private ConfigurableBundle configurableBundle;
 
@@ -48,25 +48,23 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting OpenGate Dispatcher");
 
-        datastreamsTypeMapper = new DatastreamSetterTypeMapperImpl(bundleContext);
-        JsonParser jsonParser = new JsonParserImpl(datastreamsTypeMapper);
-        JsonWriter jsonWriter = new JsonWriterImpl();
+        Serializer serializer = new SerializerProxy(bundleContext, null/*TODO: Revisar este null*/);
         OperationGetDeviceParameters operationGetDeviceParameters = new OperationGetDeviceParametersProxy(bundleContext);
         OperationSetDeviceParameters operationSetDeviceParameters = new OperationSetDeviceParametersProxy(bundleContext);
         OperationRefreshInfo operationRefreshInfo = new OperationRefreshInfoProxy(bundleContext);
         OperationUpdate operationUpdate = new OperationUpdateProxy(bundleContext);
         DeviceInfoProvider deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
         Dispatcher dispatcher =
-                new OpenGateOperationDispatcher(jsonParser, jsonWriter, deviceInfoProvider,
+                new OpenGateOperationDispatcher(serializer, deviceInfoProvider,
                         operationGetDeviceParameters, operationSetDeviceParameters, operationRefreshInfo,
                         operationUpdate);
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
         connector = new OpenGateConnectorProxy(bundleContext);
-        OpenGateEventDispatcher eventDispatcher = new OpenGateEventDispatcher(deviceInfoProvider, jsonWriter, connector);
+        OpenGateEventDispatcher eventDispatcher = new OpenGateEventDispatcher(deviceInfoProvider, serializer, connector);
         eventDispatcherRegistration = bundleContext.registerService(EventDispatcher.class, eventDispatcher, null);
 
-        Scheduler scheduler = new SchedulerImpl(deviceInfoProvider, eventDispatcher, connector, jsonWriter);
+        Scheduler scheduler = new SchedulerImpl(deviceInfoProvider, eventDispatcher, connector, serializer);
         DispatcherConfigurationUpdateHandler configHandler =
                 new DispatcherConfigurationUpdateHandler(executor, eventDispatcher, scheduler);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
@@ -83,7 +81,6 @@ public class Activator implements BundleActivator {
         configurableBundle.close();
         stopPendingOperations();
         connector.close();
-        datastreamsTypeMapper.close();
 
         LOGGER.info("OpenGate Dispatcher stopped");
     }

@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -11,6 +12,7 @@ import es.amplia.oda.event.api.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,17 +23,17 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
     private static final Logger logger = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
     
     private final DeviceInfoProvider deviceInfoProvider;
-    private final JsonWriter jsonWriter;
+    private final Serializer serializer;
     private final OpenGateConnector connector;
     private final Map<String, List<Event>> collectedValues = new HashMap<>();
     private final List<String> datastreamIdsConfigured = new ArrayList<>();
 
     private boolean reduceBandwidthMode = false;
 
-    OpenGateEventDispatcher(DeviceInfoProvider deviceInfoProvider, JsonWriter jsonWriter,
+    OpenGateEventDispatcher(DeviceInfoProvider deviceInfoProvider, Serializer serializer,
                             OpenGateConnector connector) {
         this.deviceInfoProvider = deviceInfoProvider;
-        this.jsonWriter = jsonWriter;
+        this.serializer = serializer;
         this.connector = connector;
     }
 
@@ -47,8 +49,14 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
         } else {
             // Else send the value
             OutputDatastream outputEvent = translateToOutputDatastream(event);
-            byte[] payload = jsonWriter.dumpOutput(outputEvent);
-            connector.uplink(payload);
+            byte[] payload = new byte[0];
+            try {
+                payload = serializer.serialize(outputEvent);
+                connector.uplink(payload);
+            } catch (IOException e) {
+				logger.error("Event couldn't be serialize, it won't publish anything");
+            }
+
         }
     }
 
