@@ -19,5 +19,6 @@
 
     <modules>
         <module>cborserializer</module>
+        <module>jsonserializer</module>
     </modules>
 </project>
