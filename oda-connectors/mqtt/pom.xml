@@ -79,11 +79,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.paho</groupId>
-            <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>${eclipse.paho.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
@@ -94,6 +89,10 @@
         <dependency>
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.comms</groupId>
+            <artifactId>mqtt</artifactId>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
