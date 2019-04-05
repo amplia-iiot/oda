@@ -43,7 +43,7 @@ class SchedulerImpl implements Scheduler {
             List<Event> recollectedValues = collector.getAndCleanCollectedValues(id);
             if(recollectedValues != null) {
                 for(Event collectedValue: recollectedValues) {
-                    String deviceId = collectedValue.getDeviceId().equals("") ?
+                    String deviceId = "".equals(collectedValue.getDeviceId()) ?
                             deviceInfoProvider.getDeviceId() : collectedValue.getDeviceId();
                     Datastream ds = locateDatapointList(devicesToIotData, collectedValue, deviceId);
                     Datapoint dp = new Datapoint(collectedValue.getAt(), collectedValue.getValue());
@@ -59,9 +59,8 @@ class SchedulerImpl implements Scheduler {
                     byte[] payload = serializer.serialize(data);
                     connector.uplink(payload);
                 } catch (IOException e) {
-                    LOGGER.error("Data from Dev:" + data.getDevice() +
-                            " Stream:" + data.getDatastreams() +
-                            " couldn't be serialized");
+                    LOGGER.error("Data from datastream {} of device {} could not be serialized: {}",
+                            data.getDatastreams(), data.getDevice(), e);
                 }
             }
     }

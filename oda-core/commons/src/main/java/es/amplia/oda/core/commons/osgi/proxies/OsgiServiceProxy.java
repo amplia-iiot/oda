@@ -1,6 +1,7 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.util.tracker.ServiceTracker;
@@ -73,7 +74,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
                         .reduce(String::concat)
                         .orElse("");
 
-        return new StringBuilder("(&(objectClass=" + clazz.toString() + ")")
+        return new StringBuilder("(&(" + Constants.OBJECTCLASS + "=" + clazz.getName() + ")")
                 .append(propertiesToFilter)
                 .append(")")
                 .toString();

@@ -20,7 +20,7 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 
 class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
     
     private final DeviceInfoProvider deviceInfoProvider;
     private final Serializer serializer;
@@ -49,12 +49,11 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
         } else {
             // Else send the value
             OutputDatastream outputEvent = translateToOutputDatastream(event);
-            byte[] payload = new byte[0];
             try {
-                payload = serializer.serialize(outputEvent);
+                byte[] payload = serializer.serialize(outputEvent);
                 connector.uplink(payload);
             } catch (IOException e) {
-				logger.error("Event couldn't be serialize, it won't publish anything");
+                LOGGER.error("Error serializing event. Event will not be published: {}", e);
             }
 
         }
@@ -68,7 +67,7 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
         if (!reduceBandwidthMode) {
             String hostId = deviceInfoProvider.getDeviceId();
             deviceId = event.getDeviceId();
-            deviceId = deviceId.equals("") ? hostId : deviceId;
+            deviceId = "".equals(deviceId) ? hostId : deviceId;
             path = getPath(hostId, deviceId, event.getPath());
             at = event.getAt();
         }
@@ -114,7 +113,7 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
     }
     
     private void saveCollectedValue(Event data, String datastreamId) {
-        logger.debug("Storing values {}", data);
+        LOGGER.debug("Storing values {}", data);
         if (data == null) {
             return;
         }

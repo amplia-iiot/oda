@@ -22,7 +22,7 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 
 class OpenGateOperationDispatcher implements Dispatcher {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
 
     private static final String UPDATE_OPERATION = "UPDATE";
     private static final String REFRESH_INFO_OPERATION = "REFRESH_INFO";
@@ -267,11 +267,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
         if (input == null) {
             throw new IllegalArgumentException("null parameter");
         }
-        Input parsedInput = null;
+        
+        Input parsedInput;
         try {
             parsedInput = serializer.deserialize(input, Input.class);
         } catch (IOException e) {
-            throw new IllegalArgumentException("couldn't deserialize input");
+            throw new IllegalArgumentException("could not deserialize input");
         }
         if (parsedInput == null) {
             throw new IllegalArgumentException("null result of parsing");
@@ -284,11 +285,11 @@ class OpenGateOperationDispatcher implements Dispatcher {
             throw new IllegalArgumentException("null request in operation in result of parsing");
         }
 
-        final String deviceIdForOperations;
-        final String deviceIdForResponse;
-        final String deviceIdInRequest = request.getDeviceId();
-        final String odaDeviceId = deviceInfoProvider.getDeviceId();
-        if (deviceIdInRequest == null || deviceIdInRequest.equals("") || deviceIdInRequest.equals(odaDeviceId)) {
+        String deviceIdForOperations;
+        String deviceIdForResponse;
+        String deviceIdInRequest = request.getDeviceId();
+        String odaDeviceId = deviceInfoProvider.getDeviceId();
+        if (deviceIdInRequest == null || "".equals(deviceIdInRequest) || deviceIdInRequest.equals(odaDeviceId)) {
             deviceIdForOperations = "";
             deviceIdForResponse = odaDeviceId;
         } else {
@@ -318,7 +319,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                         try {
                             resultAsBytes = serializer.serialize(output);
                         } catch (IOException e) {
-                            logger.error("Error serializing response message. Will send void bytearray as result");
+                            LOGGER.error("Error serializing response message. Will sent void byte array as result: {}", e);
                         }
                         returnedFuture.complete(resultAsBytes);
                     });
@@ -339,7 +340,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                         try {
                             resultAsBytes = serializer.serialize(output);
                         } catch (IOException e) {
-                            logger.error("Error serializing response message. Will send void bytearray as result");
+                            LOGGER.error("Error serializing response message. Will sent void byte array as result: {}", e);
                         }
                         returnedFuture.complete(resultAsBytes);
                     });
@@ -361,7 +362,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                         try {
                             resultAsBytes = serializer.serialize(output);
                         } catch (IOException e) {
-                            logger.error("Error serializing response message. Will send void bytearray as result");
+                            LOGGER.error("Error serializing response message. Will sent void byte array as result: {}", e);
                         }
                         returnedFuture.complete(resultAsBytes);
                     });
@@ -383,7 +384,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                         try {
                             resultAsBytes = serializer.serialize(output);
                         } catch (IOException e) {
-                            logger.error("Error serializing response message. Will send void bytearray as result");
+                            LOGGER.error("Error serializing response message. Will sent void byte array as result: {}", e);
                         }
                         returnedFuture.complete(resultAsBytes);
                     });
@@ -408,7 +409,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         try {
             return serializer.serialize(output);
         } catch (IOException e) {
-            logger.error("Error serializing response message. Will send void bytearray as result");
+            LOGGER.error("Error serializing response message. Will sent void byte array as result: {}", e);
             return new byte[0];
         }
     }

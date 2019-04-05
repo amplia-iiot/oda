@@ -1,66 +1,40 @@
 package es.amplia.oda.service.cborserializer;
 
-import org.junit.Before;
+import es.amplia.oda.core.commons.interfaces.Serializer;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 
-import java.util.Hashtable;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ActivatorTest {
 
-	@InjectMocks
-	private final Activator activator = new Activator();
+    private final Activator activator = new Activator();
 
-	@Mock
-	private Logger logger;
-	@Mock
-	BundleContext mockedContext;
-	@Mock
-	ServiceRegistration<?> mockedRegistration;
-	@Mock
-	Hashtable<String, String> mockedDictionary;
+    @Mock
+    private BundleContext mockedContext;
+    @Mock
+    private ServiceRegistration<?> mockedRegistration;
 
-	@Before
-	public void prepareForTests() {
-		Whitebox.setInternalState(activator, "logger", logger);
-	}
+    @Test
+    public void testStart() {
+        activator.start(mockedContext);
+        
+        verify(mockedContext).registerService(eq(Serializer.class), any(), any());
+    }
 
-	@Test
-	public void testStart() throws Exception {
-		whenNew(Hashtable.class).withAnyArguments().thenReturn(mockedDictionary);
+    @Test
+    public void testStop() {
+        Whitebox.setInternalState(activator, "registration", mockedRegistration);
 
-		when(mockedContext.registerService(anyString(), any(), any())).thenReturn(null);
-
-		activator.start(mockedContext);
-
-		verify(logger).info("Starting Service CBOR Serializer");
-		verify(logger).info("CBOR Serializer Activator started");
-		verify(mockedContext).registerService(anyString(), any(), any());
-	}
-
-	@Test
-	public void testStop() throws Exception {
-		Whitebox.setInternalState(activator, "registration", mockedRegistration);
-
-		activator.stop(mockedContext);
-
-		verify(logger).info("Stopping Service CBOR Serializer");
-		verify(logger).info("CBOR Serializer Activator stopped");
-		verify(mockedRegistration).unregister();
-	}
+        activator.stop(mockedContext);
+        
+        verify(mockedRegistration).unregister();
+    }
 }
