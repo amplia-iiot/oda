@@ -67,6 +67,11 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
     }
 
     @Override
+    public void loadDefaultConfiguration() {
+        currentConfiguration.clear();
+    }
+
+    @Override
     public void applyConfiguration() {
         configuredTasks.forEach(task -> task.cancel(false));
         configuredTasks.clear();
