@@ -3,6 +3,7 @@ package es.amplia.oda.comms.mqtt.paho;
 import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -12,6 +13,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
@@ -34,7 +36,7 @@ public class MqttPahoClientFactoryTest {
         MqttClient client = testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
 
         PowerMockito.verifyNew(org.eclipse.paho.client.mqttv3.MqttClient.class)
-                .withArguments(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
+                .withArguments(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID), any(MemoryPersistence.class));
         assertEquals(mockedInnerClient, Whitebox.getInternalState(client, "innerClient"));
     }
 

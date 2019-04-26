@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.mqtt;
 
+import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.connector.mqtt.configuration.ConfigurationUpdateHandlerImpl;
 
@@ -24,6 +25,7 @@ public class Activator implements BundleActivator {
     private MqttClientFactoryProxy mqttClientFactory;
     private DispatcherProxy dispatcher;
     private ConfigurableBundle configurableBundle;
+    private ServiceListenerBundle<MqttClientFactory> mqttClientFactoryServiceListener;
     private ServiceListenerBundle<DeviceInfoProvider> deviceInfoServiceListener;
 
     private ServiceRegistration<OpenGateConnector> openGateConnectorRegistration;
@@ -43,6 +45,8 @@ public class Activator implements BundleActivator {
         ConfigurationUpdateHandlerImpl configUpdateHandler =
                 new ConfigurationUpdateHandlerImpl(connector, deviceIdProvider);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configUpdateHandler);
+        mqttClientFactoryServiceListener = new ServiceListenerBundle<>(bundleContext, MqttClientFactory.class,
+                () -> onServiceChanged(configUpdateHandler));
         deviceInfoServiceListener = new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class,
                 () -> onServiceChanged(configUpdateHandler));
 
@@ -54,7 +58,7 @@ public class Activator implements BundleActivator {
         try {
             configHandler.reapplyConfiguration();
         } catch (Exception e) {
-            LOGGER.warn("Error applying configuration: {}", e);
+            LOGGER.warn("Error applying configuration: ", e);
         }
     }
 
@@ -63,6 +67,7 @@ public class Activator implements BundleActivator {
         LOGGER.info("MQTT connector is stopping");
 
         openGateConnectorRegistration.unregister();
+        mqttClientFactoryServiceListener.close();
         deviceInfoServiceListener.close();
         configurableBundle.close();
         deviceIdProvider.close();

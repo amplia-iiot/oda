@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.mqtt;
 
+import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.connector.mqtt.configuration.ConfigurationUpdateHandlerImpl;
@@ -22,8 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
@@ -48,7 +48,7 @@ public class ActivatorTest {
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
-    private ServiceListenerBundle<DeviceInfoProvider>  mockedListener;
+    private ServiceListenerBundle<?>  mockedListener;
 
 
     @Test
@@ -72,6 +72,8 @@ public class ActivatorTest {
                 .withArguments(eq(mockedConnector), eq(mockedDeviceInfoProvider));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         PowerMockito.verifyNew(ServiceListenerBundle.class)
+                .withArguments(eq(mockedContext), eq(MqttClientFactory.class), any(Runnable.class));
+        PowerMockito.verifyNew(ServiceListenerBundle.class)
                 .withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any(Runnable.class));
     }
 
@@ -94,6 +96,7 @@ public class ActivatorTest {
     @Test
     public void testStop() {
         Whitebox.setInternalState(testActivator, "openGateConnectorRegistration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "mqttClientFactoryServiceListener", mockedListener);
         Whitebox.setInternalState(testActivator, "deviceInfoServiceListener", mockedListener);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
         Whitebox.setInternalState(testActivator, "deviceIdProvider", mockedDeviceInfoProvider);
@@ -104,7 +107,7 @@ public class ActivatorTest {
         testActivator.stop(mockedContext);
 
         verify(mockedRegistration).unregister();
-        verify(mockedListener).close();
+        verify(mockedListener, times(2)).close();
         verify(mockedConfigBundle).close();
         verify(mockedDeviceInfoProvider).close();
         verify(mockedConnector).close();

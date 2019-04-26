@@ -52,7 +52,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     static final int DEFAULT_PORT = 1883;
     static final int DEFAULT_SECURE_PORT = 8883;
-    static final int DEFAULT_QOS = 0;
+    static final int DEFAULT_QOS = 1;
     static final boolean DEFAULT_RETAINED = false;
 
     private static final String TCP_URL_PROTOCOL_HEADER = "tcp://";

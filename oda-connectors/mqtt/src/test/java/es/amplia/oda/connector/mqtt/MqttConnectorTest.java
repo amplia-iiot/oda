@@ -33,7 +33,7 @@ public class MqttConnectorTest {
     private static final String TEST_IOT_TOPIC = "iot/topic";
     private static final String TEST_REQUEST_TOPIC = "request/topic";
     private static final String TEST_RESPONSE_TOPIC = "response/topic";
-    private static final int TEST_QOS = 0;
+    private static final int TEST_QOS = 2;
     private static final boolean TEST_RETAINED = false;
 
     private static final String TEST_TOPIC = "test/topic";

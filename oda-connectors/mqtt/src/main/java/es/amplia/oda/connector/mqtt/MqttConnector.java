@@ -66,7 +66,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             try {
                 client.publish(topic, message);
             } catch (MqttException e) {
-                LOGGER.warn("Error sending response: {}", e);
+                LOGGER.warn("Error sending response: ", e);
             }
         }
     }
@@ -91,7 +91,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         try {
             client.disconnect();
         } catch (MqttException exception) {
-            LOGGER.error("Error disconnecting MQTT client: {}", exception);
+            LOGGER.error("Error disconnecting MQTT client: ", exception);
         }
         client = null;
     }
