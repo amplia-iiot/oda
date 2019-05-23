@@ -142,6 +142,18 @@ public class PollerConfigurationUpdateHandlerTest {
     }
 
     @Test
+    public void testLoadDefaultConfiguration() {
+        currentConfiguration = getCurrentConfiguration();
+        currentConfiguration.put(new PollConfiguration(30, 30, DevicePattern.AllDevicePattern), Collections.singleton("test1"));
+        currentConfiguration.put(new PollConfiguration(60, 10, DevicePattern.AllDevicePattern), Collections.singleton("test2"));
+        currentConfiguration.put(new PollConfiguration(100, 100, DevicePattern.AllDevicePattern), Collections.singleton("test3"));
+
+        testConfigHandler.loadDefaultConfiguration();
+
+        assertTrue(currentConfiguration.isEmpty());
+    }
+
+    @Test
     public void applyConfiguration() {
         ScheduledFuture mockedFuture = mock(ScheduledFuture.class);
         List<ScheduledFuture> configuredTasks = new ArrayList<>();

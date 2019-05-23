@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -9,15 +10,14 @@ import es.amplia.oda.event.api.Event;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
+import java.io.IOException;
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class SchedulerImplTest {
@@ -63,7 +63,10 @@ public class SchedulerImplTest {
     private EventCollector collector;
     @Mock
     private OpenGateConnector connector;
-    private final JsonWriter jsonWriter = new JsonWriterImpl();
+    @Mock
+    private Serializer serializer;
+    @Mock
+    private IOException exception;
     
     private SchedulerImpl schedulerImpl;
 
@@ -77,7 +80,7 @@ public class SchedulerImplTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         
-        schedulerImpl = new SchedulerImpl(deviceInfoProvider, collector, connector, jsonWriter);
+        schedulerImpl = new SchedulerImpl(deviceInfoProvider, collector, connector, serializer);
     }
 
     @Test
@@ -88,79 +91,95 @@ public class SchedulerImplTest {
     }
 
     @Test
-    public void runForSendsADatastreamForEveryIdInTheParametersWithAllDatapointsRecollected() {
-        List<byte[]> expected = iotDataBuilder()
+    public void runForSendsADatastreamForEveryIdInTheParametersWithAllDatapointsRecollected() throws IOException {
+        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
+        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
                 .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
                 .datastream(ID1)
                 .datapoint(AT1, ID1_DEV1_VAL1)
                 .datapoint(AT2, ID1_DEV1_VAL2)
-                .buildBinary();
+                .buildCurrentList();
+        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
 
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
+        when(serializer.serialize(any())).thenReturn(testByteArray);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
-        
+
         schedulerImpl.runFor(asSet(ID1));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
-        verify(connector).uplink(iotData.capture());
-        List<byte[]> actual = iotData.getAllValues();
-        assertThat(actual.size(), is(expected.size()));
-        assertThat(actual.get(0), is(expected.get(0)));
+        for (OutputDatastream os : expectedOutputStreams) {
+            verify(serializer).serialize(outputDatastreamsCaptor.capture());
+            OutputDatastream capturedDatastream = outputDatastreamsCaptor.getValue();
+            verifyEqualsOutput(os, capturedDatastream);
+        }
+        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
     }
 
     @Test
-    public void datastreamsOfTheSameDeviceAreJoinedInTheSameIotData() {
-        List<byte[]> expected = iotDataBuilder().
-                iotData(DEVICE1, PATH_DEVICE1_WITH_HOST).
-                datastream(ID2).
-                datapoint(AT1, ID2_DEV2_VAL1).
-                datapoint(AT2, ID2_DEV2_VAL2).
-                datastream(ID1).
-                datapoint(AT1, ID1_DEV1_VAL1).
-                datapoint(AT2, ID1_DEV1_VAL2).
-                buildBinary();
+    public void datastreamsOfTheSameDeviceAreJoinedInTheSameIotData() throws IOException {
+        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
+        List<OutputDatastream> expectedOutputStreams = iotDataBuilder().
+                iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
+                .datastream(ID2)
+                .datapoint(AT1, ID2_DEV2_VAL1)
+                .datapoint(AT2, ID2_DEV2_VAL2)
+                .datastream(ID1)
+                .datapoint(AT1, ID1_DEV1_VAL1)
+                .datapoint(AT2, ID1_DEV1_VAL2)
+                .buildCurrentList();
+        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
 
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
         when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV1);
+        when(serializer.serialize(any())).thenReturn(testByteArray);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
-        
+
         schedulerImpl.runFor(asSet(ID1,ID2));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
-        verify(connector, times(1)).uplink(iotData.capture());
-        List<byte[]> actual = iotData.getAllValues();
-        assertThat(actual.size(), is(expected.size()));
-        assertThat(actual.get(0), is(expected.get(0)));
+        for (OutputDatastream os : expectedOutputStreams) {
+            verify(serializer).serialize(outputDatastreamsCaptor.capture());
+            OutputDatastream capturedDatastream = outputDatastreamsCaptor.getValue();
+            verifyEqualsOutput(os, capturedDatastream);
+        }
+        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
+        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
     }
     
     @Test
-    public void datastreamsOfDifferentDevicesAreNotJoinedInTheSameIotData() {
-        List<byte[]> expected = iotDataBuilder().
-                iotData(DEVICE1, PATH_DEVICE1_WITH_HOST).
-                datastream(ID1).
-                datapoint(AT1, ID1_DEV1_VAL1).
-                datapoint(AT2, ID1_DEV1_VAL2).
-                iotData(DEVICE2, PATH_DEVICE2_WITH_HOST).
-                datastream(ID2).
-                datapoint(AT1, ID2_DEV2_VAL1).
-                datapoint(AT2, ID2_DEV2_VAL2).
-                buildBinary();
+    public void datastreamsOfDifferentDevicesAreNotJoinedInTheSameIotData() throws IOException {
+        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
+        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
+                .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
+                .datastream(ID1)
+                .datapoint(AT1, ID1_DEV1_VAL1)
+                .datapoint(AT2, ID1_DEV1_VAL2)
+                .iotData(DEVICE2, PATH_DEVICE2_WITH_HOST)
+                .datastream(ID2)
+                .datapoint(AT1, ID2_DEV2_VAL1)
+                .datapoint(AT2, ID2_DEV2_VAL2)
+                .buildCurrentList();
+        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
 
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
         when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV2);
+        when(serializer.serialize(any())).thenReturn(testByteArray);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
         
         schedulerImpl.runFor(asSet(ID1,ID2));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
-        verify(connector, times(2)).uplink(iotData.capture());
-        List<byte[]> actual = iotData.getAllValues();
-        assertThat(actual.size(), is(expected.size()));
-        assertThat(actual.get(0), is(expected.get(0)));
-        assertThat(actual.get(1), is(expected.get(1)));
+
+        verify(serializer, atLeast(1)).serialize(outputDatastreamsCaptor.capture());
+        OutputDatastream capturedDatastream;
+        for (int i = expectedOutputStreams.size() - 1; i >= 0; i--) {
+            capturedDatastream = outputDatastreamsCaptor.getValue();
+            verifyEqualsOutput(expectedOutputStreams.get(i), capturedDatastream);
+            outputDatastreamsCaptor.getAllValues().remove(i);
+        }
+        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
+        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
     }
     
     @Test
@@ -173,33 +192,42 @@ public class SchedulerImplTest {
     }
     
     @Test
-    public void datapointsOfDifferentDevicesAreSentInDifferentMessages() {
+    public void datapointsOfDifferentDevicesAreSentInDifferentMessages() throws IOException {
         List<Event> COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2 = new ArrayList<>();
         COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2.addAll(COLLECTED_VALUES_FOR_ID1_DEV1);
         COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2.addAll(COLLECTED_VALUES_FOR_ID1_DEV2);
-        List<byte[]> expected = iotDataBuilder().
-                iotData(DEVICE1, PATH_DEVICE1_WITH_HOST).
-                datastream(ID1).
-                datapoint(AT1, ID1_DEV1_VAL1).
-                datapoint(AT2, ID1_DEV1_VAL2).
-                iotData(DEVICE2, PATH_DEVICE2_WITH_HOST).
-                datastream(ID1).
-                datapoint(AT1, ID1_DEV2_VAL1).
-                datapoint(AT2, ID1_DEV2_VAL2).
-                buildBinary();
+        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
+
+        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
+                .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
+                .datastream(ID1)
+                .datapoint(AT1, ID1_DEV1_VAL1)
+                .datapoint(AT2, ID1_DEV1_VAL2)
+                .iotData(DEVICE2, PATH_DEVICE2_WITH_HOST)
+                .datastream(ID1)
+                .datapoint(AT1, ID1_DEV2_VAL1)
+                .datapoint(AT2, ID1_DEV2_VAL2)
+                .buildCurrentList();
+        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
 
         when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2);
         when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
+        when(serializer.serialize(any())).thenReturn(testByteArray);
 
         schedulerImpl.runFor(asSet(ID1));
 
         verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        ArgumentCaptor<byte[]> iotData = ArgumentCaptor.forClass(byte[].class);
-        verify(connector, times(2)).uplink(iotData.capture());
-        List<byte[]> actual = iotData.getAllValues();
-        assertThat(actual.size(), is(expected.size()));
-        assertThat(actual.get(0), is(expected.get(0)));
-        assertThat(actual.get(1), is(expected.get(1)));
+
+
+        verify(serializer, atLeast(1)).serialize(outputDatastreamsCaptor.capture());
+        OutputDatastream capturedDatastream;
+        for (int i = expectedOutputStreams.size() - 1; i >= 0; i--) {
+            capturedDatastream = outputDatastreamsCaptor.getValue();
+            verifyEqualsOutput(expectedOutputStreams.get(i), capturedDatastream);
+            outputDatastreamsCaptor.getAllValues().remove(i);
+        }
+        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
+        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
     }
     
     private IotDataBuilderT iotDataBuilder() {
@@ -227,11 +255,28 @@ public class SchedulerImplTest {
             currentDatastream.getDatapoints().add(new Datapoint(at, value));
             return this;
         }
-        
-        List<byte[]> buildBinary() {
-            List<byte[]> ret = new ArrayList<>();
-            currentList.forEach((ds)->ret.add(jsonWriter.dumpOutput(ds)));
-            return ret;
+
+        List<OutputDatastream> buildCurrentList() {
+            return currentList;
+        }
+    }
+
+    private void verifyEqualsOutput(OutputDatastream os, OutputDatastream capturedDatastream) {
+        assertEquals(os.getDevice(), capturedDatastream.getDevice());
+        assertEquals(os.getVersion(), capturedDatastream.getVersion());
+        assertArrayEquals(os.getPath(), capturedDatastream.getPath());
+        for (Iterator it1 = os.getDatastreams().iterator(), it2 = capturedDatastream.getDatastreams().iterator();
+             it1.hasNext() && it2.hasNext(); ) {
+            Datastream d1 = (Datastream) it1.next();
+            Datastream d2 = (Datastream) it2.next();
+            assertEquals(d1.getId(), d2.getId());
+            for (Iterator it3 = d1.getDatapoints().iterator(), it4 = d2.getDatapoints().iterator();
+                 it3.hasNext() && it4.hasNext(); ) {
+                Datapoint dp1 = (Datapoint) it3.next();
+                Datapoint dp2 = (Datapoint) it4.next();
+                assertEquals(dp1.getAt(), dp2.getAt());
+                assertEquals(dp1.getValue(), dp2.getValue());
+            }
         }
     }
 }

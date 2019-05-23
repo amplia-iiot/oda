@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.util.Collections;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -36,14 +38,14 @@ public class OpenGateEventDispatcherTest {
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
     @Mock
-    private JsonWriter mockedJsonWriter;
+    private Serializer serializer;
     @Mock
     private OpenGateConnector mockedConnector;
     @InjectMocks
     private OpenGateEventDispatcher testEventDispatcher;
 
     @Test
-    public void testPublish() {
+    public void testPublish() throws IOException {
         Event eventToTest = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
         Datapoint datapoint = new Datapoint(TEST_AT, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
@@ -52,18 +54,18 @@ public class OpenGateEventDispatcherTest {
                         Collections.singleton(datastream));
         byte[] payload = new byte[]{1, 2, 3, 4};
 
-        when(mockedJsonWriter.dumpOutput(any())).thenReturn(payload);
+        when(serializer.serialize(any())).thenReturn(payload);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_ID);
 
         testEventDispatcher.publish(eventToTest);
 
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedJsonWriter).dumpOutput(eq(output));
+        verify(serializer).serialize(eq(output));
         verify(mockedConnector).uplink(eq(payload));
     }
 
     @Test
-    public void testPublishWithEmptyDeviceIdAndNullPath() {
+    public void testPublishWithEmptyDeviceIdAndNullPath() throws IOException {
         Event eventToTest = new Event(TEST_DATASTREAM_ID, "", null, TEST_AT, TEST_VALUE);
         Datapoint datapoint = new Datapoint(TEST_AT, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
@@ -72,17 +74,17 @@ public class OpenGateEventDispatcherTest {
         byte[] payload = new byte[]{1, 2, 3, 4};
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
-        when(mockedJsonWriter.dumpOutput(any())).thenReturn(payload);
+        when(serializer.serialize(any())).thenReturn(payload);
 
         testEventDispatcher.publish(eventToTest);
 
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedJsonWriter).dumpOutput(eq(output));
+        verify(serializer).serialize(eq(output));
         verify(mockedConnector).uplink(eq(payload));
     }
 
     @Test
-    public void testPublishReduceBandwidthMode() {
+    public void testPublishReduceBandwidthMode() throws IOException {
         Event eventToTest = new Event(TEST_DATASTREAM_ID, "", null, TEST_AT, TEST_VALUE);
         Datapoint datapoint = new Datapoint(null, TEST_VALUE);
         Datastream datastream = new Datastream(TEST_DATASTREAM_ID, Collections.singleton(datapoint));
@@ -90,12 +92,12 @@ public class OpenGateEventDispatcherTest {
         byte[] payload = new byte[]{1, 2, 3, 4};
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
-        when(mockedJsonWriter.dumpOutput(any())).thenReturn(payload);
+        when(serializer.serialize(any())).thenReturn(payload);
 
         testEventDispatcher.setReduceBandwidthMode(true);
         testEventDispatcher.publish(eventToTest);
 
-        verify(mockedJsonWriter).dumpOutput(eq(output));
+        verify(serializer).serialize(eq(output));
         verify(mockedConnector).uplink(eq(payload));
     }
 }

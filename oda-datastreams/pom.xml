@@ -12,6 +12,7 @@
         <module>deviceinfo</module>
         <module>gpio</module>
         <module>modbus</module>
+        <module>mqtt</module>
     </modules>
 
     <parent>

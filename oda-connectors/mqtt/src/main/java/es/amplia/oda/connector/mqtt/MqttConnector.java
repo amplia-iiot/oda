@@ -1,49 +1,48 @@
 package es.amplia.oda.connector.mqtt;
 
+import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.connector.mqtt.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 
-import lombok.Value;
-import org.eclipse.paho.client.mqttv3.*;
-import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-public class MqttConnector implements IMqttMessageListener, OpenGateConnector, AutoCloseable {
+public class MqttConnector implements MqttMessageListener, OpenGateConnector, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MqttConnector.class);
 
+    private final MqttClientFactory mqttClientFactory;
     private final Dispatcher dispatcher;
 
     private String iotTopic;
-    private String responsesTopic;
+    private String responseTopic;
     private int qos;
     private boolean retained;
     private MqttClient client;
 
-    MqttConnector(Dispatcher dispatcher) {
+    MqttConnector(MqttClientFactory mqttClientFactory, Dispatcher dispatcher) {
+        this.mqttClientFactory = mqttClientFactory;
         this.dispatcher = dispatcher;
         this.client = null;
     }
 
-    public void loadConfigurationAndInit(ConnectorConfiguration configuration) throws MqttException {
+    public void loadConfigurationAndInit(ConnectorConfiguration connectorConfiguration)
+            throws MqttException {
         close();
-
-        iotTopic = configuration.getQueuesConfiguration().getIotQueue();
-        responsesTopic = configuration.getQueuesConfiguration().getResponseQueue();
-        qos = configuration.getQueuesConfiguration().getQualityOfService();
-        retained = configuration.getQueuesConfiguration().isRetained();
-        MqttConnectOptions options = configuration.getMqttConnectOptions();
-        client = new MqttClient(configuration.getBrokerUrl(), configuration.getClientId(), new MemoryPersistence());
-        client.connect(options);
-        client.setCallback(new MqttTraceEvents());
-        client.subscribe(configuration.getQueuesConfiguration().getRequestQueue(), configuration.getQueuesConfiguration().getQualityOfService(), this);
-        LOGGER.info("Reconnected to {} as {} for topic {}", configuration.getBrokerUrl(), configuration.getClientId(), configuration.getQueuesConfiguration().getRequestQueue());
+        client = mqttClientFactory.createMqttClient(connectorConfiguration.getBrokerUrl(),
+                connectorConfiguration.getClientId());
+        client.connect(connectorConfiguration.getConnectOptions());
+        client.subscribe(connectorConfiguration.getRequestTopic(), this);
+        LOGGER.info("Reconnected to {} as {} for topic {}", connectorConfiguration.getBrokerUrl(),
+                connectorConfiguration.getClientId(), connectorConfiguration.getRequestTopic());
+        this.iotTopic = connectorConfiguration.getIotTopic();
+        this.responseTopic = connectorConfiguration.getResponseTopic();
+        this.qos = connectorConfiguration.getQos();
+        this.retained = connectorConfiguration.isRetained();
     }
-
 
     @Override
     public void messageArrived(String topic, MqttMessage message) {
@@ -53,7 +52,7 @@ public class MqttConnector implements IMqttMessageListener, OpenGateConnector, A
             LOGGER.warn("Cannot process message as Dispatcher is not present");
             return;
         }
-        response.thenAccept(responseBytes -> sendMessage(responsesTopic, responseBytes));
+        response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes));
     }
 
     private void sendMessage(String topic, byte[] payload) {
@@ -62,12 +61,12 @@ public class MqttConnector implements IMqttMessageListener, OpenGateConnector, A
         } else if (payload == null) {
             LOGGER.warn("Cannot send message as payload is null");
         } else {
-            Message message = new Message(payload);
+            MqttMessage message = MqttMessage.newInstance(payload, qos, retained);
             LOGGER.info("Sending message: {}, {}", topic, message);
             try {
-                client.publish(topic, message.getPayload(), qos, retained);
+                client.publish(topic, message);
             } catch (MqttException e) {
-                LOGGER.warn("Error sending response: {}", e.getMessage());
+                LOGGER.warn("Error sending response: ", e);
             }
         }
     }
@@ -92,42 +91,8 @@ public class MqttConnector implements IMqttMessageListener, OpenGateConnector, A
         try {
             client.disconnect();
         } catch (MqttException exception) {
-            LOGGER.error("Error disconnecting MQTT connector: ", exception);
-        }
-        try {
-            client.close();
-        } catch (MqttException exception) {
-            LOGGER.error("Error closing MQTT connector: ", exception);
+            LOGGER.error("Error disconnecting MQTT client: ", exception);
         }
         client = null;
     }
-
-    @Value
-    private static class Message {
-        private byte[] payload;
-
-        @Override
-        public String toString() {
-            return new String(payload);
-        }
-    }
-
-    private static class MqttTraceEvents implements MqttCallback {
-        @Override
-        public void connectionLost(Throwable cause) {
-            LOGGER.warn("Connection lost with server: ", cause);
-        }
-
-        @Override
-        public void messageArrived(String topic, MqttMessage message) {
-            // message processed by parent class MqttConnector
-        }
-
-        @Override
-        public void deliveryComplete(IMqttDeliveryToken token) {
-            LOGGER.info("Delivery complete of {}", token);
-        }
-    }
-
-
 }

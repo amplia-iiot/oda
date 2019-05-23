@@ -1,6 +1,7 @@
 package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -40,9 +42,7 @@ public class OpenGateOperationDispatcherTest {
 
     private OpenGateOperationDispatcher dispatcher;
     @Mock
-    private JsonParser jsonParser;
-    @Mock
-    private JsonWriter jsonWriter;
+    private Serializer serializer;
     @Mock
     private OperationGetDeviceParameters operationGetDeviceParameters;
     @Mock
@@ -264,19 +264,18 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         MockitoAnnotations.initMocks(this);
 
         dispatcher = new OpenGateOperationDispatcher(
-                jsonParser,
-                jsonWriter,
+                serializer,
                 deviceInfoProvider,
                 operationGetDeviceParameters,
                 operationSetDeviceParameters,
                 operationRefreshInfo,
                 operationUpdate
         );
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestRefreshInfo(OPERATION_ID, null, TIMESTAMP))));
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestRefreshInfo(OPERATION_ID, null, TIMESTAMP))));
 
         futureForOperationGet = new CompletableFuture<>();
         futureForOperationSet = new CompletableFuture<>();
@@ -297,29 +296,29 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void jsonParserIsUsedToParseIncomingMessage() {
+    public void jsonParserIsUsedToParseIncomingMessage() throws IOException {
         dispatcher.process(INPUT);
 
-        verify(jsonParser).parseInput(INPUT);
+        verify(serializer).deserialize(INPUT, Input.class);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsNullThrows() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(null);
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsAnInputWithNullOperation_Throws() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(null));
+    public void ifParserReturnsNullThrows() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(null);
 
         dispatcher.process(INPUT);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsAnInputWithNullRequest_Throws() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(null)));
+    public void ifParserReturnsAnInputWithNullOperation_Throws() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(null));
+
+        dispatcher.process(INPUT);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void ifParserReturnsAnInputWithNullRequest_Throws() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(null)));
 
         dispatcher.process(INPUT);
     }
@@ -328,8 +327,8 @@ public class OpenGateOperationDispatcherTest {
     // -- GET_DEVICE_PARAMETERS
     //-----------------------------------------------------
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationMustHaveParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -340,8 +339,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyOneElementInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationMustHaveExactlyOneElementInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -355,8 +354,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyOneElementNotNullInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationMustHaveExactlyOneElementNotNullInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -367,8 +366,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyTheParameterVariableListInParameter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationMustHaveExactlyTheParameterVariableListInParameter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -381,8 +380,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationVariableListMustHaveValue() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationVariableListMustHaveValue() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -395,8 +394,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationVariableListMustHaveValueWithArray() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
+    public void getOperationVariableListMustHaveValueWithArray() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -409,8 +408,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void getOperationsAreDispatchedToOperationGetDeviceParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void getOperationsAreDispatchedToOperationGetDeviceParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
 
@@ -418,8 +417,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void ifOperationGetDeviceParametersReturnNullANotSupportedOperationOutputIsGivenToJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void ifOperationGetDeviceParametersReturnNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
         when(operationGetDeviceParameters.getDeviceParameters("", GET_DATA.getParsedInput())).thenReturn(null);
         Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "GET_DEVICE_PARAMETERS", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
         Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
@@ -427,12 +426,12 @@ public class OpenGateOperationDispatcherTest {
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
 
         assertTrue(future.isDone());
-        verify(jsonWriter).dumpOutput(eq(expected));
+        verify(serializer).serialize(eq(expected));
     }
 
     @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationGetIsCompleted() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationGetIsCompleted() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
 
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
         assertFalse(future.isDone());
@@ -442,18 +441,18 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void whenTheOperationGetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void whenTheOperationGetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationGet.complete(null);
 
-        verify(jsonWriter).dumpOutput(isA(Output.class));
+        verify(serializer).serialize(isA(Output.class));
     }
 
     @Test
-    public void ifGetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void ifGetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationGet.complete(null);
@@ -461,23 +460,23 @@ public class OpenGateOperationDispatcherTest {
         List<Step> steps = Collections.singletonList(new Step("GET_DEVICE_PARAMETERS", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
         OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "GET_DEVICE_PARAMETERS", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
         Output expected = new Output("8.0", operation);
-        verify(jsonWriter).dumpOutput(expected);
+        verify(serializer).serialize(expected);
     }
 
     @Test
-    public void getOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
+    public void getOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationGet.complete(GET_DATA.getOperationResult());
 
-        verify(jsonWriter).dumpOutput(GET_DATA.getOpengateOutput());
+        verify(serializer).serialize(GET_DATA.getOpengateOutput());
     }
 
     @Test
-    public void inAGetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException {
-        when(jsonParser.parseInput(INPUT)).thenReturn(GET_DATA.getOpengateInput());
-        when(jsonWriter.dumpOutput(GET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
+    public void inAGetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
+        when(serializer.serialize(GET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
 
         CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
         futureForOperationGet.complete(GET_DATA.getOperationResult());
@@ -491,8 +490,8 @@ public class OpenGateOperationDispatcherTest {
     // -- REFRESH_INFO
     //-----------------------------------------------------
     @Test
-    public void ifOperationRefreshInfoReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void ifOperationRefreshInfoReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
         when(operationRefreshInfo.refreshInfo("")).thenReturn(null);
         Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "REFRESH_INFO", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
         Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
@@ -500,12 +499,12 @@ public class OpenGateOperationDispatcherTest {
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
 
         assertTrue(future.isDone());
-        verify(jsonWriter).dumpOutput(eq(expected));
+        verify(serializer).serialize(eq(expected));
     }
 
     @Test
-    public void refreshInfoOperationsAreDispatchedToOperationRefreshInfo() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void refreshInfoOperationsAreDispatchedToOperationRefreshInfo() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
 
@@ -513,8 +512,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationRefreshInfoIsCompleted() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationRefreshInfoIsCompleted() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
 
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
         assertFalse(future.isDone());
@@ -524,28 +523,28 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void whenTheOperationRefreshInfoCompletesJsonWriterIsUsedToDumpTheResponse() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void whenTheOperationRefreshInfoCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
 
-        verify(jsonWriter).dumpOutput(isA(Output.class));
+        verify(serializer).serialize(isA(Output.class));
     }
 
     @Test
-    public void theResultOfARefreshInfoIsTranslatedAndPassedToJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void theResultOfARefreshInfoIsTranslatedAndPassedToJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
 
-        verify(jsonWriter).dumpOutput(REFRESH_INFO_DATA.getOpengateOutput());
+        verify(serializer).serialize(REFRESH_INFO_DATA.getOpengateOutput());
     }
 
     @Test
-    public void ifRefreshInfoResultIsNullAnErrorOutputIsInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+    public void ifRefreshInfoResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationRefreshInfo.complete(null);
@@ -553,13 +552,13 @@ public class OpenGateOperationDispatcherTest {
         List<Step> steps = Collections.singletonList(new Step("REFRESH_INFO", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
         OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "REFRESH_INFO", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
         Output expected = new Output("8.0", operation);
-        verify(jsonWriter).dumpOutput(expected);
+        verify(serializer).serialize(expected);
     }
 
     @Test
-    public void inARefreshInfoTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException {
-        when(jsonParser.parseInput(INPUT)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-        when(jsonWriter.dumpOutput(REFRESH_INFO_DATA.getOpengateOutput())).thenReturn(OUTPUT);
+    public void inARefreshInfoTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
+        when(serializer.serialize(REFRESH_INFO_DATA.getOpengateOutput())).thenReturn(OUTPUT);
 
         CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
         futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
@@ -573,8 +572,8 @@ public class OpenGateOperationDispatcherTest {
     // -- SET_DEVICE_PARAMETERS
     //-----------------------------------------------------
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationMustHaveParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -585,8 +584,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyOneElementInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationMustHaveExactlyOneElementInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -600,8 +599,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyOneElementNotNullInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationMustHaveExactlyOneElementNotNullInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -612,8 +611,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyTheParameterVariableListInParameter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationMustHaveExactlyTheParameterVariableListInParameter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -626,8 +625,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationVariableListMustHaveValue() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationVariableListMustHaveValue() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -640,8 +639,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void setOperationVariableListMustHaveValueWithArray() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
+    public void setOperationVariableListMustHaveValueWithArray() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -654,8 +653,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void ifOperationSetDeviceParametersReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void ifOperationSetDeviceParametersReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
         when(operationSetDeviceParameters.setDeviceParameters("", SET_DATA.getParsedInput())).thenReturn(null);
         Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
         Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
@@ -663,12 +662,12 @@ public class OpenGateOperationDispatcherTest {
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
 
         assertTrue(future.isDone());
-        verify(jsonWriter).dumpOutput(eq(expected));
+        verify(serializer).serialize(eq(expected));
     }
 
     @Test
-    public void setOperationsAreDispatchedToOperationSet() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void setOperationsAreDispatchedToOperationSet() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
 
@@ -676,8 +675,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationSetIsCompleted() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationSetIsCompleted() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
         assertFalse(future.isDone());
@@ -687,18 +686,18 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void whenTheOperationSetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void whenTheOperationSetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationSet.complete(null);
 
-        verify(jsonWriter).dumpOutput(isA(Output.class));
+        verify(serializer).serialize(isA(Output.class));
     }
 
     @Test
-    public void ifSetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void ifSetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationSet.complete(null);
@@ -706,22 +705,22 @@ public class OpenGateOperationDispatcherTest {
         List<Step> steps = Collections.singletonList(new Step("SET_DEVICE_PARAMETERS", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
         OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
         Output expected = new Output("8.0", operation);
-        verify(jsonWriter).dumpOutput(expected);
+        verify(serializer).serialize(expected);
     }
 
     @Test
-    public void setOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void setOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationSet.complete(SET_DATA.getOperationResult());
 
-        verify(jsonWriter).dumpOutput(SET_DATA.getOpengateOutput());
+        verify(serializer).serialize(SET_DATA.getOpengateOutput());
     }
 
     @Test
-    public void ifSetFinishedWithErrorsThatErrorsAreTranslatedToOutput() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
+    public void ifSetFinishedWithErrorsThatErrorsAreTranslatedToOutput() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         String resultDescription = "An error description";
@@ -732,13 +731,13 @@ public class OpenGateOperationDispatcherTest {
         Response response = new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.ERROR_IN_PARAM, resultDescription, steps);
         OutputOperation operation = new OutputOperation(response);
         Output opengateOutput = new Output("8.0", operation);
-        verify(jsonWriter).dumpOutput(opengateOutput);
+        verify(serializer).serialize(opengateOutput);
     }
 
     @Test
-    public void inASetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException {
-        when(jsonParser.parseInput(INPUT)).thenReturn(SET_DATA.getOpengateInput());
-        when(jsonWriter.dumpOutput(SET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
+    public void inASetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
+        when(serializer.serialize(SET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
 
         CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
         futureForOperationSet.complete(SET_DATA.getOperationResult());
@@ -752,8 +751,8 @@ public class OpenGateOperationDispatcherTest {
     // -- UPDATE
     //-----------------------------------------------------
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -764,8 +763,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveExactlyThreeElementsInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveExactlyThreeElementsInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -779,8 +778,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveExactlyThreeNotNullElementsInParameters() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveExactlyThreeNotNullElementsInParameters() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -795,8 +794,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveBundleNameParameter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveBundleNameParameter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -811,8 +810,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveBundleVersionParameter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveBundleVersionParameter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -827,8 +826,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveDeploymentElementsParameter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveDeploymentElementsParameter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -843,8 +842,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustBundleNameParameterOfTheCorrectType() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustBundleNameParameterOfTheCorrectType() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -859,8 +858,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustBundleVersionParameterOfTheCorrectType() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustBundleVersionParameterOfTheCorrectType() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -875,8 +874,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveDeploymentElementsParameterOfTheCorrectType() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void updateOperationMustHaveDeploymentElementsParameterOfTheCorrectType() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -891,8 +890,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void inAnUpdateOperationTheParameterDeploymentElementsMustHaveAtLeastOneNonNullElement() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(new Input(new InputOperation(new RequestUpdate(
+    public void inAnUpdateOperationTheParameterDeploymentElementsMustHaveAtLeastOneNonNullElement() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
                 OPERATION_ID,
                 null,
                 TIMESTAMP,
@@ -907,8 +906,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void updateOperationsAreDispatchedToOperationUpdate() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void updateOperationsAreDispatchedToOperationUpdate() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
 
@@ -916,8 +915,8 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void ifOperationUpdateReturnsNullANotSupportedOperationOutputIsGivenToJonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void ifOperationUpdateReturnsNullANotSupportedOperationOutputIsGivenToJonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
         when(operationUpdate.update(UPDATE_DATA.getBundleName(), UPDATE_DATA.getBundleVersion(), UPDATE_DATA.getDeploymentElements())).thenReturn(null);
         Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "UPDATE", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
         Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
@@ -925,12 +924,12 @@ public class OpenGateOperationDispatcherTest {
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
 
         assertTrue(future.isDone());
-        verify(jsonWriter).dumpOutput(eq(expected));
+        verify(serializer).serialize(eq(expected));
     }
 
     @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationUpdateIsCompleted() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationUpdateIsCompleted() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
 
         CompletableFuture<byte[]> future = dispatcher.process(INPUT);
         assertFalse(future.isDone());
@@ -940,18 +939,18 @@ public class OpenGateOperationDispatcherTest {
     }
 
     @Test
-    public void whenTheOperationUpdateCompletesJsonWriterIsUsedToDumpTheResponse() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void whenTheOperationUpdateCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationUpdate.complete(null);
 
-        verify(jsonWriter).dumpOutput(isA(Output.class));
+        verify(serializer).serialize(isA(Output.class));
     }
 
     @Test
-    public void ifUpdateOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void ifUpdateOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationUpdate.complete(null);
@@ -959,23 +958,23 @@ public class OpenGateOperationDispatcherTest {
         List<Step> steps = Collections.singletonList(new Step("UPDATE", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
         OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "UPDATE", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
         Output expected = new Output("8.0", operation);
-        verify(jsonWriter).dumpOutput(expected);
+        verify(serializer).serialize(expected);
     }
 
     @Test
-    public void updateOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
+    public void updateOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
 
         dispatcher.process(INPUT);
         futureForOperationUpdate.complete(UPDATE_DATA.getOperationResult());
 
-        verify(jsonWriter).dumpOutput(UPDATE_DATA.getOpengateOutput());
+        verify(serializer).serialize(UPDATE_DATA.getOpengateOutput());
     }
 
     @Test
-    public void inAnUpdateOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException {
-        when(jsonParser.parseInput(INPUT)).thenReturn(UPDATE_DATA.getOpengateInput());
-        when(jsonWriter.dumpOutput(UPDATE_DATA.getOpengateOutput())).thenReturn(OUTPUT);
+    public void inAnUpdateOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
+        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
+        when(serializer.serialize(UPDATE_DATA.getOpengateOutput())).thenReturn(OUTPUT);
 
         CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
         futureForOperationUpdate.complete(UPDATE_DATA.getOperationResult());

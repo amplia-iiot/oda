@@ -1,6 +1,9 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,9 +42,42 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
      * @param bundleContext OSGi bundle context.
      */
     public OsgiServiceProxy(Class<S> typeParameterClass, BundleContext bundleContext) {
-        this.typeClassParameter = typeParameterClass;
+        typeClassParameter = typeParameterClass;
         serviceTracker = new ServiceTracker<>(bundleContext, typeParameterClass, null);
         serviceTracker.open();
+    }
+
+    /**
+     * Constructor.
+     * @param typeParameterClass Class type parameter of the proxy.
+     * @param filterProperties Properties to filter the proxy.
+     * @param bundleContext OSGi bundle context.
+     */
+    public OsgiServiceProxy(Class<S> typeParameterClass, Map<String, String> filterProperties, BundleContext bundleContext) {
+        ServiceTracker<S, S> tracker;
+        this.typeClassParameter = typeParameterClass;
+        try {
+            Filter filter = bundleContext.createFilter(createFilter(typeClassParameter, filterProperties));
+            tracker = new ServiceTracker<>(bundleContext, filter, null);
+        } catch (InvalidSyntaxException e) {
+            logger.error("Filter is not valid. Creating Service Tracker from class parameter type: {}", e);
+            tracker = new ServiceTracker<>(bundleContext, typeClassParameter, null);
+        }
+        serviceTracker = tracker;
+        serviceTracker.open();
+    }
+
+    private String createFilter(Class<S> clazz, Map<String, String> filterProperties) {
+        String propertiesToFilter =
+                filterProperties.entrySet().stream()
+                        .map(entry -> " (" + entry.getKey() + "=" + entry.getValue() + ")")
+                        .reduce(String::concat)
+                        .orElse("");
+
+        return new StringBuilder("(&(" + Constants.OBJECTCLASS + "=" + clazz.getName() + ")")
+                .append(propertiesToFilter)
+                .append(")")
+                .toString();
     }
 
     /**

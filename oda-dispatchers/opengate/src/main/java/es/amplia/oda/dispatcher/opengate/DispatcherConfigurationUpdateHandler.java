@@ -14,7 +14,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherConfigurationUpdateHandler.class);
 
-    private static final String REDUCE_BANDWIDTH_PROPERTY_NAME = "reduceBandwidthMode";
+    static final String REDUCE_BANDWIDTH_PROPERTY_NAME = "reduceBandwidthMode";
 
     private final ScheduledExecutorService executor;
     private final OpenGateEventDispatcher eventDispatcher;
@@ -73,6 +73,11 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
     private void add(DispatchConfiguration dispatchConfiguration, String id) {
         Set<String> set = currentConfiguration.computeIfAbsent(dispatchConfiguration, k -> new HashSet<>());
         set.add(id);
+    }
+
+    @Override
+    public void loadDefaultConfiguration(){
+        currentConfiguration.clear();
     }
 
     @Override

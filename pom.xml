@@ -47,8 +47,10 @@
 
     <modules>
         <module>oda-core</module>
+        <module>oda-comms</module>
         <module>oda-hardware</module>
         <module>oda-datastreams</module>
+        <module>oda-services</module>
         <module>oda-subsystems</module>
         <module>oda-operations</module>
         <module>oda-events</module>
@@ -210,6 +212,11 @@
             <dependency>
                 <groupId>es.amplia.oda.hardware</groupId>
                 <artifactId>atserver</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.amplia.oda.comms</groupId>
+                <artifactId>mqtt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
