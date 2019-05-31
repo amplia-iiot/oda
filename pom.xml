@@ -265,6 +265,16 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>es.amplia.oda.operation</groupId>
+                <artifactId>setclock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>es.amplia.oda.operation</groupId>
+                <artifactId>synchronizeclock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>es.amplia.oda.subsystem</groupId>
                 <artifactId>poller</artifactId>
                 <version>${project.version}</version>

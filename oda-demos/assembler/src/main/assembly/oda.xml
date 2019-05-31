@@ -46,9 +46,11 @@
         </dependencySet>
         <dependencySet>
             <includes>
+                <include>es.amplia.oda.comms:mqtt</include>
                 <include>es.amplia.oda.core:commons</include>
                 <include>es.amplia.oda.hardware:atserver</include>
                 <include>es.amplia.oda.datastreams:deviceinfo</include>
+                <include>es.amplia.oda.datastreams:mqtt</include>
                 <include>es.amplia.oda.subsystem:sshserver</include>
                 <include>es.amplia.oda.subsystem:poller</include>
                 <include>es.amplia.oda.operation:api</include>
@@ -56,9 +58,13 @@
                 <include>es.amplia.oda.operation:set</include>
                 <include>es.amplia.oda.operation:refreshinfo</include>
                 <include>es.amplia.oda.operation:update</include>
+                <include>es.amplia.oda.operation:setclock</include>
+                <include>es.amplia.oda.operation:synchronizeclock</include>
                 <include>es.amplia.oda.event:api</include>
                 <include>es.amplia.oda.dispatcher:opengate</include>
                 <include>es.amplia.oda.connector:mqtt</include>
+                <include>es.amplia.oda.service:jsonserializer</include>
+                <include>es.amplia.oda.service:cborserializer</include>
             </includes>
             <outputDirectory>deploy</outputDirectory>
             <outputFileNameMapping>

@@ -1,5 +1,9 @@
 package es.amplia.oda.operation.set;
 
+import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersLocator;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 
 import org.osgi.framework.BundleActivator;

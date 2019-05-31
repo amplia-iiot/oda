@@ -1,4 +1,4 @@
-package es.amplia.oda.operation.set;
+package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 
@@ -17,7 +17,7 @@ public class DatastreamsSettersLocatorOsgi implements DatastreamsSettersLocator 
 
     private ServiceTracker<DatastreamsSetter, DatastreamsSetter> datastreamsSetterTracker;
     
-    DatastreamsSettersLocatorOsgi(BundleContext bundleContext) throws InvalidSyntaxException {
+    public DatastreamsSettersLocatorOsgi(BundleContext bundleContext) throws InvalidSyntaxException {
         Filter serviceFilter = bundleContext.createFilter("(&(objectClass="+DatastreamsSetter.class.getName()+"))");
         datastreamsSetterTracker = new ServiceTracker<>(bundleContext, serviceFilter, null);
         datastreamsSetterTracker.open();

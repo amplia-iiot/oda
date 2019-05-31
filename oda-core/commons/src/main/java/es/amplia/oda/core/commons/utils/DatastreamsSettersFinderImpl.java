@@ -1,4 +1,4 @@
-package es.amplia.oda.operation.set;
+package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 
@@ -16,7 +16,7 @@ public class DatastreamsSettersFinderImpl implements DatastreamsSettersFinder {
 
     private final DatastreamsSettersLocator datastreamsSettersLocator;
 
-    DatastreamsSettersFinderImpl(DatastreamsSettersLocator datastreamsSettersLocator) {
+    public DatastreamsSettersFinderImpl(DatastreamsSettersLocator datastreamsSettersLocator) {
         this.datastreamsSettersLocator = datastreamsSettersLocator;
     }
     

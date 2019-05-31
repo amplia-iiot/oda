@@ -1,10 +1,10 @@
-package es.amplia.oda.operation.set;
+package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 
 import java.util.List;
 
-interface DatastreamsSettersLocator {
+public interface DatastreamsSettersLocator {
     /**
      * This function must return all the DatastreamsSetter currently in the system. It is useful for Test purposes.
      * In the future, maybe we can pass parameters so that the returned list is filtered of not useful elements.

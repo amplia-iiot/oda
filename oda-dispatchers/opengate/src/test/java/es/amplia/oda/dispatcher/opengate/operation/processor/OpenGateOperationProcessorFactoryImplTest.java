@@ -2,16 +2,11 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
-import es.amplia.oda.operation.api.osgi.proxies.OperationGetDeviceParametersProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationRefreshInfoProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationSetDeviceParametersProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationUpdateProxy;
+import es.amplia.oda.operation.api.osgi.proxies.*;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.mockito.PowerMockito;
@@ -45,6 +40,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
     @Mock
     private OperationUpdateProxy mockedUpdate;
     @Mock
+    private OperationSetClockProxy mockedSetClockEquipment;
+    @Mock
     private RefreshInfoProcessor mockedRefreshInfoProcessor;
     @Mock
     private GetDeviceParametersProcessor mockedGetDeviceParamsProcessor;
@@ -52,6 +49,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
     private SetDeviceParametersProcessor mockedSetDeviceParamsProcessor;
     @Mock
     private UpdateProcessor mockedUpdateProcessor;
+    @Mock
+    private SetClockEquipmentProcessor mockedSetClockEquipmentProcessor;
     @Mock
     private UnsupportedOperationProcessor mockedUnsupportedProcessor;
     @Mock
@@ -65,6 +64,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.whenNew(OperationSetDeviceParametersProxy.class).withAnyArguments()
                 .thenReturn(mockedSetDeviceParameters);
         PowerMockito.whenNew(OperationUpdateProxy.class).withAnyArguments().thenReturn(mockedUpdate);
+        PowerMockito.whenNew(OperationSetClockProxy.class).withAnyArguments().thenReturn(mockedSetClockEquipment);
 
         testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext, mockedSerializer);
     }
@@ -75,6 +75,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.verifyNew(OperationGetDeviceParametersProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationSetDeviceParametersProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationUpdateProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(OperationSetClockProxy.class).withArguments(eq(mockedContext));
     }
 
     @Test
@@ -85,6 +86,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.whenNew(SetDeviceParametersProcessor.class).withAnyArguments()
                 .thenReturn(mockedSetDeviceParamsProcessor);
         PowerMockito.whenNew(UpdateProcessor.class).withAnyArguments().thenReturn(mockedUpdateProcessor);
+        PowerMockito.whenNew(SetClockEquipmentProcessor.class).withAnyArguments().thenReturn(mockedSetClockEquipmentProcessor);
         PowerMockito.whenNew(UnsupportedOperationProcessor.class).withAnyArguments()
                 .thenReturn(mockedUnsupportedProcessor);
         PowerMockito.whenNew(OpenGateOperationProcessor.class).withAnyArguments()
@@ -99,6 +101,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.verifyNew(SetDeviceParametersProcessor.class)
                 .withArguments(eq(mockedSerializer), eq(mockedSetDeviceParameters));
         PowerMockito.verifyNew(UpdateProcessor.class).withArguments(eq(mockedSerializer), eq(mockedUpdate));
+        PowerMockito.verifyNew(SetClockEquipmentProcessor.class).withArguments(eq(mockedSerializer), eq(mockedSetClockEquipment));
         PowerMockito.verifyNew(UnsupportedOperationProcessor.class).withArguments(eq(mockedSerializer));
         PowerMockito.verifyNew(OpenGateOperationProcessor.class)
                 .withArguments(any(Map.class), eq(mockedUnsupportedProcessor));
@@ -112,5 +115,6 @@ public class OpenGateOperationProcessorFactoryImplTest {
         verify(mockedGetDeviceParameters).close();
         verify(mockedSetDeviceParameters).close();
         verify(mockedUpdate).close();
+        verify(mockedSetClockEquipment).close();
     }
 }
