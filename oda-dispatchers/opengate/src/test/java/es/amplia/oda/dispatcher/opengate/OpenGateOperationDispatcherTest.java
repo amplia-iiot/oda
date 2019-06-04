@@ -2,1018 +2,157 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.dispatcher.opengate.domain.*;
-import es.amplia.oda.operation.api.OperationGetDeviceParameters;
-import es.amplia.oda.operation.api.OperationRefreshInfo;
-import es.amplia.oda.operation.api.OperationSetDeviceParameters;
-import es.amplia.oda.operation.api.OperationUpdate;
-import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOperationType;
-import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOption;
-import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
-
-import lombok.Value;
-import org.junit.Before;
+import es.amplia.oda.dispatcher.opengate.domain.Input;
+import es.amplia.oda.dispatcher.opengate.domain.InputOperation;
+import es.amplia.oda.dispatcher.opengate.domain.Parameter;
+import es.amplia.oda.dispatcher.opengate.domain.Request;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OpenGateOperationDispatcherTest {
 
-    private static final String ODA_DEVICE_ID = "odaDeviceId";
-    private static final byte[] INPUT = "whatever".getBytes();
-    private static final byte[] OUTPUT = "outputBytes".getBytes();
-    private static final String OPERATION_ID = "anOperationId";
-    private static final Long TIMESTAMP = null;
-    private static final GetData GET_DATA = getDataConstants();
-    private static final SetData SET_DATA = setDataConstants();
-    private static final RefreshInfoData REFRESH_INFO_DATA = refreshInfoDataConstants();
-    private static final UpdateData UPDATE_DATA = updateDataConstants();
+    private static final String TEST_REQUEST_ID = "123456789abcdef";
+    private static final Long TEST_TIMESTAMP = 123456789L;
+    private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String[] TEST_PATH = new String[] { "gateway1", "gateway2" };
+    private static final String TEST_OPERATION_NAME = "TEST_OPERATION";
+    private static final List<Parameter> TEST_PARAMETERS = Collections.emptyList();
+    private static final Request TEST_REQUEST = new Request(TEST_REQUEST_ID, TEST_TIMESTAMP, TEST_DEVICE_ID, TEST_PATH,
+            TEST_OPERATION_NAME, TEST_PARAMETERS);
+    private static final InputOperation TEST_OPERATION = new InputOperation(TEST_REQUEST);
+    private static final Input TEST_INPUT = new Input(TEST_OPERATION);
+    private static final String TEST_HOST_DEVICE_ID = "hostDeviceId";
+    private static final byte[] TEST_PAYLOAD = { 0x1, 0x2, 0x3, 0x4 };
+    private static final CompletableFuture<byte[]> EXPECTED_FUTURE = CompletableFuture.completedFuture(TEST_PAYLOAD);
 
-    private OpenGateOperationDispatcher dispatcher;
     @Mock
-    private Serializer serializer;
+    private Serializer mockedSerializer;
     @Mock
-    private OperationGetDeviceParameters operationGetDeviceParameters;
+    private DeviceInfoProvider mockedDeviceInfoProvider;
     @Mock
-    private OperationSetDeviceParameters operationSetDeviceParameters;
-    @Mock
-    private OperationRefreshInfo operationRefreshInfo;
-    @Mock
-    private OperationUpdate operationUpdate;
-    @Mock
-    private DeviceInfoProvider deviceInfoProvider;
-    private CompletableFuture<OperationGetDeviceParameters.Result> futureForOperationGet;
-    private CompletableFuture<OperationRefreshInfo.Result> futureForOperationRefreshInfo;
-    private CompletableFuture<OperationSetDeviceParameters.Result> futureForOperationSet;
-    private CompletableFuture<OperationUpdate.Result> futureForOperationUpdate;
+    private OperationProcessor mockedOperationProcessor;
+    @InjectMocks
+    private OpenGateOperationDispatcher testDispatcher;
 
-    private static GetData getDataConstants() {
-        Input opengateInput = new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestGetDeviceParameters.Parameter("variableList",
-                                new RequestGetDeviceParameters.ValueArray(
-                                        Arrays.asList(
-                                                new RequestGetDeviceParameters.VariableListElement("id1"),
-                                                new RequestGetDeviceParameters.VariableListElement(null),
-                                                new RequestGetDeviceParameters.VariableListElement("id2"),
-                                                new RequestGetDeviceParameters.VariableListElement("id3")
-                                        )
-                                ))
-                )
-        )));
-        Set<String> parsedInput = asSet("id1", "id2", "id3");
-        List<OperationGetDeviceParameters.GetValue> values = Arrays.asList(
-                new OperationGetDeviceParameters.GetValue("id1", OperationGetDeviceParameters.Status.NOT_FOUND, null, null),
-                new OperationGetDeviceParameters.GetValue("id2", OperationGetDeviceParameters.Status.OK, 42, null),
-                new OperationGetDeviceParameters.GetValue("id3", OperationGetDeviceParameters.Status.OK, "hi", null)
-        );
+    @Test
+    public void testProcess() throws IOException {
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(TEST_INPUT);
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+                .thenReturn(EXPECTED_FUTURE);
 
-        OperationGetDeviceParameters.Result operationResult = new OperationGetDeviceParameters.Result(values);
-        Output opengateOutput = new Output(
-                "8.0",
-                new OutputOperation(
-                        new Response(
-                                OPERATION_ID,
-                                ODA_DEVICE_ID,
-                                "GET_DEVICE_PARAMETERS",
-                                OperationResultCode.SUCCESSFUL,
-                                "No Error.",
-                                Collections.singletonList(
-                                        new Step(
-                                                "GET_DEVICE_PARAMETERS",
-                                                StepResultCode.SUCCESSFUL,
-                                                "",
-                                                0L,
-                                                Arrays.asList(
-                                                        new OutputVariable("id1", null, "NON_EXISTENT", "No datastream found"),
-                                                        new OutputVariable("id2", 42, "SUCCESS", "SUCCESS"),
-                                                        new OutputVariable("id3", "hi", "SUCCESS", "SUCCESS")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        );
-        return new GetData(opengateInput, parsedInput, operationResult, opengateOutput);
+        CompletableFuture<byte[]> result = testDispatcher.process(TEST_PAYLOAD);
+
+        assertEquals(EXPECTED_FUTURE, result);
+        verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(Input.class));
+        verify(mockedDeviceInfoProvider).getDeviceId();
+        verify(mockedOperationProcessor).process(eq(TEST_DEVICE_ID), eq(TEST_DEVICE_ID), eq(TEST_REQUEST));
     }
 
-    private static SetData setDataConstants() {
-        Input opengateInput = new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestSetDeviceParameters.Parameter("variableList", new RequestSetDeviceParameters.ValueArray(
-                                Arrays.asList(
-                                        new RequestSetDeviceParameters.VariableListElement("id1", null),
-                                        new RequestSetDeviceParameters.VariableListElement("id2", 42),
-                                        new RequestSetDeviceParameters.VariableListElement("id3", "hi")
-                                )
-                        ))
-                )
-        )));
-        List<OperationSetDeviceParameters.VariableValue> parsedInput = Arrays.asList(
-                new OperationSetDeviceParameters.VariableValue("id1", null),
-                new OperationSetDeviceParameters.VariableValue("id2", 42),
-                new OperationSetDeviceParameters.VariableValue("id3", "hi")
-        );
+    @Test
+    public void testProcessNullDeviceIdInRequest() throws IOException {
+        Request request = new Request(TEST_REQUEST_ID, TEST_TIMESTAMP, null, TEST_PATH, TEST_OPERATION_NAME,
+                TEST_PARAMETERS);
+        InputOperation operation = new InputOperation(request);
+        Input input = new Input(operation);
 
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+                .thenReturn(EXPECTED_FUTURE);
 
-        String resultDescription = "An ok message";
-        String errorOfFirstSet = "A first error";
-        String errorOfSecondSet = "A second error";
-        OperationSetDeviceParameters.Result operationResult = new OperationSetDeviceParameters.Result(
-                OperationSetDeviceParameters.ResultCode.SUCCESSFUL,
-                resultDescription,
-                Arrays.asList(
-                        new OperationSetDeviceParameters.VariableResult("id1", errorOfFirstSet),
-                        new OperationSetDeviceParameters.VariableResult("id2", null),
-                        new OperationSetDeviceParameters.VariableResult("id3", errorOfSecondSet)
-                )
-        );
+        CompletableFuture<byte[]> result = testDispatcher.process(TEST_PAYLOAD);
 
-        Output opengateOutput = new Output(
-                "8.0",
-                new OutputOperation(
-                        new Response(
-                                OPERATION_ID,
-                                ODA_DEVICE_ID,
-                                "SET_DEVICE_PARAMETERS",
-                                OperationResultCode.SUCCESSFUL,
-                                resultDescription,
-                                Collections.singletonList(
-                                        new Step(
-                                                "SET_DEVICE_PARAMETERS",
-                                                StepResultCode.SUCCESSFUL,
-                                                "",
-                                                0L,
-                                                Arrays.asList(
-                                                        new OutputVariable("id1", null, "ERROR", errorOfFirstSet),
-                                                        new OutputVariable("id2", null, "SUCCESS", "SUCCESS"),
-                                                        new OutputVariable("id3", null, "ERROR", errorOfSecondSet)
-                                                )
-                                        )
-                                )
-                        )
-                )
-        );
-        return new SetData(opengateInput, parsedInput, operationResult, opengateOutput);
+        assertEquals(EXPECTED_FUTURE, result);
+        verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(Input.class));
+        verify(mockedDeviceInfoProvider).getDeviceId();
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
     }
 
-    private static RefreshInfoData refreshInfoDataConstants() {
-        Input opengateRefreshInfoRequest = new Input(new InputOperation(new RequestRefreshInfo(OPERATION_ID, null, TIMESTAMP)));
-        HashMap<String, Object> obtainedValues = new HashMap<>();
-        obtainedValues.put("id2", 42);
-        obtainedValues.put("id3", "hi");
-        OperationRefreshInfo.Result operationRefreshInfoResult = new OperationRefreshInfo.Result(obtainedValues);
-        Output operationRefreshInfoResultAsOpenGateStructure = new Output(
-                "8.0",
-                new OutputOperation(
-                        new Response(
-                                OPERATION_ID,
-                                ODA_DEVICE_ID,
-                                "REFRESH_INFO",
-                                OperationResultCode.SUCCESSFUL,
-                                "No Error.",
-                                Collections.singletonList(
-                                        new Step(
-                                                "REFRESH_INFO",
-                                                StepResultCode.SUCCESSFUL,
-                                                "",
-                                                0L,
-                                                Arrays.asList(
-                                                        new OutputVariable("id2", 42, "SUCCESS", "SUCCESS"),
-                                                        new OutputVariable("id3", "hi", "SUCCESS", "SUCCESS")
-                                                )
-                                        )
-                                )
-                        )
-                )
-        );
-        return new RefreshInfoData(opengateRefreshInfoRequest, operationRefreshInfoResult, operationRefreshInfoResultAsOpenGateStructure);
+    @Test
+    public void testProcessEmptyDeviceIdInRequest() throws IOException {
+        Request request = new Request(TEST_REQUEST_ID, TEST_TIMESTAMP, "", TEST_PATH, TEST_OPERATION_NAME,
+                TEST_PARAMETERS);
+        InputOperation operation = new InputOperation(request);
+        Input input = new Input(operation);
+
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+                .thenReturn(EXPECTED_FUTURE);
+
+        CompletableFuture<byte[]> result = testDispatcher.process(TEST_PAYLOAD);
+
+        assertEquals(EXPECTED_FUTURE, result);
+        verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(Input.class));
+        verify(mockedDeviceInfoProvider).getDeviceId();
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
     }
 
-    private static UpdateData updateDataConstants() {
-        String bundleName = "aBundleName";
-        String bundleVersion = "aBundleVersion";
-        List<OperationUpdate.DeploymentElement> deploymentElements = Arrays.asList(
-                new OperationUpdate.DeploymentElement("name1", "version1", OperationUpdate.DeploymentElementType.SOFTWARE, "downloadUrl1", "path1", OperationUpdate.DeploymentElementOperationType.INSTALL, OperationUpdate.DeploymentElementOption.MANDATORY, 1L),
-                new OperationUpdate.DeploymentElement("name2", "version2", OperationUpdate.DeploymentElementType.CONFIGURATION, "downloadUrl2", "path2", OperationUpdate.DeploymentElementOperationType.UNINSTALL, OperationUpdate.DeploymentElementOption.OPTIONAL, 2L)
-        );
-        Input opengateInput = new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType(bundleName, null)),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType(bundleVersion, null)),
-                        new RequestUpdate.Parameter("deploymentElements",
-                                new RequestUpdate.ValueType(
-                                        null,
-                                        Arrays.asList(
-                                                new RequestUpdate.VariableListElement("name1", "version1", DeploymentElementType.SOFTWARE, "downloadUrl1", "path1", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L),
-                                                new RequestUpdate.VariableListElement("name2", "version2", DeploymentElementType.CONFIGURATION, "downloadUrl2", "path2", DeploymentElementOperationType.UNINSTALL, DeploymentElementOption.OPTIONAL, 2L)
-                                        )
-                                )
-                        )
-                )
-        )));
-        List<OperationUpdate.StepResult> steps = Arrays.asList(
-                new OperationUpdate.StepResult(OperationUpdate.UpdateStepName.BEGINUPDATE, OperationUpdate.StepResultCodes.NOT_EXECUTED, "description1"),
-                new OperationUpdate.StepResult(OperationUpdate.UpdateStepName.DOWNLOADFILE, OperationUpdate.StepResultCodes.SKIPPED, "description2"),
-                new OperationUpdate.StepResult(OperationUpdate.UpdateStepName.ENDUPDATE, OperationUpdate.StepResultCodes.SUCCESSFUL, "description3")
-        );
-        String resultDescription = "resultDescription";
-        OperationUpdate.Result operationResult = new OperationUpdate.Result(OperationUpdate.OperationResultCodes.SUCCESSFUL, resultDescription, steps);
-        Output opengateOutput = new Output(
-                "8.0",
-                new OutputOperation(
-                        new Response(
-                                OPERATION_ID,
-                                ODA_DEVICE_ID,
-                                "UPDATE",
-                                OperationResultCode.SUCCESSFUL,
-                                resultDescription,
-                                Arrays.asList(
-                                        new Step("BEGINUPDATE", StepResultCode.NOT_EXECUTED, "description1", 0L, null),
-                                        new Step("DOWNLOADFILE", StepResultCode.SKIPPED, "description2", 0L, null),
-                                        new Step("ENDUPDATE", StepResultCode.SUCCESSFUL, "description3", 0L, null))
-                        )
-                )
-        );
-        return new UpdateData(opengateInput, bundleName, bundleVersion, deploymentElements, operationResult, opengateOutput);
-    }
+    @Test
+    public void testProcessSameDeviceIdAInRequestAndHostDeviceId() throws IOException {
+        Request request = new Request(TEST_REQUEST_ID, TEST_TIMESTAMP, TEST_HOST_DEVICE_ID, TEST_PATH,
+                TEST_OPERATION_NAME, TEST_PARAMETERS);
+        InputOperation operation = new InputOperation(request);
+        Input input = new Input(operation);
 
-    @SafeVarargs
-    private static <T> Set<T> asSet(T... ts) {
-        return new HashSet<>(Arrays.asList(ts));
-    }
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+                .thenReturn(EXPECTED_FUTURE);
 
-    @Before
-    public void setUp() throws IOException {
-        MockitoAnnotations.initMocks(this);
+        CompletableFuture<byte[]> result = testDispatcher.process(TEST_PAYLOAD);
 
-        dispatcher = new OpenGateOperationDispatcher(
-                serializer,
-                deviceInfoProvider,
-                operationGetDeviceParameters,
-                operationSetDeviceParameters,
-                operationRefreshInfo,
-                operationUpdate
-        );
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestRefreshInfo(OPERATION_ID, null, TIMESTAMP))));
-
-        futureForOperationGet = new CompletableFuture<>();
-        futureForOperationSet = new CompletableFuture<>();
-        futureForOperationRefreshInfo = new CompletableFuture<>();
-        futureForOperationUpdate = new CompletableFuture<>();
-
-        when(operationGetDeviceParameters.getDeviceParameters("", GET_DATA.getParsedInput())).thenReturn(futureForOperationGet);
-        when(operationSetDeviceParameters.setDeviceParameters("", SET_DATA.getParsedInput())).thenReturn(futureForOperationSet);
-        when(operationRefreshInfo.refreshInfo("")).thenReturn(futureForOperationRefreshInfo);
-        when(operationUpdate.update(UPDATE_DATA.getBundleName(), UPDATE_DATA.getBundleVersion(), UPDATE_DATA.getDeploymentElements())).thenReturn(futureForOperationUpdate);
-
-        when(deviceInfoProvider.getDeviceId()).thenReturn(ODA_DEVICE_ID);
+        assertEquals(EXPECTED_FUTURE, result);
+        verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(Input.class));
+        verify(mockedDeviceInfoProvider).getDeviceId();
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void withNullParameterThrows() {
-        dispatcher.process(null);
-    }
-
-    @Test
-    public void jsonParserIsUsedToParseIncomingMessage() throws IOException {
-        dispatcher.process(INPUT);
-
-        verify(serializer).deserialize(INPUT, Input.class);
+    public void testProcessNullInput() {
+        testDispatcher.process(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsNullThrows() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(null);
+    public void testProcessDeserializeException() throws IOException {
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenThrow(new IOException());
 
-        dispatcher.process(INPUT);
+        testDispatcher.process(TEST_PAYLOAD);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsAnInputWithNullOperation_Throws() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(null));
+    public void testProcessDeserializeNullObject() throws IOException {
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(null);
 
-        dispatcher.process(INPUT);
+        testDispatcher.process(TEST_PAYLOAD);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void ifParserReturnsAnInputWithNullRequest_Throws() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(null)));
+    public void testProcessDeserializeNullOperation() throws IOException {
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(new Input());
 
-        dispatcher.process(INPUT);
-    }
-
-    //-----------------------------------------------------
-    // -- GET_DEVICE_PARAMETERS
-    //-----------------------------------------------------
-    @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                null
-        ))));
-
-        dispatcher.process(INPUT);
+        testDispatcher.process(TEST_PAYLOAD);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyOneElementInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestGetDeviceParameters.Parameter("unknown", null),
-                        new RequestGetDeviceParameters.Parameter("unknown", null)
-                )
-        ))));
+    public void testProcessDeserializeNullRequest() throws IOException {
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(new Input(new InputOperation()));
 
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyOneElementNotNullInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(null)
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getOperationMustHaveExactlyTheParameterVariableListInParameter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestGetDeviceParameters.Parameter("unknown", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getOperationVariableListMustHaveValue() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestGetDeviceParameters.Parameter("variableList", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getOperationVariableListMustHaveValueWithArray() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestGetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestGetDeviceParameters.Parameter("variableList", new RequestGetDeviceParameters.ValueArray())
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test
-    public void getOperationsAreDispatchedToOperationGetDeviceParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-
-        verify(operationGetDeviceParameters).getDeviceParameters("", GET_DATA.getParsedInput());
-    }
-
-    @Test
-    public void ifOperationGetDeviceParametersReturnNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-        when(operationGetDeviceParameters.getDeviceParameters("", GET_DATA.getParsedInput())).thenReturn(null);
-        Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "GET_DEVICE_PARAMETERS", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
-        Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-
-        assertTrue(future.isDone());
-        verify(serializer).serialize(eq(expected));
-    }
-
-    @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationGetIsCompleted() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-        assertFalse(future.isDone());
-
-        futureForOperationGet.complete(null);
-        assertTrue(future.isDone());
-    }
-
-    @Test
-    public void whenTheOperationGetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationGet.complete(null);
-
-        verify(serializer).serialize(isA(Output.class));
-    }
-
-    @Test
-    public void ifGetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationGet.complete(null);
-
-        List<Step> steps = Collections.singletonList(new Step("GET_DEVICE_PARAMETERS", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
-        OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "GET_DEVICE_PARAMETERS", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
-        Output expected = new Output("8.0", operation);
-        verify(serializer).serialize(expected);
-    }
-
-    @Test
-    public void getOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationGet.complete(GET_DATA.getOperationResult());
-
-        verify(serializer).serialize(GET_DATA.getOpengateOutput());
-    }
-
-    @Test
-    public void inAGetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(GET_DATA.getOpengateInput());
-        when(serializer.serialize(GET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
-
-        CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
-        futureForOperationGet.complete(GET_DATA.getOperationResult());
-
-        assertTrue(dispatcherFuture.isDone());
-        byte[] actual = dispatcherFuture.get();
-        assertEquals(OUTPUT, actual);
-    }
-
-    //-----------------------------------------------------
-    // -- REFRESH_INFO
-    //-----------------------------------------------------
-    @Test
-    public void ifOperationRefreshInfoReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-        when(operationRefreshInfo.refreshInfo("")).thenReturn(null);
-        Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "REFRESH_INFO", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
-        Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-
-        assertTrue(future.isDone());
-        verify(serializer).serialize(eq(expected));
-    }
-
-    @Test
-    public void refreshInfoOperationsAreDispatchedToOperationRefreshInfo() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-
-        verify(operationRefreshInfo).refreshInfo("");
-    }
-
-    @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationRefreshInfoIsCompleted() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-        assertFalse(future.isDone());
-
-        futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
-        assertTrue(future.isDone());
-    }
-
-    @Test
-    public void whenTheOperationRefreshInfoCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
-
-        verify(serializer).serialize(isA(Output.class));
-    }
-
-    @Test
-    public void theResultOfARefreshInfoIsTranslatedAndPassedToJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
-
-        verify(serializer).serialize(REFRESH_INFO_DATA.getOpengateOutput());
-    }
-
-    @Test
-    public void ifRefreshInfoResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationRefreshInfo.complete(null);
-
-        List<Step> steps = Collections.singletonList(new Step("REFRESH_INFO", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
-        OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "REFRESH_INFO", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
-        Output expected = new Output("8.0", operation);
-        verify(serializer).serialize(expected);
-    }
-
-    @Test
-    public void inARefreshInfoTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(REFRESH_INFO_DATA.getOpengateInput());
-        when(serializer.serialize(REFRESH_INFO_DATA.getOpengateOutput())).thenReturn(OUTPUT);
-
-        CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
-        futureForOperationRefreshInfo.complete(REFRESH_INFO_DATA.getOperationResult());
-
-        assertTrue(dispatcherFuture.isDone());
-        byte[] actual = dispatcherFuture.get();
-        assertEquals(OUTPUT, actual);
-    }
-
-    //-----------------------------------------------------
-    // -- SET_DEVICE_PARAMETERS
-    //-----------------------------------------------------
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                null
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyOneElementInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestSetDeviceParameters.Parameter("unknown", null),
-                        new RequestSetDeviceParameters.Parameter("unknown", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyOneElementNotNullInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(null)
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationMustHaveExactlyTheParameterVariableListInParameter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestSetDeviceParameters.Parameter("unknown", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationVariableListMustHaveValue() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestSetDeviceParameters.Parameter("variableList", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void setOperationVariableListMustHaveValueWithArray() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestSetDeviceParameters(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Collections.singletonList(
-                        new RequestSetDeviceParameters.Parameter("variableList", new RequestSetDeviceParameters.ValueArray())
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test
-    public void ifOperationSetDeviceParametersReturnsNullANotSupportedOperationOutputIsGivenToJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-        when(operationSetDeviceParameters.setDeviceParameters("", SET_DATA.getParsedInput())).thenReturn(null);
-        Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
-        Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-
-        assertTrue(future.isDone());
-        verify(serializer).serialize(eq(expected));
-    }
-
-    @Test
-    public void setOperationsAreDispatchedToOperationSet() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-
-        verify(operationSetDeviceParameters).setDeviceParameters("", SET_DATA.getParsedInput());
-    }
-
-    @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationSetIsCompleted() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-        assertFalse(future.isDone());
-
-        futureForOperationSet.complete(null);
-        assertTrue(future.isDone());
-    }
-
-    @Test
-    public void whenTheOperationSetDeviceParametersCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationSet.complete(null);
-
-        verify(serializer).serialize(isA(Output.class));
-    }
-
-    @Test
-    public void ifSetOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationSet.complete(null);
-
-        List<Step> steps = Collections.singletonList(new Step("SET_DEVICE_PARAMETERS", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
-        OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
-        Output expected = new Output("8.0", operation);
-        verify(serializer).serialize(expected);
-    }
-
-    @Test
-    public void setOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationSet.complete(SET_DATA.getOperationResult());
-
-        verify(serializer).serialize(SET_DATA.getOpengateOutput());
-    }
-
-    @Test
-    public void ifSetFinishedWithErrorsThatErrorsAreTranslatedToOutput() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        String resultDescription = "An error description";
-        OperationSetDeviceParameters.Result operationResult = new OperationSetDeviceParameters.Result(OperationSetDeviceParameters.ResultCode.ERROR_IN_PARAM, resultDescription, null);
-        futureForOperationSet.complete(operationResult);
-
-        List<Step> steps = Collections.singletonList(new Step("SET_DEVICE_PARAMETERS", StepResultCode.ERROR, resultDescription, 0L, null));
-        Response response = new Response(OPERATION_ID, ODA_DEVICE_ID, "SET_DEVICE_PARAMETERS", OperationResultCode.ERROR_IN_PARAM, resultDescription, steps);
-        OutputOperation operation = new OutputOperation(response);
-        Output opengateOutput = new Output("8.0", operation);
-        verify(serializer).serialize(opengateOutput);
-    }
-
-    @Test
-    public void inASetOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(SET_DATA.getOpengateInput());
-        when(serializer.serialize(SET_DATA.getOpengateOutput())).thenReturn(OUTPUT);
-
-        CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
-        futureForOperationSet.complete(SET_DATA.getOperationResult());
-
-        assertTrue(dispatcherFuture.isDone());
-        byte[] actual = dispatcherFuture.get();
-        assertEquals(OUTPUT, actual);
-    }
-
-    //-----------------------------------------------------
-    // -- UPDATE
-    //-----------------------------------------------------
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                null
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveExactlyThreeElementsInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("unknown", null),
-                        new RequestUpdate.Parameter("unknown", null)
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveExactlyThreeNotNullElementsInParameters() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("unknown", null),
-                        new RequestUpdate.Parameter("unknown", null),
-                        null
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveBundleNameParameter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("should be bundleName", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType())
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveBundleVersionParameter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("should be bundleVersion", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType())
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveDeploymentElementsParameter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType()),
-                        new RequestUpdate.Parameter("should be deploymentElements", new RequestUpdate.ValueType())
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustBundleNameParameterOfTheCorrectType() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType(null, Collections.singletonList(new RequestUpdate.VariableListElement()))),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType(null, Collections.singletonList(new RequestUpdate.VariableListElement("", "", DeploymentElementType.SOFTWARE, "", "", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L))))
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustBundleVersionParameterOfTheCorrectType() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType(null, Collections.singletonList(new RequestUpdate.VariableListElement()))),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType(null, Collections.singletonList(new RequestUpdate.VariableListElement("", "", DeploymentElementType.SOFTWARE, "", "", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L))))
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void updateOperationMustHaveDeploymentElementsParameterOfTheCorrectType() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType("", null))
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void inAnUpdateOperationTheParameterDeploymentElementsMustHaveAtLeastOneNonNullElement() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(new Input(new InputOperation(new RequestUpdate(
-                OPERATION_ID,
-                null,
-                TIMESTAMP,
-                Arrays.asList(
-                        new RequestUpdate.Parameter("bundleName", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("bundleVersion", new RequestUpdate.ValueType("", null)),
-                        new RequestUpdate.Parameter("deploymentElements", new RequestUpdate.ValueType(null, Collections.singletonList(null)))
-                )
-        ))));
-
-        dispatcher.process(INPUT);
-    }
-
-    @Test
-    public void updateOperationsAreDispatchedToOperationUpdate() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-
-        verify(operationUpdate).update(UPDATE_DATA.getBundleName(), UPDATE_DATA.getBundleVersion(), UPDATE_DATA.getDeploymentElements());
-    }
-
-    @Test
-    public void ifOperationUpdateReturnsNullANotSupportedOperationOutputIsGivenToJonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-        when(operationUpdate.update(UPDATE_DATA.getBundleName(), UPDATE_DATA.getBundleVersion(), UPDATE_DATA.getDeploymentElements())).thenReturn(null);
-        Response notSupportedResponse = new Response(OPERATION_ID, ODA_DEVICE_ID, "UPDATE", OperationResultCode.NOT_SUPPORTED, "Operation not supported by the device", null);
-        Output expected = new Output("8.0", new OutputOperation(notSupportedResponse));
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-
-        assertTrue(future.isDone());
-        verify(serializer).serialize(eq(expected));
-    }
-
-    @Test
-    public void aCompletableFutureIsReturnedThatWillBeCompletedWhenTheOperationUpdateIsCompleted() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-
-        CompletableFuture<byte[]> future = dispatcher.process(INPUT);
-        assertFalse(future.isDone());
-
-        futureForOperationUpdate.complete(null);
-        assertTrue(future.isDone());
-    }
-
-    @Test
-    public void whenTheOperationUpdateCompletesJsonWriterIsUsedToDumpTheResponse() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationUpdate.complete(null);
-
-        verify(serializer).serialize(isA(Output.class));
-    }
-
-    @Test
-    public void ifUpdateOperationResultIsNullAnErrorOutputIsInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationUpdate.complete(null);
-
-        List<Step> steps = Collections.singletonList(new Step("UPDATE", StepResultCode.ERROR, "NullPointerException: null", 0L, null));
-        OutputOperation operation = new OutputOperation(new Response(OPERATION_ID, ODA_DEVICE_ID, "UPDATE", OperationResultCode.ERROR_PROCESSING, "NullPointerException: null", steps));
-        Output expected = new Output("8.0", operation);
-        verify(serializer).serialize(expected);
-    }
-
-    @Test
-    public void updateOperationResultIsTranslatedToOutputAndInjectedInJsonWriter() throws IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-
-        dispatcher.process(INPUT);
-        futureForOperationUpdate.complete(UPDATE_DATA.getOperationResult());
-
-        verify(serializer).serialize(UPDATE_DATA.getOpengateOutput());
-    }
-
-    @Test
-    public void inAnUpdateOperationTheByteArrayReturnedByTheJsonWriterIsReturnedInTheDispatcherFuture() throws InterruptedException, ExecutionException, IOException {
-        when(serializer.deserialize(INPUT, Input.class)).thenReturn(UPDATE_DATA.getOpengateInput());
-        when(serializer.serialize(UPDATE_DATA.getOpengateOutput())).thenReturn(OUTPUT);
-
-        CompletableFuture<byte[]> dispatcherFuture = dispatcher.process(INPUT);
-        futureForOperationUpdate.complete(UPDATE_DATA.getOperationResult());
-
-        assertTrue(dispatcherFuture.isDone());
-        byte[] actual = dispatcherFuture.get();
-        assertEquals(OUTPUT, actual);
-    }
-
-    @Value
-    private static class GetData {
-        Input opengateInput;
-        Set<String> parsedInput;
-        OperationGetDeviceParameters.Result operationResult;
-        Output opengateOutput;
-    }
-
-    @Value
-    private static class SetData {
-        Input opengateInput;
-        List<OperationSetDeviceParameters.VariableValue> parsedInput;
-        OperationSetDeviceParameters.Result operationResult;
-        Output opengateOutput;
-    }
-
-    @Value
-    private static class RefreshInfoData {
-        Input opengateInput;
-        OperationRefreshInfo.Result operationResult;
-        Output opengateOutput;
-    }
-
-    @Value
-    private static class UpdateData {
-        Input opengateInput;
-        String bundleName;
-        String bundleVersion;
-        List<OperationUpdate.DeploymentElement> deploymentElements;
-        OperationUpdate.Result operationResult;
-        Output opengateOutput;
+        testDispatcher.process(TEST_PAYLOAD);
     }
 }

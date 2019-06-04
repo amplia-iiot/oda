@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class InputVariable {
-    String variableName;
+public class Parameter {
+    private String name;
+    private String type;
+    private ValueObject value;
 }

@@ -7,8 +7,11 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-class ValueGet {
-    List<InputVariable> array;
+@AllArgsConstructor
+public class ValueObject {
+    String string;
+    Double number;
+    Object object;
+    List<Object> array;
 }

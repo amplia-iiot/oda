@@ -14,13 +14,10 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherConfigurationUpdateHandler.class);
 
-    static final String REDUCE_BANDWIDTH_PROPERTY_NAME = "reduceBandwidthMode";
-
     private final ScheduledExecutorService executor;
     private final OpenGateEventDispatcher eventDispatcher;
     private final Scheduler scheduler;
 
-    private boolean reduceBandwidthMode = false;
     private final Map<DispatchConfiguration, Set<String>> currentConfiguration = new HashMap<>();
     private final List<ScheduledFuture> configuredTasks = new ArrayList<>();
 
@@ -40,16 +37,8 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
             String key = e.nextElement();
             String value = (String) props.get(key);
 
-            if (key.equals(REDUCE_BANDWIDTH_PROPERTY_NAME)) {
-                setReduceBandwidthMode(value);
-            } else {
-                parseDispatchConfiguration(key, value);
-            }
+            parseDispatchConfiguration(key, value);
         }
-    }
-
-    private void setReduceBandwidthMode(String value) {
-        reduceBandwidthMode = Boolean.parseBoolean(value);
     }
 
     private void parseDispatchConfiguration(String key, String value) {
@@ -87,7 +76,6 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
         configuredTasks.forEach(task -> task.cancel(false));
         configuredTasks.clear();
 
-        eventDispatcher.setReduceBandwidthMode(reduceBandwidthMode);
         eventDispatcher.setDatastreamIdsConfigured(currentConfiguration.values());
 
         currentConfiguration.forEach((conf, ids) -> {

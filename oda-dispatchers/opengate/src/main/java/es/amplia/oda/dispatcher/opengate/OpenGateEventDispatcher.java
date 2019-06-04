@@ -28,17 +28,11 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
     private final Map<String, List<Event>> collectedValues = new HashMap<>();
     private final List<String> datastreamIdsConfigured = new ArrayList<>();
 
-    private boolean reduceBandwidthMode = false;
-
     OpenGateEventDispatcher(DeviceInfoProvider deviceInfoProvider, Serializer serializer,
                             OpenGateConnector connector) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.serializer = serializer;
         this.connector = connector;
-    }
-
-    void setReduceBandwidthMode(boolean reduceBandwidthMode) {
-        this.reduceBandwidthMode = reduceBandwidthMode;
     }
 
     @Override
@@ -53,24 +47,18 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
                 byte[] payload = serializer.serialize(outputEvent);
                 connector.uplink(payload);
             } catch (IOException e) {
-                LOGGER.error("Error serializing event. Event will not be published: {}", e);
+                LOGGER.error("Error serializing event. Event will not be published: ", e);
             }
 
         }
     }
 
     private OutputDatastream translateToOutputDatastream(Event event) {
-        String deviceId = null;
-        String[] path = null;
-        Long at = null;
-
-        if (!reduceBandwidthMode) {
-            String hostId = deviceInfoProvider.getDeviceId();
-            deviceId = event.getDeviceId();
-            deviceId = "".equals(deviceId) ? hostId : deviceId;
-            path = getPath(hostId, deviceId, event.getPath());
-            at = event.getAt();
-        }
+        String hostId = deviceInfoProvider.getDeviceId();
+        String deviceId = event.getDeviceId();
+        deviceId = "".equals(deviceId) ? hostId : deviceId;
+        String[] path = getPath(hostId, deviceId, event.getPath());
+        Long at = event.getAt();
 
         Datapoint datapoint = new Datapoint(at, event.getValue());
         Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
@@ -114,10 +102,6 @@ class OpenGateEventDispatcher implements EventDispatcher, EventCollector {
     
     private void saveCollectedValue(Event data, String datastreamId) {
         LOGGER.debug("Storing values {}", data);
-        if (data == null) {
-            return;
-        }
-
         List<Event> values = collectedValues.computeIfAbsent(datastreamId, key -> new ArrayList<>());
         values.add(data);
     }

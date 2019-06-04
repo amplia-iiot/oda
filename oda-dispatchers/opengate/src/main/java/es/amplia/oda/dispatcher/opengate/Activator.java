@@ -1,23 +1,14 @@
 package es.amplia.oda.dispatcher.opengate;
 
-import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.Serializers;
+import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
 import es.amplia.oda.event.api.EventDispatcher;
-import es.amplia.oda.operation.api.OperationGetDeviceParameters;
-import es.amplia.oda.operation.api.OperationRefreshInfo;
-import es.amplia.oda.operation.api.OperationSetDeviceParameters;
-import es.amplia.oda.operation.api.OperationUpdate;
-import es.amplia.oda.operation.api.osgi.proxies.OperationGetDeviceParametersProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationRefreshInfoProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationSetDeviceParametersProxy;
-import es.amplia.oda.operation.api.osgi.proxies.OperationUpdateProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -34,9 +25,13 @@ public class Activator implements BundleActivator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private static final int NUM_THREADS = 10;
-    private static final int STOP_PENDING_OPERATIONS_TIMEOUT = 10;
+    static final long STOP_PENDING_OPERATIONS_TIMEOUT = 10;
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
+
+    private SerializerProxy serializer;
+    private DeviceInfoProviderProxy deviceInfoProvider;
+    private OpenGateOperationProcessorFactory factory;
 
     private OpenGateConnectorProxy connector;
     private ConfigurableBundle configurableBundle;
@@ -49,16 +44,11 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting OpenGate Dispatcher");
 
-        Serializer serializer = new SerializerProxy(bundleContext, Serializers.SerializerType.JSON);
-        OperationGetDeviceParameters operationGetDeviceParameters = new OperationGetDeviceParametersProxy(bundleContext);
-        OperationSetDeviceParameters operationSetDeviceParameters = new OperationSetDeviceParametersProxy(bundleContext);
-        OperationRefreshInfo operationRefreshInfo = new OperationRefreshInfoProxy(bundleContext);
-        OperationUpdate operationUpdate = new OperationUpdateProxy(bundleContext);
-        DeviceInfoProvider deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
+        serializer = new SerializerProxy(bundleContext, Serializers.SerializerType.JSON);
+        deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
+        factory = new OpenGateOperationProcessorFactoryImpl(bundleContext, serializer);
         Dispatcher dispatcher =
-                new OpenGateOperationDispatcher(serializer, deviceInfoProvider,
-                        operationGetDeviceParameters, operationSetDeviceParameters, operationRefreshInfo,
-                        operationUpdate);
+                new OpenGateOperationDispatcher(serializer, deviceInfoProvider, factory.createOperationProcessor());
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
         connector = new OpenGateConnectorProxy(bundleContext);
@@ -78,10 +68,14 @@ public class Activator implements BundleActivator {
         LOGGER.info("Stopping OpenGate Json Dispatcher");
 
         eventDispatcherRegistration.unregister();
-        operationDispatcherRegistration.unregister();
         configurableBundle.close();
         stopPendingOperations();
         connector.close();
+
+        operationDispatcherRegistration.unregister();
+        serializer.close();
+        deviceInfoProvider.close();
+        factory.close();
 
         LOGGER.info("OpenGate Dispatcher stopped");
     }
