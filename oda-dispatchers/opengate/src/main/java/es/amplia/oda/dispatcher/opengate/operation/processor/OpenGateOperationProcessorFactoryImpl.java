@@ -14,6 +14,7 @@ import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDevicePar
 import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.SET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetClockEquipmentProcessor.SET_CLOCK_EQUIPMENT_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.SYNCHRONIZE_CLOCK_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.UpdateProcessor.UPDATE_OPERATION_NAME;
 
 public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationProcessorFactory {
@@ -23,6 +24,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationSetDeviceParametersProxy operationSetDeviceParameters;
     private final OperationUpdateProxy operationUpdate;
     private final OperationSetClockProxy operationSetClockEquipment;
+    private final OperationSynchronizeClockProxy operationSynchronizeClock;
     private final Serializer serializer;
 
     public OpenGateOperationProcessorFactoryImpl(BundleContext bundleContext, Serializer serializer) {
@@ -31,6 +33,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationSetDeviceParameters = new OperationSetDeviceParametersProxy(bundleContext);
         this.operationUpdate = new OperationUpdateProxy(bundleContext);
         this.operationSetClockEquipment = new OperationSetClockProxy(bundleContext);
+        this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
         this.serializer = serializer;
     }
 
@@ -49,7 +52,10 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         catalogueOperationProcessors.put(SET_DEVICE_PARAMETERS_OPERATION_NAME,
                 new SetDeviceParametersProcessor(serializer, operationSetDeviceParameters));
         catalogueOperationProcessors.put(UPDATE_OPERATION_NAME, new UpdateProcessor(serializer, operationUpdate));
-        catalogueOperationProcessors.put(SET_CLOCK_EQUIPMENT_OPERATION_NAME, new SetClockEquipmentProcessor(serializer, operationSetClockEquipment));
+        catalogueOperationProcessors.put(SET_CLOCK_EQUIPMENT_OPERATION_NAME,
+                new SetClockEquipmentProcessor(serializer, operationSetClockEquipment));
+        catalogueOperationProcessors.put(SYNCHRONIZE_CLOCK_OPERATION_NAME,
+                new SynchronizeClockProcessor(serializer, operationSynchronizeClock));
         return catalogueOperationProcessors;
     }
 
@@ -64,5 +70,6 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         operationSetDeviceParameters.close();
         operationUpdate.close();
         operationSetClockEquipment.close();
+        operationSynchronizeClock.close();
     }
 }

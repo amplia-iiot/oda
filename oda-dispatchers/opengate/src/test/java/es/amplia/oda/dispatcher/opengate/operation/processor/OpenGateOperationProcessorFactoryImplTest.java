@@ -42,6 +42,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
     @Mock
     private OperationSetClockProxy mockedSetClockEquipment;
     @Mock
+    private OperationSynchronizeClockProxy mockedSynchronizeClock;
+    @Mock
     private RefreshInfoProcessor mockedRefreshInfoProcessor;
     @Mock
     private GetDeviceParametersProcessor mockedGetDeviceParamsProcessor;
@@ -51,6 +53,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
     private UpdateProcessor mockedUpdateProcessor;
     @Mock
     private SetClockEquipmentProcessor mockedSetClockEquipmentProcessor;
+    @Mock
+    private SynchronizeClockProcessor mockedSynchronizeClockProcessor;
     @Mock
     private UnsupportedOperationProcessor mockedUnsupportedProcessor;
     @Mock
@@ -65,6 +69,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
                 .thenReturn(mockedSetDeviceParameters);
         PowerMockito.whenNew(OperationUpdateProxy.class).withAnyArguments().thenReturn(mockedUpdate);
         PowerMockito.whenNew(OperationSetClockProxy.class).withAnyArguments().thenReturn(mockedSetClockEquipment);
+        PowerMockito.whenNew(OperationSynchronizeClockProxy.class).withAnyArguments().thenReturn(mockedSynchronizeClock);
 
         testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext, mockedSerializer);
     }
@@ -76,6 +81,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.verifyNew(OperationSetDeviceParametersProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationUpdateProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationSetClockProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(OperationSynchronizeClockProxy.class).withArguments(eq(mockedContext));
     }
 
     @Test
@@ -86,7 +92,10 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.whenNew(SetDeviceParametersProcessor.class).withAnyArguments()
                 .thenReturn(mockedSetDeviceParamsProcessor);
         PowerMockito.whenNew(UpdateProcessor.class).withAnyArguments().thenReturn(mockedUpdateProcessor);
-        PowerMockito.whenNew(SetClockEquipmentProcessor.class).withAnyArguments().thenReturn(mockedSetClockEquipmentProcessor);
+        PowerMockito.whenNew(SetClockEquipmentProcessor.class)
+                .withAnyArguments().thenReturn(mockedSetClockEquipmentProcessor);
+        PowerMockito.whenNew(SynchronizeClockProcessor.class).withAnyArguments()
+                .thenReturn(mockedSynchronizeClockProcessor);
         PowerMockito.whenNew(UnsupportedOperationProcessor.class).withAnyArguments()
                 .thenReturn(mockedUnsupportedProcessor);
         PowerMockito.whenNew(OpenGateOperationProcessor.class).withAnyArguments()
@@ -116,5 +125,6 @@ public class OpenGateOperationProcessorFactoryImplTest {
         verify(mockedSetDeviceParameters).close();
         verify(mockedUpdate).close();
         verify(mockedSetClockEquipment).close();
+        verify(mockedSynchronizeClock).close();
     }
 }
