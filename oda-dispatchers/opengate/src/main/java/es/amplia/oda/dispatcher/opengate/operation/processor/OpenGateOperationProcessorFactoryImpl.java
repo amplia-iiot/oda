@@ -1,8 +1,11 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.utils.ServiceLocator;
+import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OpenGateOperationProcessorFactory;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
+import es.amplia.oda.operation.api.CustomOperation;
 import es.amplia.oda.operation.api.osgi.proxies.*;
 
 import org.osgi.framework.BundleContext;
@@ -25,7 +28,9 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationUpdateProxy operationUpdate;
     private final OperationSetClockProxy operationSetClockEquipment;
     private final OperationSynchronizeClockProxy operationSynchronizeClock;
+    private final ServiceLocator<CustomOperation> operationServiceLocator;
     private final Serializer serializer;
+
 
     public OpenGateOperationProcessorFactoryImpl(BundleContext bundleContext, Serializer serializer) {
         this.operationRefreshInfo = new OperationRefreshInfoProxy(bundleContext);
@@ -34,13 +39,14 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationUpdate = new OperationUpdateProxy(bundleContext);
         this.operationSetClockEquipment = new OperationSetClockProxy(bundleContext);
         this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
+        this.operationServiceLocator = new ServiceLocatorOsgi<>(bundleContext, CustomOperation.class);
         this.serializer = serializer;
     }
 
     @Override
     public OperationProcessor createOperationProcessor() {
         return new OpenGateOperationProcessor(createCatalogueOperationProcessors(),
-                createUnsupportedOperationProcessor());
+                createCustomOperationProcessor());
     }
 
     private Map<String, OperationProcessor> createCatalogueOperationProcessors() {
@@ -59,8 +65,8 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         return catalogueOperationProcessors;
     }
 
-    private OperationProcessor createUnsupportedOperationProcessor() {
-        return new UnsupportedOperationProcessor(serializer);
+    private OperationProcessor createCustomOperationProcessor() {
+        return new CustomOperationProcessor(serializer, operationServiceLocator);
     }
 
     @Override
@@ -71,5 +77,6 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         operationUpdate.close();
         operationSetClockEquipment.close();
         operationSynchronizeClock.close();
+        operationServiceLocator.close();
     }
 }

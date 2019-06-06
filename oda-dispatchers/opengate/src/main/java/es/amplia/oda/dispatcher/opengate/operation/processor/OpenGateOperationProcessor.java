@@ -9,17 +9,18 @@ import java.util.concurrent.CompletableFuture;
 class OpenGateOperationProcessor implements OperationProcessor {
 
     private final Map<String, OperationProcessor> catalogueOperationProcessors;
-    private final OperationProcessor unsupportedOperationProcessor;
+    private final OperationProcessor customOperationProcessor;
+
 
     OpenGateOperationProcessor(Map<String, OperationProcessor> catalogueOperationProcessors,
-                               OperationProcessor unsupportedOperationProcessor) {
+                               OperationProcessor customOperationProcessor) {
         this.catalogueOperationProcessors = catalogueOperationProcessors;
-        this.unsupportedOperationProcessor = unsupportedOperationProcessor;
+        this.customOperationProcessor = customOperationProcessor;
     }
 
     @Override
     public CompletableFuture<byte[]> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
-        return catalogueOperationProcessors.getOrDefault(request.getName(), unsupportedOperationProcessor)
+        return catalogueOperationProcessors.getOrDefault(request.getName(), customOperationProcessor)
                 .process(deviceIdForOperations, deviceIdForResponse, request);
     }
 }

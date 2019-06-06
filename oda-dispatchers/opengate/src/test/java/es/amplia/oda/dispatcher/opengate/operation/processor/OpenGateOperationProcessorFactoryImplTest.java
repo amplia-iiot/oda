@@ -1,7 +1,9 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
+import es.amplia.oda.operation.api.CustomOperation;
 import es.amplia.oda.operation.api.osgi.proxies.*;
 
 import org.junit.Before;
@@ -44,6 +46,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
     @Mock
     private OperationSynchronizeClockProxy mockedSynchronizeClock;
     @Mock
+    private ServiceLocatorOsgi<CustomOperation> mockedOperationServiceLocator;
+    @Mock
     private RefreshInfoProcessor mockedRefreshInfoProcessor;
     @Mock
     private GetDeviceParametersProcessor mockedGetDeviceParamsProcessor;
@@ -56,7 +60,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
     @Mock
     private SynchronizeClockProcessor mockedSynchronizeClockProcessor;
     @Mock
-    private UnsupportedOperationProcessor mockedUnsupportedProcessor;
+    private CustomOperationProcessor mockedCustomOperationProcessor;
     @Mock
     private OpenGateOperationProcessor mockedOpenGateOperationProcessor;
 
@@ -70,6 +74,9 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.whenNew(OperationUpdateProxy.class).withAnyArguments().thenReturn(mockedUpdate);
         PowerMockito.whenNew(OperationSetClockProxy.class).withAnyArguments().thenReturn(mockedSetClockEquipment);
         PowerMockito.whenNew(OperationSynchronizeClockProxy.class).withAnyArguments().thenReturn(mockedSynchronizeClock);
+        PowerMockito.whenNew(ServiceLocatorOsgi.class)
+                .withArguments(any(BundleContext.class), eq(CustomOperation.class))
+                .thenReturn(mockedOperationServiceLocator);
 
         testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext, mockedSerializer);
     }
@@ -82,6 +89,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.verifyNew(OperationUpdateProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationSetClockProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationSynchronizeClockProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(CustomOperation.class));
     }
 
     @Test
@@ -96,8 +104,10 @@ public class OpenGateOperationProcessorFactoryImplTest {
                 .withAnyArguments().thenReturn(mockedSetClockEquipmentProcessor);
         PowerMockito.whenNew(SynchronizeClockProcessor.class).withAnyArguments()
                 .thenReturn(mockedSynchronizeClockProcessor);
-        PowerMockito.whenNew(UnsupportedOperationProcessor.class).withAnyArguments()
-                .thenReturn(mockedUnsupportedProcessor);
+        PowerMockito.whenNew(SetClockEquipmentProcessor.class)
+                .withAnyArguments().thenReturn(mockedSetClockEquipmentProcessor);
+        PowerMockito.whenNew(CustomOperationProcessor.class).withAnyArguments()
+                .thenReturn(mockedCustomOperationProcessor);
         PowerMockito.whenNew(OpenGateOperationProcessor.class).withAnyArguments()
                 .thenReturn(mockedOpenGateOperationProcessor);
 
@@ -111,9 +121,10 @@ public class OpenGateOperationProcessorFactoryImplTest {
                 .withArguments(eq(mockedSerializer), eq(mockedSetDeviceParameters));
         PowerMockito.verifyNew(UpdateProcessor.class).withArguments(eq(mockedSerializer), eq(mockedUpdate));
         PowerMockito.verifyNew(SetClockEquipmentProcessor.class).withArguments(eq(mockedSerializer), eq(mockedSetClockEquipment));
-        PowerMockito.verifyNew(UnsupportedOperationProcessor.class).withArguments(eq(mockedSerializer));
+        PowerMockito.verifyNew(CustomOperationProcessor.class)
+                .withArguments(eq(mockedSerializer), eq(mockedOperationServiceLocator));
         PowerMockito.verifyNew(OpenGateOperationProcessor.class)
-                .withArguments(any(Map.class), eq(mockedUnsupportedProcessor));
+                .withArguments(any(Map.class), eq(mockedCustomOperationProcessor));
     }
 
     @Test
@@ -126,5 +137,6 @@ public class OpenGateOperationProcessorFactoryImplTest {
         verify(mockedUpdate).close();
         verify(mockedSetClockEquipment).close();
         verify(mockedSynchronizeClock).close();
+        verify(mockedOperationServiceLocator).close();
     }
 }

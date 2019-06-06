@@ -13,12 +13,13 @@ import java.util.Map;
 
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OpenGateOperationProcessorTest {
 
     private static final String TEST_OPERATION = "TEST_OPERATION";
-    private static final String TEST_UNSUPPORTED = "TEST_UNSUPPORTED";
+    private static final String TEST_UNKNOWN_OPERATION = "UNKNOWN_OPERATION";
     private static final String TEST_DEVICE_FOR_OPERATIONS = "device1";
     private static final String TEST_DEVICE_FOR_RESPONSE = "device2";
 
@@ -26,7 +27,7 @@ public class OpenGateOperationProcessorTest {
     @Mock
     private OperationProcessor mockedOperationProcessor;
     @Mock
-    private OperationProcessor mockedUnsupportedProcessor;
+    private OperationProcessor mockedCustomOperationProcessor;
 
     private OpenGateOperationProcessor testProcessor;
 
@@ -35,7 +36,7 @@ public class OpenGateOperationProcessorTest {
         Map<String, OperationProcessor> mockedOperationProcessors =
                 Collections.singletonMap(TEST_OPERATION, mockedOperationProcessor);
 
-        testProcessor = new OpenGateOperationProcessor(mockedOperationProcessors, mockedUnsupportedProcessor);
+        testProcessor = new OpenGateOperationProcessor(mockedOperationProcessors, mockedCustomOperationProcessor);
     }
 
     @Test
@@ -47,16 +48,18 @@ public class OpenGateOperationProcessorTest {
 
         verify(mockedOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest));
+        verifyZeroInteractions(mockedCustomOperationProcessor);
     }
 
     @Test
-    public void testProcessUnsupported() {
+    public void testProcessCustomOperation() {
         Request testRequest = new Request();
-        testRequest.setName(TEST_UNSUPPORTED);
+        testRequest.setName(TEST_UNKNOWN_OPERATION);
 
         testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest);
 
-        verify(mockedUnsupportedProcessor)
+        verify(mockedCustomOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest));
+        verifyZeroInteractions(mockedOperationProcessor);
     }
 }
