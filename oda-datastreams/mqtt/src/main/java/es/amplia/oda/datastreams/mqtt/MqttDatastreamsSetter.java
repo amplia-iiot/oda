@@ -45,7 +45,8 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
         this.serializer = serializer;
         this.writeRequestOperationRootTopic = writeRequestOperationRootTopic;
-        this.writeResponseOperationRootTopic = writeResponseOperationRootTopic + TWO_TOPIC_LEVELS_WILDCARD;
+        this.writeResponseOperationRootTopic = writeResponseOperationRootTopic + ONE_TOPIC_LEVEL_WILDCARD +
+                TOPIC_LEVEL_SEPARATOR + datastreamId;
         subscribeToWriteResponseOperationTopic();
     }
 

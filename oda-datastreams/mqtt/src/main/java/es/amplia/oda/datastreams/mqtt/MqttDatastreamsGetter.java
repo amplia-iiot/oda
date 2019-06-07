@@ -45,7 +45,8 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
         this.serializer = serializer;
         this.readRequestOperationRootTopic = readRequestOperationRootTopic;
-        this.readResponseOperationRootTopic = readResponseOperationRootTopic + TWO_TOPIC_LEVELS_WILDCARD;
+        this.readResponseOperationRootTopic = readResponseOperationRootTopic + ONE_TOPIC_LEVEL_WILDCARD +
+                TOPIC_LEVEL_SEPARATOR + datastreamId;
         subscribeToReadResponseOperationTopic(mqttClient);
     }
 
