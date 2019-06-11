@@ -34,7 +34,8 @@ public class MqttDatastreamsSetterTest {
     private static final String TEST_WRITE_REQUEST_OPERATION_ROOT_TOPIC = "test/operation/write/request";
     private static final String TEST_WRITE_RESPONSE_OPERATION_ROOT_TOPIC = "test/operation/write/response";
     private static final String TEST_SUBSCRIBED_WRITE_RESPONSE_OPERATION_TOPIC =
-            TEST_WRITE_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TWO_TOPIC_LEVELS_WILDCARD;
+            TEST_WRITE_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.ONE_TOPIC_LEVEL_WILDCARD +
+                    MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
     private static final String TEST_VALUE = "helloWorld!";
     private static final int OPERATION_ID = 12345;
     private static final String DEVICES_MANAGED_FIELD_NAME = "devicesManaged";
@@ -178,7 +179,7 @@ public class MqttDatastreamsSetterTest {
     public void testWriteResponseMessageListenerMessageArriveWithCreatedStatus() throws IOException, MqttException {
         String testTopic = TEST_WRITE_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
                 TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
-        int status = 201;
+        int status = MqttDatastreamsSetter.WriteResponseMessageListener.OK_STATUS_CODE;
         MqttDatastreamsSetter.WriteResponseOperation testWriteResponse =
                 new MqttDatastreamsSetter.WriteResponseOperation(OPERATION_ID, status, null);
         ArgumentCaptor<MqttDatastreamsSetter.WriteResponseMessageListener> listenerCaptor =

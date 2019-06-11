@@ -5,10 +5,12 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -16,6 +18,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import static es.amplia.oda.datastreams.mqtt.MqttDatastreams.*;
 import static es.amplia.oda.datastreams.mqtt.MqttDatastreamDiscoveryHandler.*;
@@ -37,6 +40,13 @@ public class MqttDatastreamDiscoveryHandlerTest {
             TEST_DISABLE_DATASTREAM_TOPIC + ONE_TOPIC_LEVEL_WILDCARD;
     private static final String TEST_SUBSCRIBED_DISABLE_DATASTREAM_TOPIC =
             TEST_DISABLE_DATASTREAM_TOPIC + TWO_TOPIC_LEVELS_WILDCARD;
+    private static final String DATASTREAM_ID_1 = "testDatastream1";
+    private static final String DEVICE_ID_1 = "testDevice1";
+    private static final String DATASTREAM_ID_2 = "testDatastream2";
+    private static final String DEVICE_ID_2 = "testDevice2";
+    private static final MqttDatastreamPermission PERMISSION_1 = MqttDatastreamPermission.RD;
+    private static final MqttDatastreamPermission PERMISSION_2 = MqttDatastreamPermission.WR;
+    private static final MqttDatastreamPermission PERMISSION_3 = MqttDatastreamPermission.RW;
 
     @Mock
     private MqttClient mockedClient;
@@ -48,18 +58,19 @@ public class MqttDatastreamDiscoveryHandlerTest {
     private MqttDatastreamsPermissionManager mockedPermissionManager;
 
     private MqttDatastreamDiscoveryHandler testHandler;
-    private static final String DATASTREAM_ID_1 = "testDatastream1";
-    private static final String DEVICE_ID_1 = "testDevice1";
-    private static final String DATASTREAM_ID_2 = "testDatastream2";
-    private static final String DEVICE_ID_2 = "testDevice2";
-    private static final MqttDatastreamPermission PERMISSION_1 = MqttDatastreamPermission.RD;
-    private static final MqttDatastreamPermission PERMISSION_2 = MqttDatastreamPermission.WR;
-    private static final MqttDatastreamPermission PERMISSION_3 = MqttDatastreamPermission.RW;
+
+    @Mock
+    private ExecutorService mockedExecutor;
+    @Captor
+    private ArgumentCaptor<Runnable> runnableCaptor;
+
 
     @Before
     public void setUp() throws MqttException {
         testHandler = new MqttDatastreamDiscoveryHandler(mockedClient, mockedSerializer, mockedDatastreamsManager,
                 mockedPermissionManager, TEST_ENABLE_DATASTREAM_TOPIC, TEST_DISABLE_DATASTREAM_TOPIC);
+
+        Whitebox.setInternalState(testHandler, "executor", mockedExecutor);
     }
 
     @Test
@@ -117,6 +128,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
 
         verify(mockedSerializer)
                 .deserialize(aryEq(testPayload), eq(MqttDatastreamDiscoveryHandler.EnableDeviceMessage.class));
+        verify(mockedExecutor, times(2)).execute(runnableCaptor.capture());
+        runnableCaptor.getAllValues().forEach(Runnable::run);
         verify(mockedPermissionManager).addPermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1), eq(PERMISSION_1));
         verify(mockedDatastreamsManager).createDatastream(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
         verify(mockedDatastreamsManager).createDatastream(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
@@ -144,6 +157,7 @@ public class MqttDatastreamDiscoveryHandlerTest {
 
         verify(mockedSerializer)
                 .deserialize(aryEq(testPayload), eq(MqttDatastreamDiscoveryHandler.EnableDeviceMessage.class));
+        verifyZeroInteractions(mockedExecutor);
     }
 
     @Test
@@ -169,6 +183,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
 
         verify(mockedSerializer)
                 .deserialize(aryEq(testPayload), eq(MqttDatastreamDiscoveryHandler.EnableDeviceMessage.class));
+        verify(mockedExecutor, times(2)).execute(runnableCaptor.capture());
+        runnableCaptor.getAllValues().forEach(Runnable::run);
         verify(mockedPermissionManager).addPermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1), eq(PERMISSION_1));
         verify(mockedDatastreamsManager).createDatastream(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
         verify(mockedPermissionManager).addPermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_2), eq(PERMISSION_2));
@@ -196,6 +212,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
         testCapturedListener.messageArrived(testTopic, testMessage);
 
         verify(mockedSerializer).deserialize(aryEq(testPayload), eq(MqttDatastreamDiscoveryHandler.EnableDatastreamMessage.class));
+        verify(mockedExecutor).execute(runnableCaptor.capture());
+        runnableCaptor.getAllValues().forEach(Runnable::run);
         verify(mockedPermissionManager).addPermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1), eq(testMode));
         verify(mockedDatastreamsManager).createDatastream(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
     }
@@ -219,7 +237,7 @@ public class MqttDatastreamDiscoveryHandlerTest {
         testCapturedListener.messageArrived(testTopic, testMessage);
 
         verify(mockedSerializer).deserialize(aryEq(testPayload), eq(MqttDatastreamDiscoveryHandler.EnableDatastreamMessage.class));
-        verifyZeroInteractions(mockedPermissionManager);
+        verifyZeroInteractions(mockedExecutor);
     }
 
     @Test
@@ -238,6 +256,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
         MqttDatastreamDiscoveryHandler.DisableDeviceMessageListener testCapturedListener =
                 disableDeviceMessageListenerCaptor.getValue();
         testCapturedListener.messageArrived(testTopic, testMessage);
+        verify(mockedExecutor, times(2)).execute(runnableCaptor.capture());
+        runnableCaptor.getAllValues().forEach(Runnable::run);
 
         verify(mockedPermissionManager).removePermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
         verify(mockedPermissionManager).removePermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_2));
@@ -258,6 +278,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
         MqttDatastreamDiscoveryHandler.DisableDeviceMessageListener testCapturedListener =
                 disableDeviceMessageListenerCaptor.getValue();
         testCapturedListener.messageArrived(testTopic, testMessage);
+
+        verifyZeroInteractions(mockedExecutor);
     }
 
     @Test
@@ -273,6 +295,8 @@ public class MqttDatastreamDiscoveryHandlerTest {
         MqttDatastreamDiscoveryHandler.DisableDatastreamMessageListener testCapturedListener =
                 disableMessageListenerCaptor.getValue();
         testCapturedListener.messageArrived(testTopic, testMessage);
+        verify(mockedExecutor).execute(runnableCaptor.capture());
+        runnableCaptor.getAllValues().forEach(Runnable::run);
 
         verify(mockedPermissionManager).removePermission(eq(DEVICE_ID_1), eq(DATASTREAM_ID_1));
     }
@@ -283,5 +307,6 @@ public class MqttDatastreamDiscoveryHandlerTest {
 
         verify(mockedClient).unsubscribe(eq(TEST_SUBSCRIBED_ENABLE_DATASTREAM_TOPIC));
         verify(mockedClient).unsubscribe(eq(TEST_SUBSCRIBED_DISABLE_DATASTREAM_TOPIC));
+        verify(mockedExecutor).shutdown();
     }
 }

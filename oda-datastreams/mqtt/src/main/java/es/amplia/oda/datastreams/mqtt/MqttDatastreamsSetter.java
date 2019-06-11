@@ -45,7 +45,8 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
         this.serializer = serializer;
         this.writeRequestOperationRootTopic = writeRequestOperationRootTopic;
-        this.writeResponseOperationRootTopic = writeResponseOperationRootTopic + TWO_TOPIC_LEVELS_WILDCARD;
+        this.writeResponseOperationRootTopic = writeResponseOperationRootTopic + ONE_TOPIC_LEVEL_WILDCARD +
+                TOPIC_LEVEL_SEPARATOR + datastreamId;
         subscribeToWriteResponseOperationTopic();
     }
 
@@ -122,7 +123,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
 
     class WriteResponseMessageListener implements MqttMessageListener {
 
-        private static final int CREATED_STATUS_CODE = 201;
+        static final int OK_STATUS_CODE = 200;
 
         @Override
         public void messageArrived(String topic, MqttMessage message) {
@@ -148,7 +149,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         }
 
         private boolean isSuccessStatusCode(int status) {
-            return status == CREATED_STATUS_CODE;
+            return status == OK_STATUS_CODE;
         }
     }
 

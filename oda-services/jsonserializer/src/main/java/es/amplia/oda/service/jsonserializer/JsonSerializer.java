@@ -1,5 +1,6 @@
 package es.amplia.oda.service.jsonserializer;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +10,10 @@ import java.io.IOException;
 class JsonSerializer implements Serializer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static {
+        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    }
 
     @Override
     public byte[] serialize(Object value) throws IOException {

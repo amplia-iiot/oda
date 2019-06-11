@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -65,8 +64,6 @@ public class SchedulerImplTest {
     private OpenGateConnector connector;
     @Mock
     private Serializer serializer;
-    @Mock
-    private IOException exception;
     
     private SchedulerImpl schedulerImpl;
 

@@ -35,8 +35,6 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>gson</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
             </plugin>
@@ -77,11 +75,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

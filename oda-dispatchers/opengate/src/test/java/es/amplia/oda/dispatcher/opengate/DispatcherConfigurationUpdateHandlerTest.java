@@ -13,7 +13,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.REDUCE_BANDWIDTH_PROPERTY_NAME;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -42,11 +41,9 @@ public class DispatcherConfigurationUpdateHandlerTest {
         testProperties.put(testDatastreamId1, "30;30");
         testProperties.put(testDatastreamId2, "30");
         testProperties.put(testDatastreamId3, "10");
-        testProperties.put(REDUCE_BANDWIDTH_PROPERTY_NAME, Boolean.TRUE.toString());
 
         testConfigHandler.loadConfiguration(testProperties);
 
-        assertEquals(Boolean.TRUE, Whitebox.getInternalState(testConfigHandler, "reduceBandwidthMode"));
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
         assertEquals(new HashSet<>(Arrays.asList(testDatastreamId1, testDatastreamId2)),
@@ -99,14 +96,12 @@ public class DispatcherConfigurationUpdateHandlerTest {
 
         Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
         Whitebox.setInternalState(testConfigHandler, "configuredTasks", mockedTasks);
-        Whitebox.setInternalState(testConfigHandler, "reduceBandwidthMode", true);
 
         testConfigHandler.applyConfiguration();
 
         verify(mockedTask1).cancel(eq(false));
         verify(mockedTask2).cancel(eq(false));
         verify(mockedTask3).cancel(eq(false));
-        verify(mockedEventDispatcher).setReduceBandwidthMode(eq(true));
         verify(mockedEventDispatcher).setDatastreamIdsConfigured(eq(currentConfiguration.values()));
         verify(mockedExecutor).scheduleAtFixedRate(runnableCaptor.capture(), eq(30L), eq(30L), eq(TimeUnit.SECONDS));
         runnableCaptor.getValue().run();

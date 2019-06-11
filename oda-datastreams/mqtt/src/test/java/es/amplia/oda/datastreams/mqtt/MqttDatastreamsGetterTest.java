@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static es.amplia.oda.datastreams.mqtt.MqttDatastreams.*;
+
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
@@ -34,8 +36,9 @@ public class MqttDatastreamsGetterTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String TEST_READ_REQUEST_OPERATION_ROOT_TOPIC = "test/operation/read/request";
     private static final String TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC = "test/operation/read/response";
-    private static final String TEST_SUBSCRIBED_READ_RESPONSE_OPERATION_TOPIC = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC +
-            MqttDatastreams.TWO_TOPIC_LEVELS_WILDCARD;
+    private static final String TEST_SUBSCRIBED_READ_RESPONSE_OPERATION_TOPIC =
+            TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + ONE_TOPIC_LEVEL_WILDCARD + TOPIC_LEVEL_SEPARATOR +
+                    TEST_DATASTREAM_ID;
     private static final String DEVICES_MANAGED_FIELD_NAME = "devicesManaged";
     private static final String FUTURES_FIELD_NAME = "futures";
 
@@ -114,8 +117,8 @@ public class MqttDatastreamsGetterTest {
     @Test
     public void testGet() throws IOException, MqttException {
         byte[] testPayload = new byte[] {1,2,3,4};
-        String testTopic = TEST_READ_REQUEST_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
-                TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
+        String testTopic = TEST_READ_REQUEST_OPERATION_ROOT_TOPIC + TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID +
+                TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
 
         Whitebox.setInternalState(testGetter, FUTURES_FIELD_NAME, spiedFutures);
 
@@ -168,8 +171,8 @@ public class MqttDatastreamsGetterTest {
 
     @Test
     public void testReadResponseMessageListenerMessageArriveWithOKStatus() throws IOException, MqttException {
-        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
-                TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
+        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID +
+                TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
         byte[] testPayload = new byte[] {1,2,3,4};
         int operationId = 12345;
         int status = 200;
@@ -197,8 +200,8 @@ public class MqttDatastreamsGetterTest {
 
     @Test
     public void testReadResponseMessageListenerMessageArriveWithErrorStatus() throws IOException, MqttException {
-        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
-                TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
+        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID +
+                TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
         byte[] testPayload = new byte[] {1,2,3,4};
         int operationId = 12345;
         int status = 400;
@@ -226,8 +229,8 @@ public class MqttDatastreamsGetterTest {
 
     @Test
     public void testReadResponseMessageListenerMessageArriveThrowsIOException() throws IOException, MqttException {
-        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
-                TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
+        String testTopic = TEST_READ_RESPONSE_OPERATION_ROOT_TOPIC + TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID +
+                TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
         byte[] testPayload = new byte[] {1,2,3,4};
         ArgumentCaptor<MqttDatastreamsGetter.ReadResponseMessageListener> listenerCaptor =
                 ArgumentCaptor.forClass(MqttDatastreamsGetter.ReadResponseMessageListener.class);

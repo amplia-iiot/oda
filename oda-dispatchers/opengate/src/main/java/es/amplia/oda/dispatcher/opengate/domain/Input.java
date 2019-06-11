@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Input {
-    InputOperation operation;
+    private InputOperation operation;
 }

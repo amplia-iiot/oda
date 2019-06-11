@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static es.amplia.oda.datastreams.mqtt.MqttDatastreams.*;
 
@@ -19,6 +21,9 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MqttDatastreamDiscoveryHandler.class);
 
+    private static final int NUM_THREADS = 10;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
     private final MqttClient mqttClient;
     private final Serializer serializer;
     private final MqttDatastreamsManager mqttDatastreamsManager;
@@ -86,7 +91,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
                 EnableDeviceMessage enableDeviceMessage =
                         serializer.deserialize(mqttMessage.getPayload(), EnableDeviceMessage.class);
                 enableDeviceMessage.getDatastreams().forEach(enabledDatastream ->
-                        enableDatastream(deviceId, enabledDatastream.getDatastreamId(), enabledDatastream.getMode()));
+                        executor.execute(() -> enableDatastream(deviceId, enabledDatastream.getDatastreamId(), enabledDatastream.getMode())));
             } catch (IOException e) {
                 LOGGER.error("Invalid discovery message \"{}\": {}", mqttMessage, e);
             }
@@ -107,7 +112,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
                 String datastreamId = topicLevels[topicLevels.length - ONE_LEVEL];
                 EnableDatastreamMessage enableDatastreamMessage =
                         serializer.deserialize(mqttMessage.getPayload(), EnableDatastreamMessage.class);
-                enableDatastream(deviceId, datastreamId, enableDatastreamMessage.getMode());
+                executor.execute(() -> enableDatastream(deviceId, datastreamId, enableDatastreamMessage.getMode()));
             } catch (IOException e) {
                 LOGGER.error("Invalid discovery message \"{}\": {}", mqttMessage, e);
             }
@@ -133,7 +138,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
                 DisableDeviceMessage disableDeviceMessage =
                         serializer.deserialize(mqttMessage.getPayload(), DisableDeviceMessage.class);
                 disableDeviceMessage.getDatastreams().forEach(disabledDatastream ->
-                        disableDatastream(deviceId, disabledDatastream.getDatastreamId()));
+                        executor.execute(() -> disableDatastream(deviceId, disabledDatastream.getDatastreamId())));
             } catch (IOException e) {
                 LOGGER.error("Invalid disable device message \"{}\": {}", mqttMessage, e);
             }
@@ -151,7 +156,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
             String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
             String deviceId = topicLevels[topicLevels.length - TWO_LEVELS];
             String datastreamId = topicLevels[topicLevels.length - ONE_LEVEL];
-            disableDatastream(deviceId, datastreamId);
+            executor.execute(() -> disableDatastream(deviceId, datastreamId));
         }
     }
 
@@ -159,5 +164,6 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
     public void close() throws MqttException {
         mqttClient.unsubscribe(enableDatastreamTopic);
         mqttClient.unsubscribe(disableDatastreamTopic);
+        executor.shutdown();
     }
 }

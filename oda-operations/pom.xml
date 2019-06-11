@@ -14,6 +14,9 @@
         <module>get</module>
         <module>set</module>
         <module>refreshinfo</module>
+        <module>setclock</module>
+        <module>synchronizeclock</module>
+        <module>localprotocoldiscovery</module>
     </modules>
 
     <parent>
