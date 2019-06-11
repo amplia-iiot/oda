@@ -123,7 +123,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
 
     class WriteResponseMessageListener implements MqttMessageListener {
 
-        private static final int CREATED_STATUS_CODE = 201;
+        static final int OK_STATUS_CODE = 200;
 
         @Override
         public void messageArrived(String topic, MqttMessage message) {
@@ -149,7 +149,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         }
 
         private boolean isSuccessStatusCode(int status) {
-            return status == CREATED_STATUS_CODE;
+            return status == OK_STATUS_CODE;
         }
     }
 

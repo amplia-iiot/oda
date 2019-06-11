@@ -179,7 +179,7 @@ public class MqttDatastreamsSetterTest {
     public void testWriteResponseMessageListenerMessageArriveWithCreatedStatus() throws IOException, MqttException {
         String testTopic = TEST_WRITE_RESPONSE_OPERATION_ROOT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR +
                 TEST_DEVICE_ID + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DATASTREAM_ID;
-        int status = 201;
+        int status = MqttDatastreamsSetter.WriteResponseMessageListener.OK_STATUS_CODE;
         MqttDatastreamsSetter.WriteResponseOperation testWriteResponse =
                 new MqttDatastreamsSetter.WriteResponseOperation(OPERATION_ID, status, null);
         ArgumentCaptor<MqttDatastreamsSetter.WriteResponseMessageListener> listenerCaptor =
