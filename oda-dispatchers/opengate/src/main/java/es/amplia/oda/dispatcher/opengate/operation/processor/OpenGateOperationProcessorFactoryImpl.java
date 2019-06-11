@@ -13,6 +13,7 @@ import org.osgi.framework.BundleContext;
 import java.util.HashMap;
 import java.util.Map;
 
+import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.DISCOVER_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.GET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.SET_DEVICE_PARAMETERS_OPERATION_NAME;
@@ -28,6 +29,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationUpdateProxy operationUpdate;
     private final OperationSetClockProxy operationSetClockEquipment;
     private final OperationSynchronizeClockProxy operationSynchronizeClock;
+    private final OperationDiscoverProxy operationDiscover;
     private final ServiceLocator<CustomOperation> operationServiceLocator;
     private final Serializer serializer;
 
@@ -39,6 +41,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationUpdate = new OperationUpdateProxy(bundleContext);
         this.operationSetClockEquipment = new OperationSetClockProxy(bundleContext);
         this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
+        this.operationDiscover = new OperationDiscoverProxy(bundleContext);
         this.operationServiceLocator = new ServiceLocatorOsgi<>(bundleContext, CustomOperation.class);
         this.serializer = serializer;
     }
@@ -62,6 +65,8 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
                 new SetClockEquipmentProcessor(serializer, operationSetClockEquipment));
         catalogueOperationProcessors.put(SYNCHRONIZE_CLOCK_OPERATION_NAME,
                 new SynchronizeClockProcessor(serializer, operationSynchronizeClock));
+        catalogueOperationProcessors.put(DISCOVER_OPERATION_NAME,
+                new DiscoverProcessor(serializer, operationDiscover));
         return catalogueOperationProcessors;
     }
 
@@ -77,6 +82,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         operationUpdate.close();
         operationSetClockEquipment.close();
         operationSynchronizeClock.close();
+        operationDiscover.close();
         operationServiceLocator.close();
     }
 }
