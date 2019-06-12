@@ -32,7 +32,7 @@ class MqttDatastreamsFactory {
         this.writeResponseOperationTopic = writeResponseOperationTopic;
     }
 
-    MqttDatastreamsEventHandler createDatastreamsEventHandler() throws MqttException {
+    MqttDatastreamsEventHandler createDatastreamsEventHandler() {
         return new MqttDatastreamsEventHandler(mqttClient, mqttDatastreamsPermissionManager, serializer,
                 eventDispatcher, eventTopic);
     }

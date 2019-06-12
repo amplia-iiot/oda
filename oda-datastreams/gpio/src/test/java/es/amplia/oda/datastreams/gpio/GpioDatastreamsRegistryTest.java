@@ -26,10 +26,6 @@ import java.util.concurrent.Executor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -102,7 +98,7 @@ public class GpioDatastreamsRegistryTest {
 
         testRegistry.addDatastreamEvent(TEST_PIN_INDEX, TEST_DATASTREAM_ID);
 
-        verify(mockedDatastreamsEvent).init();
+        verify(mockedDatastreamsEvent).registerToEventSource();
         verify(spiedDatastreamsEvents).put(eq(TEST_DATASTREAM_ID), eq(mockedDatastreamsEvent));
     }
 
@@ -118,8 +114,8 @@ public class GpioDatastreamsRegistryTest {
 
         testRegistry.addDatastreamEvent(TEST_PIN_INDEX, TEST_DATASTREAM_ID);
 
-        verify(oldMockedDatastreamsEvent).close();
-        verify(mockedDatastreamsEvent).init();
+        verify(oldMockedDatastreamsEvent).unregisterFromEventSource();
+        verify(mockedDatastreamsEvent).registerToEventSource();
         verify(spiedDatastreamsEvents).put(eq(TEST_DATASTREAM_ID), eq(mockedDatastreamsEvent));
         assertNotEquals(oldMockedDatastreamsEvent, spiedDatastreamsEvents.get(TEST_DATASTREAM_ID));
         assertEquals(mockedDatastreamsEvent, spiedDatastreamsEvents.get(TEST_DATASTREAM_ID));
@@ -141,8 +137,8 @@ public class GpioDatastreamsRegistryTest {
         verify(mockedRegistration1).unregister();
         verify(mockedRegistration2).unregister();
         verify(spiedDatastreamsRegistrations).clear();
-        verify(mockedDatastreamsEvent1).close();
-        verify(mockedDatastreamsEvent2).close();
+        verify(mockedDatastreamsEvent1).unregisterFromEventSource();
+        verify(mockedDatastreamsEvent2).unregisterFromEventSource();
         verify(spiedDatastreamsEvents).clear();
     }
 }
