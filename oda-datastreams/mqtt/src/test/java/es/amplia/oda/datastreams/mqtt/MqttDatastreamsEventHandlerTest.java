@@ -51,18 +51,32 @@ public class MqttDatastreamsEventHandlerTest {
     private MqttDatastreamsEventHandler testHandler;
 
     @Before
-    public void setUp() throws MqttException {
+    public void setUp() {
         testHandler = new MqttDatastreamsEventHandler(mockedClient, mockedPermissionManager, mockedSerializer,
                 mockedEventDispatcher, TEST_EVENT_TOPIC);
     }
 
     @Test
-    public void testConstructor() throws MqttException {
+    public void testConstructorAndRegisterToEventSource() throws MqttException {
         assertEquals(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC, Whitebox.getInternalState(testHandler, "deviceEventTopic"));
         assertEquals(TEST_SUBSCRIBED_DATASTREAM_EVENT_TOPIC,
                 Whitebox.getInternalState(testHandler, "datastreamEventTopic"));
         verify(mockedClient).subscribe(eq(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC), any(MqttMessageListener.class));
         verify(mockedClient).subscribe(eq(TEST_SUBSCRIBED_DATASTREAM_EVENT_TOPIC), any(MqttMessageListener.class));
+    }
+
+    @Test
+    public void testConstructorRegisterToEventSourceCaughtMqttException() throws MqttException {
+        reset(mockedClient);
+        doThrow(new MqttException("")).when(mockedClient).subscribe(anyString(), any());
+
+        new MqttDatastreamsEventHandler(mockedClient, mockedPermissionManager, mockedSerializer, mockedEventDispatcher,
+                TEST_EVENT_TOPIC);
+
+        assertEquals(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC, Whitebox.getInternalState(testHandler, "deviceEventTopic"));
+        assertEquals(TEST_SUBSCRIBED_DATASTREAM_EVENT_TOPIC,
+                Whitebox.getInternalState(testHandler, "datastreamEventTopic"));
+        verify(mockedClient).subscribe(eq(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC), any(MqttMessageListener.class));
     }
 
     @Test
@@ -264,7 +278,7 @@ public class MqttDatastreamsEventHandlerTest {
     }
 
     @Test
-    public void testClose() throws MqttException {
+    public void testCloseAndUnregisterFromEventSource() throws MqttException {
         testHandler.close();
 
         verify(mockedClient).unsubscribe(eq(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC));
@@ -272,7 +286,7 @@ public class MqttDatastreamsEventHandlerTest {
     }
 
     @Test
-    public void testCloseCaptureMqttException() throws MqttException {
+    public void testCloseAndUnregisterFromEventSourceMqttExceptionCaught() throws MqttException {
         doThrow(new MqttException("")).when(mockedClient).unsubscribe(anyString());
 
         testHandler.close();

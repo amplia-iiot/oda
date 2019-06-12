@@ -60,19 +60,19 @@ public class GpioDatastreamsRegistry implements AutoCloseable {
 
         if (datastreamsEvents.containsKey(datastreamId)) {
             datastreamsEventSender = datastreamsEvents.get(datastreamId);
-            datastreamsEventSender.close();
+            datastreamsEventSender.unregisterFromEventSource();
         }
 
         datastreamsEventSender =
                 GpioDatastreamsFactory.createGpioDatastreamsEvent(datastreamId, pinIndex, gpioService, eventDispatcher);
-        datastreamsEventSender.init();
+        datastreamsEventSender.registerToEventSource();
         datastreamsEvents.put(datastreamId, datastreamsEventSender);
     }
 
     public void close() {
         datastreamsServiceRegistrations.forEach(ServiceRegistration::unregister);
         datastreamsServiceRegistrations.clear();
-        datastreamsEvents.values().forEach(GpioDatastreamsEvent::close);
+        datastreamsEvents.values().forEach(GpioDatastreamsEvent::unregisterFromEventSource);
         datastreamsEvents.clear();
     }
 }

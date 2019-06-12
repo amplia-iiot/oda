@@ -36,8 +36,6 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>org.eclipse.paho.client.mqttv3, jackson-core, jackson-databind, jackson-annotations</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
             </plugin>
