@@ -3,12 +3,10 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.Step;
 import es.amplia.oda.operation.api.CustomOperation;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -67,11 +65,41 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId) {
-        Step setClockStep = new Step(customOperationName, getStepResult(result), result.getDescription(), null, null);
+        List<Step> steps = translateCustomSteps(result);
         Response response = new Response(requestId, deviceId, customOperationName, getOperationResult(result),
-                result.getDescription(), Collections.singletonList(setClockStep));
+                result.getDescription(), steps);
         OutputOperation operation = new OutputOperation(response);
         return new Output(OPENGATE_VERSION, operation);
+    }
+
+    private List<Step> translateCustomSteps(Result result) {
+        Collection<CustomOperation.Step> customSteps = result.getSteps();
+        if (customSteps != null && !customSteps.isEmpty()) {
+            return customSteps.stream().map(this::translateStep).collect(Collectors.toList());
+        }
+
+        return Collections.singletonList(
+                new Step(customOperationName, getStepResult(result), result.getDescription(), null, null));
+    }
+
+    private Step translateStep(CustomOperation.Step customStep) {
+        return new Step(customStep.getName(), getStepResult(customStep), customStep.getDescription(),
+                customStep.getTimestamp(), null);
+    }
+
+    private StepResultCode getStepResult(CustomOperation.Step customStep) {
+        switch (customStep.getResult()) {
+            case SUCCESSFUL:
+                return StepResultCode.SUCCESSFUL;
+            case ERROR:
+                return StepResultCode.ERROR;
+            case SKIPPED:
+                return StepResultCode.SKIPPED;
+            case NOT_EXECUTED:
+                return StepResultCode.NOT_EXECUTED;
+            default:
+                throw new IllegalArgumentException("Unknown Custom Step result");
+        }
     }
 
     private StepResultCode getStepResult(Result result) {
