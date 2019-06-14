@@ -72,7 +72,7 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
     @Override
     CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse,
                                                List<VariableValue> params) {
-        return operationSetDeviceParameters.setDeviceParameters(deviceIdForResponse, params);
+        return operationSetDeviceParameters.setDeviceParameters(deviceIdForOperations, params);
     }
 
     @Override
