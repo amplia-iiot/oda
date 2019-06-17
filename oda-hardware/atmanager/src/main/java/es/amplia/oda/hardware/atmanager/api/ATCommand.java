@@ -93,8 +93,9 @@ public class ATCommand {
             String p = parameters.stream()
                     .map(v -> {
                         if (v.isEmpty()) return "";
-                        if (v.matches("\\d+")) return v;
                         if (v.matches("\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}")) return v;
+                        if (v.matches("\\d+.\\d+")) return v;
+                        if (v.matches("\\d+")) return v;
                         if (v.matches("[A-F0-9]+")) return v;
                         if (v.matches("[A-Z]+")) return v;
                         return "\"" + v + "\"";
