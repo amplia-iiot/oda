@@ -107,7 +107,7 @@ public class ATCommandTest {
     @Test
     public void extendedSetCommandWithStringParameters() {
         String actual = ATCommand.extendedSetCommand("+FOO", "baz", "BAR", "10.1.1.85", "A1B2", "FF", "123", "-123", "1.23").asWireString();
-        assertThat(actual, is("+FOO=\"baz\",BAR,10.1.1.85,A1B2,FF,123,\"-123\",\"1.23\""));
+        assertThat(actual, is("+FOO=\"baz\",BAR,10.1.1.85,A1B2,FF,123,\"-123\",1.23"));
     }
 
 }
