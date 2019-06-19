@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-demos</artifactId>
         <groupId>es.amplia.oda.demo</groupId>
-        <version>3.20.3</version>
+        <version>3.20.4-SNAPSHOT</version>
     </parent>
 
     <build>
@@ -116,7 +116,7 @@
         <dependency>
             <groupId>es.amplia.oda.datastreams</groupId>
             <artifactId>mqtt</artifactId>
-            <version>3.20.3</version>
+            <version>3.20.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.subsystem</groupId>
@@ -169,12 +169,12 @@
         <dependency>
             <groupId>es.amplia.oda.service</groupId>
             <artifactId>cborserializer</artifactId>
-            <version>3.20.3</version>
+            <version>3.20.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.service</groupId>
             <artifactId>jsonserializer</artifactId>
-            <version>3.20.3</version>
+            <version>3.20.4-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
