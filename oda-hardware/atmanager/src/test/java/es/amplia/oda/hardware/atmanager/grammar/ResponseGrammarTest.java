@@ -39,6 +39,14 @@ public class ResponseGrammarTest {
     }
 
     @Test
+    public void responseLineWithFloatParameter() {
+        ATEvent actual = responseGrammar.parse("+CREG: \"This is a test\",20.0,\" full of parameters\"");
+
+        ATEvent expected = ATEvent.event("+CREG", "This is a test", "20.0", " full of parameters");
+        assertEquals(actual, expected);
+    }
+
+    @Test
     public void colonWithoutValues() {
         ATEvent actual = responseGrammar.parse("+CREG: ,");
 
