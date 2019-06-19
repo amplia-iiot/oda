@@ -9,10 +9,11 @@ import java.util.List;
 public class ResponseGrammar {
     /*
      * <response> ::= EXTENDED_NAME COLON <param> (COMMA <param>)*
-     * <param> ::= NUMBER
+     * <param> ::= IPv4
+     *          | FLOAT
+     *          | NUMBER
      *          | STRING
      *          | HEX_DATA
-     *          | IPv4
      */
     private SyntacticParser syntacticParser;
 
@@ -60,7 +61,13 @@ public class ResponseGrammar {
 
     private void param(List<String> parameters) {
         Tokens t = syntacticParser.current();
-        if (t == Tokens.NUMBER) {
+        if (t == Tokens.IPV4) {
+            parameters.add(syntacticParser.getLastIPAddress());
+            advanceSkippingSpace();
+        } else if (t == Tokens.FLOAT) {
+            parameters.add(syntacticParser.getLastFloat() + "");
+            advanceSkippingSpace();
+        } else if (t == Tokens.NUMBER) {
             parameters.add(syntacticParser.getLastNumber() + "");
             advanceSkippingSpace();
         } else if (t == Tokens.STRING) {
@@ -68,9 +75,6 @@ public class ResponseGrammar {
             advanceSkippingSpace();
         } else if (t == Tokens.CONSTANT) {
             parameters.add(syntacticParser.getLastConstant());
-            advanceSkippingSpace();
-        } else if (t == Tokens.IPV4) {
-            parameters.add(syntacticParser.getLastIPAddress());
             advanceSkippingSpace();
         } else {
             parameters.add("");
