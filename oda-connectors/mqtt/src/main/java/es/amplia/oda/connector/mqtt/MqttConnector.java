@@ -60,6 +60,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             LOGGER.warn("Cannot send message as we are disconnected from Mqtt");
         } else if (payload == null) {
             LOGGER.warn("Cannot send message as payload is null");
+        } else if (iotTopic == null || responseTopic == null) {
+            LOGGER.warn("Cannot send message as topics null from a bad connection");
         } else {
             MqttMessage message = MqttMessage.newInstance(payload, qos, retained);
             LOGGER.info("Sending message: {}, {}", topic, message);
