@@ -1,5 +1,6 @@
 package es.amplia.oda.hardware.atserver;
 
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.hardware.atmanager.ATManagerImpl;
 import es.amplia.oda.hardware.atmanager.ATParserImpl;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
@@ -25,8 +26,14 @@ class ATServer implements ATManager, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ATServer.class);
 
+    private final ServiceRegistrationManager<ATManager> atManagerRegistrationManager;
+
     private SerialPort commPort;
     private ATManager atManager;
+
+    public ATServer(ServiceRegistrationManager<ATManager> atManagerRegistrationManager) {
+        this.atManagerRegistrationManager = atManagerRegistrationManager;
+    }
 
     void loadConfiguration(ATServerConfiguration configuration) throws ConfigurationException {
         try {
@@ -47,6 +54,8 @@ class ATServer implements ATManager, AutoCloseable {
 
             commPort.addEventListener(this::processSerialPortEvent);
             commPort.notifyOnDataAvailable(true);
+
+            atManagerRegistrationManager.register(atManager);
         } catch (NoSuchPortException e) {
             LOGGER.error("", e);
             close();
