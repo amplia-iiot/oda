@@ -19,6 +19,7 @@ public class ConfigurableBundleImpl implements ConfigurableBundle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurableBundleImpl.class);
 
+    static final String FILENAME_KEY = "felix.fileinstall.filename";
     static final String CONFIGURATION_EVENT_BASE_TOPIC = "org/osgi/service/cm/ConfigurationEvent/";
     static final String CONFIGURATION_UPDATED_EVENT = "CM_UPDATED";
     static final String CONFIGURATION_DELETED_EVENT = "CM_DELETED";
@@ -65,6 +66,10 @@ public class ConfigurableBundleImpl implements ConfigurableBundle {
 
         try {
             if (props != null) {
+                String servicePid = (String) props.remove(Constants.SERVICE_PID);
+                String filename = (String) props.remove(FILENAME_KEY);
+                LOGGER.info("Updating service {} with filename {}", servicePid, filename);
+
                 configurationEvent = CONFIGURATION_UPDATED_EVENT;
                 handler.loadConfiguration(props);
                 configurationMessage = CONFIGURATION_UPDATED_MESSAGE;
