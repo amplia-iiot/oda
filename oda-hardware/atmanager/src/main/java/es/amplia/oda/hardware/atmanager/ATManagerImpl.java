@@ -27,17 +27,24 @@ public class ATManagerImpl implements ATManager {
     private final Map<String, Function<ATCommand, ATResponse>> registeredCommands = new HashMap<>();
     private final ATParser atParser;
     private final OutputStream outputStream;
-    private final ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(1);
+    private final long timeBetweenCommands;
     private final Semaphore semaphore = new Semaphore(1, true);
+    private final ScheduledExecutorService releaseSemaphoreExecutor = Executors.newScheduledThreadPool(1);
+    private final ScheduledExecutorService timeoutExecutor = Executors.newScheduledThreadPool(1);
 
     private CompletableFuture<ATResponse> commandFuture = null;
     private List<ATEvent> partialResponses = null;
     private StringBuilder body = null;
     private ScheduledFuture timeoutTask;
 
-    public ATManagerImpl(ATParser atParser, OutputStream outputStream) {
+    public ATManagerImpl(ATParser atParser, OutputStream outputStream, long timeBetweenCommands) {
         this.atParser = atParser;
         this.outputStream = outputStream;
+        this.timeBetweenCommands = timeBetweenCommands;
+    }
+
+    public ATManagerImpl(ATParser atParser, OutputStream outputStream) {
+        this(atParser, outputStream, 0);
     }
 
     @Override
@@ -113,7 +120,7 @@ public class ATManagerImpl implements ATManager {
             }
             timeoutTask.cancel(true);
             commandFuture.complete(response);
-            semaphore.release();
+            releaseSemaphoreExecutor.schedule((Runnable) semaphore::release, timeBetweenCommands, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -132,7 +139,6 @@ public class ATManagerImpl implements ATManager {
     private void handleCommands(Result parserResult) {
         List<ATCommand> commands = parserResult.getCommands();
         if (commands.size() != 1) {
-            //TODO: Manage a list of commands
             logger.error("It is currently not supported to handle AT strings with various commands");
             return;
         }

@@ -31,7 +31,7 @@ class ATServer implements ATManager, AutoCloseable {
     private SerialPort commPort;
     private ATManager atManager;
 
-    public ATServer(ServiceRegistrationManager<ATManager> atManagerRegistrationManager) {
+    ATServer(ServiceRegistrationManager<ATManager> atManagerRegistrationManager) {
         this.atManagerRegistrationManager = atManagerRegistrationManager;
     }
 
@@ -40,7 +40,7 @@ class ATServer implements ATManager, AutoCloseable {
             close();
 
             commPort = (SerialPort) CommPortIdentifier.getPortIdentifier(configuration.getPortName())
-                                        .open(configuration.getAppName(), configuration.getMillisecondsToGetPort());
+                                        .open(configuration.getAppName(), configuration.getTimeToGetPort());
             if (commPort == null) {
                 LOGGER.error("Cannot open {} as AT comm port", configuration.getPortName());
                 throw new ConfigurationException("port-name", "Cannot open as AT comm port");
@@ -49,8 +49,10 @@ class ATServer implements ATManager, AutoCloseable {
                     configuration.getStopBits(), configuration.getParity());
             LOGGER.info("Opened {} as AT comm port {} {}{}{}", configuration.getPortName(), configuration.getBaudRate(),
                     configuration.getDataBits(), configuration.getParity(), configuration.getStopBits());
+            LOGGER.info("Time between commands configured {}", configuration.getTimeBetweenCommands());
 
-            atManager = new ATManagerImpl(new ATParserImpl(), commPort.getOutputStream());
+            atManager = new ATManagerImpl(new ATParserImpl(), commPort.getOutputStream(),
+                    configuration.getTimeBetweenCommands());
 
             commPort.addEventListener(this::processSerialPortEvent);
             commPort.notifyOnDataAvailable(true);
