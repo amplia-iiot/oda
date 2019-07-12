@@ -1,5 +1,6 @@
 package es.amplia.oda.hardware.atserver;
 
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.hardware.atmanager.ATManagerImpl;
 import es.amplia.oda.hardware.atmanager.ATParserImpl;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
@@ -25,15 +26,21 @@ class ATServer implements ATManager, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ATServer.class);
 
+    private final ServiceRegistrationManager<ATManager> atManagerRegistrationManager;
+
     private SerialPort commPort;
     private ATManager atManager;
+
+    ATServer(ServiceRegistrationManager<ATManager> atManagerRegistrationManager) {
+        this.atManagerRegistrationManager = atManagerRegistrationManager;
+    }
 
     void loadConfiguration(ATServerConfiguration configuration) throws ConfigurationException {
         try {
             close();
 
             commPort = (SerialPort) CommPortIdentifier.getPortIdentifier(configuration.getPortName())
-                                        .open(configuration.getAppName(), configuration.getMillisecondsToGetPort());
+                                        .open(configuration.getAppName(), configuration.getTimeToGetPort());
             if (commPort == null) {
                 LOGGER.error("Cannot open {} as AT comm port", configuration.getPortName());
                 throw new ConfigurationException("port-name", "Cannot open as AT comm port");
@@ -42,11 +49,15 @@ class ATServer implements ATManager, AutoCloseable {
                     configuration.getStopBits(), configuration.getParity());
             LOGGER.info("Opened {} as AT comm port {} {}{}{}", configuration.getPortName(), configuration.getBaudRate(),
                     configuration.getDataBits(), configuration.getParity(), configuration.getStopBits());
+            LOGGER.info("Time between commands configured {}", configuration.getTimeBetweenCommands());
 
-            atManager = new ATManagerImpl(new ATParserImpl(), commPort.getOutputStream());
+            atManager = new ATManagerImpl(new ATParserImpl(), commPort.getOutputStream(),
+                    configuration.getTimeBetweenCommands());
 
             commPort.addEventListener(this::processSerialPortEvent);
             commPort.notifyOnDataAvailable(true);
+
+            atManagerRegistrationManager.register(atManager);
         } catch (NoSuchPortException e) {
             LOGGER.error("", e);
             close();

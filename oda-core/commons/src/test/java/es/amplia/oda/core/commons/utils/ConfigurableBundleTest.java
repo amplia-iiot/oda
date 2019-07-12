@@ -10,6 +10,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
@@ -19,7 +20,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
@@ -114,6 +114,21 @@ public class ConfigurableBundleTest {
         assertEquals(CONFIGURATION_UPDATED_MESSAGE, eventCaptor.getValue().getProperty(MESSAGE_PROPERTY_NAME));
     }
 
+    @Test
+    public void testUpdateExtraEntriesAreRemoved() throws Exception {
+        mockedProps.put(Constants.SERVICE_PID, "testService");
+        mockedProps.put(FILENAME_KEY, "test.service.configuration.filename.cfg");
+
+        testConfigurableBundle.updated(mockedProps);
+
+        verify(mockedHandler).loadConfiguration(any());
+        verify(mockedHandler, never()).loadDefaultConfiguration();
+        verify(mockedServiceRegistration).setProperties(eq(mockedProps));
+        verify(mockedEventAdmin).postEvent(eventCaptor.capture());
+        assertEquals(EXPECTED_UPDATED_TOPIC, eventCaptor.getValue().getTopic());
+        assertEquals(CONFIGURATION_UPDATED_MESSAGE, eventCaptor.getValue().getProperty(MESSAGE_PROPERTY_NAME));
+    }
+
     @Test(expected = ConfigurationException.class)
     public void testUpdateConfigurationException() throws Exception {
         doThrow(Exception.class).when(mockedHandler).loadConfiguration(eq(mockedProps));
@@ -139,7 +154,7 @@ public class ConfigurableBundleTest {
     }
 
     @Test
-    public void testClose() throws IOException {
+    public void testClose() {
         Whitebox.setInternalState(testConfigurableBundle, "configServiceRegistration", mockedRegistration);
         Whitebox.setInternalState(testConfigurableBundle, "eventAdmin", mockedEventAdmin);
 
