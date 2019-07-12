@@ -25,12 +25,12 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
     public void loadConfiguration(Dictionary<String, ?> properties) throws Exception {
         LOGGER.debug("AT Server updated with {} properties", properties.size());
 
-        String appName = get(properties, "app-name", String.class);
-        int millisecondsToGetPort = get(properties, "ms-get-port", Integer.class);
-        String portName = get(properties, "port-name", String.class);
-        int baudRate = get(properties, "baud-rate", Integer.class);
-        int dataBits = get(properties, "data-bits", Integer.class);
-        int stopBits = get(properties, "stop-bits", Integer.class);
+        String appName = get(properties, "appName", String.class);
+        int timeToGetPort = get(properties, "timeToGetPort", Integer.class);
+        String portName = get(properties, "portName", String.class);
+        int baudRate = get(properties, "baudRate", Integer.class);
+        int dataBits = get(properties, "dataBits", Integer.class);
+        int stopBits = get(properties, "stopBits", Integer.class);
         Character parity = get(properties, "parity", Character.class);
         int parityAsInt;
         switch (parity) {
@@ -52,15 +52,20 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
             default:
                 throw new ConfigurationException("parity", "Parity value error. Only 'N', 'O', 'E', 'M' and 'S' are supported");
         }
+        long timeBetweenCommands = get(properties, "timeBetweenCommands", Long.class, 0L);
 
-        currentConfiguration = new ATServerConfiguration(appName, millisecondsToGetPort, portName, baudRate, dataBits,
-                stopBits, parityAsInt);
+        currentConfiguration = new ATServerConfiguration(appName, timeToGetPort, portName, baudRate, dataBits,
+                stopBits, parityAsInt, timeBetweenCommands);
     }
 
-    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz) throws ConfigurationException {
+    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz, T defaultValue)
+            throws ConfigurationException {
         Object v = properties.get(key);
         if (v == null) {
-            throw new ConfigurationException(key, "Property not found in config");
+            if (defaultValue == null) {
+                throw new ConfigurationException(key, "Property not found in config");
+            }
+            return defaultValue;
         }
         if (!(v instanceof String)) {
             throw new ConfigurationException(key, "Value in config is not a String");
@@ -77,6 +82,14 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 throw new ConfigurationException(key, "Value is not an Integer");
             }
         }
+        if (clazz == Long.class) {
+            try {
+                Long l = Long.parseLong(value);
+                return (T) l;
+            } catch (NumberFormatException e) {
+                throw new ConfigurationException(key, "Value is not an Integer");
+            }
+        }
         if (clazz == Character.class) {
             if (value.length() == 1) {
                 Character c = value.charAt(0);
@@ -85,6 +98,10 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
             throw new ConfigurationException(key, "Property has more than one char");
         }
         throw new ConfigurationException(key, "Not implemented exception. Type " + clazz.getName() + " not parseable");
+    }
+
+    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz) throws ConfigurationException {
+        return get(properties, key, clazz, null);
     }
 
     @Override
