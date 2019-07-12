@@ -48,7 +48,7 @@ class PollerImpl implements Poller {
 
     private void sendValueAsEvent (CollectedValue data, String wantedId, String deviceId) {
         LOGGER.debug("Sending values {}, for device {}", data, deviceId);
-        Event event = new Event(wantedId, deviceId, null, data.getAt(), data.getValue());
+        Event event = new Event(wantedId, deviceId, data.getPath().toArray(new String[0]), data.getAt(), data.getValue());
         
         eventDispatcher.publish(event);
     }

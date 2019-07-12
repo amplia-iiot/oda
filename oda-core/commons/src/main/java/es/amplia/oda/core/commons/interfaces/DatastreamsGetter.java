@@ -2,6 +2,7 @@ package es.amplia.oda.core.commons.interfaces;
 
 import lombok.Value;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -14,8 +15,19 @@ public interface DatastreamsGetter {
     
     @Value
     class CollectedValue {
-        private final long at;
-        private final Object value;
+        private long at;
+        private Object value;
+        private List<String> path;
+
+        public CollectedValue(long at, Object value) {
+            this(at, value, Collections.emptyList());
+        }
+
+        public CollectedValue(long at, Object value, List<String> path) {
+            this.at = at;
+            this.value = value;
+            this.path = path;
+        }
     }
     
     /**
