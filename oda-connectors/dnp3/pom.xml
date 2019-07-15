@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-connectors</artifactId>
         <groupId>es.amplia.oda.connector</groupId>
-        <version>3.23.0</version>
+        <version>3.23.1-SNAPSHOT</version>
     </parent>
 
     <properties>
