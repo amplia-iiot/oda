@@ -3,6 +3,7 @@ package es.amplia.oda.operation.api;
 import lombok.Value;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +32,18 @@ public interface CustomOperation {
         private String description;
         private long timestamp;
         private List<Object> responses;
+
+        public Step(String name, StepStatus result, String description, long timestamp, List<Object> responses) {
+            this.name = name;
+            this.result = result;
+            this.description = description;
+            this.timestamp = timestamp;
+            this.responses = responses;
+        }
+
+        public Step(String name, StepStatus result, String description, long timestamp) {
+            this(name, result, description, timestamp, Collections.emptyList());
+        }
     }
 
     enum StepStatus {
