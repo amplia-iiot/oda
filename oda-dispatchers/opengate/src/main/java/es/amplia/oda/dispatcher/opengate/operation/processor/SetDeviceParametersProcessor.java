@@ -86,7 +86,7 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
                             OperationResultCode.ERROR_IN_PARAM, result.getResultDescription(), steps));
             return new Output(OPENGATE_VERSION, operation);
         } else {
-            List<OutputVariable> outputVariables = result.getVariables().stream()
+            List<Object> outputVariables = result.getVariables().stream()
                     .map(this::translate)
                     .collect(Collectors.toList());
             List<Step> steps =

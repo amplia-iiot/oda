@@ -84,7 +84,7 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
 
     private Step translateStep(CustomOperation.Step customStep) {
         return new Step(customStep.getName(), getStepResult(customStep), customStep.getDescription(),
-                customStep.getTimestamp(), null);
+                customStep.getTimestamp(), customStep.getResponses());
     }
 
     private StepResultCode getStepResult(CustomOperation.Step customStep) {

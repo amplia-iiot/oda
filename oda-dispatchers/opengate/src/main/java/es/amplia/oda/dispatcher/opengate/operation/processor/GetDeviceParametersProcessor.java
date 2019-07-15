@@ -69,7 +69,7 @@ class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId) {
-        List<OutputVariable> outputVariables = result.getValues().stream()
+        List<Object> outputVariables = result.getValues().stream()
                 .map(this::translateGetResultToOutput)
                 .collect(Collectors.toList());
 
