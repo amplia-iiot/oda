@@ -37,10 +37,8 @@ public class DiscoverProcessor extends OperationProcessorTemplate<Void, Operatio
 
 	@Override
 	Output translateToOutput(OperationDiscover.Result result, String requestId, String deviceId) {
-		List<OutputVariable> outputVariables = new ArrayList<>();
 		List<Step> steps =
-				Collections.singletonList(new Step(DISCOVER_OPERATION_NAME, StepResultCode.SUCCESSFUL, "", 0L,
-						outputVariables));
+				Collections.singletonList(new Step(DISCOVER_OPERATION_NAME, StepResultCode.SUCCESSFUL, "", 0L, null));
 		OutputOperation operation =
 				new OutputOperation(new Response(requestId, deviceId, DISCOVER_OPERATION_NAME,
 						OperationResultCode.SUCCESSFUL, "No Error.", steps));

@@ -12,5 +12,5 @@ public class Step {
     StepResultCode result;
     String description;
     Long timestamp;
-    List<OutputVariable> response;
+    List<Object> response;
 }

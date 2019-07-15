@@ -38,7 +38,7 @@ class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId) {
-        List<OutputVariable> outputVariables = result.getObtained().entrySet().stream()
+        List<Object> outputVariables = result.getObtained().entrySet().stream()
                 .map(es -> new OutputVariable(es.getKey(), es.getValue(), SUCCESS_RESULT, SUCCESS_RESULT))
                 .collect(Collectors.toList());
         List<Step> steps =
