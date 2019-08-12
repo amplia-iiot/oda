@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-core</artifactId>
         <groupId>es.amplia.oda.core</groupId>
-        <version>3.24.2-SNAPSHOT</version>
+        <version>3.25.1-SNAPSHOT</version>
     </parent>
 
     <properties>
