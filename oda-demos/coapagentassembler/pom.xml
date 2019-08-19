@@ -104,18 +104,22 @@
         <dependency>
             <groupId>es.amplia.oda.hardware</groupId>
             <artifactId>atserver</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.datastreams</groupId>
             <artifactId>deviceinfo</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.subsystem</groupId>
             <artifactId>sshserver</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.subsystem</groupId>
             <artifactId>poller</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.operation</groupId>
@@ -124,18 +128,22 @@
         <dependency>
             <groupId>es.amplia.oda.operation</groupId>
             <artifactId>get</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.operation</groupId>
             <artifactId>set</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.operation</groupId>
             <artifactId>refreshinfo</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.operation</groupId>
             <artifactId>update</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.event</groupId>
@@ -144,10 +152,12 @@
         <dependency>
             <groupId>es.amplia.oda.dispatcher</groupId>
             <artifactId>opengate</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.connector</groupId>
             <artifactId>coap</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

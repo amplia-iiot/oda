@@ -113,11 +113,8 @@
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.hardware</groupId>
-            <artifactId>atmanager</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.hardware</groupId>
             <artifactId>atserver</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
