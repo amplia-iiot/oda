@@ -14,6 +14,7 @@
         <module>modbus</module>
         <module>mqtt</module>
         <module>deviceinfofx30</module>
+        <module>simulator</module>
     </modules>
 
     <parent>

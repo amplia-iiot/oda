@@ -49,6 +49,7 @@
                 <include>es.amplia.oda.core:commons</include>
                 <include>es.amplia.oda.hardware:atserver</include>
                 <include>es.amplia.oda.datastreams:deviceinfo</include>
+                <include>es.amplia.oda.datastreams:simulator</include>
                 <include>es.amplia.oda.subsystem:sshserver</include>
                 <include>es.amplia.oda.subsystem:poller</include>
                 <include>es.amplia.oda.operation:api</include>
