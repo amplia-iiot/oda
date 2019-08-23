@@ -1,7 +1,6 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch IMSI Getter Script
 
 RESULT=$(cm sim imsi)
 IMSI=${RESULT#"IMSI:"}
-echo $IMSI
+echo "$IMSI"

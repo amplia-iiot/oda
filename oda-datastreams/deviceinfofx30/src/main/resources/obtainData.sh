@@ -1,6 +1,5 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch All data Getter Script
 
 MODEL=$(cm info device)
 IMEI=$(cm info imei)

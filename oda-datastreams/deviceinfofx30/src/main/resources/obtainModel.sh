@@ -1,6 +1,5 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch Model Getter Script
 
 MODEL=$(cm info device)
-echo $MODEL
+echo "$MODEL"

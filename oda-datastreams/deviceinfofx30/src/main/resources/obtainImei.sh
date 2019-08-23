@@ -1,6 +1,5 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch IMEI Getter Script
 
 IMEI=$(cm info imei)
-echo $IMEI
+echo "$IMEI"

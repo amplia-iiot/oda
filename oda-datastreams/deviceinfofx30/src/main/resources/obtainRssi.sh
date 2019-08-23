@@ -1,7 +1,6 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch RSSI Getter Script
 
 RESULT=$(cm radio | grep "Signal:")
 RSSI=${RESULT#"Signal:"}
-echo $RSSI
+echo "$RSSI"

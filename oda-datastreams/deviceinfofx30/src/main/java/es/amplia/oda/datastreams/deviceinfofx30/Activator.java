@@ -32,14 +32,24 @@ public class Activator implements BundleActivator {
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForIpPresence;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForIpAddress;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForApn;
-
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForClock;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForUptime;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureValue;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureStatus;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuStatus;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuUsage;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuTotal;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForRamUsage;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForRamTotal;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskUsage;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskTotal;
 
 	@Override
 	public void start(BundleContext bundleContext) {
 		LOGGER.info("Starting Datastreams Getter Device Info");
 
 		CommandProcessor commandProcessor = new CommandProcessorImpl();
-		DeviceInfoFX30 deviceInfoFX30 = new DeviceInfoFX30(commandProcessor, bundleContext.getBundle());
+		DeviceInfoFX30 deviceInfoFX30 = new DeviceInfoFX30(commandProcessor, bundleContext.getBundles());
 		ConfigurationUpdateHandler configHandler = new DeviceInfoFX30ConfigurationHandler(deviceInfoFX30);
 		deviceIdProviderRegistration =
 				bundleContext.registerService(DeviceInfoProvider.class, deviceInfoFX30, null);
@@ -81,6 +91,39 @@ public class Activator implements BundleActivator {
 		datastreamsGetterRegistrationForApn =
 				bundleContext.registerService(DatastreamsGetter.class,
 						new ApnDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForClock =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new ClockDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForUptime =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new UptimeDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForTemperatureValue =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new TemperatureValueDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForTemperatureStatus =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new TemperatureStatusDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForCpuStatus =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new CpuStatusDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForCpuUsage =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new CpuUsageDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForCpuTotal =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new CpuTotalDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForRamUsage =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new RamUsageDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForRamTotal =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new RamTotalDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForDiskUsage =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new DiskUsageDatastreamGetter(deviceInfoFX30), null);
+		datastreamsGetterRegistrationForDiskTotal =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new DiskTotalDatastreamGetter(deviceInfoFX30), null);
 
 		LOGGER.info("Datastreams Getter Device Info started");
 	}
@@ -89,6 +132,17 @@ public class Activator implements BundleActivator {
 	public void stop(BundleContext bundleContext) {
 		LOGGER.info("Stopping Datastreams Getter Device");
 
+		datastreamsGetterRegistrationForDiskTotal.unregister();
+		datastreamsGetterRegistrationForDiskUsage.unregister();
+		datastreamsGetterRegistrationForRamTotal.unregister();
+		datastreamsGetterRegistrationForRamUsage.unregister();
+		datastreamsGetterRegistrationForCpuTotal.unregister();
+		datastreamsGetterRegistrationForCpuUsage.unregister();
+		datastreamsGetterRegistrationForCpuStatus.unregister();
+		datastreamsGetterRegistrationForTemperatureStatus.unregister();
+		datastreamsGetterRegistrationForTemperatureValue.unregister();
+		datastreamsGetterRegistrationForUptime.unregister();
+		datastreamsGetterRegistrationForClock.unregister();
 		datastreamsGetterRegistrationForSerialNumber.unregister();
 		datastreamsGetterRegistrationForDeviceId.unregister();
 		datastreamsGetterRegistrationForMaker.unregister();

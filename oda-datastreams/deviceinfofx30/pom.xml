@@ -86,7 +86,6 @@
         <dependency>
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
-            <version>3.24.1</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

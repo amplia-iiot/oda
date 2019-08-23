@@ -1,7 +1,6 @@
 #!/bin/sh
-# Launch OpenGate Device Agent
-# Use -d flag to debug
+# Launch ICC Getter Script
 
 RESULT=$(cm sim iccid)
-ICC=${RESULT#"ICC:"}
-echo ICC
+ICC=${RESULT#"ICCID:"}
+echo "$ICC"

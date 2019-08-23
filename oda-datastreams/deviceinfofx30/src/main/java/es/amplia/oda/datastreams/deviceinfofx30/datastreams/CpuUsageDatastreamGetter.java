@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class SoftwareDatastreamGetter implements DatastreamsGetter {
+public class CpuUsageDatastreamGetter implements DatastreamsGetter {
 
 	private DeviceInfoFX30 deviceInfo;
 
-	public SoftwareDatastreamGetter(DeviceInfoFX30 deviceInfo) {
+	public CpuUsageDatastreamGetter(DeviceInfoFX30 deviceInfo) {
 		this.deviceInfo = deviceInfo;
 	}
 
 	@Override
 	public String getDatastreamIdSatisfied() {
-		return DeviceInfoFX30.SOFTWARE_DATASTREAM_ID;
+		return DeviceInfoFX30.CPU_USAGE_DATASTREAM_ID;
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public class SoftwareDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getSoftware().toString()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getCpuUsage()).orElse(""))
 		);
 	}
 }
