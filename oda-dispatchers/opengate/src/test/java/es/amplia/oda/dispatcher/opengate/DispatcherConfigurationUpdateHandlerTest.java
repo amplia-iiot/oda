@@ -1,5 +1,7 @@
 package es.amplia.oda.dispatcher.opengate;
 
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
+import es.amplia.oda.event.api.EventDispatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -9,31 +11,33 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
+import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.REDUCED_OUTPUT_PROPERTY_NAME;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DispatcherConfigurationUpdateHandlerTest {
 
     @Mock
-    private ScheduledExecutorService mockedExecutor;
-    @Mock
-    private OpenGateEventDispatcher mockedEventDispatcher;
+    private EventDispatcherFactory mockedFactory;
     @Mock
     private Scheduler mockedScheduler;
+    @Mock
+    private ServiceRegistrationManager<EventDispatcher> mockedRegistrationManager;
     @InjectMocks
     private DispatcherConfigurationUpdateHandler testConfigHandler;
 
-    private Map<DispatchConfiguration, Set<String>> currentConfiguration;
+    private Map<DispatcherConfiguration, Set<String>> currentConfiguration;
+
+    @Mock
+    private EventCollector mockedEventCollector;
 
     @Test
-    public void testLoadConfiguration() {
+    public void testLoadConfigurationWithoutReducedOutputProperty() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         String testDatastreamId1 = "test1";
         String testDatastreamId2 = "test2";
@@ -47,25 +51,63 @@ public class DispatcherConfigurationUpdateHandlerTest {
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
         assertEquals(new HashSet<>(Arrays.asList(testDatastreamId1, testDatastreamId2)),
-                currentConfiguration.get(new DispatchConfiguration(30,30)));
+                currentConfiguration.get(new DispatcherConfiguration(30,30)));
         assertEquals(Collections.singleton(testDatastreamId3),
-                currentConfiguration.get(new DispatchConfiguration(10,10)));
+                currentConfiguration.get(new DispatcherConfiguration(10,10)));
+        assertFalse((boolean) Whitebox.getInternalState(testConfigHandler, "reducedOutput"));
     }
 
     @Test
-    public void testLoadConfigurationInvalidConfigurationIsIgnored() {
+    public void testLoadConfigurationWithReducedOutputPropertyAsTrue() {
         Dictionary<String, String> testProperties = new Hashtable<>();
-        testProperties.put("testProperty", "ignored");
+        testProperties.put(REDUCED_OUTPUT_PROPERTY_NAME, "true");
 
         testConfigHandler.loadConfiguration(testProperties);
+
+        assertTrue((boolean) Whitebox.getInternalState(testConfigHandler, "reducedOutput"));
+    }
+
+    @Test
+    public void testLoadConfigurationWithReducedOutputPropertyAsFalse() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put(REDUCED_OUTPUT_PROPERTY_NAME, "false");
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        assertFalse((boolean) Whitebox.getInternalState(testConfigHandler, "reducedOutput"));
+    }
+
+    @Test
+    public void testLoadConfigurationWithReducedOutputPropertyAsInvalidValue() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put(REDUCED_OUTPUT_PROPERTY_NAME, "invalid");
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        assertFalse((boolean) Whitebox.getInternalState(testConfigHandler, "reducedOutput"));
+    }
+
+    @Test
+    public void testLoadConfigurationInvalidConfigurationIsIgnoredAndContinueParsing() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put("testProperty", "ignored");
+        String testDatastreamId1 = "test1";
+        testProperties.put(testDatastreamId1, "30");
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        currentConfiguration = getCurrentConfiguration();
+        assertEquals(1, currentConfiguration.size());
+        assertEquals(Collections.singleton(testDatastreamId1),
+                currentConfiguration.get(new DispatcherConfiguration(30,30)));
     }
 
     @Test
     public void testLoadDefaultConfiguration() {
         currentConfiguration = getCurrentConfiguration();
-        currentConfiguration.put(new DispatchConfiguration(30, 30), Collections.singleton("test1"));
-        currentConfiguration.put(new DispatchConfiguration(10, 60), Collections.singleton("test2"));
-        currentConfiguration.put(new DispatchConfiguration(10, 10), Collections.singleton("test3"));
+        currentConfiguration.put(new DispatcherConfiguration(30, 30), Collections.singleton("test1"));
+        currentConfiguration.put(new DispatcherConfiguration(10, 60), Collections.singleton("test2"));
+        currentConfiguration.put(new DispatcherConfiguration(10, 10), Collections.singleton("test3"));
 
         testConfigHandler.loadDefaultConfiguration();
 
@@ -73,8 +115,8 @@ public class DispatcherConfigurationUpdateHandlerTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<DispatchConfiguration, Set<String>> getCurrentConfiguration() {
-        return (Map<DispatchConfiguration, Set<String>>) Whitebox.getInternalState(testConfigHandler, "currentConfiguration");
+    private Map<DispatcherConfiguration, Set<String>> getCurrentConfiguration() {
+        return (Map<DispatcherConfiguration, Set<String>>) Whitebox.getInternalState(testConfigHandler, "currentConfiguration");
     }
 
 
@@ -83,32 +125,32 @@ public class DispatcherConfigurationUpdateHandlerTest {
         currentConfiguration = new HashMap<>();
         Set<String> set1 = new HashSet<>(Arrays.asList("test1", "test2"));
         Set<String> set2 = new HashSet<>(Collections.singletonList("test3"));
-        currentConfiguration.put(new DispatchConfiguration(30,30), set1);
-        currentConfiguration.put(new DispatchConfiguration(60,10), set2);
-        ScheduledFuture mockedTask1 = mock(ScheduledFuture.class);
-        ScheduledFuture mockedTask2 = mock(ScheduledFuture.class);
-        ScheduledFuture mockedTask3 = mock(ScheduledFuture.class);
-        List<ScheduledFuture> mockedTasks = new ArrayList<>();
-        mockedTasks.add(mockedTask1);
-        mockedTasks.add(mockedTask2);
-        mockedTasks.add(mockedTask3);
+        Collection<String> allDatastreams = new HashSet<>(set1);
+        allDatastreams.addAll(set2);
+        currentConfiguration.put(new DispatcherConfiguration(30,30), set1);
+        currentConfiguration.put(new DispatcherConfiguration(60,10), set2);
         ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
 
         Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
-        Whitebox.setInternalState(testConfigHandler, "configuredTasks", mockedTasks);
+        Whitebox.setInternalState(testConfigHandler, "eventDispatcherRegistrationManager",
+                mockedRegistrationManager);
+
+        when(mockedFactory.createEventCollector(anyBoolean())).thenReturn(mockedEventCollector);
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedTask1).cancel(eq(false));
-        verify(mockedTask2).cancel(eq(false));
-        verify(mockedTask3).cancel(eq(false));
-        verify(mockedEventDispatcher).setDatastreamIdsConfigured(eq(currentConfiguration.values()));
-        verify(mockedExecutor).scheduleAtFixedRate(runnableCaptor.capture(), eq(30L), eq(30L), eq(TimeUnit.SECONDS));
+        verify(mockedScheduler).clear();
+        verify(mockedRegistrationManager).unregister();
+
+        verify(mockedFactory).createEventCollector(eq(false));
+        verify(mockedEventCollector).loadDatastreamIdsToCollect(eq(allDatastreams));
+
+        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(30L), eq(30L));
         runnableCaptor.getValue().run();
-        verify(mockedScheduler).runFor(eq(set1));
-        verify(mockedExecutor).scheduleAtFixedRate(runnableCaptor.capture(), eq(60L), eq(10L), eq(TimeUnit.SECONDS));
+        verify(mockedEventCollector).publishCollectedEvents(eq(set1));
+        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(60L), eq(10L));
         runnableCaptor.getValue().run();
-        verify(mockedScheduler).runFor(eq(set2));
-        assertEquals(2, mockedTasks.size());
+        verify(mockedEventCollector).publishCollectedEvents(eq(set2));
+        verify(mockedRegistrationManager).register(eq(mockedEventCollector));
     }
 }

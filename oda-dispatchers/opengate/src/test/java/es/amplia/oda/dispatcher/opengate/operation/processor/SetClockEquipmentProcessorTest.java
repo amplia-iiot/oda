@@ -30,7 +30,7 @@ public class SetClockEquipmentProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final Long TEST_TIMESTAMP = 123567789L;
     private static final ZoneId GMT_ZONE_ID = ZoneId.of("GMT+00:00");
-    private static final String TEST_REQUEST_ID = "123456789abcdefghi";
+    private static final String TEST_REQUEST_ID = "testRequest";
 
     @Mock
     private OperationSetClock mockedOperationSetClock;
@@ -191,7 +191,7 @@ public class SetClockEquipmentProcessorTest {
         when(mockedOperationSetClock.setClock(anyString(), anyLong())).thenReturn(expectedResult);
 
         CompletableFuture<Result> result =
-                testProcessor.processOperation(TEST_DEVICE_ID, TEST_DEVICE_ID, TEST_TIMESTAMP);
+                testProcessor.processOperation(TEST_DEVICE_ID, TEST_TIMESTAMP);
 
         assertEquals(expectedResult, result);
     }

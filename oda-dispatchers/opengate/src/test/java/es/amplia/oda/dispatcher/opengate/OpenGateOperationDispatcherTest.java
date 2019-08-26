@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OpenGateOperationDispatcherTest {
 
-    private static final String TEST_REQUEST_ID = "123456789abcdef";
+    private static final String TEST_REQUEST_ID = "testRequest";
     private static final Long TEST_TIMESTAMP = 123456789L;
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] { "gateway1", "gateway2" };

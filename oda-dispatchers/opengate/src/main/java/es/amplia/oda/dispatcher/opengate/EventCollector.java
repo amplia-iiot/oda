@@ -1,9 +1,10 @@
 package es.amplia.oda.dispatcher.opengate;
 
-import es.amplia.oda.event.api.Event;
+import es.amplia.oda.event.api.EventDispatcher;
 
-import java.util.List;
+import java.util.Collection;
 
-interface EventCollector {
-    List<Event> getAndCleanCollectedValues(String id);
+public interface EventCollector extends EventDispatcher  {
+    void loadDatastreamIdsToCollect(Collection<String> datastreamIds);
+    void publishCollectedEvents(Collection<String> datastreamIds);
 }

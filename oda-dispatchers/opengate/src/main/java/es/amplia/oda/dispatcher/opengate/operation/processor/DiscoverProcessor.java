@@ -4,16 +4,14 @@ import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationDiscover;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
-public class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscover.Result> {
+class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscover.Result> {
+
 	static final String DISCOVER_OPERATION_NAME = "DISCOVER";
 
 
@@ -31,7 +29,7 @@ public class DiscoverProcessor extends OperationProcessorTemplate<Void, Operatio
 	}
 
 	@Override
-	CompletableFuture<OperationDiscover.Result> processOperation(String deviceIdForOperations, String deviceIdForResponse, Void params) {
+	CompletableFuture<OperationDiscover.Result> processOperation(String deviceIdForOperations, Void params) {
 		return operationDiscover.discover();
 	}
 

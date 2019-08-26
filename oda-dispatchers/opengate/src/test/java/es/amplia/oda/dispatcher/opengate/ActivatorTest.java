@@ -6,6 +6,8 @@ import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.Serializers;
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
+import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
 import es.amplia.oda.event.api.EventDispatcher;
 
@@ -20,9 +22,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-import static es.amplia.oda.dispatcher.opengate.Activator.STOP_PENDING_OPERATIONS_TIMEOUT;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,19 +48,17 @@ public class ActivatorTest {
     @Mock
     private OpenGateConnectorProxy mockedConnector;
     @Mock
-    private OpenGateEventDispatcher mockedEventDispatcher;
-    @Mock
-    private ServiceRegistration<EventDispatcher> mockedEventDispatcherRegistration;
+    private EventDispatcherFactoryImpl mockedEventDispatcherFactory;
     @Mock
     private SchedulerImpl mockedScheduler;
+    @Mock
+    private ServiceRegistrationManagerOsgi<EventDispatcher> mockedEventDispatcherRegistrationManager;
     @Mock
     private DispatcherConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private OperationProcessor mockedProcessor;
-    @Mock
-    private ScheduledExecutorService mockedExecutor;
 
 
     @Test
@@ -70,8 +68,11 @@ public class ActivatorTest {
         PowerMockito.whenNew(OpenGateOperationProcessorFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
         PowerMockito.whenNew(OpenGateOperationDispatcher.class).withAnyArguments().thenReturn(mockedDispatcher);
         PowerMockito.whenNew(OpenGateConnectorProxy.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(OpenGateEventDispatcher.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+        PowerMockito.whenNew(EventDispatcherFactoryImpl.class).withAnyArguments()
+                .thenReturn(mockedEventDispatcherFactory);
         PowerMockito.whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
+        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
+                .thenReturn(mockedEventDispatcherRegistrationManager);
         PowerMockito.whenNew(DispatcherConfigurationUpdateHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
@@ -87,60 +88,35 @@ public class ActivatorTest {
         PowerMockito.verifyNew(OpenGateOperationDispatcher.class)
                 .withArguments(eq(mockedSerializer), eq(mockedDeviceInfoProvider), eq(mockedProcessor));
         PowerMockito.verifyNew(OpenGateConnectorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OpenGateEventDispatcher.class)
+        PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
                 .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializer), eq(mockedConnector));
-        PowerMockito.verifyNew(SchedulerImpl.class).withArguments(eq(mockedDeviceInfoProvider),
-                eq(mockedEventDispatcher), eq(mockedConnector), eq(mockedSerializer));
+        PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
+        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
+                .withArguments(eq(mockedContext), eq(EventDispatcher.class));
         PowerMockito.verifyNew(DispatcherConfigurationUpdateHandler.class)
-                .withArguments(any(ScheduledExecutorService.class), eq(mockedEventDispatcher), eq(mockedScheduler));
+                .withArguments(eq(mockedEventDispatcherFactory), eq(mockedScheduler),
+                        eq(mockedEventDispatcherRegistrationManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(Dispatcher.class), eq(mockedDispatcher), any());
-        verify(mockedContext).registerService(eq(EventDispatcher.class), eq(mockedEventDispatcher), any());
     }
 
     @Test
-    public void testStop() throws InterruptedException {
-        Whitebox.setInternalState(testActivator, "executor", mockedExecutor);
+    public void testStop() {
         Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
         Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
         Whitebox.setInternalState(testActivator, "factory", mockedFactory);
         Whitebox.setInternalState(testActivator, "connector", mockedConnector);
+        Whitebox.setInternalState(testActivator, "scheduler", mockedScheduler);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
         Whitebox.setInternalState(testActivator, "operationDispatcherRegistration", mockedDispatcherRegistration);
-        Whitebox.setInternalState(testActivator, "eventDispatcherRegistration", mockedEventDispatcherRegistration);
+        Whitebox.setInternalState(testActivator, "eventDispatcherServiceRegistrationManager",
+                mockedEventDispatcherRegistrationManager);
 
         testActivator.stop(mockedContext);
 
-        verify(mockedEventDispatcherRegistration).unregister();
         verify(mockedConfigBundle).close();
-        verify(mockedExecutor).shutdown();
-        verify(mockedExecutor).awaitTermination(eq(STOP_PENDING_OPERATIONS_TIMEOUT), eq(TimeUnit.SECONDS));
-        verify(mockedConnector).close();
-        verify(mockedDispatcherRegistration).unregister();
-        verify(mockedSerializer).close();
-        verify(mockedDeviceInfoProvider).close();
-        verify(mockedFactory).close();
-    }
-
-    @Test
-    public void testStopInterruptedExceptionCaught() throws InterruptedException {
-        Whitebox.setInternalState(testActivator, "executor", mockedExecutor);
-        Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
-        Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
-        Whitebox.setInternalState(testActivator, "factory", mockedFactory);
-        Whitebox.setInternalState(testActivator, "connector", mockedConnector);
-        Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
-        Whitebox.setInternalState(testActivator, "operationDispatcherRegistration", mockedDispatcherRegistration);
-        Whitebox.setInternalState(testActivator, "eventDispatcherRegistration", mockedEventDispatcherRegistration);
-
-        when(mockedExecutor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
-
-        testActivator.stop(mockedContext);
-
-        verify(mockedEventDispatcherRegistration).unregister();
-        verify(mockedConfigBundle).close();
-        verify(mockedExecutor).shutdown();
-        verify(mockedExecutor).awaitTermination(eq(STOP_PENDING_OPERATIONS_TIMEOUT), eq(TimeUnit.SECONDS));
+        verify(mockedEventDispatcherRegistrationManager).unregister();
+        verify(mockedScheduler).close();
         verify(mockedConnector).close();
         verify(mockedDispatcherRegistration).unregister();
         verify(mockedSerializer).close();

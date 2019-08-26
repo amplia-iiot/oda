@@ -1,7 +1,7 @@
 package es.amplia.oda.dispatcher.opengate;
 
-import java.util.Set;
-
-interface Scheduler {
-    void runFor(Set<String> ids);
+interface Scheduler extends AutoCloseable{
+    void schedule(Runnable task, long initialDelay, long period);
+    void clear();
+    void close();
 }

@@ -108,7 +108,7 @@ class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateP
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse, UpdateParameters params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, UpdateParameters params) {
         return operationUpdate.update(params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
     }
 

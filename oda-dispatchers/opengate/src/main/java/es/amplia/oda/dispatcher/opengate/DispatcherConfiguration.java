@@ -4,9 +4,9 @@ import lombok.NonNull;
 import lombok.Value;
 
 @Value
-class DispatchConfiguration {
+class DispatcherConfiguration {
     @NonNull
-    private long secondsFirstDispatch;
+    private long initialDelay;
     @NonNull
-    private long secondsBetweenDispatches;
+    private long period;
 }
