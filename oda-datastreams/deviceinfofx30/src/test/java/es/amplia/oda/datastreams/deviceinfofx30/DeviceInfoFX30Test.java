@@ -5,16 +5,17 @@ import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.CommandProcessor;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30Configuration;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -32,6 +33,8 @@ public class DeviceInfoFX30Test {
 	private CommandProcessor mockedCommandProcessor;
 	@Mock
 	private CommandExecutionException mockedCommandExecutionException;
+	@Mock
+	private Bundle mockedBundle;
 
 	@Before
 	public void beforeTests() {
@@ -43,8 +46,12 @@ public class DeviceInfoFX30Test {
 
 	@Test
 	public void testLoadConfiguration() throws CommandExecutionException {
+		bundles = new Bundle[1];
+		bundles[0] = mockedBundle;
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
 		Whitebox.setInternalState(deviceInfo, "bundles", bundles);
+		when(mockedBundle.getSymbolicName()).thenReturn("MyName");
+		when(mockedBundle.getVersion()).thenReturn(new Version("1"));
 		when(mockedCommandProcessor.execute("chmod +x path/*.sh")).thenReturn("");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SERIAL_NUMBER_SCRIPT)).thenReturn("serialNumber");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.MODEL_SCRIPT)).thenReturn("model");
@@ -52,7 +59,7 @@ public class DeviceInfoFX30Test {
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.IMSI_SCRIPT)).thenReturn("imsi");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.ICC_SCRIPT)).thenReturn("icc");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RSSI_SCRIPT)).thenReturn("rssi");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SOFTWARE_SCRIPT)).thenReturn(" : ");
+		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SOFTWARE_SCRIPT)).thenReturn(" :  && Firmware Version:v");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.APN_SCRIPT)).thenReturn("apn");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_TOTAL_SCRIPT)).thenReturn("cpuCap");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_TOTAL_SCRIPT)).thenReturn("ramCap");
@@ -69,7 +76,11 @@ public class DeviceInfoFX30Test {
 		assertEquals("imsi", deviceInfo.getImsi());
 		assertEquals("icc", deviceInfo.getIcc());
 		assertEquals("rssi", deviceInfo.getRssi());
-		assertEquals(Collections.singletonList(new Software(" "," ","SOFTWARE")), deviceInfo.getSoftware());
+		List<Software> list = new ArrayList<>();
+		list.add(new Software(" "," ","SOFTWARE"));
+		list.add(new Software("Firmware Version","v","FIRMWARE"));
+		list.add(new Software("MyName","1.0.0","SOFTWARE"));
+		assertEquals(list, deviceInfo.getSoftware());
 		assertEquals("apn", deviceInfo.getApn());
 		assertEquals("cpuCap", deviceInfo.getCpuTotal());
 		assertEquals("ramCap", deviceInfo.getRamTotal());
@@ -271,5 +282,23 @@ public class DeviceInfoFX30Test {
 		String diskUsage = deviceInfo.getDiskUsage();
 
 		assertNull(diskUsage);
+	}
+
+	@Test
+	public void testGetIpPresence() {
+		Whitebox.setInternalState(deviceInfo, "ipPresence", "No");
+
+		String ipPresence = deviceInfo.getIpPresence();
+
+		assertEquals("No", ipPresence);
+	}
+
+	@Test
+	public void testGetIpAddress() {
+		Whitebox.setInternalState(deviceInfo, "ipAddress", "0.0.0.0");
+
+		String ipAddress = deviceInfo.getIpAddress();
+
+		assertEquals("0.0.0.0", ipAddress);
 	}
 }

@@ -8,9 +8,9 @@ import java.util.Dictionary;
 
 public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHandler {
 
-	static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
-	static final String API_KEY_PROPERTY_NAME = "apiKey";
-	static final String PATH_PROPERTY_NAME = "path";
+	private static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
+	private static final String API_KEY_PROPERTY_NAME = "apiKey";
+	private static final String PATH_PROPERTY_NAME = "path";
 
 	private final DeviceInfoFX30 deviceInfoFX30;
 
