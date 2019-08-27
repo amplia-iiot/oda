@@ -1,12 +1,18 @@
 package es.amplia.oda.datastreams.deviceinfofx30.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
+import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Dictionary;
 
 public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHandler {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoFX30ConfigurationHandler.class);
 
 	private static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
 	private static final String API_KEY_PROPERTY_NAME = "apiKey";
@@ -15,9 +21,11 @@ public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHa
 	private final DeviceInfoFX30 deviceInfoFX30;
 
 	private DeviceInfoFX30Configuration currentConfiguration;
+	private ScriptsLoader scriptsLoader;
 
-	public DeviceInfoFX30ConfigurationHandler(DeviceInfoFX30 deviceInfoFX30) {
+	public DeviceInfoFX30ConfigurationHandler(DeviceInfoFX30 deviceInfoFX30, ScriptsLoader scriptsLoader) {
 		this.deviceInfoFX30 = deviceInfoFX30;
+		this.scriptsLoader = scriptsLoader;
 	}
 
 	@Override
@@ -39,6 +47,11 @@ public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHa
 
 	@Override
 	public void applyConfiguration() {
-		deviceInfoFX30.loadConfiguration(currentConfiguration);
+		try {
+			scriptsLoader.load(currentConfiguration.getPath());
+			deviceInfoFX30.loadConfiguration(currentConfiguration);
+		} catch (CommandExecutionException | IOException e) {
+			LOGGER.error(e.getMessage());
+		}
 	}
 }

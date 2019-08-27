@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler;
+import es.amplia.oda.datastreams.deviceinfofx30.configuration.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.datastreams.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,8 @@ public class ActivatorTest {
 	private DeviceInfoFX30ConfigurationHandler mockedConfigHandler;
 	@Mock
 	private ConfigurableBundleImpl mockedConfigurableBundle;
+	@Mock
+	private ScriptsLoader mockedScriptsLoader;
 
 	@Mock
 	private SerialNumberDatastreamGetter mockedSerialNumberGetter;
@@ -138,6 +141,7 @@ public class ActivatorTest {
 		PowerMockito.whenNew(DeviceInfoFX30.class).withAnyArguments().thenReturn(mockedDeviceInfo);
 		PowerMockito.whenNew(DeviceInfoFX30ConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
 		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+		PowerMockito.whenNew(ScriptsLoader.class).withAnyArguments().thenReturn(mockedScriptsLoader);
 		PowerMockito.whenNew(SerialNumberDatastreamGetter.class).withAnyArguments().thenReturn(mockedSerialNumberGetter);
 		PowerMockito.whenNew(DeviceIdDatastreamGetter.class).withAnyArguments().thenReturn(mockedDeviceIdGetter);
 		PowerMockito.whenNew(MakerDatastreamGetter.class).withAnyArguments().thenReturn(mockedMakerGetter);
@@ -166,8 +170,9 @@ public class ActivatorTest {
 
 		PowerMockito.verifyNew(CommandProcessorImpl.class).withNoArguments();
 		PowerMockito.verifyNew(DeviceInfoFX30.class).withArguments(eq(mockedCommandProcessor), isNull());
-		PowerMockito.verifyNew(DeviceInfoFX30ConfigurationHandler.class).withArguments(eq(mockedDeviceInfo));
+		PowerMockito.verifyNew(DeviceInfoFX30ConfigurationHandler.class).withArguments(eq(mockedDeviceInfo), eq(mockedScriptsLoader));
 		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
+		PowerMockito.verifyNew(ScriptsLoader.class).withArguments(mockedCommandProcessor);
 		PowerMockito.verifyNew(SerialNumberDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(DeviceIdDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(MakerDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
