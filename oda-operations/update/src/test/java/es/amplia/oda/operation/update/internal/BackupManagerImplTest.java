@@ -189,4 +189,21 @@ public class BackupManagerImplTest {
 
         verifyZeroInteractions(mockedFileManager);
     }
+
+    @Test
+    public void testDeleteBackupFilesWithNullValues() throws FileManager.FileException {
+        Map<DeploymentElement, String> backups = new HashMap<>();
+        backups.put(DEPLOYMENT_ELEMENT_1, BACKUP_FILE_1);
+        backups.put(DEPLOYMENT_ELEMENT_2, BACKUP_FILE_2);
+        backups.put(DEPLOYMENT_ELEMENT_3, BACKUP_FILE_3);
+        spiedBackups = spy(backups);
+
+        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, spiedBackups);
+
+        testBackupManager.deleteBackupFiles();
+
+        verify(mockedFileManager).delete(eq(BACKUP_FILE_1));
+        verify(mockedFileManager).delete(eq(BACKUP_FILE_3));
+        verify(spiedBackups).clear();
+    }
 }

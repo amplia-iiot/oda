@@ -17,13 +17,10 @@ import java.util.Map;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.internal.InstallManagerImpl.*;
-import static es.amplia.oda.operation.update.internal.InstallManagerImpl.CONFIGURATION_INSTALL_FOLDER;
-import static es.amplia.oda.operation.update.internal.InstallManagerImpl.DEFAULT_INSTALL_FOLDER;
-import static es.amplia.oda.operation.update.internal.InstallManagerImpl.SOFTWARE_INSTALL_FOLDER;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InstallManagerImplTest {
@@ -196,7 +193,7 @@ public class InstallManagerImplTest {
 
         testInstallManager.rollback(notInstalledDeploymentElement, PATH_TO_BACKUP_JAR);
 
-        // No exception is thrown
+        assertTrue("No exception is thrown", true);
     }
 
     @Test

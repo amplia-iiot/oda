@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -202,5 +203,19 @@ public class OperationUpdateImplTest {
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
         verify(mockedInstallManager).clearInstalledDeploymentElements();
+    }
+
+    @Test
+    public void testUpdateUnknownException() throws InstallManager.InstallException, ExecutionException,
+            InterruptedException {
+        doNothing().doNothing().doThrow(new RuntimeException("Unknown")).when(mockedInstallManager)
+                .install(any(OperationUpdate.DeploymentElement.class), anyString());
+
+        CompletableFuture<OperationUpdate.Result> future =
+                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        OperationUpdate.Result result = future.get();
+
+        assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
+        assertNotNull(result.getSteps());
     }
 }

@@ -29,14 +29,13 @@ import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandle
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.UPDATE_CONFIGURATION_EVENT;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ OperationUpdateEventHandler.class, DeploymentElement.class, Event.class })
 public class OperationUpdateEventHandlerTest {
 
-    private static final String TEST_BUNDLE = "testbundle";
+    private static final String TEST_BUNDLE = "testBundle";
     private static final String TEST_BUNDLE_TO_OPERATE = "test3";
     private static final String TEST_VERSION_TO_OPERATE = "3.0.0";
     private static final String WAITING_FOR_EVENT_FIELD_NAME = "waitingForEvent";

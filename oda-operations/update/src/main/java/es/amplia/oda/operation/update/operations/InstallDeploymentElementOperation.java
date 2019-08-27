@@ -28,6 +28,8 @@ public class InstallDeploymentElementOperation extends DeploymentElementOperatio
 
     @Override
     protected void rollbackSpecificOperation(FileManager fileManager, String backupFile) throws FileException {
-        fileManager.delete(installedFile);
+        if (installedFile != null) {
+            fileManager.delete(installedFile);
+        }
     }
 }

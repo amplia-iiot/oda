@@ -51,7 +51,7 @@ public class DownloadManagerImplTest {
     private static final DeploymentElement deploymentElement3 =
             new DeploymentElement("test3", "3.0.0", DeploymentElementType.SOFTWARE, "", "",
                     DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
-    private static final String TEST_API_KEY = "aaaaaa-111111-bbbbbbb-2222-ccdd-12345677890";
+    private static final String TEST_API_KEY = "testApiKey";
     private static final String DOWNLOADED_FILES_FIELD_NAME = "downloadedFiles";
     private static final String TEST_VERSION = "1.0.0";
 
@@ -364,5 +364,22 @@ public class DownloadManagerImplTest {
         testDownloadManager.deleteDownloadedFiles();
 
         verifyZeroInteractions(mockedFileManager);
+    }
+
+    @Test
+    public void testDeleteDownloadedFilesWithNullValues() throws FileException {
+        Map<DeploymentElement, String> downloadedFiles = new HashMap<>();
+        downloadedFiles.put(deploymentElement1, DOWNLOADED_FILE_1);
+        downloadedFiles.put(deploymentElement2, null);
+        downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
+        spiedDownloadedFiles = spy(downloadedFiles);
+
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+
+        testDownloadManager.deleteDownloadedFiles();
+
+        verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_1));
+        verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_3));
+        verify(spiedDownloadedFiles).clear();
     }
 }

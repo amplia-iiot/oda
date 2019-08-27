@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -65,13 +66,15 @@ public class BackupManagerImpl implements BackupManager {
 
     @Override
     public void deleteBackupFiles() {
-        backupFiles.forEach((deploymentElement, backupFile) -> {
-            try {
-                fileManager.delete(backupFile);
-            } catch (FileException exception) {
-                logger.warn("Can not delete backup file {} of {}", backupFile, deploymentElement.getName());
-            }
-        });
+        backupFiles.values().stream()
+                .filter(Objects::nonNull)
+                .forEach(backupFile -> {
+                    try {
+                        fileManager.delete(backupFile);
+                    } catch (FileException exception) {
+                        logger.warn("Can not delete backup file {}", backupFile);
+                    }
+                });
         backupFiles.clear();
     }
 }

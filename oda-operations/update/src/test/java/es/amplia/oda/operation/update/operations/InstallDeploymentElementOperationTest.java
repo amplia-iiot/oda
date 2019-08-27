@@ -14,9 +14,7 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InstallDeploymentElementOperationTest {
@@ -67,6 +65,13 @@ public class InstallDeploymentElementOperationTest {
         testInstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile);
 
         verify(mockedFileManager).delete(eq(installedFile));
+    }
+
+    @Test
+    public void testRollbackSpecificOperationNoInstalledFile() throws FileException {
+        testInstallOperation.rollbackSpecificOperation(mockedFileManager, null);
+
+        verifyZeroInteractions(mockedFileManager);
     }
 
     @Test(expected = FileException.class)
