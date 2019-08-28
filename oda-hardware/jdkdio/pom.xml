@@ -32,7 +32,7 @@
                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Bundle-NativeCode>lib/libdio.so;osname=linux;processor=arm_le</Bundle-NativeCode>
+                        <Bundle-NativeCode>lib/libdio.so;processor=${processor};osname=${osname}</Bundle-NativeCode>
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>net.java.openjdk</groupId>
             <artifactId>libdio</artifactId>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <type>so</type>
             <version>${openjdk.dio.version}</version>
             <scope>runtime</scope>

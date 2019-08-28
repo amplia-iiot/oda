@@ -27,9 +27,9 @@
         <osgi.version>5.0.0</osgi.version>
 
         <felix.framework.version>6.0.1</felix.framework.version>
-        <felix.configadmin.version>1.8.16</felix.configadmin.version>
-        <felix.eventadmin.version>1.4.8</felix.eventadmin.version>
-        <felix.fileinstall.version>3.6.0</felix.fileinstall.version>
+        <felix.configadmin.version>1.9.16</felix.configadmin.version>
+        <felix.eventadmin.version>1.5.0</felix.eventadmin.version>
+        <felix.fileinstall.version>3.6.4</felix.fileinstall.version>
         <felix.gogo.runtime>1.1.0</felix.gogo.runtime>
         <felix.gogo.command>1.0.2</felix.gogo.command>
         <jansi.version>1.17.1</jansi.version>
@@ -58,6 +58,45 @@
         <module>oda-connectors</module>
         <module>oda-demos</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <arch>x86_64</arch>
+                <processor>x86-64</processor>
+                <osname>Linux</osname>
+            </properties>
+        </profile>
+        <profile>
+            <id>raspberry.pi</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <arch>arm</arch>
+                </os>
+            </activation>
+            <properties>
+                <arch>arm</arch>
+                <processor>ARM_le</processor>
+                <osname>Linux</osname>
+            </properties>
+        </profile>
+        <profile>
+            <id>fx30</id>
+            <properties>
+                <arch>arm</arch>
+                <processor>ARM_le</processor>
+                <osname>Linux</osname>
+            </properties>
+        </profile>
+    </profiles>
 
     <scm>
         <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
@@ -140,17 +179,17 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>configadmin</artifactId>
+                <artifactId>org.apache.felix.configadmin</artifactId>
                 <version>${felix.configadmin.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>eventadmin</artifactId>
+                <artifactId>org.apache.felix.eventadmin</artifactId>
                 <version>${felix.eventadmin.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>fileinstall</artifactId>
+                <artifactId>org.apache.felix.fileinstall</artifactId>
                 <version>${felix.fileinstall.version}</version>
             </dependency>
             <dependency>

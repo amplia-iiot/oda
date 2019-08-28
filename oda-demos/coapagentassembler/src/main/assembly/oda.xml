@@ -23,9 +23,9 @@
         </dependencySet>
         <dependencySet>
             <includes>
-                <include>org.apache.felix:configadmin</include>
-                <include>org.apache.felix:eventadmin</include>
-                <include>org.apache.felix:fileinstall</include>
+                <include>org.apache.felix:org.apache.felix.configadmin</include>
+                <include>org.apache.felix:org.apache.felix.eventadmin</include>
+                <include>org.apache.felix:org.apache.felix.fileinstall</include>
                 <include>org.apache.felix:org.apache.felix.gogo.runtime</include>
                 <include>org.apache.felix:org.apache.felix.gogo.command</include>
                 <include>org.fusesource.jansi:jansi</include>

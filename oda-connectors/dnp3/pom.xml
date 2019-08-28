@@ -34,7 +34,7 @@
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
                         <Bundle-NativeCode>
                             lib/libopenpal.so;lib/libopendnp3.so;lib/libasiopal.so;lib/libasiodnp3.so;
-                            lib/libopendnp3java.so;osname=linux;processor=arm_le
+                            lib/libopendnp3java.so;processor=${processor};osname=${osname}
                         </Bundle-NativeCode>
                         <Export-Package>!*</Export-Package>
                         <Import-Package>!org.apache.log,*</Import-Package>
@@ -94,7 +94,7 @@
             <artifactId>libopendnp3java</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -102,7 +102,7 @@
             <artifactId>libasiopal</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -110,7 +110,7 @@
             <artifactId>libasiodnp3</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -118,7 +118,7 @@
             <artifactId>libopenpal</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -126,7 +126,7 @@
             <artifactId>libopendnp3</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>${arch}</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
