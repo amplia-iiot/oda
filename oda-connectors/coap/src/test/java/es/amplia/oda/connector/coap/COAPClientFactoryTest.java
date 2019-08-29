@@ -94,6 +94,8 @@ public class COAPClientFactoryTest {
     private ATUDPConnector mockedATUDPConnector;
     @Mock
     private CoapEndpoint mockedEndpoint;
+    @Mock
+    private MessageLoggerInterceptor mockedLoggerInterceptor;
 
 
     @Test
@@ -102,6 +104,8 @@ public class COAPClientFactoryTest {
 
         PowerMockito.whenNew(InetSocketAddress.class).withAnyArguments().thenReturn(mockedAddress);
         PowerMockito.whenNew(UDPConnector.class).withAnyArguments().thenReturn(mockedUdpConnector);
+        PowerMockito.whenNew(CoapEndpoint.class).withAnyArguments().thenReturn(mockedEndpoint);
+        PowerMockito.whenNew(MessageLoggerInterceptor.class).withAnyArguments().thenReturn(mockedLoggerInterceptor);
 
         CoapClient client = testCoapClientFactory.createClient(TEST_UDP_CONFIGURATION);
 
@@ -115,12 +119,16 @@ public class COAPClientFactoryTest {
         assertEquals(TEST_TIMEOUT * MS_PER_SECOND, client.getTimeout());
         PowerMockito.verifyNew(InetSocketAddress.class).withArguments(eq(TEST_LOCAL_PORT));
         PowerMockito.verifyNew(UDPConnector.class).withArguments(eq(mockedAddress));
+        PowerMockito.verifyNew(CoapEndpoint.class).withArguments(eq(mockedUdpConnector), eq(NetworkConfig.getStandard()));
+        verify(mockedEndpoint).addInterceptor(eq(mockedLoggerInterceptor));
+        assertEquals(mockedEndpoint, client.getEndpoint());
     }
 
     @Test
     public void testCreateATClient() throws Exception {
         PowerMockito.whenNew(ATUDPConnector.class).withAnyArguments().thenReturn(mockedATUDPConnector);
         PowerMockito.whenNew(CoapEndpoint.class).withAnyArguments().thenReturn(mockedEndpoint);
+        PowerMockito.whenNew(MessageLoggerInterceptor.class).withAnyArguments().thenReturn(mockedLoggerInterceptor);
 
         CoapClient client = testCoapClientFactory.createClient(TEST_AT_CONFIGURATION);
 
@@ -135,6 +143,7 @@ public class COAPClientFactoryTest {
         PowerMockito.verifyNew(ATUDPConnector.class).withArguments(eq(mockedATManager), eq(TEST_HOST), eq(TEST_PORT),
                 eq(TEST_LOCAL_PORT));
         PowerMockito.verifyNew(CoapEndpoint.class).withArguments(eq(mockedATUDPConnector), eq(NetworkConfig.getStandard()));
+        verify(mockedEndpoint).addInterceptor(eq(mockedLoggerInterceptor));
         assertEquals(mockedEndpoint, client.getEndpoint());
     }
 
@@ -156,6 +165,7 @@ public class COAPClientFactoryTest {
         when(mockedBuilder.build()).thenReturn(mockedDtlsConfiguration);
         PowerMockito.whenNew(DTLSConnector.class).withAnyArguments().thenReturn(mockedDtlsConnector);
         PowerMockito.whenNew(CoapEndpoint.class).withAnyArguments().thenReturn(mockedEndpoint);
+        PowerMockito.whenNew(MessageLoggerInterceptor.class).withAnyArguments().thenReturn(mockedLoggerInterceptor);
 
         CoapClient client = testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION);
 
@@ -184,6 +194,7 @@ public class COAPClientFactoryTest {
         PowerMockito.verifyNew(DTLSConnector.class).withArguments(eq(mockedDtlsConfiguration));
         PowerMockito.verifyNew(CoapEndpoint.class)
                 .withArguments(eq(mockedDtlsConnector), eq(NetworkConfig.getStandard()));
+        verify(mockedEndpoint).addInterceptor(eq(mockedLoggerInterceptor));
         assertEquals(mockedEndpoint, client.getEndpoint());
     }
 
