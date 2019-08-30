@@ -29,7 +29,7 @@ public class CpuUsageDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getCpuUsage()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getCpuUsage()).orElse(0))
 		);
 	}
 }

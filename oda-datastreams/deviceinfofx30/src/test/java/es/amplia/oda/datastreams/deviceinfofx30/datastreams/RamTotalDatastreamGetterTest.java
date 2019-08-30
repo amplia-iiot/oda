@@ -35,8 +35,8 @@ public class RamTotalDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getRamTotal()).thenReturn("2048");
+		when(deviceInfoFX30.getRamTotal()).thenReturn(2048L);
 
-		assertEquals("2048", datastreamGetter.get("").get().getValue());
+		assertEquals(2048L, datastreamGetter.get("").get().getValue());
 	}
 }

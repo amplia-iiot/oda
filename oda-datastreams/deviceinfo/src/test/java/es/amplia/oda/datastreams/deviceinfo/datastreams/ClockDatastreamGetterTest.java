@@ -1,6 +1,6 @@
-package es.amplia.oda.datastreams.deviceinfofx30.datastreams;
+package es.amplia.oda.datastreams.deviceinfo.datastreams;
 
-import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
+import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,17 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(IpAddressDatastreamGetterTest.class)
-public class IpAddressDatastreamGetterTest {
+@PrepareForTest(ClockDatastreamGetter.class)
+public class ClockDatastreamGetterTest {
 
 	@Mock
-	DeviceInfoFX30 deviceInfoFX30;
+	DeviceInfoDatastreamsGetter deviceInfoFX30;
 	@InjectMocks
-	IpAddressDatastreamGetter datastreamGetter;
+	ClockDatastreamGetter datastreamGetter;
 
 	@Test
 	public void testGetDatastreamIdSatisfied() {
-		assertEquals(DeviceInfoFX30.IP_ADDRESS_DATASTREAM_ID, datastreamGetter.getDatastreamIdSatisfied());
+		assertEquals(DeviceInfoDatastreamsGetter.CLOCK_DATASTREAM_ID, datastreamGetter.getDatastreamIdSatisfied());
 	}
 
 	@Test
@@ -35,8 +35,8 @@ public class IpAddressDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getIpAddress()).thenReturn("0.0.0.0");
+		when(deviceInfoFX30.getClock()).thenReturn("hh:mm:ss");
 
-		assertEquals("0.0.0.0", datastreamGetter.get("").get().getValue());
+		assertEquals("hh:mm:ss", datastreamGetter.get("").get().getValue());
 	}
 }

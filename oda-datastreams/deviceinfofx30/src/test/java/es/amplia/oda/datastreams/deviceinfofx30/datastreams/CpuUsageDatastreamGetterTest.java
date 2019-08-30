@@ -35,8 +35,8 @@ public class CpuUsageDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getCpuUsage()).thenReturn("45%");
+		when(deviceInfoFX30.getCpuUsage()).thenReturn(45);
 
-		assertEquals("45%", datastreamGetter.get("").get().getValue());
+		assertEquals(45, datastreamGetter.get("").get().getValue());
 	}
 }

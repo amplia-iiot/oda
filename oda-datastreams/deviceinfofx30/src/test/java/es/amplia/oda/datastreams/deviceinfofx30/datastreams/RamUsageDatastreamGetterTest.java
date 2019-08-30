@@ -35,8 +35,8 @@ public class RamUsageDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getRamUsage()).thenReturn("14%");
+		when(deviceInfoFX30.getRamUsage()).thenReturn(14);
 
-		assertEquals("14%", datastreamGetter.get("").get().getValue());
+		assertEquals(14, datastreamGetter.get("").get().getValue());
 	}
 }

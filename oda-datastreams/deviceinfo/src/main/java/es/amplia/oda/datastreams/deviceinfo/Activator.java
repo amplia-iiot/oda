@@ -5,6 +5,8 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
+import es.amplia.oda.datastreams.deviceinfo.configuration.ScriptsLoader;
+import es.amplia.oda.datastreams.deviceinfo.datastreams.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -18,19 +20,32 @@ public class Activator implements BundleActivator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private ConfigurableBundle configurableBundle;
+    private ScriptsLoader scriptsLoader;
 
     private ServiceRegistration<DeviceInfoProvider> deviceIdProviderRegistration;
     private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForSerialNumber;
     private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDeviceId;
-
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForClock;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForUptime;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuTotal;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuStatus;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForCpuUsage;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForRamTotal;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForRamUsage;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskTotal;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskUsage;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForSoftware;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureStatus;
+    private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureValue;
 
     @Override
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting Datastreams Getter Device Info");
 
         CommandProcessor commandProcessor = new CommandProcessorImpl();
-        DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter = new DeviceInfoDatastreamsGetter(commandProcessor);
-        ConfigurationUpdateHandler configHandler = new DeviceInfoConfigurationHandler(deviceInfoDatastreamsGetter);
+        DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter = new DeviceInfoDatastreamsGetter(commandProcessor, bundleContext.getBundles());
+        scriptsLoader = new ScriptsLoader(commandProcessor);
+        ConfigurationUpdateHandler configHandler = new DeviceInfoConfigurationHandler(deviceInfoDatastreamsGetter, scriptsLoader);
         deviceIdProviderRegistration =
                 bundleContext.registerService(DeviceInfoProvider.class, deviceInfoDatastreamsGetter, null);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
@@ -42,6 +57,42 @@ public class Activator implements BundleActivator {
         datastreamsGetterRegistrationForSerialNumber =
                 bundleContext.registerService(DatastreamsGetter.class,
                         deviceInfoDatastreamsGetter.getDatastreamsGetterForSerialNumber(), null);
+        datastreamsGetterRegistrationForClock =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new ClockDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForUptime =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new UptimeDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForCpuTotal =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new CpuTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForCpuStatus =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new CpuStatusDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForCpuUsage =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new CpuUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForRamTotal =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new RamTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForRamUsage =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new RamUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForDiskTotal =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new DiskTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForDiskUsage =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new DiskUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForSoftware =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new SoftwareDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForTemperatureStatus =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new TemperatureStatusDatastreamGetter(deviceInfoDatastreamsGetter), null);
+        datastreamsGetterRegistrationForTemperatureValue =
+                bundleContext.registerService(DatastreamsGetter.class,
+                        new TemperatureValueDatastreamGetter(deviceInfoDatastreamsGetter), null);
 
         LOGGER.info("Datastreams Getter Device Info started");
     }
@@ -50,10 +101,27 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext bundleContext) {
         LOGGER.info("Stopping Datastreams Getter Device");
 
+        datastreamsGetterRegistrationForTemperatureValue.unregister();
+        datastreamsGetterRegistrationForTemperatureStatus.unregister();
+        datastreamsGetterRegistrationForSoftware.unregister();
+        datastreamsGetterRegistrationForDiskUsage.unregister();
+        datastreamsGetterRegistrationForDiskTotal.unregister();
+        datastreamsGetterRegistrationForRamUsage.unregister();
+        datastreamsGetterRegistrationForRamTotal.unregister();
+        datastreamsGetterRegistrationForCpuUsage.unregister();
+        datastreamsGetterRegistrationForCpuStatus.unregister();
+        datastreamsGetterRegistrationForCpuTotal.unregister();
+        datastreamsGetterRegistrationForUptime.unregister();
+        datastreamsGetterRegistrationForClock.unregister();
         datastreamsGetterRegistrationForSerialNumber.unregister();
         datastreamsGetterRegistrationForDeviceId.unregister();
         deviceIdProviderRegistration.unregister();
         configurableBundle.close();
+        try {
+            scriptsLoader.close();
+        } catch (Exception e) {
+            LOGGER.error("Error trying to close scripts loader");
+        }
 
         LOGGER.info("Datastreams Getter Device stopped");
     }

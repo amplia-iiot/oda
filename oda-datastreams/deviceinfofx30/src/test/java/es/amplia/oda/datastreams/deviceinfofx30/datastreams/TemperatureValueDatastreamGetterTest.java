@@ -36,8 +36,8 @@ public class TemperatureValueDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getTemperatureValue()).thenReturn("32 C");
+		when(deviceInfoFX30.getTemperatureValue()).thenReturn(32);
 
-		assertEquals("32 C", datastreamGetter.get("").get().getValue());
+		assertEquals(32, datastreamGetter.get("").get().getValue());
 	}
 }

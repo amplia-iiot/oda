@@ -25,7 +25,7 @@ public class ScriptsLoader implements AutoCloseable{
 		String jarToExtract = null;
 
 		for (File temp : files) {
-			if(temp.getName().contains("es.amplia.oda.datastreams.deviceinfo")) {
+			if(temp.getName().contains("es.amplia.oda.datastreams.deviceinfofx30")) {
 				jarToExtract = temp.getName();
 			}
 		}

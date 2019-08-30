@@ -11,6 +11,7 @@
     <modules>
         <module>assembler</module>
         <module>coapagentassembler</module>
+        <module>fx30assembler</module>
     </modules>
 
     <parent>

@@ -29,7 +29,7 @@ public class DiskUsageDatastreamGetter  implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getDiskUsage()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getDiskUsage()).orElse(0))
 		);
 	}
 }

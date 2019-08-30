@@ -31,8 +31,6 @@ public class Activator implements BundleActivator {
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForIcc;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForRssi;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForSoftware;
-	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForIpPresence;
-	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForIpAddress;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForApn;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForClock;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForUptime;
@@ -85,12 +83,6 @@ public class Activator implements BundleActivator {
 		datastreamsGetterRegistrationForSoftware =
 				bundleContext.registerService(DatastreamsGetter.class,
 						new SoftwareDatastreamGetter(deviceInfoFX30), null);
-		datastreamsGetterRegistrationForIpPresence =
-				bundleContext.registerService(DatastreamsGetter.class,
-						new IpPresenceDatastreamGetter(deviceInfoFX30), null);
-		datastreamsGetterRegistrationForIpAddress =
-				bundleContext.registerService(DatastreamsGetter.class,
-						new IpAddressDatastreamGetter(deviceInfoFX30), null);
 		datastreamsGetterRegistrationForApn =
 				bundleContext.registerService(DatastreamsGetter.class,
 						new ApnDatastreamGetter(deviceInfoFX30), null);
@@ -155,8 +147,6 @@ public class Activator implements BundleActivator {
 		datastreamsGetterRegistrationForIcc.unregister();
 		datastreamsGetterRegistrationForRssi.unregister();
 		datastreamsGetterRegistrationForSoftware.unregister();
-		datastreamsGetterRegistrationForIpPresence.unregister();
-		datastreamsGetterRegistrationForIpAddress.unregister();
 		datastreamsGetterRegistrationForApn.unregister();
 		deviceIdProviderRegistration.unregister();
 		configurableBundle.close();

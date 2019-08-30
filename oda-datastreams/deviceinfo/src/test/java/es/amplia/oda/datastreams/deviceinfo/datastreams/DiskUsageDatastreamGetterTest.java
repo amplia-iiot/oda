@@ -1,6 +1,6 @@
-package es.amplia.oda.datastreams.deviceinfofx30.datastreams;
+package es.amplia.oda.datastreams.deviceinfo.datastreams;
 
-import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
+import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,17 +15,17 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(IpPresenceDatastreamGetterTest.class)
-public class IpPresenceDatastreamGetterTest {
+@PrepareForTest(DiskUsageDatastreamGetterTest.class)
+public class DiskUsageDatastreamGetterTest {
 
 	@Mock
-	DeviceInfoFX30 deviceInfoFX30;
+	DeviceInfoDatastreamsGetter deviceInfoFX30;
 	@InjectMocks
-	IpPresenceDatastreamGetter datastreamGetter;
+	DiskUsageDatastreamGetter datastreamGetter;
 
 	@Test
 	public void testGetDatastreamIdSatisfied() {
-		assertEquals(DeviceInfoFX30.IP_PRESENCE_DATASTREAM_ID, datastreamGetter.getDatastreamIdSatisfied());
+		assertEquals(DeviceInfoDatastreamsGetter.DISK_USAGE_DATASTREAM_ID, datastreamGetter.getDatastreamIdSatisfied());
 	}
 
 	@Test
@@ -35,8 +35,8 @@ public class IpPresenceDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getIpPresence()).thenReturn("Yes");
+		when(deviceInfoFX30.getDiskUsage()).thenReturn(12);
 
-		assertEquals("Yes", datastreamGetter.get("").get().getValue());
+		assertEquals(12, datastreamGetter.get("").get().getValue());
 	}
 }

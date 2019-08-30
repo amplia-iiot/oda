@@ -58,10 +58,6 @@ public class ActivatorTest {
 	@Mock
 	private SoftwareDatastreamGetter mockedSoftwareGetter;
 	@Mock
-	private IpPresenceDatastreamGetter mockedIpPresenceGetter;
-	@Mock
-	private IpAddressDatastreamGetter mockedIpAddressGetter;
-	@Mock
 	private ApnDatastreamGetter mockedApnGetter;
 	@Mock
 	private ClockDatastreamGetter mockedClockGetter;
@@ -107,10 +103,6 @@ public class ActivatorTest {
 	@Mock
 	private ServiceRegistration<DatastreamsGetter> mockedRegistrationForSoftware;
 	@Mock
-	private ServiceRegistration<DatastreamsGetter> mockedRegistrationForIpPresence;
-	@Mock
-	private ServiceRegistration<DatastreamsGetter> mockedRegistrationForIpAddress;
-	@Mock
 	private ServiceRegistration<DatastreamsGetter> mockedRegistrationForApn;
 	@Mock
 	private ServiceRegistration<DatastreamsGetter> mockedRegistrationForClock;
@@ -151,8 +143,6 @@ public class ActivatorTest {
 		PowerMockito.whenNew(IccDatastreamGetter.class).withAnyArguments().thenReturn(mockedIccGetter);
 		PowerMockito.whenNew(RssiDatastreamGetter.class).withAnyArguments().thenReturn(mockedRssiGetter);
 		PowerMockito.whenNew(SoftwareDatastreamGetter.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
-		PowerMockito.whenNew(IpPresenceDatastreamGetter.class).withAnyArguments().thenReturn(mockedIpPresenceGetter);
-		PowerMockito.whenNew(IpAddressDatastreamGetter.class).withAnyArguments().thenReturn(mockedIpAddressGetter);
 		PowerMockito.whenNew(ApnDatastreamGetter.class).withAnyArguments().thenReturn(mockedApnGetter);
 		PowerMockito.whenNew(ClockDatastreamGetter.class).withAnyArguments().thenReturn(mockedClockGetter);
 		PowerMockito.whenNew(UptimeDatastreamGetter.class).withAnyArguments().thenReturn(mockedUptimeGetter);
@@ -182,8 +172,6 @@ public class ActivatorTest {
 		PowerMockito.verifyNew(IccDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(RssiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(SoftwareDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(IpPresenceDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(IpAddressDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(ApnDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(ClockDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(UptimeDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
@@ -211,8 +199,6 @@ public class ActivatorTest {
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForIcc", mockedRegistrationForIcc);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForRssi", mockedRegistrationForRssi);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForSoftware", mockedRegistrationForSoftware);
-		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForIpPresence", mockedRegistrationForIpPresence);
-		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForIpAddress", mockedRegistrationForIpAddress);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForApn", mockedRegistrationForApn);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForClock", mockedRegistrationForClock);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForUptime", mockedRegistrationForUptime);
@@ -239,8 +225,6 @@ public class ActivatorTest {
 		verify(mockedRegistrationForIcc).unregister();
 		verify(mockedRegistrationForRssi).unregister();
 		verify(mockedRegistrationForSoftware).unregister();
-		verify(mockedRegistrationForIpPresence).unregister();
-		verify(mockedRegistrationForIpAddress).unregister();
 		verify(mockedRegistrationForApn).unregister();
 		verify(mockedRegistrationForClock).unregister();
 		verify(mockedRegistrationForUptime).unregister();

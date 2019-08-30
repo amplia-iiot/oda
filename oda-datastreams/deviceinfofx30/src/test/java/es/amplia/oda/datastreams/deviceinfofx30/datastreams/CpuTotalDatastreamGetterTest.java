@@ -35,8 +35,8 @@ public class CpuTotalDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getCpuTotal()).thenReturn("4096");
+		when(deviceInfoFX30.getCpuTotal()).thenReturn(4096);
 
-		assertEquals("4096", datastreamGetter.get("").get().getValue());
+		assertEquals(4096, datastreamGetter.get("").get().getValue());
 	}
 }

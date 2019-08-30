@@ -35,8 +35,8 @@ public class DiskTotalDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getDiskTotal()).thenReturn("1024");
+		when(deviceInfoFX30.getDiskTotal()).thenReturn(1024L);
 
-		assertEquals("1024", datastreamGetter.get("").get().getValue());
+		assertEquals(1024L, datastreamGetter.get("").get().getValue());
 	}
 }

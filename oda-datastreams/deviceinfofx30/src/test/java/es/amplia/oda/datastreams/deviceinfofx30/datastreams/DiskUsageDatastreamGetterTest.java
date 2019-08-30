@@ -35,8 +35,8 @@ public class DiskUsageDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getDiskUsage()).thenReturn("12%");
+		when(deviceInfoFX30.getDiskUsage()).thenReturn(12);
 
-		assertEquals("12%", datastreamGetter.get("").get().getValue());
+		assertEquals(12, datastreamGetter.get("").get().getValue());
 	}
 }

@@ -1,24 +1,24 @@
-package es.amplia.oda.datastreams.deviceinfofx30.datastreams;
+package es.amplia.oda.datastreams.deviceinfo.datastreams;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
+import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class IpAddressDatastreamGetter implements DatastreamsGetter {
+public class RamTotalDatastreamGetter implements DatastreamsGetter {
 
-	private DeviceInfoFX30 deviceInfo;
+	private DeviceInfoDatastreamsGetter deviceInfo;
 
-	public IpAddressDatastreamGetter(DeviceInfoFX30 deviceInfo) {
+	public RamTotalDatastreamGetter(DeviceInfoDatastreamsGetter deviceInfo) {
 		this.deviceInfo = deviceInfo;
 	}
 
 	@Override
 	public String getDatastreamIdSatisfied() {
-		return DeviceInfoFX30.IP_ADDRESS_DATASTREAM_ID;
+		return DeviceInfoDatastreamsGetter.RAM_TOTAL_DATASTREAM_ID;
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public class IpAddressDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getIpAddress()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getRamTotal()).orElse(0L))
 		);
 	}
 }

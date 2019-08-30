@@ -29,7 +29,7 @@ public class UptimeDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getUptime()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getUptime()).orElse(0L))
 		);
 	}
 }

@@ -36,8 +36,8 @@ public class UptimeDatastreamGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		when(deviceInfoFX30.getUptime()).thenReturn("3600");
+		when(deviceInfoFX30.getUptime()).thenReturn(3600L);
 
-		assertEquals("3600", datastreamGetter.get("").get().getValue());
+		assertEquals(3600L, datastreamGetter.get("").get().getValue());
 	}
 }

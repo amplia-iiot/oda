@@ -9,8 +9,10 @@ import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class DeviceInfoFX30 implements DeviceInfoProvider {
 
@@ -18,8 +20,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 
 	private final CommandProcessor commandProcessor;
 	private final Bundle[] bundles;
-
-	private static final String ERROR_MESSAGE = null;
 
 	public static final String DEVICE_ID_DATASTREAM_ID = "deviceId";
 	public static final String SERIAL_NUMBER_DATASTREAM_ID = "device.serialNumber";
@@ -52,8 +52,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	static final String ICC_SCRIPT = "obtainIcc.sh";
 	static final String RSSI_SCRIPT = "obtainRssi.sh";
 	static final String SOFTWARE_SCRIPT = "obtainSoftware.sh";
-	static final String IP_PRESENCE_SCRIPT = "";
-	static final String IP_ADDRESS_SCRIPT = "";
 	static final String APN_SCRIPT = "obtainApn.sh";
 	static final String CLOCK_SCRIPT = "obtainClock.sh";
 	static final String UPTIME_SCRIPT = "obtainUptime.sh";
@@ -71,18 +69,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	private String apiKey;
 	private String path;
 	private String serialNumber;
-	private String model;
-	private String imei;
-	private String imsi;
-	private String icc;
-	private String rssi;
-	private ArrayList<Software> software;
-	private String ipPresence;
-	private String ipAddress;
-	private String apn;
-	private String cpuTotal;
-	private String ramTotal;
-	private String diskTotal;
 
 	DeviceInfoFX30(CommandProcessor commandProcessor, Bundle[] bundles) {
 		this.commandProcessor = commandProcessor;
@@ -100,87 +86,35 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		try {
 			error = "Chmod to prepare scripts";
 			logger.info("Preparing scripts for run");
-			commandProcessor.execute("chmod +x " + path + "/*.sh");
+
+			File dir = new File(path);
+			for (File script : Objects.requireNonNull(dir.listFiles())) {
+				script.setExecutable(true);
+			}
 
 			error = SERIAL_NUMBER_SCRIPT;
 			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
 			logger.info("Load new serial number: {}", serialNumber);
-
-			error = MODEL_SCRIPT;
-			model = commandProcessor.execute(path + "/" + MODEL_SCRIPT);
-			logger.info("Load new device model: {}", model);
-
-			error = IMEI_SCRIPT;
-			imei = commandProcessor.execute(path + "/" + IMEI_SCRIPT);
-			logger.info("Load new IMEI: {}", imei);
-
-			error = IMSI_SCRIPT;
-			imsi = commandProcessor.execute(path + "/" + IMSI_SCRIPT);
-			logger.info("Load new IMSI: {}", imsi);
-
-			error = ICC_SCRIPT;
-			icc = commandProcessor.execute(path + "/" + ICC_SCRIPT);
-			logger.info("Load new ICC: {}", icc);
-
-			error = RSSI_SCRIPT;
-			rssi = commandProcessor.execute(path + "/" + RSSI_SCRIPT);
-			logger.info("Load new RSSI: {}", rssi);
-
-			error = SOFTWARE_SCRIPT;
-			software = new ArrayList<>();
-			String[] versions = commandProcessor.execute(path + "/" + SOFTWARE_SCRIPT).split(" && ");
-			for (String version : versions) {
-				if(version.contains("Firmware") || version.contains("Bootloader"))
-					software.add(parseSoftware(version, "FIRMWARE"));
-				else
-					software.add(parseSoftware(version, "SOFTWARE"));
-			}
-			for (Bundle bundle: bundles) {
-				software.add(new Software(bundle.getSymbolicName(), bundle.getVersion().toString(), "SOFTWARE"));
-			}
-			logger.info("Load new software version: {}", software);
-
-			error = APN_SCRIPT;
-			apn = commandProcessor.execute(path + "/" + APN_SCRIPT);
-			logger.info("Load new APN: {}", apn);
-
-			error = CPU_TOTAL_SCRIPT;
-			cpuTotal = commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT);
-			logger.info("Load new CPU cores quantity: {}", cpuTotal);
-
-			error = RAM_TOTAL_SCRIPT;
-			ramTotal = commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT);
-			logger.info("Load total RAM capacity: {}", ramTotal);
-
-			error = DISK_TOTAL_SCRIPT;
-			diskTotal = commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT);
-			logger.info("Load total Disk capacity: {}", diskTotal);
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing command '{}': {}", error,
 					ex);
 		}
-		/*try {
-			ipPresence = commandProcessor.execute(IP_PRESENCE_SCRIPT);
-			logger.info("Load new IP Presence: {}", ipPresence);
-		} catch (CommandExecutionException ex) {
-			logger.error("Error executing IP Presence command '{}': {}", IP_PRESENCE_SCRIPT,
-					ex);
-		}
-		try {
-			ipAddress = commandProcessor.execute(IP_ADDRESS_SCRIPT);
-			logger.info("Load new IP Address: {}", ipAddress);
-		} catch (CommandExecutionException ex) {
-			logger.error("Error execlbuting IP Address command '{}': {}", IP_ADDRESS_SCRIPT,
-					ex);
-		}*/
 	}
 
 	public String getSerialNumber() {
-		return serialNumber;
+		try {
+			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
+			logger.info("Getting actual hour: {}", serialNumber);
+			return serialNumber;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing Serial Number command '{}': {}", SERIAL_NUMBER_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 	@Override
 	public String getDeviceId() {
-		return deviceId != null ? deviceId : serialNumber;
+		return deviceId != null ? deviceId : getSerialNumber();
 	}
 
 	@Override
@@ -193,41 +127,101 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	}
 
 	public String getModel() {
-		return model;
+		try {
+			String model = commandProcessor.execute(path + "/" + MODEL_SCRIPT);
+			logger.info("Getting actual model of device: {}", model);
+			return model;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing Model command '{}': {}", MODEL_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
 	public String getImei() {
-		return imei;
+		try {
+			String imei = commandProcessor.execute(path + "/" + IMEI_SCRIPT);
+			logger.info("Getting actual imei of device: {}", imei);
+			return imei;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing IMEI command '{}': {}", IMEI_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
 	public String getImsi() {
-		return imsi;
+		try {
+			String imsi = commandProcessor.execute(path + "/" + IMSI_SCRIPT);
+			logger.info("Getting actual imsi of device: {}", imsi);
+			return imsi;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing IMSI command '{}': {}", IMSI_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
 	public String getIcc() {
-		return icc;
+		try {
+			String icc = commandProcessor.execute(path + "/" + ICC_SCRIPT);
+			logger.info("Getting actual icc of device: {}", icc);
+			return icc;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing ICC command '{}': {}", ICC_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
 	public String getRssi() {
-		return rssi;
+		try {
+			String rssi = commandProcessor.execute(path + "/" + RSSI_SCRIPT);
+			logger.info("Getting actual rssi of device: {}", rssi);
+			return rssi;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing RSSI command '{}': {}", ICC_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
+	@Override
 	public List<Software> getSoftware() {
-		return software;
-	}
-
-	public String getIpPresence() {
-		return ipPresence;
-	}
-
-	public String getIpAddress() {
-		return ipAddress;
+		try {
+			List<Software> software = new ArrayList<>();
+			String[] versions = commandProcessor.execute(path + "/" + SOFTWARE_SCRIPT).split(" && ");
+			for (String version : versions) {
+				if(version.contains("Firmware") || version.contains("Bootloader"))
+					software.add(parseSoftware(version, "FIRMWARE"));
+				else
+					software.add(parseSoftware(version, "SOFTWARE"));
+			}
+			for (Bundle bundle: bundles) {
+				software.add(new Software(bundle.getSymbolicName(), bundle.getVersion().toString(), "SOFTWARE"));
+			}
+			logger.info("Getting actual used Software: {}", software);
+			return software;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing Disk Usage command '{}': {}", SOFTWARE_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
 	public String getApn() {
-		return apn;
+		try {
+			String apn = commandProcessor.execute(path + "/" + APN_SCRIPT);
+			logger.info("Getting actual apn of device: {}", apn);
+			return apn;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing APN command '{}': {}", APN_SCRIPT,
+					ex);
+			return null;
+		}
 	}
 
+	@Override
 	public String getClock() {
 		try {
 			String clock = commandProcessor.execute(path + "/" + CLOCK_SCRIPT);
@@ -236,34 +230,37 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing Clock command '{}': {}", CLOCK_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return null;
 		}
 	}
 
-	public String getUptime() {
+	@Override
+	public long getUptime() {
 		try {
-			String uptime = commandProcessor.execute(path + "/" + UPTIME_SCRIPT);
+			long uptime = Long.parseLong(commandProcessor.execute(path + "/" + UPTIME_SCRIPT));
 			logger.info("Getting actual UpTime: {}", uptime);
 			return uptime;
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing UpTime command '{}': {}", UPTIME_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return 0;
 		}
 	}
 
-	public String getTemperatureValue() {
+	@Override
+	public int getTemperatureValue() {
 		try {
-			String temperatureValue = commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT);
+			int temperatureValue = Integer.parseInt(commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT));
 			logger.info("Getting actual Temperature: {}", temperatureValue);
 			return temperatureValue;
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing Temperature command '{}': {}", TEMPERATURE_VALUE_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return 0;
 		}
 	}
 
+	@Override
 	public String getTemperatureStatus() {
 		try {
 			String temperatureStatus = commandProcessor.execute(path + "/" + TEMPERATURE_STATUS_SCRIPT);
@@ -272,10 +269,11 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing Temperature Status command '{}': {}", TEMPERATURE_STATUS_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return null;
 		}
 	}
 
+	@Override
 	public String getCpuStatus() {
 		try {
 			String cpuStatus = commandProcessor.execute(path + "/" + CPU_STATUS_SCRIPT);
@@ -284,56 +282,86 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing CPU Status command '{}': {}", CPU_STATUS_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return null;
 		}
 	}
 
-	public String getCpuUsage() {
+	@Override
+	public int getCpuUsage() {
 		try {
-			String cpuUsage = commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT);
+			int cpuUsage = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT));
 			logger.info("Getting actual CPU Usage: {}", cpuUsage);
 			return cpuUsage;
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing CPU Usage command '{}': {}", CPU_USAGE_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return 0;
 		}
 	}
 
-	public String getCpuTotal() {
-		return cpuTotal;
+	@Override
+	public int getCpuTotal() {
+		try {
+			int cpuTotal = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT));
+			logger.info("Getting actual cores quantity: {}", cpuTotal);
+			return cpuTotal;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing Clock command '{}': {}", CPU_TOTAL_SCRIPT,
+					ex);
+			return 0;
+		}
 	}
 
-	public String getRamUsage() {
+	@Override
+	public int getRamUsage() {
 		try {
-			String ramUsage = commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT);
+			int ramUsage = Integer.parseInt(commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT));
 			logger.info("Getting actual RAM Usage: {}", ramUsage);
 			return ramUsage;
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing RAM Usage command '{}': {}", RAM_USAGE_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return 0;
 		}
 	}
 
-	public String getRamTotal() {
-		return ramTotal;
+	@Override
+	public long getRamTotal() {
+		try {
+			long ramTotal = Long.parseLong(commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT));
+			logger.info("Getting actual RAM Usage: {}", ramTotal);
+			return ramTotal;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing RAM Total command '{}': {}", RAM_TOTAL_SCRIPT,
+					ex);
+			return 0;
+		}
 	}
 
-	public String getDiskUsage() {
+	@Override
+	public int getDiskUsage() {
 		try {
-			String diskUsage = commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT);
+			int diskUsage = Integer.parseInt(commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT));
 			logger.info("Getting actual Disk Capacity Usage: {}", diskUsage);
 			return diskUsage;
 		} catch (CommandExecutionException ex) {
 			logger.error("Error executing Disk Usage command '{}': {}", DISK_USAGE_SCRIPT,
 					ex);
-			return ERROR_MESSAGE;
+			return 0;
 		}
 	}
 
-	public String getDiskTotal() {
-		return diskTotal;
+	@Override
+	public long getDiskTotal() {
+		try {
+			long diskTotal = Long.parseLong(commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT));
+			logger.info("Getting actual Disk Capacity Usage: {}", diskTotal);
+			return diskTotal;
+		} catch (CommandExecutionException ex) {
+			logger.error("Error executing Disk Total command '{}': {}", DISK_TOTAL_SCRIPT,
+					ex);
+			return 0;
+		}
 	}
 
 	private Software parseSoftware(String value, String type) {
