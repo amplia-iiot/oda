@@ -46,15 +46,15 @@
     </dependency>
     <dependency>
         <groupId>org.apache.felix</groupId>
-        <artifactId>configadmin</artifactId>
+        <artifactId>org.apache.felix.configadmin</artifactId>
     </dependency>
     <dependency>
         <groupId>org.apache.felix</groupId>
-        <artifactId>eventadmin</artifactId>
+        <artifactId>org.apache.felix.eventadmin</artifactId>
     </dependency>
     <dependency>
         <groupId>org.apache.felix</groupId>
-        <artifactId>fileinstall</artifactId>
+        <artifactId>org.apache.felix.fileinstall</artifactId>
     </dependency>
     <dependency>
         <groupId>org.fusesource.jansi</groupId>

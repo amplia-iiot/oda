@@ -28,8 +28,12 @@ public class CpuTotalDatastreamGetter implements DatastreamsGetter {
 
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
-		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getCpuTotal()).orElse(0))
-		);
+		try {
+			return CompletableFuture.completedFuture(
+					new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getCpuTotal()).orElse(0))
+			);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 }

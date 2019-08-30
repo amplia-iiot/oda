@@ -217,25 +217,12 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
 
     
     public List<Software> getSoftware() {
-        try {
-            List<Software> software = new ArrayList<>();
-            String[] versions = commandProcessor.execute(path + "/" + SOFTWARE_SCRIPT).split(" && ");
-            for (String version : versions) {
-                if(version.contains("Firmware") || version.contains("Bootloader"))
-                    software.add(parseSoftware(version, "FIRMWARE"));
-                else
-                    software.add(parseSoftware(version, "SOFTWARE"));
-            }
-            for (Bundle bundle: bundles) {
-                software.add(new Software(bundle.getSymbolicName(), bundle.getVersion().toString(), "SOFTWARE"));
-            }
-            logger.info("Getting actual used Software: {}", software);
-            return software;
-        } catch (CommandExecutionException ex) {
-            logger.error("Error executing Disk Usage command '{}': {}", SOFTWARE_SCRIPT,
-                    ex);
-            return null;
+        List<Software> software = new ArrayList<>();
+        for (Bundle bundle: bundles) {
+            software.add(new Software(bundle.getSymbolicName(), bundle.getVersion().toString(), "SOFTWARE"));
         }
+        logger.info("Getting actual used Software: {}", software);
+        return software;
     }
 
     

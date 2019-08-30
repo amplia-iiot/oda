@@ -28,8 +28,12 @@ public class RamTotalDatastreamGetter implements DatastreamsGetter {
 
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
-		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getRamTotal()).orElse(0L))
-		);
+		try {
+			return CompletableFuture.completedFuture(
+					new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getRamTotal()).orElse(0L))
+			);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 }

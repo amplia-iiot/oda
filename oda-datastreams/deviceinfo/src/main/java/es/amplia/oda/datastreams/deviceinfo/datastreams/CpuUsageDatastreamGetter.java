@@ -28,8 +28,12 @@ public class CpuUsageDatastreamGetter implements DatastreamsGetter {
 
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
-		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getCpuUsage()).orElse(0))
-		);
+		try {
+			return CompletableFuture.completedFuture(
+					new CollectedValue(System.currentTimeMillis(), Optional.of(this.deviceInfo.getCpuUsage()).orElse(0))
+			);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 }
