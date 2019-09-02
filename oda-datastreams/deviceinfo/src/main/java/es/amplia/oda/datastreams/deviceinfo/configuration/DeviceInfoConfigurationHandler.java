@@ -51,7 +51,6 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
 
     @Override
     public void applyConfiguration() {
-
         try {
             scriptsLoader.load(currentConfiguration.getPath());
             deviceInfoDatastreamsGetter.loadConfiguration(currentConfiguration);

@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.deviceinfo;
 
+import es.amplia.oda.core.commons.entities.Software;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
@@ -11,8 +12,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -23,8 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -48,9 +48,11 @@ public class DeviceInfoDatastreamsGetterTest {
     private DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter;
     @Mock
     private File mockedFile;
+    @Mock
+    private Bundle mockedBundle;
+    @Mock
+    private CommandExecutionException mockedException;
 
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Test
     public void loadConfigurationCachesValuesOfDeviceInfoConfiguration() throws Exception {
         when(mockedCommandProcessor.execute(anyString())).thenReturn(A_SERIAL_NUMBER);
@@ -174,6 +176,18 @@ public class DeviceInfoDatastreamsGetterTest {
     }
 
     @Test
+    public void getCpuTotalWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        int result = deviceInfoDatastreamsGetter.getCpuTotal();
+
+        verify(mockedCommandProcessor).execute("script/" + CPU_TOTAL_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
     public void getClock() throws CommandExecutionException {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
@@ -183,6 +197,18 @@ public class DeviceInfoDatastreamsGetterTest {
 
         verify(mockedCommandProcessor).execute("script/" + CLOCK_SCRIPT);
         assertEquals("12:34:56", result);
+    }
+
+    @Test
+    public void getClockWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        String result = deviceInfoDatastreamsGetter.getClock();
+
+        verify(mockedCommandProcessor).execute("script/" + CLOCK_SCRIPT);
+        assertNull(result);
     }
 
     @Test
@@ -198,6 +224,18 @@ public class DeviceInfoDatastreamsGetterTest {
     }
 
     @Test
+    public void getUptimeWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        long result = deviceInfoDatastreamsGetter.getUptime();
+
+        verify(mockedCommandProcessor).execute("script/" + UPTIME_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
     public void getCpuStatus() throws CommandExecutionException {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
@@ -207,6 +245,18 @@ public class DeviceInfoDatastreamsGetterTest {
 
         verify(mockedCommandProcessor).execute("script/" + CPU_STATUS_SCRIPT);
         assertEquals("OK", result);
+    }
+
+    @Test
+    public void getCpuStatusWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        String result = deviceInfoDatastreamsGetter.getCpuStatus();
+
+        verify(mockedCommandProcessor).execute("script/" + CPU_STATUS_SCRIPT);
+        assertNull(result);
     }
 
     @Test
@@ -222,6 +272,18 @@ public class DeviceInfoDatastreamsGetterTest {
     }
 
     @Test
+    public void getCpuUsageWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        int result = deviceInfoDatastreamsGetter.getCpuUsage();
+
+        verify(mockedCommandProcessor).execute("script/" + CPU_USAGE_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
     public void getRamTotal() throws CommandExecutionException {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
@@ -231,6 +293,18 @@ public class DeviceInfoDatastreamsGetterTest {
 
         verify(mockedCommandProcessor).execute("script/" + RAM_TOTAL_SCRIPT);
         assertEquals(1024L, result);
+    }
+
+    @Test
+    public void getRamTotalWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        long result = deviceInfoDatastreamsGetter.getRamTotal();
+
+        verify(mockedCommandProcessor).execute("script/" + RAM_TOTAL_SCRIPT);
+        assertEquals(0, result);
     }
 
     @Test
@@ -246,6 +320,18 @@ public class DeviceInfoDatastreamsGetterTest {
     }
 
     @Test
+    public void getRamUsageWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        int result = deviceInfoDatastreamsGetter.getRamUsage();
+
+        verify(mockedCommandProcessor).execute("script/" + RAM_USAGE_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
     public void getDiskTotal() throws CommandExecutionException {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
@@ -258,6 +344,18 @@ public class DeviceInfoDatastreamsGetterTest {
     }
 
     @Test
+    public void getDiskTotalWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        long result = deviceInfoDatastreamsGetter.getDiskTotal();
+
+        verify(mockedCommandProcessor).execute("script/" + DISK_TOTAL_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
     public void getDiskUsage() throws CommandExecutionException {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
@@ -267,5 +365,79 @@ public class DeviceInfoDatastreamsGetterTest {
 
         verify(mockedCommandProcessor).execute("script/" + DISK_USAGE_SCRIPT);
         assertEquals(98, result);
+    }
+
+    @Test
+    public void getDiskUsageWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        long result = deviceInfoDatastreamsGetter.getDiskUsage();
+
+        verify(mockedCommandProcessor).execute("script/" + DISK_USAGE_SCRIPT);
+        assertEquals(0, result);
+    }
+
+    @Test
+    public void getSoftware() {
+        Bundle[] bundles = new Bundle[1];
+        bundles[0] = mockedBundle;
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "bundles", bundles);
+        when(mockedBundle.getSymbolicName()).thenReturn("name");
+        when(mockedBundle.getVersion()).thenReturn(new Version("1"));
+
+        List<Software> result = deviceInfoDatastreamsGetter.getSoftware();
+
+        assertTrue(result.contains(new Software("name", "1.0.0", "SOFTWARE")));
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    public void getTemperatureStatus() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenReturn("OK");
+
+        String result = deviceInfoDatastreamsGetter.getTemperatureStatus();
+
+        verify(mockedCommandProcessor).execute("script/" + TEMPERATURE_STATUS_SCRIPT);
+        assertEquals("OK", result);
+    }
+
+    @Test
+    public void getTemperatureStatusWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        String result = deviceInfoDatastreamsGetter.getTemperatureStatus();
+
+        verify(mockedCommandProcessor).execute("script/" + TEMPERATURE_STATUS_SCRIPT);
+        assertNull(result);
+    }
+
+    @Test
+    public void getTemperatureValue() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenReturn("31");
+
+        int result = deviceInfoDatastreamsGetter.getTemperatureValue();
+
+        verify(mockedCommandProcessor).execute("script/" + TEMPERATURE_VALUE_SCRIPT);
+        assertEquals(31, result);
+    }
+
+    @Test
+    public void getTemperatureValueWithException() throws CommandExecutionException {
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "commandProcessor", mockedCommandProcessor);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
+        when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
+
+        int result = deviceInfoDatastreamsGetter.getTemperatureValue();
+
+        verify(mockedCommandProcessor).execute("script/" + TEMPERATURE_VALUE_SCRIPT);
+        assertEquals(0, result);
     }
 }

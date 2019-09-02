@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -22,6 +23,8 @@ public class RamUsageDatastreamGetterTest {
 	DeviceInfoDatastreamsGetter deviceInfoFX30;
 	@InjectMocks
 	RamUsageDatastreamGetter datastreamGetter;
+	@Mock
+	NumberFormatException mockedNumberFormatException;
 
 	@Test
 	public void testGetDatastreamIdSatisfied() {
@@ -38,5 +41,12 @@ public class RamUsageDatastreamGetterTest {
 		when(deviceInfoFX30.getRamUsage()).thenReturn(14);
 
 		assertEquals(14, datastreamGetter.get("").get().getValue());
+	}
+
+	@Test
+	public void testGetException() throws ExecutionException, InterruptedException {
+		when(deviceInfoFX30.getRamUsage()).thenThrow(mockedNumberFormatException);
+
+		assertNull(datastreamGetter.get(""));
 	}
 }

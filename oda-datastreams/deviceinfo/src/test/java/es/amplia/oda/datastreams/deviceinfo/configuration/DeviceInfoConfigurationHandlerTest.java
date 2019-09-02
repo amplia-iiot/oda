@@ -17,10 +17,9 @@ import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeviceInfoConfigurationHandlerTest {
@@ -40,6 +39,10 @@ public class DeviceInfoConfigurationHandlerTest {
     private ScriptsLoader mockedScriptsLoader;
     @InjectMocks
     private DeviceInfoConfigurationHandler testHandler;
+    @Mock
+    private CommandExecutionException mockedCommandException;
+    @Mock
+    private IOException mockedIOException;
 
     @Test
     public void testLoadConfiguration() {
@@ -81,6 +84,7 @@ public class DeviceInfoConfigurationHandlerTest {
     public void testLoadConfigurationMissingApiKey() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(DeviceInfoConfigurationHandler.SERIAL_NUMBER_COMMAND_PROPERTY_NAME, TEST_SERIAL_NUMBER_COMMAND);
+        props.put(DeviceInfoConfigurationHandler.PATH_PROPERTY_NAME, TEST_PATH);
 
         testHandler.loadConfiguration(props);
 
@@ -91,6 +95,18 @@ public class DeviceInfoConfigurationHandlerTest {
     public void testLoadConfigurationMissingSerialNumberCommand() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(DeviceInfoConfigurationHandler.API_KEY_PROPERTY_NAME, TEST_API_KEY);
+        props.put(DeviceInfoConfigurationHandler.PATH_PROPERTY_NAME, TEST_PATH);
+
+        testHandler.loadConfiguration(props);
+
+        fail("Configuration exception must be thrown");
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void testLoadConfigurationMissingPathCommand() {
+        Dictionary<String, String> props = new Hashtable<>();
+        props.put(DeviceInfoConfigurationHandler.API_KEY_PROPERTY_NAME, TEST_API_KEY);
+        props.put(DeviceInfoConfigurationHandler.SERIAL_NUMBER_COMMAND_PROPERTY_NAME, TEST_SERIAL_NUMBER_COMMAND);
 
         testHandler.loadConfiguration(props);
 
@@ -104,11 +120,31 @@ public class DeviceInfoConfigurationHandlerTest {
 
     @Test
     public void testApplyConfiguration() throws CommandExecutionException, IOException {
-        /*Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
-        when(mockedScriptsLoader.load(any())).thenReturn(null);
+        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
+        doNothing().when(mockedScriptsLoader).load(anyString());
 
         testHandler.applyConfiguration();
 
-        verify(mockedDeviceInfoDatastreamsGetter).loadConfiguration(eq(TEST_CONFIGURATION));*/
+        verify(mockedDeviceInfoDatastreamsGetter).loadConfiguration(eq(TEST_CONFIGURATION));
+    }
+
+    @Test
+    public void testApplyConfigurationCommandException() throws CommandExecutionException, IOException {
+        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
+        doThrow(mockedCommandException).when(mockedScriptsLoader).load(anyString());
+
+        testHandler.applyConfiguration();
+
+        verify(mockedDeviceInfoDatastreamsGetter, times(0)).loadConfiguration(eq(TEST_CONFIGURATION));
+    }
+
+    @Test
+    public void testApplyConfigurationIOException() throws CommandExecutionException, IOException {
+        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
+        doThrow(mockedIOException).when(mockedScriptsLoader).load(anyString());
+
+        testHandler.applyConfiguration();
+
+        verify(mockedDeviceInfoDatastreamsGetter, times(0)).loadConfiguration(eq(TEST_CONFIGURATION));
     }
 }

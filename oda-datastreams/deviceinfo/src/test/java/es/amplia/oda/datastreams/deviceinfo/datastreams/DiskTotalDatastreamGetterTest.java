@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -22,6 +23,8 @@ public class DiskTotalDatastreamGetterTest {
 	DeviceInfoDatastreamsGetter deviceInfoFX30;
 	@InjectMocks
 	DiskTotalDatastreamGetter datastreamGetter;
+	@Mock
+	NumberFormatException mockedNumberFormatException;
 
 	@Test
 	public void testGetDatastreamIdSatisfied() {
@@ -38,5 +41,12 @@ public class DiskTotalDatastreamGetterTest {
 		when(deviceInfoFX30.getDiskTotal()).thenReturn(1024L);
 
 		assertEquals(1024L, datastreamGetter.get("").get().getValue());
+	}
+
+	@Test
+	public void testGetException() throws ExecutionException, InterruptedException {
+		when(deviceInfoFX30.getDiskTotal()).thenThrow(mockedNumberFormatException);
+
+		assertNull(datastreamGetter.get(""));
 	}
 }

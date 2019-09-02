@@ -48,7 +48,7 @@ public class ScriptsLoader implements AutoCloseable{
 				}
 			}
 		} else {
-			throw new CommandExecutionException("tar -xf " + jarToExtract + " -C logs", "Jar not found. Change the configuration",
+			throw new CommandExecutionException("tar -xf JarFile -C logs", "Jar not found. Change the configuration",
 					new FileNotFoundException("Jar not found"));
 		}
 		commander.execute("rm " + path + "/" + jarToExtract);

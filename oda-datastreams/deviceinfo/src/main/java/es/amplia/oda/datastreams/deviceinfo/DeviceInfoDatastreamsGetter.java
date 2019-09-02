@@ -289,9 +289,4 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
             }
         };
     }
-
-    private Software parseSoftware(String value, String type) {
-        String[] values = value.split(":");
-        return new Software(values[0], values[1], type);
-    }
 }
