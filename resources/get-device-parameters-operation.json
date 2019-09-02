@@ -1,0 +1,1 @@
+{"operation":{"request":{"name":"GET_DEVICE_PARAMETERS","parameters":[{"name":"variableList","value":{"array":[{"variableName":"device.cpu.usage"}]}}],"id":"3571cebe-ba63-4827-8a8a-c460b8c3f952"}}}
