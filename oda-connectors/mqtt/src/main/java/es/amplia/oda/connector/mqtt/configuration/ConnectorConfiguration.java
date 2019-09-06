@@ -13,4 +13,6 @@ public class ConnectorConfiguration {
     private String responseTopic;
     private int qos;
     private boolean retained;
+    private int initialDelay;
+    private int retryDelay;
 }

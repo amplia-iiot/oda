@@ -38,22 +38,26 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final String LWT_RETAINED_PROPERTY_NAME = "lwt.retained";
     static final String KEY_STORE_PATH_PROPERTY_NAME = "keyStore.path";
     static final String KEY_STORE_TYPE_PROPERTY_NAME = "keyStore.type";
-    static final String KEY_STORE_PASSWORD_PROPERTY_NAME = "keyStore.password";
+    static final String KEY_STORE_PASS_PROPERTY_NAME = "keyStore.password";
     static final String KEY_MANAGER_ALGORITHM_PROPERTY_NAME = "keyManager.algorithm";
     static final String TRUST_STORE_PATH_PROPERTY_NAME = "trustStore.path";
     static final String TRUST_STORE_TYPE_PROPERTY_NAME = "trustStore.type";
-    static final String TRUST_STORE_PASSWORD_PROPERTY_NAME = "trustStore.password";
+    static final String TRUST_STORE_PASS_PROPERTY_NAME = "trustStore.password";
     static final String TRUST_MANAGER_ALGORITHM_PROPERTY_NAME = "trustManager.algorithm";
     static final String IOT_TOPIC_PROPERTY_NAME = "topic.iot";
     static final String REQUEST_TOPIC_PROPERTY_NAME = "topic.request";
     static final String RESPONSE_TOPIC_PROPERTY_NAME = "topic.response";
     static final String MESSAGE_QOS_PROPERTY_NAME = "message.qos";
     static final String MESSAGE_RETAINED_PROPERTY = "message.retained";
+    static final String CONNECTION_INITIAL_DELAY_PROPERTY_NAME = "connection.initialDelay";
+    static final String CONNECTION_RETRY_DELAY_PROPERTY_NAME = "connection.retryDelay";
 
     static final int DEFAULT_PORT = 1883;
     static final int DEFAULT_SECURE_PORT = 8883;
     static final int DEFAULT_QOS = 1;
     static final boolean DEFAULT_RETAINED = false;
+    static final int DEFAULT_INITIAL_DELAY = 0;
+    static final int DEFAULT_RETRY_DELAY = 300;
 
     private static final String TCP_URL_PROTOCOL_HEADER = "tcp://";
     private static final String SSL_URL_PROTOCOL_HEADER = "ssl://";
@@ -115,8 +119,15 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                     .map(Boolean::parseBoolean)
                     .orElse(DEFAULT_RETAINED);
 
+            int initialDelay = Optional.ofNullable((String) props.get(CONNECTION_INITIAL_DELAY_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_INITIAL_DELAY);
+            int retryDelay = Optional.ofNullable((String) props.get(CONNECTION_RETRY_DELAY_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_RETRY_DELAY);
+
             currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
-                    requestTopic, responseTopic, qos, retained);
+                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay);
         } catch (IllegalArgumentException e) {
             throw new ConfigurationException("Error parsing configuration properties: " + e);
         }
@@ -184,7 +195,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                 Optional.ofNullable((String) props.get(KEY_STORE_TYPE_PROPERTY_NAME))
                         .map(KeyStoreType::valueOf);
         Optional<char[]> keyStorePwd =
-                Optional.ofNullable((String) props.get(KEY_STORE_PASSWORD_PROPERTY_NAME))
+                Optional.ofNullable((String) props.get(KEY_STORE_PASS_PROPERTY_NAME))
                         .map(String::toCharArray);
         Optional<KeyManagerAlgorithm> keyManagerAlgorithm =
                 Optional.ofNullable((String) props.get(KEY_MANAGER_ALGORITHM_PROPERTY_NAME))
@@ -194,7 +205,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                 Optional.ofNullable((String) props.get(TRUST_STORE_TYPE_PROPERTY_NAME))
                         .map(KeyStoreType::valueOf);
         Optional<char[]> trustStorePwd =
-                Optional.ofNullable((String) props.get(TRUST_STORE_PASSWORD_PROPERTY_NAME))
+                Optional.ofNullable((String) props.get(TRUST_STORE_PASS_PROPERTY_NAME))
                         .map(String::toCharArray);
         Optional<KeyManagerAlgorithm> trustManagerAlgorithm =
                 Optional.ofNullable((String) props.get(TRUST_MANAGER_ALGORITHM_PROPERTY_NAME))

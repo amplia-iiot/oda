@@ -60,6 +60,9 @@ public class ConfigurationUpdateHandlerImplTest {
     private static final String TEST_RESPONSE_TOPIC = "response/topic";
     private static final int TEST_QOS = 2;
     private static final boolean TEST_RETAINED = false;
+    private static final int TEST_CONNECTION_INITIAL_DELAY = 30;
+    private static final int TEST_CONNECTION_RETRY_DELAY = 600;
+
 
     @Mock
     private MqttConnector mockedConnector;
@@ -87,17 +90,19 @@ public class ConfigurationUpdateHandlerImplTest {
         testProperties.put(LWT_RETAINED_PROPERTY_NAME, Boolean.toString(TEST_LWT_RETAINED));
         testProperties.put(KEY_STORE_PATH_PROPERTY_NAME, TEST_KEY_STORE_PATH);
         testProperties.put(KEY_STORE_TYPE_PROPERTY_NAME, TEST_KEY_STORE_TYPE.toString());
-        testProperties.put(KEY_STORE_PASSWORD_PROPERTY_NAME, new String(TEST_KEY_STORE_P));
+        testProperties.put(KEY_STORE_PASS_PROPERTY_NAME, new String(TEST_KEY_STORE_P));
         testProperties.put(KEY_MANAGER_ALGORITHM_PROPERTY_NAME, TEST_KEY_MANAGER_ALGORITHM.toString());
         testProperties.put(TRUST_STORE_PATH_PROPERTY_NAME, TEST_TRUST_STORE_PATH);
         testProperties.put(TRUST_STORE_TYPE_PROPERTY_NAME, TEST_TRUST_STORE_TYPE.toString());
-        testProperties.put(TRUST_STORE_PASSWORD_PROPERTY_NAME, new String(TEST_TRUST_STORE_P));
+        testProperties.put(TRUST_STORE_PASS_PROPERTY_NAME, new String(TEST_TRUST_STORE_P));
         testProperties.put(TRUST_MANAGER_ALGORITHM_PROPERTY_NAME, TEST_TRUST_MANAGER_ALGORITHM.toString());
         testProperties.put(IOT_TOPIC_PROPERTY_NAME, TEST_IOT_TOPIC);
         testProperties.put(REQUEST_TOPIC_PROPERTY_NAME, TEST_REQUEST_TOPIC);
         testProperties.put(RESPONSE_TOPIC_PROPERTY_NAME, TEST_RESPONSE_TOPIC);
         testProperties.put(MESSAGE_QOS_PROPERTY_NAME, Integer.toString(TEST_QOS));
         testProperties.put(MESSAGE_RETAINED_PROPERTY, Boolean.toString(TEST_RETAINED));
+        testProperties.put(CONNECTION_INITIAL_DELAY_PROPERTY_NAME, Integer.toString(TEST_CONNECTION_INITIAL_DELAY));
+        testProperties.put(CONNECTION_RETRY_DELAY_PROPERTY_NAME, Integer.toString(TEST_CONNECTION_RETRY_DELAY));
         MqttConnectOptions expectedOptions =
                 MqttConnectOptions.builder(TEST_DEVICE_ID, TEST_API_KEY)
                         .mqttVersion(TEST_MQTT_VERSION)
@@ -114,7 +119,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), TEST_QOS, TEST_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), TEST_QOS, TEST_RETAINED, TEST_CONNECTION_INITIAL_DELAY,
+                        TEST_CONNECTION_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -141,7 +147,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -166,7 +173,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_SECURE_URL, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -190,7 +198,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_SECURE_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -216,7 +225,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -241,7 +251,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -266,7 +277,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
@@ -394,7 +406,8 @@ public class ConfigurationUpdateHandlerImplTest {
         MqttConnectOptions currentOptions = MqttConnectOptions.builder(TEST_DEVICE_ID, TEST_API_KEY).build();
         ConnectorConfiguration currentConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL, TEST_DEVICE_ID, currentOptions, TEST_IOT_TOPIC,
-                        TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED);
+                        TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
         Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
 
         testConfigHandler.applyConfiguration();
@@ -413,7 +426,8 @@ public class ConfigurationUpdateHandlerImplTest {
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
-                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED);
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY);
 
         Whitebox.setInternalState(testConfigHandler, "lastProperties", testProperties);
 
