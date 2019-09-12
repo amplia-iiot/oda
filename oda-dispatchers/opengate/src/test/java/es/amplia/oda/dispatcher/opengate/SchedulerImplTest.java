@@ -23,6 +23,7 @@ public class SchedulerImplTest {
 
     private static final long TEST_DELAY = 30;
     private static final long TEST_PERIOD = 6000;
+    private static final long TEST_PERIOD_ONE_SCHEDULE = 0;
 
     @Mock
     private ScheduledExecutorService mockedExecutor;
@@ -44,7 +45,7 @@ public class SchedulerImplTest {
     }
 
     @Test
-    public void testSchedule() {
+    public void testScheduleWithPeriod() {
         //noinspection unchecked
         when(mockedExecutor.scheduleAtFixedRate(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class)))
                 .thenReturn(mockedScheduledFuture);
@@ -52,6 +53,18 @@ public class SchedulerImplTest {
         testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD);
 
         verify(mockedExecutor).scheduleAtFixedRate(eq(mockedRunnable), eq(TEST_DELAY), eq(TEST_PERIOD), eq(TIME_UNIT));
+        verify(spiedTasks).add(eq(mockedScheduledFuture));
+    }
+
+    @Test
+    public void testScheduleWithoutPeriod() {
+        //noinspection unchecked
+        when(mockedExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mockedScheduledFuture);
+
+        testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD_ONE_SCHEDULE);
+
+        verify(mockedExecutor).schedule(eq(mockedRunnable), eq(TEST_DELAY), eq(TimeUnit.SECONDS));
         verify(spiedTasks).add(eq(mockedScheduledFuture));
     }
 

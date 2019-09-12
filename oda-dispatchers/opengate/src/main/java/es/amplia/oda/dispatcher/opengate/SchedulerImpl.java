@@ -26,7 +26,11 @@ class SchedulerImpl implements Scheduler {
 
     @Override
     public void schedule(Runnable task, long initialDelay, long period) {
-        tasks.add(executor.scheduleAtFixedRate(task, initialDelay, period, TIME_UNIT));
+        if (period == 0) {
+            tasks.add(executor.schedule(task, initialDelay, TIME_UNIT));
+        } else {
+            tasks.add(executor.scheduleAtFixedRate(task, initialDelay, period, TIME_UNIT));
+        }
     }
 
     @Override

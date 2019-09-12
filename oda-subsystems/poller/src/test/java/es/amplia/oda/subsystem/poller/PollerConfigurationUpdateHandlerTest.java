@@ -154,7 +154,7 @@ public class PollerConfigurationUpdateHandlerTest {
     }
 
     @Test
-    public void applyConfiguration() {
+    public void applyConfigurationWithRepetition() {
         ScheduledFuture mockedFuture = mock(ScheduledFuture.class);
         List<ScheduledFuture> configuredTasks = new ArrayList<>();
         configuredTasks.add(mockedFuture);
@@ -170,6 +170,29 @@ public class PollerConfigurationUpdateHandlerTest {
 
         verify(mockedFuture).cancel(eq(false));
         verify(mockedExecutor).scheduleWithFixedDelay(runnableCaptor.capture(), eq(3L), eq(4L), eq(TimeUnit.SECONDS));
+        Runnable poll = runnableCaptor.getValue();
+        poll.run();
+        verify(mockedPoller).runFor(eq(DevicePattern.NullDevicePattern), eq(ids));
+        assertEquals(1, configuredTasks.size());
+    }
+
+    @Test
+    public void applyConfigurationWithoutRepetition() {
+        ScheduledFuture mockedFuture = mock(ScheduledFuture.class);
+        List<ScheduledFuture> configuredTasks = new ArrayList<>();
+        configuredTasks.add(mockedFuture);
+        PollConfiguration pollConfiguration = new PollConfiguration(3L, 0L, DevicePattern.NullDevicePattern);
+        Set<String> ids = Collections.singleton("id1");
+        currentConfiguration = Collections.singletonMap(pollConfiguration, ids);
+        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+
+        Whitebox.setInternalState(testConfigHandler, "configuredTasks", configuredTasks);
+        Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
+
+        testConfigHandler.applyConfiguration();
+
+        verify(mockedFuture).cancel(eq(false));
+        verify(mockedExecutor).schedule(runnableCaptor.capture(), eq(3L), eq(TimeUnit.SECONDS));
         Runnable poll = runnableCaptor.getValue();
         poll.run();
         verify(mockedPoller).runFor(eq(DevicePattern.NullDevicePattern), eq(ids));
