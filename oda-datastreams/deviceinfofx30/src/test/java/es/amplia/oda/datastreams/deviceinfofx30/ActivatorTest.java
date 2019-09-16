@@ -5,7 +5,6 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler;
-import es.amplia.oda.datastreams.deviceinfofx30.configuration.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.datastreams.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +28,8 @@ public class ActivatorTest {
 	@Mock
 	private BundleContext mockedContext;
 	@Mock
+	private ScriptsLoaderImpl mockedScriptsLoader;
+	@Mock
 	private CommandProcessorImpl mockedCommandProcessor;
 	@Mock
 	private DeviceInfoFX30 mockedDeviceInfo;
@@ -36,8 +37,6 @@ public class ActivatorTest {
 	private DeviceInfoFX30ConfigurationHandler mockedConfigHandler;
 	@Mock
 	private ConfigurableBundleImpl mockedConfigurableBundle;
-	@Mock
-	private ScriptsLoader mockedScriptsLoader;
 
 	@Mock
 	private SerialNumberDatastreamGetter mockedSerialNumberGetter;
@@ -130,10 +129,10 @@ public class ActivatorTest {
 	@Test
 	public void testStart() throws Exception {
 		PowerMockito.whenNew(CommandProcessorImpl.class).withAnyArguments().thenReturn(mockedCommandProcessor);
+		PowerMockito.whenNew(ScriptsLoaderImpl.class).withAnyArguments().thenReturn(mockedScriptsLoader);
 		PowerMockito.whenNew(DeviceInfoFX30.class).withAnyArguments().thenReturn(mockedDeviceInfo);
 		PowerMockito.whenNew(DeviceInfoFX30ConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
 		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		PowerMockito.whenNew(ScriptsLoader.class).withAnyArguments().thenReturn(mockedScriptsLoader);
 		PowerMockito.whenNew(SerialNumberDatastreamGetter.class).withAnyArguments().thenReturn(mockedSerialNumberGetter);
 		PowerMockito.whenNew(DeviceIdDatastreamGetter.class).withAnyArguments().thenReturn(mockedDeviceIdGetter);
 		PowerMockito.whenNew(MakerDatastreamGetter.class).withAnyArguments().thenReturn(mockedMakerGetter);
@@ -159,10 +158,12 @@ public class ActivatorTest {
 		testActivator.start(mockedContext);
 
 		PowerMockito.verifyNew(CommandProcessorImpl.class).withNoArguments();
+		PowerMockito.verifyNew(ScriptsLoaderImpl.class).withArguments(mockedCommandProcessor);
 		PowerMockito.verifyNew(DeviceInfoFX30.class).withArguments(eq(mockedCommandProcessor), isNull());
-		PowerMockito.verifyNew(DeviceInfoFX30ConfigurationHandler.class).withArguments(eq(mockedDeviceInfo), eq(mockedScriptsLoader));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
-		PowerMockito.verifyNew(ScriptsLoader.class).withArguments(mockedCommandProcessor);
+		PowerMockito.verifyNew(DeviceInfoFX30ConfigurationHandler.class)
+				.withArguments(eq(mockedScriptsLoader), eq(mockedDeviceInfo));
+		PowerMockito.verifyNew(ConfigurableBundleImpl.class)
+				.withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
 		PowerMockito.verifyNew(SerialNumberDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(DeviceIdDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(MakerDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
@@ -188,6 +189,7 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
+		Whitebox.setInternalState(testActivator, "scriptsLoader", mockedScriptsLoader);
 		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
 		Whitebox.setInternalState(testActivator, "deviceIdProviderRegistration", mockedRegistrationDeviceInfo);
 		Whitebox.setInternalState(testActivator, "datastreamsGetterRegistrationForSerialNumber", mockedRegistrationForSerialNumber);
@@ -214,7 +216,6 @@ public class ActivatorTest {
 
 		testActivator.stop(mockedContext);
 
-		verify(mockedConfigurableBundle).close();
 		verify(mockedRegistrationDeviceInfo).unregister();
 		verify(mockedRegistrationForSerialNumber).unregister();
 		verify(mockedRegistrationForDeviceId).unregister();
@@ -237,5 +238,7 @@ public class ActivatorTest {
 		verify(mockedRegistrationForRamTotal).unregister();
 		verify(mockedRegistrationForDiskUsage).unregister();
 		verify(mockedRegistrationForDiskTotal).unregister();
+		verify(mockedConfigurableBundle).close();
+		verify(mockedScriptsLoader).close();
 	}
 }

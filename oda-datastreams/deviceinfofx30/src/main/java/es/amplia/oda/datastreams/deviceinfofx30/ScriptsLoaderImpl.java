@@ -1,26 +1,33 @@
-package es.amplia.oda.datastreams.deviceinfofx30.configuration;
+package es.amplia.oda.datastreams.deviceinfofx30;
 
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.CommandProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class ScriptsLoader implements AutoCloseable{
+class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 
-	private CommandProcessor commander;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ScriptsLoaderImpl.class);
+
+	static final String DELETE_DIR_COMMAND = "rm -r ";
+
+	private final CommandProcessor commander;
 
 	private String path;
 
-	public ScriptsLoader(CommandProcessor commandProcessor) {
+	ScriptsLoaderImpl(CommandProcessor commandProcessor) {
 		commander = commandProcessor;
 	}
 
-	void load(String path) throws CommandExecutionException, IOException {
+	@Override
+	public void loadScripts(String source, String path) throws CommandExecutionException, IOException {
 		this.path = path;
-		File file = new File("deploy");
+		File file = new File(source);
 		File[] files = file.listFiles();
 		String jarToExtract = null;
 
@@ -32,7 +39,7 @@ public class ScriptsLoader implements AutoCloseable{
 
 		if (jarToExtract != null) {
 			commander.execute("mkdir " + path);
-			commander.execute("cp deploy/" + jarToExtract + " scripts/");
+			commander.execute("cp " + source + "/" + jarToExtract + " " + path);
 			try (JarFile jar = new JarFile(path + "/" + jarToExtract)) {
 				Enumeration enumEntries = jar.entries();
 				while (enumEntries.hasMoreElements()) {
@@ -55,7 +62,11 @@ public class ScriptsLoader implements AutoCloseable{
 	}
 
 	@Override
-	public void close() throws Exception {
-		commander.execute("rm -r " + path);
+	public void close() {
+		try {
+			commander.execute(DELETE_DIR_COMMAND + path);
+		} catch (CommandExecutionException e) {
+			LOGGER.error("Error freeing scripts loader resources");
+		}
 	}
 }

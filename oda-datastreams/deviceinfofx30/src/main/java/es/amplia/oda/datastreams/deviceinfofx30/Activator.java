@@ -4,7 +4,6 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler;
-import es.amplia.oda.datastreams.deviceinfofx30.configuration.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.datastreams.*;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -18,8 +17,8 @@ public class Activator implements BundleActivator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-	private ConfigurableBundle configurableBundle;
 	private ScriptsLoader scriptsLoader;
+	private ConfigurableBundle configurableBundle;
 
 	private ServiceRegistration<DeviceInfoProvider> deviceIdProviderRegistration;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForSerialNumber;
@@ -49,9 +48,9 @@ public class Activator implements BundleActivator {
 		LOGGER.info("Starting Datastreams Getter Device Info");
 
 		CommandProcessor commandProcessor = new CommandProcessorImpl();
+		scriptsLoader = new ScriptsLoaderImpl(commandProcessor);
 		DeviceInfoFX30 deviceInfoFX30 = new DeviceInfoFX30(commandProcessor, bundleContext.getBundles());
-		scriptsLoader = new ScriptsLoader(commandProcessor);
-		ConfigurationUpdateHandler configHandler = new DeviceInfoFX30ConfigurationHandler(deviceInfoFX30, scriptsLoader);
+		ConfigurationUpdateHandler configHandler = new DeviceInfoFX30ConfigurationHandler(scriptsLoader, deviceInfoFX30);
 		deviceIdProviderRegistration =
 				bundleContext.registerService(DeviceInfoProvider.class, deviceInfoFX30, null);
 		configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
@@ -150,11 +149,7 @@ public class Activator implements BundleActivator {
 		datastreamsGetterRegistrationForApn.unregister();
 		deviceIdProviderRegistration.unregister();
 		configurableBundle.close();
-		try {
-			scriptsLoader.close();
-		} catch (Exception e) {
-			LOGGER.error("Error trying to close scripts loader");
-		}
+		scriptsLoader.close();
 
 		LOGGER.info("Datastreams Getter Device stopped");
 	}

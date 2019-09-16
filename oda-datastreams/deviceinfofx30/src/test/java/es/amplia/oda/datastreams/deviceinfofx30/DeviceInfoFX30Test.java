@@ -43,7 +43,7 @@ public class DeviceInfoFX30Test {
 	@Before
 	public void beforeTests() {
 		bundles = new Bundle[0];
-		configuration = new DeviceInfoFX30Configuration("deviceId", "apiKey", "path");
+		configuration = new DeviceInfoFX30Configuration("deviceId", "apiKey", "source", "path");
 
 		deviceInfo = new DeviceInfoFX30(null, bundles);
 	}
