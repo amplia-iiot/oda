@@ -1,6 +1,8 @@
 # ODA
 
-OpenGate Device Agent provides an easy way to integrate your business data in our IoT Platform OpenGate
+OpenGate Device Agent was created to provide an easy way to integrate your devices and business data in our IoT Platform OpenGate. From this goal, ODA has grow integrating new protocols and platforms. ODA supports HTTP, WebSocket, MQTT, CoAP communication protocols and integrates with third party services as SCADA through DNP3 and IEC-104. ODA also acts as a concentrator of constrained devices in your local network using MQTT, Modbus, RS232, RS485, GPIOs... We are currently working on Edge Computing features offering more intelligence to work with your data in real-time and reducing data consumption.  
+
+![ODA main features](resources/ODA.png)
 
 ## Getting started
 
@@ -9,9 +11,9 @@ OpenGate Device Agent provides an easy way to integrate your business data in ou
 This software must be installed to build and run the application:
 - [Java 8](https://www.java.com/en/download/faq/java8.xml)
 - [Maven](https://maven.apache.org/)
-- [Git](https://git-scm.com/)
-- [Mercurial](https://www.mercurial-scm.org/)
-- [CMake](https://cmake.org/)
+- [Git client](https://git-scm.com/) (sudo apt install git)
+- [Mercurial client](https://www.mercurial-scm.org/) (sudo apt install mercurial)
+- [CMake](https://cmake.org/) (sudo apt install cmake)
 
 ### Building
 
@@ -38,6 +40,8 @@ bin/run.sh
 ```
 
 To connect to the ODA Remote Console you should open a SSH connection to *localhost* to the port *50000*. The default SSH credentials are username *oda* and password *oda*
+
+ODA will collect device management data of the device and send it 30 seconds from start-up and every 5 minutes. This data is sent through MQTT and CoAP and can be seen using the tools explained in the [testing section](#Testing the application).
 
 There is a log file inside [log](log) folder to see information about the ODA execution.
 
@@ -70,8 +74,20 @@ To send operations to ODA you should run the command:
 ```shell
 mosquitto_pub -t odm/iot/testDevice -m '<json_operation>'
 ```
+An example of an operation is:
+```json
+{
+  "operation": {
+    "request": {
+	  "name": "REFRESH_INFO",
+	  "parameters": [],
+	  "id": "5e6c7200-44c7-4eab-8831-966adf8cc930"
+	}
+  }
+}
+```
 
-In the [resources](resources) folder you may find some json operation examples.
+In the [resources](resources) folder you may find other operation examples.
 
 #### Local CoAP server
 
@@ -106,14 +122,21 @@ Some useful modifications could be:
 
 ### Next steps
 
-If you like what you are seeing contact our sales team with your proposal and feel the full potential of our IoT Platform [OpenGate](https://www.amplia-iiot.com/iot-platform/) to see your data online and so much more. The sales team will analyze your business needs and give you access to an Api-Key to connect ODA to OpenGate and see your data in our platform.
+If you like what you are seeing [contact our sales team](https://www.amplia-iiot.com/contact-amplia/) with your proposal and feel the full potential of our IoT Platform [OpenGate](https://www.amplia-iiot.com/iot-platform/) to see your data online and so much more. The sales team will analyze your business needs and give you access to an Api-Key to connect ODA to OpenGate and see your data in our platform.
 
 ## Main Features
 
 ODA main features are:
-- Recollect IoT data from device
+- Collect IoT data from device
 - Send IoT data to OpenGate
 - Attend OpenGate operations
+
+ODA currently support the next devices:
+- X86-64 architecture computers (as development and test environment)
+- [Raspberry Pi](https://www.raspberrypi.org/)
+- Sierra Wireless [FX30/FX30S](https://source.sierrawireless.com/devices/fx-series/fx30/) devices
+
+Other devices with same architecture may be supported but has not been tested.
 
 ## Software Design Overview
 
