@@ -66,12 +66,13 @@ public class ConfigurableBundleImpl implements ConfigurableBundle {
 
         try {
             if (props != null) {
-                String servicePid = (String) props.remove(Constants.SERVICE_PID);
-                String filename = (String) props.remove(FILENAME_KEY);
+                MapBasedDictionary<String, String> innerProps = MapBasedDictionary.of(props, String.class, String.class);
+                String servicePid = innerProps.remove(Constants.SERVICE_PID);
+                String filename = innerProps.remove(FILENAME_KEY);
                 LOGGER.info("Updating service {} with filename {}", servicePid, filename);
 
                 configurationEvent = CONFIGURATION_UPDATED_EVENT;
-                handler.loadConfiguration(props);
+                handler.loadConfiguration(innerProps);
                 configurationMessage = CONFIGURATION_UPDATED_MESSAGE;
             }
             else {

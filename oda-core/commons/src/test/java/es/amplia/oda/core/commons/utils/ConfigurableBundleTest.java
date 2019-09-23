@@ -131,7 +131,7 @@ public class ConfigurableBundleTest {
 
     @Test(expected = ConfigurationException.class)
     public void testUpdateConfigurationException() throws Exception {
-        doThrow(Exception.class).when(mockedHandler).loadConfiguration(eq(mockedProps));
+        doThrow(Exception.class).when(mockedHandler).loadConfiguration(any());
 
         try {
             testConfigurableBundle.updated(mockedProps);
