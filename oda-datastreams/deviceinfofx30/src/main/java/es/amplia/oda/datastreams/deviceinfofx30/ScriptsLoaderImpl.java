@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -31,7 +32,7 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 		File[] files = file.listFiles();
 		String jarToExtract = null;
 
-		for (File temp : files) {
+		for (File temp : Objects.requireNonNull(files)) {
 			if(temp.getName().contains("es.amplia.oda.datastreams.deviceinfofx30")) {
 				jarToExtract = temp.getName();
 			}
@@ -44,7 +45,7 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 				Enumeration enumEntries = jar.entries();
 				while (enumEntries.hasMoreElements()) {
 					JarEntry entry = (JarEntry) enumEntries.nextElement();
-					File fileToCopy = new File(path + "/" + entry.getName());
+					File fileToCopy = new File(path + File.separator + entry.getName());
 					if (entry.getName().contains(".sh")) {
 						try (InputStream is = jar.getInputStream(entry); FileOutputStream fos = new FileOutputStream(fileToCopy)) {
 							while (is.available() > 0) {
@@ -55,7 +56,7 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 				}
 			}
 		} else {
-			throw new CommandExecutionException("tar -xf " + jarToExtract + " -C logs", "Jar not found. Change the configuration",
+			throw new CommandExecutionException("tar -xf JarFile -C logs", "Jar not found. Change the configuration",
 					new FileNotFoundException("Jar not found"));
 		}
 		commander.execute("rm " + path + "/" + jarToExtract);

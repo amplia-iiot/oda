@@ -63,7 +63,7 @@ public class Activator implements BundleActivator {
 						new DeviceIdDatastreamGetter(deviceInfoFX30), null);
 		datastreamsGetterRegistrationForMaker =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new MakerDatastreamGetter(deviceInfoFX30), null);
+						new MakerDatastreamGetter(), null);
 		datastreamsGetterRegistrationForModel =
 				bundleContext.registerService(DatastreamsGetter.class,
 						new ModelDatastreamGetter(deviceInfoFX30), null);

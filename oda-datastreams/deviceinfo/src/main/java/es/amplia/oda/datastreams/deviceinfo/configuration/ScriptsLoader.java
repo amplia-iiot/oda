@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.utils.CommandProcessor;
 
 import java.io.*;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -24,20 +25,23 @@ public class ScriptsLoader implements AutoCloseable{
 		File[] files = file.listFiles();
 		String jarToExtract = null;
 
-		for (File temp : files) {
-			if(temp.getName().contains("es.amplia.oda.datastreams.deviceinfo")) {
+		for (File temp : Objects.requireNonNull(files)) {
+			if (temp.getName().contains("es.amplia.oda.datastreams.deviceinfo")) {
 				jarToExtract = temp.getName();
 			}
 		}
 
 		if (jarToExtract != null) {
-			commander.execute("mkdir " + path);
+			File tmpDir = new File(path);
+			if(!tmpDir.exists()) {
+				commander.execute("mkdir " + path);
+			}
 			commander.execute("cp deploy/" + jarToExtract + " scripts/");
 			try (JarFile jar = new JarFile(path + "/" + jarToExtract)) {
 				Enumeration enumEntries = jar.entries();
 				while (enumEntries.hasMoreElements()) {
 					JarEntry entry = (JarEntry) enumEntries.nextElement();
-					File fileToCopy = new File(path + "/" + entry.getName());
+					File fileToCopy = new File(path + File.separator + entry.getName());
 					if (entry.getName().contains(".sh")) {
 						try (InputStream is = jar.getInputStream(entry); FileOutputStream fos = new FileOutputStream(fileToCopy)) {
 							while (is.available() > 0) {

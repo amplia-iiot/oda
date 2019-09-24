@@ -30,9 +30,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	public static final String ICC_DATASTREAM_ID = "device.communicationModules[].subscriber.mobile.icc";
 	public static final String RSSI_DATASTREAM_ID = "device.communicationModules[].subscription.mobile.signalStrength";
 	public static final String SOFTWARE_DATASTREAM_ID = "device.software";
-	public static final String IP_PRESENCE_DATASTREAM_ID = "";
-	public static final String IP_ADDRESS_DATASTREAM_ID = "device.communicationModules[].subscription.address";
-	public static final String APN_DATASTREAM_ID = "";
+	public static final String APN_DATASTREAM_ID = "device.apn";
 	public static final String CLOCK_DATASTREAM_ID = "device.clock";
 	public static final String UPTIME_DATASTREAM_ID = "device.upTime";
 	public static final String TEMPERATURE_VALUE_DATASTREAM_ID = "device.temperature.value";
@@ -76,7 +74,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	}
 
 	public void loadConfiguration(DeviceInfoFX30Configuration configuration) {
-		String error = "";
 		deviceId = configuration.getDeviceId();
 		logger.info("Load new device identifier: {}", deviceId);
 		apiKey = configuration.getApiKey();
@@ -84,19 +81,19 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		path = configuration.getPath();
 		logger.info("Load new path of scripts: {}", path);
 		try {
-			error = "Chmod to prepare scripts";
 			logger.info("Preparing scripts for run");
 
 			File dir = new File(path);
 			for (File script : Objects.requireNonNull(dir.listFiles())) {
-				script.setExecutable(true);
+				if(!script.setExecutable(true)) {
+					logger.error("Script {} couldn't be setted executable", script.getName());
+				}
 			}
 
-			error = SERIAL_NUMBER_SCRIPT;
 			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
 			logger.info("Load new serial number: {}", serialNumber);
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing command '{}': {}", error,
+			logger.error("Error executing command '{}': {}", SERIAL_NUMBER_SCRIPT,
 					ex);
 		}
 	}
@@ -240,7 +237,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			long uptime = Long.parseLong(commandProcessor.execute(path + "/" + UPTIME_SCRIPT));
 			logger.info("Getting actual UpTime: {}", uptime);
 			return uptime;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing UpTime command '{}': {}", UPTIME_SCRIPT,
 					ex);
 			return 0;
@@ -253,7 +250,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			int temperatureValue = Integer.parseInt(commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT));
 			logger.info("Getting actual Temperature: {}", temperatureValue);
 			return temperatureValue;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing Temperature command '{}': {}", TEMPERATURE_VALUE_SCRIPT,
 					ex);
 			return 0;
@@ -292,7 +289,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			int cpuUsage = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT));
 			logger.info("Getting actual CPU Usage: {}", cpuUsage);
 			return cpuUsage;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing CPU Usage command '{}': {}", CPU_USAGE_SCRIPT,
 					ex);
 			return 0;
@@ -305,7 +302,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			int cpuTotal = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT));
 			logger.info("Getting actual cores quantity: {}", cpuTotal);
 			return cpuTotal;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing Clock command '{}': {}", CPU_TOTAL_SCRIPT,
 					ex);
 			return 0;
@@ -318,7 +315,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			int ramUsage = Integer.parseInt(commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT));
 			logger.info("Getting actual RAM Usage: {}", ramUsage);
 			return ramUsage;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing RAM Usage command '{}': {}", RAM_USAGE_SCRIPT,
 					ex);
 			return 0;
@@ -331,7 +328,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			long ramTotal = Long.parseLong(commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT));
 			logger.info("Getting actual RAM Usage: {}", ramTotal);
 			return ramTotal;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing RAM Total command '{}': {}", RAM_TOTAL_SCRIPT,
 					ex);
 			return 0;
@@ -344,7 +341,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			int diskUsage = Integer.parseInt(commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT));
 			logger.info("Getting actual Disk Capacity Usage: {}", diskUsage);
 			return diskUsage;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing Disk Usage command '{}': {}", DISK_USAGE_SCRIPT,
 					ex);
 			return 0;
@@ -357,7 +354,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			long diskTotal = Long.parseLong(commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT));
 			logger.info("Getting actual Disk Capacity Usage: {}", diskTotal);
 			return diskTotal;
-		} catch (CommandExecutionException ex) {
+		} catch (CommandExecutionException | NumberFormatException ex) {
 			logger.error("Error executing Disk Total command '{}': {}", DISK_TOTAL_SCRIPT,
 					ex);
 			return 0;
