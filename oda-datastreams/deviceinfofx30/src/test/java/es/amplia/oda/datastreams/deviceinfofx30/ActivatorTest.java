@@ -166,7 +166,7 @@ public class ActivatorTest {
 				.withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
 		PowerMockito.verifyNew(SerialNumberDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(DeviceIdDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(MakerDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
+		PowerMockito.verifyNew(MakerDatastreamGetter.class).withNoArguments();
 		PowerMockito.verifyNew(ModelDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(ImeiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(ImsiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));

@@ -66,6 +66,7 @@ public class ScriptsLoaderTest {
 		scriptsLoader.load("tests");
 
 		assertTrue(result.length() > init);
+		result.delete();
 	}
 
 	@Test(expected = CommandExecutionException.class)
