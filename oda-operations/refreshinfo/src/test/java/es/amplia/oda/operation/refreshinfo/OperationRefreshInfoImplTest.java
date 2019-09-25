@@ -8,8 +8,9 @@ import es.amplia.oda.operation.api.OperationRefreshInfo.Result;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OperationRefreshInfoImplTest {
     
     private static final String DEVICE_ID = "aDeviceId";
@@ -47,7 +49,6 @@ public class OperationRefreshInfoImplTest {
     
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         operationRefreshInfo = new OperationRefreshInfoImpl(datastreamsGettersLocator);
         
         when(datastreamsGettersLocator.getDatastreamsGetters()).thenReturn(Arrays.asList(getterId1, getterId2,getterId3));
@@ -133,4 +134,24 @@ public class OperationRefreshInfoImplTest {
         assertEquals(valueForId1.getValue(), actual.getObtained().get(ID1));
     }
 
+    @Test
+    public void gettersReturningNullAreCompletedWithError() throws ExecutionException, InterruptedException {
+        DatastreamsGetter nullGetter = mock(DatastreamsGetter.class);
+        String nullId = "nullId";
+
+        when(datastreamsGettersLocator.getDatastreamsGetters()).thenReturn(
+                Arrays.asList(getterId1, getterId2,getterId3, nullGetter));
+
+        when(nullGetter.getDatastreamIdSatisfied()).thenReturn(nullId);
+        when(nullGetter.getDevicesIdManaged()).thenReturn(LIST_WITH_DEVICE_ID);
+        when(nullGetter.get(DEVICE_ID)).thenReturn(null);
+
+        CompletableFuture<Result> future = operationRefreshInfo.refreshInfo(DEVICE_ID);
+        futureForId1.complete(valueForId1);
+        futureForId3.complete(valueForId3);
+        futureForId2.complete(valueForId2);
+        Result result = future.get();
+
+        assertFalse(result.getObtained().containsKey(nullId));
+    }
 }
