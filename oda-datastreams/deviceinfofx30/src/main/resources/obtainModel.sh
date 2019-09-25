@@ -1,5 +1,5 @@
 #!/bin/sh
 # Launch Model Getter Script
 
-MODEL=$(cm info device)
+MODEL=$(/legato/systems/current/bin/cm info device)
 echo "$MODEL"

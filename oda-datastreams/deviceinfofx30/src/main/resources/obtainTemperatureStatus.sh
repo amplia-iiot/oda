@@ -1,7 +1,7 @@
 #!/bin/sh
 # Launch Temperature Status Info Getter Script
 
-TEMPERATURE=$(cm temp all | grep "Power Controller" | grep -o "[0-9]*\>")
+TEMPERATURE=$(/legato/systems/current/bin/cm temp all | grep "Power Controller" | grep -o "[0-9]*\>")
 if [ "$TEMPERATURE" -ge 50 ]
 then
   echo HIGH_CRITICAL

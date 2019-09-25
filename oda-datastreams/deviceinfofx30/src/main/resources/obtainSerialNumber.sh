@@ -1,5 +1,5 @@
 #!/bin/sh
 # Launch Serial Number Getter Script
 
-SERIAL=$(cm info fsn)
+SERIAL=$(/legato/systems/current/bin/cm info fsn)
 echo "$SERIAL"

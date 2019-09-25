@@ -1,6 +1,6 @@
 #!/bin/sh
 # Launch IMSI Getter Script
 
-RESULT=$(cm sim imsi)
+RESULT=$(/legato/systems/current/bin/cm sim imsi)
 IMSI=${RESULT#"IMSI:"}
 echo "$IMSI"

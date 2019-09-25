@@ -93,7 +93,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
 			logger.info("Load new serial number: {}", serialNumber);
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing command '{}': {}", SERIAL_NUMBER_SCRIPT,
+			logger.error("Error executing command '{}': ", SERIAL_NUMBER_SCRIPT,
 					ex);
 		}
 	}
@@ -104,7 +104,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual hour: {}", serialNumber);
 			return serialNumber;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Serial Number command '{}': {}", SERIAL_NUMBER_SCRIPT,
+			logger.error("Error executing Serial Number command '{}': ", SERIAL_NUMBER_SCRIPT,
 					ex);
 			return null;
 		}
@@ -129,7 +129,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual model of device: {}", model);
 			return model;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Model command '{}': {}", MODEL_SCRIPT,
+			logger.error("Error executing Model command '{}': ", MODEL_SCRIPT,
 					ex);
 			return null;
 		}
@@ -141,7 +141,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual imei of device: {}", imei);
 			return imei;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing IMEI command '{}': {}", IMEI_SCRIPT,
+			logger.error("Error executing IMEI command '{}': ", IMEI_SCRIPT,
 					ex);
 			return null;
 		}
@@ -153,7 +153,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual imsi of device: {}", imsi);
 			return imsi;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing IMSI command '{}': {}", IMSI_SCRIPT,
+			logger.error("Error executing IMSI command '{}': ", IMSI_SCRIPT,
 					ex);
 			return null;
 		}
@@ -165,7 +165,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual icc of device: {}", icc);
 			return icc;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing ICC command '{}': {}", ICC_SCRIPT,
+			logger.error("Error executing ICC command '{}': ", ICC_SCRIPT,
 					ex);
 			return null;
 		}
@@ -177,7 +177,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual rssi of device: {}", rssi);
 			return rssi;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing RSSI command '{}': {}", ICC_SCRIPT,
+			logger.error("Error executing RSSI command '{}': ", ICC_SCRIPT,
 					ex);
 			return null;
 		}
@@ -200,7 +200,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual used Software: {}", software);
 			return software;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Disk Usage command '{}': {}", SOFTWARE_SCRIPT,
+			logger.error("Error executing Disk Usage command '{}': ", SOFTWARE_SCRIPT,
 					ex);
 			return null;
 		}
@@ -212,7 +212,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual apn of device: {}", apn);
 			return apn;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing APN command '{}': {}", APN_SCRIPT,
+			logger.error("Error executing APN command '{}': ", APN_SCRIPT,
 					ex);
 			return null;
 		}
@@ -225,7 +225,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual hour: {}", clock);
 			return clock;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Clock command '{}': {}", CLOCK_SCRIPT,
+			logger.error("Error executing Clock command '{}': ", CLOCK_SCRIPT,
 					ex);
 			return null;
 		}
@@ -238,7 +238,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual UpTime: {}", uptime);
 			return uptime;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing UpTime command '{}': {}", UPTIME_SCRIPT,
+			logger.error("Error executing UpTime command '{}': ", UPTIME_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -251,7 +251,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual Temperature: {}", temperatureValue);
 			return temperatureValue;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing Temperature command '{}': {}", TEMPERATURE_VALUE_SCRIPT,
+			logger.error("Error executing Temperature command '{}': ", TEMPERATURE_VALUE_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -264,7 +264,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual Temperature Status: {}", temperatureStatus);
 			return temperatureStatus;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Temperature Status command '{}': {}", TEMPERATURE_STATUS_SCRIPT,
+			logger.error("Error executing Temperature Status command '{}': ", TEMPERATURE_STATUS_SCRIPT,
 					ex);
 			return null;
 		}
@@ -277,7 +277,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual CPU Status: {}", cpuStatus);
 			return cpuStatus;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing CPU Status command '{}': {}", CPU_STATUS_SCRIPT,
+			logger.error("Error executing CPU Status command '{}': ", CPU_STATUS_SCRIPT,
 					ex);
 			return null;
 		}
@@ -290,7 +290,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual CPU Usage: {}", cpuUsage);
 			return cpuUsage;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing CPU Usage command '{}': {}", CPU_USAGE_SCRIPT,
+			logger.error("Error executing CPU Usage command '{}': ", CPU_USAGE_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -303,7 +303,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual cores quantity: {}", cpuTotal);
 			return cpuTotal;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing Clock command '{}': {}", CPU_TOTAL_SCRIPT,
+			logger.error("Error executing Clock command '{}': ", CPU_TOTAL_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -316,7 +316,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual RAM Usage: {}", ramUsage);
 			return ramUsage;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing RAM Usage command '{}': {}", RAM_USAGE_SCRIPT,
+			logger.error("Error executing RAM Usage command '{}': ", RAM_USAGE_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -329,7 +329,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual RAM Usage: {}", ramTotal);
 			return ramTotal;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing RAM Total command '{}': {}", RAM_TOTAL_SCRIPT,
+			logger.error("Error executing RAM Total command '{}': ", RAM_TOTAL_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -342,7 +342,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual Disk Capacity Usage: {}", diskUsage);
 			return diskUsage;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing Disk Usage command '{}': {}", DISK_USAGE_SCRIPT,
+			logger.error("Error executing Disk Usage command '{}': ", DISK_USAGE_SCRIPT,
 					ex);
 			return 0;
 		}
@@ -355,7 +355,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 			logger.info("Getting actual Disk Capacity Usage: {}", diskTotal);
 			return diskTotal;
 		} catch (CommandExecutionException | NumberFormatException ex) {
-			logger.error("Error executing Disk Total command '{}': {}", DISK_TOTAL_SCRIPT,
+			logger.error("Error executing Disk Total command '{}': ", DISK_TOTAL_SCRIPT,
 					ex);
 			return 0;
 		}
