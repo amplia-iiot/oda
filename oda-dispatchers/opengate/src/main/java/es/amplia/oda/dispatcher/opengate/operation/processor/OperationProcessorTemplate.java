@@ -30,44 +30,35 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
     public CompletableFuture<byte[]> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
         CompletableFuture<byte[]> responseFuture = new CompletableFuture<>();
 
-        T params = parseParameters(request);
-        CompletableFuture<R> future = processOperation(deviceIdForOperations, params);
-        if (future == null) {
-            responseFuture.complete(noOperationFor(request.getId(), request.getName(), deviceIdForResponse));
-        } else {
-            future.thenAccept(result -> {
-                Output output;
-                try {
-                    output = translateToOutput(result, request.getId(), deviceIdForResponse);
-                } catch (Exception e) {
-                    output = translateThrowableToOutput(request.getName(), request.getId(), request.getDeviceId(), e);
-                }
-
-                byte[] resultAsBytes = new byte[0];
-                try {
-                    resultAsBytes = serializer.serialize(output);
-                } catch (IOException e) {
-                    LOGGER.error("Error serializing response message. Will sent void byte array as result: ", e);
-                }
-                responseFuture.complete(resultAsBytes);
-            });
+        Output output;
+        try {
+            T params = parseParameters(request);
+            CompletableFuture<R> future = processOperation(deviceIdForOperations, params);
+            if (future == null) {
+                output = translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse);
+            } else {
+                output = translateToOutput(future.get(), request.getId(), deviceIdForResponse);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Uncontrolled exception processing request {}", request, e);
+            output = translateThrowableToOutput(request.getName(), request.getId(), request.getDeviceId(), e);
         }
 
-        return responseFuture;
+        try {
+            byte[] resultAsBytes = serializer.serialize(output);
+            responseFuture.complete(resultAsBytes);
+            return responseFuture;
+        } catch (IOException e) {
+            LOGGER.error("Error serializing response message. Will sent void byte array as result: ", e);
+            return null;
+        }
     }
 
-    private byte[] noOperationFor(String operationId, String operationName, String deviceId) {
+    private Output translateNoOperationToOutput(String operationId, String operationName, String deviceId) {
         Response notSupportedResponse =
                 new Response(operationId, deviceId, operationName, OperationResultCode.NOT_SUPPORTED,
                         "Operation not supported by the device", Collections.emptyList());
-        Output output = new Output(OPENGATE_VERSION, new OutputOperation(notSupportedResponse));
-
-        try {
-            return serializer.serialize(output);
-        } catch (IOException e) {
-            LOGGER.error("Error serializing response message. Will sent void byte array as result: ", e);
-            return new byte[0];
-        }
+        return new Output(OPENGATE_VERSION, new OutputOperation(notSupportedResponse));
     }
 
     private Output translateThrowableToOutput(String operationName, String operationId, String deviceId, Throwable e) {
