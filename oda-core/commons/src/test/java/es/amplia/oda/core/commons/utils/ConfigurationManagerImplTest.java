@@ -13,6 +13,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Optional;
 
@@ -28,13 +29,14 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigurationManagerImplTest {
 
-    private static final String TEST_CONFIGURATION_FOLDER = "file:/test/config/folder";
     private static final String TEST_PID = "test.pid";
     private static final String TEST_PROPERTY = "testProp";
     private static final String TEST_VALUE = "testValue";
     private static final String TEST_VALUE_UPDATED = "testValueUpdated";
     private static final String TEST_BUNDLES_FOLDER = "file:/test/deploy";
     private static final String TEST_BUNDLE_LOCATION = "file:/test/deploy/test.jar";
+    private static final String TEST_CONFIGURATION_FOLDER = "file:/test/config/folder";
+    private static final String TEST_CONFIGURATION_FILE = TEST_CONFIGURATION_FOLDER + "/" + TEST_PID + ".cfg";
 
     @Mock
     private ConfigurationAdmin mockedConfigurationAdmin;
@@ -127,7 +129,7 @@ public class ConfigurationManagerImplTest {
         Dictionary<String, Object> props = propsCaptor.getValue();
         assertEquals(3, props.size());
         assertEquals(TEST_PID, props.get(Constants.SERVICE_PID));
-        assertEquals(TEST_CONFIGURATION_FOLDER + "/" + TEST_PID + ".cfg", props.get(FILENAME_KEY));
+        assertEquals(TEST_CONFIGURATION_FILE, props.get(FILENAME_KEY));
         assertEquals(TEST_VALUE_UPDATED, props.get(TEST_PROPERTY));
     }
 
@@ -151,5 +153,95 @@ public class ConfigurationManagerImplTest {
         assertEquals(TEST_PID, props.get(Constants.SERVICE_PID));
         assertEquals(TEST_BUNDLES_FOLDER + "/../configuration/" + TEST_PID + ".cfg", props.get(FILENAME_KEY));
         assertEquals(TEST_VALUE_UPDATED, props.get(TEST_PROPERTY));
+    }
+
+    @Test
+    public void testUpdateConfigurationProperties() throws IOException {
+        String key1 = "key1";
+        String value1 = "test1";
+        String key2 = "key2";
+        String value2 = "value2";
+        HashMap<String, Object> newProperties = new HashMap<>();
+        newProperties.put(key1, value1);
+        newProperties.put(key2, value2);
+        Dictionary<String, Object> props = new Hashtable<>();
+        props.put(TEST_PROPERTY, TEST_VALUE);
+
+        when(mockedConfigurationAdmin.getConfiguration(anyString())).thenReturn(mockedConfiguration);
+        when(mockedConfiguration.getProperties()).thenReturn(props);
+
+        testConfigurationManager.updateConfiguration(TEST_PID, newProperties);
+
+        verify(mockedConfigurationAdmin).getConfiguration(eq(TEST_PID));
+        verify(mockedConfiguration).getProperties();
+        verify(mockedConfiguration).update(eq(props));
+        assertEquals(3, props.size());
+        assertEquals(TEST_VALUE, props.get(TEST_PROPERTY));
+        assertEquals(value1, props.get(key1));
+        assertEquals(value2, props.get(key2));
+    }
+
+    @Test
+    public void testReplaceConfigurationProperties() throws IOException {
+        String key1 = "key1";
+        String value1 = "test1";
+        String key2 = "key2";
+        String value2 = "value2";
+        HashMap<String, Object> newProperties = new HashMap<>();
+        newProperties.put(key1, value1);
+        newProperties.put(key2, value2);
+        Dictionary<String, Object> props = new Hashtable<>();
+        props.put(TEST_PROPERTY, TEST_VALUE);
+
+        when(mockedConfigurationAdmin.getConfiguration(anyString())).thenReturn(mockedConfiguration);
+        when(mockedConfiguration.getProperties()).thenReturn(props);
+
+        testConfigurationManager.replaceConfiguration(TEST_PID, newProperties);
+
+        verify(mockedConfigurationAdmin).getConfiguration(eq(TEST_PID));
+        verify(mockedConfiguration).getProperties();
+        verify(mockedConfiguration).update(eq(props));
+        assertEquals(2, props.size());
+        assertEquals(value1, props.get(key1));
+        assertEquals(value2, props.get(key2));
+    }
+
+    @Test
+    public void testClearConfiguration() throws IOException {
+        Dictionary<String, Object> props = new Hashtable<>();
+        props.put(TEST_PROPERTY, TEST_VALUE);
+
+        when(mockedConfigurationAdmin.getConfiguration(anyString())).thenReturn(mockedConfiguration);
+        when(mockedConfiguration.getProperties()).thenReturn(props);
+
+        testConfigurationManager.clearConfiguration(TEST_PID);
+
+        verify(mockedConfigurationAdmin).getConfiguration(eq(TEST_PID));
+        verify(mockedConfiguration).getProperties();
+        verify(mockedConfiguration).update(propsCaptor.capture());
+        Dictionary<String,Object> currentProps = propsCaptor.getValue();
+        assertTrue(currentProps.isEmpty());
+    }
+
+    @Test
+    public void testClearConfigurationDoNotRemoveFileInstallProperties() throws IOException {
+        Dictionary<String, Object> props = new Hashtable<>();
+        props.put(TEST_PROPERTY, TEST_VALUE);
+        props.put(Constants.SERVICE_PID, TEST_PID);
+        props.put(FILENAME_KEY, TEST_CONFIGURATION_FILE);
+
+        when(mockedConfigurationAdmin.getConfiguration(anyString())).thenReturn(mockedConfiguration);
+        when(mockedConfiguration.getProperties()).thenReturn(props);
+
+        testConfigurationManager.clearConfiguration(TEST_PID);
+
+        verify(mockedConfigurationAdmin).getConfiguration(eq(TEST_PID));
+        verify(mockedConfiguration).getProperties();
+        verify(mockedConfiguration).update(propsCaptor.capture());
+        Dictionary<String,Object> currentProps = propsCaptor.getValue();
+        assertEquals(2, currentProps.size());
+        assertEquals(TEST_PID, currentProps.get(Constants.SERVICE_PID));
+        assertEquals(TEST_CONFIGURATION_FILE, currentProps.get(FILENAME_KEY));
+        assertNull(currentProps.get(TEST_PROPERTY));
     }
 }
