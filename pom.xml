@@ -26,10 +26,12 @@
         <mockito.version>1.10.19</mockito.version>
         <powermock.version>1.7.4</powermock.version>
 
-        <apache.felix.plugin.version>3.3.0</apache.felix.plugin.version>
+        <maven.bundle.plugin.version>3.3.0</maven.bundle.plugin.version>
         <jacoco.version>0.8.1</jacoco.version>
         <maven.surefire.plugin.version>2.22.0</maven.surefire.plugin.version>
         <maven.assembly.plugin.version>3.1.0</maven.assembly.plugin.version>
+        <maven.install.plugin.version>2.5.2</maven.install.plugin.version>
+        <maven.deploy.plugin.version>2.8.2</maven.deploy.plugin.version>
     </properties>
 
     <modules>
@@ -45,45 +47,6 @@
         <module>oda-connectors</module>
         <module>oda-demos</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>linux</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <arch>amd64</arch>
-                </os>
-            </activation>
-            <properties>
-                <arch>x86_64</arch>
-                <processor>x86-64</processor>
-                <osname>Linux</osname>
-            </properties>
-        </profile>
-        <profile>
-            <id>raspberry.pi</id>
-            <activation>
-                <os>
-                    <family>unix</family>
-                    <arch>arm</arch>
-                </os>
-            </activation>
-            <properties>
-                <arch>arm</arch>
-                <processor>ARM_le</processor>
-                <osname>Linux</osname>
-            </properties>
-        </profile>
-        <profile>
-            <id>fx30</id>
-            <properties>
-                <arch>arm</arch>
-                <processor>ARM_le</processor>
-                <osname>Linux</osname>
-            </properties>
-        </profile>
-    </profiles>
 
     <scm>
         <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
@@ -110,7 +73,8 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>${apache.felix.plugin.version}</version>
+                    <version>${maven.bundle.plugin.version}</version>
+                    <extensions>true</extensions>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -126,6 +90,16 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven.assembly.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>${maven.install.plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven.deploy.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>

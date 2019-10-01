@@ -21,26 +21,107 @@
         <openjdk.dio.version>1.1</openjdk.dio.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>fx30</id>
+            <activation>
+                <file>
+                    <exists>${user.home}/legato</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>bundle-arm</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>arm</classifier>
+                                    <instructions>
+                                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                        <Bundle-Version>${project.version}</Bundle-Version>
+                                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                        <Bundle-NativeCode>lib/libdio.so;processor=ARM_le;osname=Linux</Bundle-NativeCode>
+                                        <Export-Package>!*</Export-Package>
+                                        <Import-Package>*</Import-Package>
+                                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                                        <Embed-Dependency>dio, libdio;classifier=arm;type=so</Embed-Dependency>
+                                        <Embed-Directory>lib</Embed-Directory>
+                                        <Embed-StripVersion>true</Embed-StripVersion>
+                                    </instructions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>net.java.openjdk</groupId>
+                    <artifactId>libdio</artifactId>
+                    <classifier>arm</classifier>
+                    <type>so</type>
+                    <version>${openjdk.dio.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Bundle-NativeCode>lib/libdio.so;processor=${processor};osname=${osname}</Bundle-NativeCode>
-                        <Export-Package>!*</Export-Package>
-                        <Import-Package>*</Import-Package>
-                        <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>dio, libdio</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
-                        <Embed-StripVersion>true</Embed-StripVersion>
-                    </instructions>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-bundle</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>bundle-linux</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>x86_64</classifier>
+                            <instructions>
+                                <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                <Bundle-Version>${project.version}</Bundle-Version>
+                                <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                <Bundle-NativeCode>lib/libdio.so;processor=x86-64;osname=Linux</Bundle-NativeCode>
+                                <Export-Package>!*</Export-Package>
+                                <Import-Package>*</Import-Package>
+                                <Private-Package>${bundle.namespace}.*</Private-Package>
+                                <Embed-Dependency>dio, libdio;classifier=x86_64;type=so</Embed-Dependency>
+                                <Embed-Directory>lib</Embed-Directory>
+                                <Embed-StripVersion>true</Embed-StripVersion>
+                            </instructions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-install</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -87,7 +168,7 @@
         <dependency>
             <groupId>net.java.openjdk</groupId>
             <artifactId>libdio</artifactId>
-            <classifier>${arch}</classifier>
+            <classifier>x86_64</classifier>
             <type>so</type>
             <version>${openjdk.dio.version}</version>
             <scope>runtime</scope>
