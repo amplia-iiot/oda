@@ -1,279 +1,98 @@
 package es.amplia.oda.dispatcher.opengate;
 
-import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
-import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
-import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.Event;
-
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.*;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
-import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static es.amplia.oda.dispatcher.opengate.SchedulerImpl.*;
 
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
 public class SchedulerImplTest {
-    private static final String ID1 = "Id1";
-    private static final String ID2 = "Id2";
 
-    private static final long AT1 = 100;
-    private static final long AT2 = 200;
-    private static final Integer ID1_DEV1_VAL1 = 12;
-    private static final Integer ID1_DEV1_VAL2 = 24;
-    private static final Integer ID1_DEV2_VAL1 = 77;
-    private static final Integer ID1_DEV2_VAL2 = 88;
-    private static final String ID2_DEV2_VAL1 = "a";
-    private static final String ID2_DEV2_VAL2 = "b";
-    private static final String DEVICE1 = "Device1";
-    private static final String DEVICE2 = "Device2";
-    private static final String HOST = "host";
-    private static final String[] PATH_DEVICE1 = {"a","path"};
-    private static final String[] PATH_DEVICE1_WITH_HOST = {"host","a","path"};
-    private static final String[] PATH_DEVICE2 = {"another","path"};
-    private static final String[] PATH_DEVICE2_WITH_HOST = {"host","another","path"};
-    
-    private static final List<Event> COLLECTED_VALUES_FOR_ID1_DEV1 = Arrays.asList(
-            new Event(ID1, DEVICE1, PATH_DEVICE1, AT1, ID1_DEV1_VAL1),
-            new Event(ID1, DEVICE1, PATH_DEVICE1, AT2, ID1_DEV1_VAL2)
-    );
-    private static final List<Event> COLLECTED_VALUES_FOR_ID1_DEV2 = Arrays.asList(
-            new Event(ID1, DEVICE2, PATH_DEVICE2, AT1, ID1_DEV2_VAL1),
-            new Event(ID1, DEVICE2, PATH_DEVICE2, AT2, ID1_DEV2_VAL2)
-    );
-    private static final List<Event> COLLECTED_VALUES_FOR_ID2_DEV1 = Arrays.asList(
-            new Event(ID2, DEVICE1, PATH_DEVICE1, AT1, ID2_DEV2_VAL1),
-            new Event(ID2, DEVICE1, PATH_DEVICE1, AT2, ID2_DEV2_VAL2)
-    );
-    private static final List<Event> COLLECTED_VALUES_FOR_ID2_DEV2 = Arrays.asList(
-            new Event(ID2, DEVICE2, PATH_DEVICE2, AT1, ID2_DEV2_VAL1),
-            new Event(ID2, DEVICE2, PATH_DEVICE2, AT2, ID2_DEV2_VAL2)
-    );
+    private static final long TEST_DELAY = 30;
+    private static final long TEST_PERIOD = 6000;
+    private static final long TEST_PERIOD_ONE_SCHEDULE = 0;
 
     @Mock
-    private DeviceInfoProvider deviceInfoProvider;
+    private ScheduledExecutorService mockedExecutor;
+    private SchedulerImpl testScheduler;
+
+    @Spy
+    private ArrayList<ScheduledFuture> spiedTasks;
     @Mock
-    private EventCollector collector;
+    private Runnable mockedRunnable;
     @Mock
-    private OpenGateConnector connector;
-    @Mock
-    private Serializer serializer;
-    
-    private SchedulerImpl schedulerImpl;
+    private ScheduledFuture mockedScheduledFuture;
 
 
-    @SafeVarargs
-    private static <T> Set<T> asSet(T... ts) {
-        return new HashSet<>(Arrays.asList(ts));
-    }
-    
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        
-        schedulerImpl = new SchedulerImpl(deviceInfoProvider, collector, connector, serializer);
+        testScheduler = new SchedulerImpl(mockedExecutor);
+
+        Whitebox.setInternalState(testScheduler, "tasks", spiedTasks);
     }
 
     @Test
-    public void runForGetsValuesToSendFromCollector() {
-        schedulerImpl.runFor(asSet(ID1));
-        
-        verify(collector).getAndCleanCollectedValues(ID1);
+    public void testScheduleWithPeriod() {
+        //noinspection unchecked
+        when(mockedExecutor.scheduleAtFixedRate(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mockedScheduledFuture);
+
+        testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD);
+
+        verify(mockedExecutor).scheduleAtFixedRate(eq(mockedRunnable), eq(TEST_DELAY), eq(TEST_PERIOD), eq(TIME_UNIT));
+        verify(spiedTasks).add(eq(mockedScheduledFuture));
     }
 
     @Test
-    public void runForSendsADatastreamForEveryIdInTheParametersWithAllDatapointsRecollected() throws IOException {
-        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
-        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
-                .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
-                .datastream(ID1)
-                .datapoint(AT1, ID1_DEV1_VAL1)
-                .datapoint(AT2, ID1_DEV1_VAL2)
-                .buildCurrentList();
-        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
+    public void testScheduleWithoutPeriod() {
+        //noinspection unchecked
+        when(mockedExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mockedScheduledFuture);
 
-        when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
-        when(serializer.serialize(any())).thenReturn(testByteArray);
-        when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
+        testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD_ONE_SCHEDULE);
 
-        schedulerImpl.runFor(asSet(ID1));
-
-        verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        for (OutputDatastream os : expectedOutputStreams) {
-            verify(serializer).serialize(outputDatastreamsCaptor.capture());
-            OutputDatastream capturedDatastream = outputDatastreamsCaptor.getValue();
-            verifyEqualsOutput(os, capturedDatastream);
-        }
-        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
+        verify(mockedExecutor).schedule(eq(mockedRunnable), eq(TEST_DELAY), eq(TimeUnit.SECONDS));
+        verify(spiedTasks).add(eq(mockedScheduledFuture));
     }
 
     @Test
-    public void datastreamsOfTheSameDeviceAreJoinedInTheSameIotData() throws IOException {
-        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
-        List<OutputDatastream> expectedOutputStreams = iotDataBuilder().
-                iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
-                .datastream(ID2)
-                .datapoint(AT1, ID2_DEV2_VAL1)
-                .datapoint(AT2, ID2_DEV2_VAL2)
-                .datastream(ID1)
-                .datapoint(AT1, ID1_DEV1_VAL1)
-                .datapoint(AT2, ID1_DEV1_VAL2)
-                .buildCurrentList();
-        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
+    public void testClear() {
+        spiedTasks.add(mockedScheduledFuture);
 
-        when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
-        when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV1);
-        when(serializer.serialize(any())).thenReturn(testByteArray);
-        when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
+        testScheduler.clear();
 
-        schedulerImpl.runFor(asSet(ID1,ID2));
-
-        verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-        for (OutputDatastream os : expectedOutputStreams) {
-            verify(serializer).serialize(outputDatastreamsCaptor.capture());
-            OutputDatastream capturedDatastream = outputDatastreamsCaptor.getValue();
-            verifyEqualsOutput(os, capturedDatastream);
-        }
-        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
-        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
+        verify(mockedScheduledFuture).cancel(eq(false));
+        verify(spiedTasks).clear();
     }
-    
+
     @Test
-    public void datastreamsOfDifferentDevicesAreNotJoinedInTheSameIotData() throws IOException {
-        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
-        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
-                .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
-                .datastream(ID1)
-                .datapoint(AT1, ID1_DEV1_VAL1)
-                .datapoint(AT2, ID1_DEV1_VAL2)
-                .iotData(DEVICE2, PATH_DEVICE2_WITH_HOST)
-                .datastream(ID2)
-                .datapoint(AT1, ID2_DEV2_VAL1)
-                .datapoint(AT2, ID2_DEV2_VAL2)
-                .buildCurrentList();
-        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
+    public void testClose() throws InterruptedException {
+        testScheduler.close();
 
-        when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_DEV1);
-        when(collector.getAndCleanCollectedValues(ID2)).thenReturn(COLLECTED_VALUES_FOR_ID2_DEV2);
-        when(serializer.serialize(any())).thenReturn(testByteArray);
-        when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
-        
-        schedulerImpl.runFor(asSet(ID1,ID2));
-
-        verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-
-        verify(serializer, atLeast(1)).serialize(outputDatastreamsCaptor.capture());
-        OutputDatastream capturedDatastream;
-        for (int i = expectedOutputStreams.size() - 1; i >= 0; i--) {
-            capturedDatastream = outputDatastreamsCaptor.getValue();
-            verifyEqualsOutput(expectedOutputStreams.get(i), capturedDatastream);
-            outputDatastreamsCaptor.getAllValues().remove(i);
-        }
-        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
-        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
+        verify(mockedExecutor).shutdown();
+        verify(mockedExecutor).awaitTermination(eq(STOP_PENDING_OPERATIONS_TIMEOUT), eq(TIME_UNIT));
     }
-    
+
     @Test
-    public void ifThereAreNoCollectedValuesForAnId_NothingIsSent() {
-        when(collector.getAndCleanCollectedValues(ID1)).thenReturn(null);
-        
-        schedulerImpl.runFor(asSet(ID1));
-        
-        verify(connector, never()).uplink(any());
-    }
-    
-    @Test
-    public void datapointsOfDifferentDevicesAreSentInDifferentMessages() throws IOException {
-        List<Event> COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2 = new ArrayList<>();
-        COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2.addAll(COLLECTED_VALUES_FOR_ID1_DEV1);
-        COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2.addAll(COLLECTED_VALUES_FOR_ID1_DEV2);
-        byte[] testByteArray = { 0x1, 0x2, 0x3, 0x4 };
+    public void testCloseWithInterruptedExceptionIsCaught() throws InterruptedException {
+        when(mockedExecutor.awaitTermination(anyLong(), any(TimeUnit.class))).thenThrow(new InterruptedException());
 
-        List<OutputDatastream> expectedOutputStreams = iotDataBuilder()
-                .iotData(DEVICE1, PATH_DEVICE1_WITH_HOST)
-                .datastream(ID1)
-                .datapoint(AT1, ID1_DEV1_VAL1)
-                .datapoint(AT2, ID1_DEV1_VAL2)
-                .iotData(DEVICE2, PATH_DEVICE2_WITH_HOST)
-                .datastream(ID1)
-                .datapoint(AT1, ID1_DEV2_VAL1)
-                .datapoint(AT2, ID1_DEV2_VAL2)
-                .buildCurrentList();
-        ArgumentCaptor<OutputDatastream> outputDatastreamsCaptor = ArgumentCaptor.forClass(OutputDatastream.class);
+        testScheduler.close();
 
-        when(collector.getAndCleanCollectedValues(ID1)).thenReturn(COLLECTED_VALUES_FOR_ID1_FOR_DEV1_AND_DEV2);
-        when(deviceInfoProvider.getDeviceId()).thenReturn(HOST);
-        when(serializer.serialize(any())).thenReturn(testByteArray);
-
-        schedulerImpl.runFor(asSet(ID1));
-
-        verify(deviceInfoProvider, atLeastOnce()).getDeviceId();
-
-
-        verify(serializer, atLeast(1)).serialize(outputDatastreamsCaptor.capture());
-        OutputDatastream capturedDatastream;
-        for (int i = expectedOutputStreams.size() - 1; i >= 0; i--) {
-            capturedDatastream = outputDatastreamsCaptor.getValue();
-            verifyEqualsOutput(expectedOutputStreams.get(i), capturedDatastream);
-            outputDatastreamsCaptor.getAllValues().remove(i);
-        }
-        verify(serializer, times(expectedOutputStreams.size())).serialize(any());
-        verify(connector, times(expectedOutputStreams.size())).uplink(eq(testByteArray));
-    }
-    
-    private IotDataBuilderT iotDataBuilder() {
-        return new IotDataBuilderT();
-    }
-    
-    private class IotDataBuilderT {
-        private final List<OutputDatastream> currentList = new ArrayList<>();
-        private OutputDatastream currentIotData;
-        private Datastream currentDatastream;
-        
-        IotDataBuilderT iotData(String device, String[] path) {
-            currentIotData = new OutputDatastream(OPENGATE_VERSION, device, path, new HashSet<>());
-            currentList.add(currentIotData);
-            return this;
-        }
-
-        IotDataBuilderT datastream(String id) {
-            currentDatastream = new Datastream(id, new HashSet<>());
-            currentIotData.getDatastreams().add(currentDatastream);
-            return this;
-        }
-
-        IotDataBuilderT datapoint(long at, Object value) {
-            currentDatastream.getDatapoints().add(new Datapoint(at, value));
-            return this;
-        }
-
-        List<OutputDatastream> buildCurrentList() {
-            return currentList;
-        }
-    }
-
-    private void verifyEqualsOutput(OutputDatastream os, OutputDatastream capturedDatastream) {
-        assertEquals(os.getDevice(), capturedDatastream.getDevice());
-        assertEquals(os.getVersion(), capturedDatastream.getVersion());
-        assertArrayEquals(os.getPath(), capturedDatastream.getPath());
-        for (Iterator it1 = os.getDatastreams().iterator(), it2 = capturedDatastream.getDatastreams().iterator();
-             it1.hasNext() && it2.hasNext(); ) {
-            Datastream d1 = (Datastream) it1.next();
-            Datastream d2 = (Datastream) it2.next();
-            assertEquals(d1.getId(), d2.getId());
-            for (Iterator it3 = d1.getDatapoints().iterator(), it4 = d2.getDatapoints().iterator();
-                 it3.hasNext() && it4.hasNext(); ) {
-                Datapoint dp1 = (Datapoint) it3.next();
-                Datapoint dp2 = (Datapoint) it4.next();
-                assertEquals(dp1.getAt(), dp2.getAt());
-                assertEquals(dp1.getValue(), dp2.getValue());
-            }
-        }
+        verify(mockedExecutor).shutdown();
+        verify(mockedExecutor).awaitTermination(eq(STOP_PENDING_OPERATIONS_TIMEOUT), eq(TIME_UNIT));
     }
 }

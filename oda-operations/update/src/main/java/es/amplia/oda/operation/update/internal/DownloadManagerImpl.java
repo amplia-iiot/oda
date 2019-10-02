@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -102,13 +103,15 @@ public class DownloadManagerImpl implements DownloadManager {
 
     @Override
     public void deleteDownloadedFiles() {
-        downloadedFiles.values().forEach(downloadedFile -> {
-            try {
-                fileManager.delete(downloadedFile);
-            } catch (FileException exception) {
-                logger.warn("Can not delete downloaded file {}: {}", downloadedFile, exception.getMessage());
-            }
-        });
+        downloadedFiles.values().stream()
+                .filter(Objects::nonNull)
+                .forEach(downloadedFile -> {
+                    try {
+                        fileManager.delete(downloadedFile);
+                    } catch (FileException exception) {
+                        logger.warn("Can not delete downloaded file {}: {}", downloadedFile, exception.getMessage());
+                    }
+                });
         downloadedFiles.clear();
     }
 }

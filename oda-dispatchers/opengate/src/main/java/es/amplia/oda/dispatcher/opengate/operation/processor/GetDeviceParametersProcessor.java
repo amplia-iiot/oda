@@ -62,8 +62,7 @@ class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse,
-                                               Set<String> params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, Set<String> params) {
         return operationGetDeviceParameters.getDeviceParameters(deviceIdForOperations, params);
     }
 

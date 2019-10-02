@@ -44,7 +44,7 @@ class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Resul
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse, String params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String params) {
         return operationSynchronizeClock.synchronizeClock(deviceIdForOperations, params);
     }
 

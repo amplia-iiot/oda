@@ -2,35 +2,43 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
+import es.amplia.oda.event.api.EventDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherConfigurationUpdateHandler.class);
 
-    private final ScheduledExecutorService executor;
-    private final OpenGateEventDispatcher eventDispatcher;
+    static final String REDUCED_OUTPUT_PROPERTY_NAME = "reducedOutput";
+
+
+    private final EventDispatcherFactory eventDispatcherFactory;
     private final Scheduler scheduler;
+    private final ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager;
 
-    private final Map<DispatchConfiguration, Set<String>> currentConfiguration = new HashMap<>();
-    private final List<ScheduledFuture> configuredTasks = new ArrayList<>();
+    private final Map<DispatcherConfiguration, Set<String>> currentConfiguration = new HashMap<>();
+    private boolean reducedOutput = false;
 
-    DispatcherConfigurationUpdateHandler(ScheduledExecutorService executor, OpenGateEventDispatcher eventDispatcher,
-                                         Scheduler scheduler) {
-        this.executor = executor;
-        this.eventDispatcher = eventDispatcher;
+
+    DispatcherConfigurationUpdateHandler(EventDispatcherFactory eventDispatcherFactory, Scheduler scheduler,
+                                         ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager) {
+        this.eventDispatcherFactory = eventDispatcherFactory;
         this.scheduler = scheduler;
+        this.eventDispatcherRegistrationManager = eventDispatcherRegistrationManager;
     }
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
         LOGGER.info("OpenGate Dispatcher updated with {} properties", props.size());
+
+        String reducedOutputProperty = (String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME);
+        if (reducedOutputProperty != null) {
+            reducedOutput = Boolean.parseBoolean(reducedOutputProperty);
+        }
 
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {
@@ -43,7 +51,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
 
     private void parseDispatchConfiguration(String key, String value) {
         try {
-            String[] valueFields = value.split("\\s*(;\\s*)");
+            String[] valueFields = value.split(";");
             long secondsFirstDispatch;
             long secondsBetweenDispatches;
             if (valueFields.length == 1) {
@@ -53,15 +61,18 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
                 secondsFirstDispatch = Long.parseLong(valueFields[0]);
                 secondsBetweenDispatches = Long.parseLong(valueFields[1]);
             }
-            add(new DispatchConfiguration(secondsFirstDispatch, secondsBetweenDispatches), key);
+            add(new DispatcherConfiguration(secondsFirstDispatch, secondsBetweenDispatches), key);
         } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
             LOGGER.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
         }
     }
 
-    private void add(DispatchConfiguration dispatchConfiguration, String id) {
-        Set<String> set = currentConfiguration.computeIfAbsent(dispatchConfiguration, k -> new HashSet<>());
-        set.add(id);
+    private void add(DispatcherConfiguration dispatcherConfiguration, String datastream) {
+        currentConfiguration.merge(dispatcherConfiguration, Collections.singleton(datastream), (d1, d2) -> {
+            Set<String> jointSet = new HashSet<>(d1);
+            jointSet.addAll(d2);
+            return jointSet;
+        });
     }
 
     @Override
@@ -73,18 +84,26 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
     public void applyConfiguration() {
         LOGGER.info("Applying new OpenGate Dispatcher configuration");
 
-        configuredTasks.forEach(task -> task.cancel(false));
-        configuredTasks.clear();
+        LOGGER.info("Clear scheduled tasks and last configuration");
+        scheduler.clear();
+        eventDispatcherRegistrationManager.unregister();
 
-        eventDispatcher.setDatastreamIdsConfigured(currentConfiguration.values());
+        EventCollector eventCollector = eventDispatcherFactory.createEventCollector(reducedOutput);
+        eventCollector.loadDatastreamIdsToCollect(getDatastreamIds(currentConfiguration));
 
-        currentConfiguration.forEach((conf, ids) -> {
-            LOGGER.debug("Schedule of '{}' to dispatch starting in {} seconds and every {} seconds", ids,
-                    conf.getSecondsFirstDispatch(), conf.getSecondsBetweenDispatches());
-            ScheduledFuture dispatchTask =
-                    executor.scheduleAtFixedRate(() -> scheduler.runFor(ids), conf.getSecondsFirstDispatch(),
-                    conf.getSecondsBetweenDispatches(), TimeUnit.SECONDS);
-            configuredTasks.add(dispatchTask);
+        currentConfiguration.forEach((conf, datastreams) -> {
+            LOGGER.debug("Scheduling dispatch of datastreams '{}' with initial delay {} and every {} seconds",
+                    datastreams, conf.getInitialDelay(), conf.getPeriod());
+            scheduler.schedule(() -> eventCollector.publishCollectedEvents(datastreams), conf.getInitialDelay(),
+                    conf.getPeriod());
         });
+
+        eventDispatcherRegistrationManager.register(eventCollector);
+    }
+
+    private Collection<String> getDatastreamIds(Map<DispatcherConfiguration, Set<String>> configuration) {
+        Collection<String> datastreamIds = new HashSet<>();
+        configuration.forEach((conf, datastreams) -> datastreamIds.addAll(datastreams));
+        return datastreamIds;
     }
 }

@@ -14,12 +14,10 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
@@ -35,6 +33,8 @@ public class MqttConnectorTest {
     private static final String TEST_RESPONSE_TOPIC = "response/topic";
     private static final int TEST_QOS = 2;
     private static final boolean TEST_RETAINED = false;
+    private static final int TEST_INITIAL_DELAY = 1;
+    private static final int TEST_RETRY_DELAY = 10;
 
     private static final String TEST_TOPIC = "test/topic";
     private static final byte[] TEST_PAYLOAD = new byte[] { 1, 2, 3, 4 };
@@ -73,7 +73,8 @@ public class MqttConnectorTest {
     public void testLoadConfigurationAndInitWithOldClientConfigured() throws MqttException {
         MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
-                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED);
+                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
         MqttClient newMockedClient = mock(MqttClient.class);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
@@ -82,19 +83,40 @@ public class MqttConnectorTest {
 
         verify(mockedMqttClient).disconnect();
         verify(mockedFactory).createMqttClient(eq(TEST_BROKER_URL), eq(TEST_CLIENT_ID));
-        verify(newMockedClient).connect(eq(testOptions));
-        verify(newMockedClient).subscribe(eq(TEST_REQUEST_TOPIC), eq(testConnector));
+        verifyConnection(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1);
         assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
         assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
         assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
     }
 
+    private void verifyConnection(MqttConnectOptions testOptions, MqttClient newMockedClient, long delay) {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        ScheduledFuture<?> scheduledFuture = executor.schedule(() -> {
+            try {
+                verify(newMockedClient).connect(eq(testOptions));
+                verify(newMockedClient).subscribe(eq(TEST_REQUEST_TOPIC), eq(testConnector));
+            } catch (MqttException e) {
+                fail("Exception verifying connection: " + e);
+            }
+        }, delay, TimeUnit.SECONDS);
+
+        try {
+            scheduledFuture.get();
+        } catch (InterruptedException e) {
+            fail("Exception waiting for connection verification: Timeout reached");
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            fail("Exception waiting for connection verification: Timeout reached");
+        }
+    }
+
     @Test
     public void testLoadConfigurationAndInitWithNoClientConfigured() throws MqttException {
         MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
-                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED);
+                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
         MqttClient newMockedClient = mock(MqttClient.class);
 
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
@@ -103,12 +125,56 @@ public class MqttConnectorTest {
 
         testConnector.loadConfigurationAndInit(testConfiguration);
 
-        verify(newMockedClient).connect(eq(testOptions));
-        verify(newMockedClient).subscribe(eq(TEST_REQUEST_TOPIC), eq(testConnector));
+        verifyConnection(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1);
         assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
         assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
         assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
+    }
+
+    @Test
+    public void testLoadConfigurationAndInitWithNoClientConfiguredRetry() throws MqttException {
+        MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
+        ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
+                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
+        MqttClient newMockedClient = mock(MqttClient.class);
+
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+
+        when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
+        doThrow(new MqttException("")).when(newMockedClient).connect(any(MqttConnectOptions.class));
+
+        testConnector.loadConfigurationAndInit(testConfiguration);
+
+        verifyConnectionRetry(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1, TEST_RETRY_DELAY + 1);
+        assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
+        assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
+        assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
+        assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
+    }
+
+    private void verifyConnectionRetry(MqttConnectOptions testOptions, MqttClient newMockedClient, long initialDelay, long retryDelay) {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        ScheduledFuture<?> scheduledFuture = executor.schedule(() -> {
+            try {
+                verify(newMockedClient).connect(eq(testOptions));
+            } catch (MqttException e) {
+                fail("Exception verifying connection: " + e);
+            }
+        }, initialDelay, TimeUnit.SECONDS);
+
+        try {
+            scheduledFuture.get();
+        } catch (InterruptedException e) {
+            fail("Exception waiting for connection verification: Timeout reached");
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            fail("Exception waiting for connection verification: Timeout reached");
+        }
+
+        reset(newMockedClient);
+        verifyConnection(testOptions, newMockedClient, retryDelay + 1);
     }
 
     @Test
@@ -215,6 +281,8 @@ public class MqttConnectorTest {
         Whitebox.setInternalState(testConnector, "client", null);
 
         testConnector.close();
+
+        assertTrue("No exception is thrown", true);
     }
 
     @Test

@@ -1,6 +1,8 @@
 package es.amplia.oda.operation.update;
 
 import es.amplia.oda.operation.api.OperationUpdate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,6 +15,9 @@ import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.InstallManager.InstallException;
 
 class OperationUpdateImpl implements OperationUpdate {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OperationUpdateImpl.class);
+
 
     class UpdateOperationException extends Exception {
         UpdateOperationException(String message) {
@@ -47,7 +52,12 @@ class OperationUpdateImpl implements OperationUpdate {
             endUpdate(result);
         } catch (UpdateOperationException exception) {
             result = rollback(deploymentElements, exception.getMessage(), result);
-        } finally {
+        } catch (Exception e) {
+            String cause = "Unknown exception making update operation";
+            LOGGER.error(cause, e);
+            result = new Result(OperationResultCodes.ERROR_PROCESSING, cause, result.getSteps());
+        }
+        finally {
             cleanResources();
         }
 

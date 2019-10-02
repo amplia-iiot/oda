@@ -76,12 +76,22 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
         configuredTasks.forEach(task -> task.cancel(false));
         configuredTasks.clear();
         currentConfiguration.forEach((poll, ids) ->{
-            LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' starting in {} seconds and every {} seconds",
-                    ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll(), poll.getSecondsBetweenPolls());
-            ScheduledFuture pollTask =
-                    executor.scheduleWithFixedDelay(() ->
-                            poller.runFor(poll.getDeviceIdPattern(), ids), poll.getSecondsFirstPoll(),
-                                            poll.getSecondsBetweenPolls(), TimeUnit.SECONDS);
+            ScheduledFuture pollTask;
+            if(poll.getSecondsBetweenPolls() == 0) {
+                LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' only one time in {} seconds",
+                        ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll());
+                pollTask =
+                        executor.schedule(() ->
+                                        poller.runFor(poll.getDeviceIdPattern(), ids), poll.getSecondsFirstPoll(),
+                                TimeUnit.SECONDS);
+            } else {
+                LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' starting in {} seconds and every {} seconds",
+                        ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll(), poll.getSecondsBetweenPolls());
+                pollTask =
+                        executor.scheduleWithFixedDelay(() ->
+                                        poller.runFor(poll.getDeviceIdPattern(), ids), poll.getSecondsFirstPoll(),
+                                poll.getSecondsBetweenPolls(), TimeUnit.SECONDS);
+            }
             configuredTasks.add(pollTask);
         });
     }

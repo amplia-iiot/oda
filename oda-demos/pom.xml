@@ -9,8 +9,9 @@
     <name>OpenGate Device Agent Demos</name>
     <description>Demos of the OpenGate Device Agent</description>
     <modules>
-        <module>assembler</module>
-        <module>coapagentassembler</module>
+        <module>mqtt</module>
+        <module>fx30-mqtt</module>
+        <module>coap</module>
     </modules>
 
     <parent>
@@ -18,4 +19,89 @@
         <groupId>es.amplia.oda</groupId>
         <version>3.25.1-SNAPSHOT</version>
     </parent>
+
+    <properties>
+        <felix.framework.version>6.0.1</felix.framework.version>
+        <felix.configadmin.version>1.8.16</felix.configadmin.version>
+        <felix.eventadmin.version>1.5.0</felix.eventadmin.version>
+        <felix.fileinstall.version>3.6.0</felix.fileinstall.version>
+        <felix.gogo.runtime>1.1.0</felix.gogo.runtime>
+        <felix.gogo.command>1.0.2</felix.gogo.command>
+        <jansi.version>1.17.1</jansi.version>
+        <jline.version>3.7.0</jline.version>
+        <felix.gogo.jline>1.1.0</felix.gogo.jline>
+        <felix.log.version>1.2.0</felix.log.version>
+        <logback.version>1.2.3</logback.version>
+        <felix.logback.version>1.0.0</felix.logback.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.main</artifactId>
+                <version>${felix.framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.configadmin</artifactId>
+                <version>${felix.configadmin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.eventadmin</artifactId>
+                <version>${felix.eventadmin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.fileinstall</artifactId>
+                <version>${felix.fileinstall.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.gogo.runtime</artifactId>
+                <version>${felix.gogo.runtime}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.gogo.command</artifactId>
+                <version>${felix.gogo.command}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fusesource.jansi</groupId>
+                <artifactId>jansi</artifactId>
+                <version>${jansi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jline</groupId>
+                <artifactId>jline</artifactId>
+                <version>${jline.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.gogo.jline</artifactId>
+                <version>${felix.gogo.jline}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.log</artifactId>
+                <version>${felix.log.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.logback</artifactId>
+                <version>${felix.logback.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

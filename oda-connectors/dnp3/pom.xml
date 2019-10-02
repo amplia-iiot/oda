@@ -15,37 +15,159 @@
     </parent>
 
     <properties>
-        <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
+        <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
         <opendnp3.version>2.2.0</opendnp3.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>fx30</id>
+            <activation>
+                <file>
+                    <exists>${user.home}/legato</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>bundle-arm</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>arm</classifier>
+                                    <instructions>
+                                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                        <Bundle-Version>${project.version}</Bundle-Version>
+                                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                        <Bundle-NativeCode>
+                                            lib/libopenpal.so;lib/libopendnp3.so;lib/libasiopal.so;lib/libasiodnp3.so;
+                                            lib/libopendnp3java.so;processor=ARM_le;osname=Linux
+                                        </Bundle-NativeCode>
+                                        <Export-Package>!*</Export-Package>
+                                        <Import-Package>!org.apache.log,*</Import-Package>
+                                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                                        <Embed-Dependency>
+                                            opendnp3-bindings, libopendnp3java;classifier=arm;type=so,
+                                            libasiopal;classifier=arm;type=so, libasiodnp3;classifier=arm;type=so,
+                                            libopenpal;classifier=arm;type=so, libopendnp3;classifier=arm;type=so
+                                        </Embed-Dependency>
+                                        <Embed-Directory>lib</Embed-Directory>
+                                        <Embed-StripVersion>true</Embed-StripVersion>
+                                    </instructions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.automatak.dnp3</groupId>
+                    <artifactId>libopendnp3java</artifactId>
+                    <version>${opendnp3.version}</version>
+                    <type>so</type>
+                    <classifier>arm</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.automatak.dnp3</groupId>
+                    <artifactId>libasiopal</artifactId>
+                    <version>${opendnp3.version}</version>
+                    <type>so</type>
+                    <classifier>arm</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.automatak.dnp3</groupId>
+                    <artifactId>libasiodnp3</artifactId>
+                    <version>${opendnp3.version}</version>
+                    <type>so</type>
+                    <classifier>arm</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.automatak.dnp3</groupId>
+                    <artifactId>libopenpal</artifactId>
+                    <version>${opendnp3.version}</version>
+                    <type>so</type>
+                    <classifier>arm</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.automatak.dnp3</groupId>
+                    <artifactId>libopendnp3</artifactId>
+                    <version>${opendnp3.version}</version>
+                    <type>so</type>
+                    <classifier>arm</classifier>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${bundle.symbolic.name}</Bundle-SymbolicName>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Bundle-NativeCode>
-                            lib/libopenpal.so;lib/libopendnp3.so;lib/libasiopal.so;lib/libasiodnp3.so;
-                            lib/libopendnp3java.so;osname=linux;processor=arm_le
-                        </Bundle-NativeCode>
-                        <Export-Package>!*</Export-Package>
-                        <Import-Package>!org.apache.log,*</Import-Package>
-                        <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>
-                            opendnp3-bindings, libopendnp3java, libasiopal, libasiodnp3, libopenpal, libopendnp3
-                        </Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
-                        <Embed-StripVersion>true</Embed-StripVersion>
-                    </instructions>
-                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-bundle</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>bundle-linux</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>x86_64</classifier>
+                            <instructions>
+                                <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                <Bundle-Version>${project.version}</Bundle-Version>
+                                <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                <Bundle-NativeCode>
+                                    lib/libopenpal.so;lib/libopendnp3.so;lib/libasiopal.so;lib/libasiodnp3.so;
+                                    lib/libopendnp3java.so;processor=x86-64;osname=Linux
+                                </Bundle-NativeCode>
+                                <Export-Package>!*</Export-Package>
+                                <Import-Package>!org.apache.log,*</Import-Package>
+                                <Private-Package>${bundle.namespace}.*</Private-Package>
+                                <Embed-Dependency>
+                                    opendnp3-bindings, libopendnp3java;classifier=x86_64;type=so,
+                                    libasiopal;classifier=x86_64;type=so, libasiodnp3;classifier=x86_64;type=so,
+                                    libopenpal;classifier=x86_64;type=so, libopendnp3;classifier=x86_64;type=so
+                                </Embed-Dependency>
+                                <Embed-Directory>lib</Embed-Directory>
+                                <Embed-StripVersion>true</Embed-StripVersion>
+                            </instructions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-install</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -94,7 +216,7 @@
             <artifactId>libopendnp3java</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>x86_64</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -102,7 +224,7 @@
             <artifactId>libasiopal</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>x86_64</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -110,7 +232,7 @@
             <artifactId>libasiodnp3</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>x86_64</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -118,7 +240,7 @@
             <artifactId>libopenpal</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>x86_64</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -126,7 +248,7 @@
             <artifactId>libopendnp3</artifactId>
             <version>${opendnp3.version}</version>
             <type>so</type>
-            <classifier>arm</classifier>
+            <classifier>x86_64</classifier>
             <scope>runtime</scope>
         </dependency>
         <dependency>

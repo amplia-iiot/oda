@@ -32,7 +32,7 @@ class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse, Void params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, Void params) {
         return operationRefreshInfo.refreshInfo(deviceIdForOperations);
     }
 

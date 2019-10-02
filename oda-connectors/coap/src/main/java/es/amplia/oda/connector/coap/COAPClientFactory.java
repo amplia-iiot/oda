@@ -6,7 +6,9 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.connector.coap.at.ATUDPConnector;
 import es.amplia.oda.connector.coap.configuration.ConnectorConfiguration;
 
+import org.eclipse.californium.core.CaliforniumLogger;
 import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Option;
 import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.network.CoapEndpoint;
@@ -45,6 +47,7 @@ class COAPClientFactory {
     COAPClientFactory(DeviceInfoProvider deviceInfoProvider, ATManager atManager) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.atManager = atManager;
+        CaliforniumLogger.disableLogging();
     }
 
     CoapClient createClient(ConnectorConfiguration configuration) {
@@ -55,6 +58,7 @@ class COAPClientFactory {
                                 .create();
         Connector connector = createConnectorFromConfiguration(configuration);
         Endpoint endpoint = new CoapEndpoint(connector, NetworkConfig.getStandard());
+        endpoint.addInterceptor(new MessageLoggerInterceptor());
         client.setEndpoint(endpoint);
         client.setTimeout(configuration.getTimeout() * MS_PER_SECOND);
 
@@ -122,9 +126,10 @@ class COAPClientFactory {
         }
 
         return new OptionSet()
+                .setContentFormat(MediaTypeRegistry.APPLICATION_JSON)
                 .addOption(new Option(API_KEY_OPTION_NUMBER, apiKey))
                 .addOption(new Option(DEVICE_ID_OPTION_NUMBER, deviceId))
                 .addOption(new Option(MESSAGE_PROTOCOL_VERSION_OPTION_NUMBER,
-                                      configuration.getMessageProtocolVersion()));
+                        configuration.getMessageProtocolVersion()));
     }
 }

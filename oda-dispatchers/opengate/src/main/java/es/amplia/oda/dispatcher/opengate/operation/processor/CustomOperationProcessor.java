@@ -53,8 +53,7 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse,
-                                               Map<String, Object> params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, Map<String, Object> params) {
         return operationServiceLocator.findAll().stream()
                 .filter(operation -> customOperationName.equals(operation.getOperationSatisfied()))
                 .findFirst()

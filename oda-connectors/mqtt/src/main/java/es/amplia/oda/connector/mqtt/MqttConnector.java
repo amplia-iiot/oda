@@ -8,7 +8,7 @@ import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 public class MqttConnector implements MqttMessageListener, OpenGateConnector, AutoCloseable {
 
@@ -23,6 +23,9 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     private boolean retained;
     private MqttClient client;
 
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> scheduledFuture;
+
     MqttConnector(MqttClientFactory mqttClientFactory, Dispatcher dispatcher) {
         this.mqttClientFactory = mqttClientFactory;
         this.dispatcher = dispatcher;
@@ -34,14 +37,24 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         close();
         client = mqttClientFactory.createMqttClient(connectorConfiguration.getBrokerUrl(),
                 connectorConfiguration.getClientId());
-        client.connect(connectorConfiguration.getConnectOptions());
-        client.subscribe(connectorConfiguration.getRequestTopic(), this);
-        LOGGER.info("Reconnected to {} as {} for topic {}", connectorConfiguration.getBrokerUrl(),
-                connectorConfiguration.getClientId(), connectorConfiguration.getRequestTopic());
+        scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(connectorConfiguration),
+                connectorConfiguration.getInitialDelay(), connectorConfiguration.getRetryDelay(), TimeUnit.SECONDS);
         this.iotTopic = connectorConfiguration.getIotTopic();
         this.responseTopic = connectorConfiguration.getResponseTopic();
         this.qos = connectorConfiguration.getQos();
         this.retained = connectorConfiguration.isRetained();
+    }
+
+    private void connect(ConnectorConfiguration configuration) {
+        try {
+            client.connect(configuration.getConnectOptions());
+            client.subscribe(configuration.getRequestTopic(), this);
+            scheduledFuture.cancel(false);
+            LOGGER.info("Reconnected to {} as {} for topic {}", configuration.getBrokerUrl(),
+                    configuration.getClientId(), configuration.getRequestTopic());
+        } catch (MqttException e) {
+            LOGGER.error("Error connecting through MQTT with configuration {}", configuration, e);
+        }
     }
 
     @Override
@@ -85,6 +98,9 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     @Override
     public void close() {
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+        }
         if (client == null) {
             return;
         }

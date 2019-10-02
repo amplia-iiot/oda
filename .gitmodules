@@ -1,0 +1,3 @@
+[submodule "oda-externaldependencies"]
+	path = oda-externaldependencies
+	url = git@github.com:amplia-iiot/oda-externaldependencies.git

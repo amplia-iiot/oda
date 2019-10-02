@@ -94,7 +94,7 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String deviceIdForResponse, Long params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, Long params) {
         return operationSetClock.setClock(deviceIdForOperations, params);
     }
 

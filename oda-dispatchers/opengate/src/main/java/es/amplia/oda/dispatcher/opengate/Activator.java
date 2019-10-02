@@ -4,9 +4,8 @@ import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
-import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.Serializers;
+import es.amplia.oda.core.commons.utils.*;
+import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
 import es.amplia.oda.event.api.EventDispatcher;
 
@@ -18,14 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private static final int NUM_THREADS = 10;
-    static final long STOP_PENDING_OPERATIONS_TIMEOUT = 10;
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
 
@@ -34,10 +31,11 @@ public class Activator implements BundleActivator {
     private OpenGateOperationProcessorFactory factory;
 
     private OpenGateConnectorProxy connector;
+    private Scheduler scheduler;
+    private ServiceRegistrationManager<EventDispatcher> eventDispatcherServiceRegistrationManager;
     private ConfigurableBundle configurableBundle;
 
     private ServiceRegistration<Dispatcher> operationDispatcherRegistration;
-    private ServiceRegistration<EventDispatcher> eventDispatcherRegistration;
 
 
     @Override
@@ -52,12 +50,14 @@ public class Activator implements BundleActivator {
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
         connector = new OpenGateConnectorProxy(bundleContext);
-        OpenGateEventDispatcher eventDispatcher = new OpenGateEventDispatcher(deviceInfoProvider, serializer, connector);
-        eventDispatcherRegistration = bundleContext.registerService(EventDispatcher.class, eventDispatcher, null);
-
-        Scheduler scheduler = new SchedulerImpl(deviceInfoProvider, eventDispatcher, connector, serializer);
+        EventDispatcherFactory eventDispatcherFactory =
+                new EventDispatcherFactoryImpl(deviceInfoProvider, serializer, connector);
+        scheduler = new SchedulerImpl(executor);
+        eventDispatcherServiceRegistrationManager =
+                new ServiceRegistrationManagerOsgi<>(bundleContext, EventDispatcher.class);
         DispatcherConfigurationUpdateHandler configHandler =
-                new DispatcherConfigurationUpdateHandler(executor, eventDispatcher, scheduler);
+                new DispatcherConfigurationUpdateHandler(eventDispatcherFactory, scheduler,
+                        eventDispatcherServiceRegistrationManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         
         LOGGER.info("OpenGate Dispatcher started");
@@ -67,9 +67,9 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext bundleContext) {
         LOGGER.info("Stopping OpenGate Json Dispatcher");
 
-        eventDispatcherRegistration.unregister();
         configurableBundle.close();
-        stopPendingOperations();
+        eventDispatcherServiceRegistrationManager.unregister();
+        scheduler.close();
         connector.close();
 
         operationDispatcherRegistration.unregister();
@@ -78,16 +78,5 @@ public class Activator implements BundleActivator {
         factory.close();
 
         LOGGER.info("OpenGate Dispatcher stopped");
-    }
-    
-    private void stopPendingOperations() {
-        executor.shutdown();
-        try {
-            executor.awaitTermination(STOP_PENDING_OPERATIONS_TIMEOUT, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            LOGGER.error("The shutdown of the pool of threads took longer than {} seconds: {}",
-                    STOP_PENDING_OPERATIONS_TIMEOUT, e);
-            Thread.currentThread().interrupt();
-        }
     }
 }
