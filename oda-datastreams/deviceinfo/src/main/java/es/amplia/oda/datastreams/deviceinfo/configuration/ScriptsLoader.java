@@ -19,9 +19,9 @@ public class ScriptsLoader implements AutoCloseable{
 		commander = commandProcessor;
 	}
 
-	void load(String path) throws CommandExecutionException, IOException {
+	void load(String source, String path) throws CommandExecutionException, IOException {
 		this.path = path;
-		File file = new File("deploy");
+		File file = new File(source);
 		File[] files = file.listFiles();
 		String jarToExtract = null;
 
@@ -36,7 +36,7 @@ public class ScriptsLoader implements AutoCloseable{
 			if(!tmpDir.exists()) {
 				commander.execute("mkdir " + path);
 			}
-			commander.execute("cp deploy/" + jarToExtract + " scripts/");
+			commander.execute("cp " + source + "/" + jarToExtract + " scripts/");
 			try (JarFile jar = new JarFile(path + "/" + jarToExtract)) {
 				Enumeration enumEntries = jar.entries();
 				while (enumEntries.hasMoreElements()) {

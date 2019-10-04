@@ -14,10 +14,12 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoConfigurationHandler.class);
 
+
     static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
     static final String API_KEY_PROPERTY_NAME = "apiKey";
-    static final String SERIAL_NUMBER_COMMAND_PROPERTY_NAME = "serialNumberCommand";
+    static final String SOURCE_PROPERTY_NAME = "source";
     static final String PATH_PROPERTY_NAME = "path";
+
 
     private final DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter;
     private final ScriptsLoader scriptsLoader;
@@ -33,26 +35,26 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
     public void loadConfiguration(Dictionary<String, ?> props) {
         String deviceId = (String) props.get(DEVICE_ID_PROPERTY_NAME);
         String apiKey = (String) props.get(API_KEY_PROPERTY_NAME);
-        String serialNumberCommand = (String) props.get(SERIAL_NUMBER_COMMAND_PROPERTY_NAME);
+        String source = (String) props.get(SOURCE_PROPERTY_NAME);
         String path = (String) props.get(PATH_PROPERTY_NAME);
 
         if (apiKey == null) {
             throw new ConfigurationException("Missing required field \"apiKey\"");
         }
-        if (serialNumberCommand == null) {
+        if (source == null) {
             throw new ConfigurationException("Missing required field \"serialNumberCommand\"");
         }
         if (path == null) {
             throw new ConfigurationException("Missing required field \"path\"");
         }
 
-        currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, serialNumberCommand, path);
+        currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, source, path);
     }
 
     @Override
     public void applyConfiguration() {
         try {
-            scriptsLoader.load(currentConfiguration.getPath());
+            scriptsLoader.load(currentConfiguration.getSource(), currentConfiguration.getPath());
             deviceInfoDatastreamsGetter.loadConfiguration(currentConfiguration);
         } catch (CommandExecutionException | IOException e) {
             LOGGER.error(e.getMessage());

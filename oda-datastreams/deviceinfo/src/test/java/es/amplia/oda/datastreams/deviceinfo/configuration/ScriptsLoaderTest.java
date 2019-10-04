@@ -63,7 +63,7 @@ public class ScriptsLoaderTest {
 		when(mockedInputStream.available()).thenReturn(1, 0);
 		when(mockedInputStream.read()).thenReturn(0);
 
-		scriptsLoader.load("tests");
+		scriptsLoader.load("deploy", "tests");
 
 		assertTrue(result.length() > init);
 		result.delete();
@@ -77,7 +77,7 @@ public class ScriptsLoaderTest {
 		when(mockedFile.listFiles()).thenReturn(files);
 		when(mockedFile.getName()).thenReturn("another.package");
 
-		scriptsLoader.load("tests");
+		scriptsLoader.load("deploy", "tests");
 	}
 
 	@Test
