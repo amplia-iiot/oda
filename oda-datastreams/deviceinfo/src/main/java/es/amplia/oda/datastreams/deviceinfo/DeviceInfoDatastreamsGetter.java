@@ -48,6 +48,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     static final String RAM_USAGE_SCRIPT = "obtainRamUsage.sh";
     static final String DISK_TOTAL_SCRIPT = "obtainDiskTotal.sh";
     static final String DISK_USAGE_SCRIPT = "obtainDiskUsage.sh";
+    static final String SERIAL_NUMBER_SCRIPT = "obtainSerialNumber.sh";
     static final String TEMPERATURE_STATUS_SCRIPT = "obtainTemperatureStatus.sh";
     static final String TEMPERATURE_VALUE_SCRIPT = "obtainTemperatureValue.sh";
 
@@ -81,10 +82,10 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
                 }
             }
 
-            serialNumber = commandProcessor.execute(configuration.getSerialNumberCommand());
+            serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
             logger.info("Load new serial number: {}", serialNumber);
         } catch (CommandExecutionException ex) {
-            logger.error("Error executing serial number command '{}':", configuration.getSerialNumberCommand(),
+            logger.error("Error executing serial number command '{}':", SERIAL_NUMBER_SCRIPT,
                     ex);
         }
     }

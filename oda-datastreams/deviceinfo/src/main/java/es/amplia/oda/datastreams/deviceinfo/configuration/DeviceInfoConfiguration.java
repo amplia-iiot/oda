@@ -6,6 +6,6 @@ import lombok.Value;
 public class DeviceInfoConfiguration {
     private String deviceId;
     private String apiKey;
-    private String serialNumberCommand;
+    private String source;
     private String path;
 }

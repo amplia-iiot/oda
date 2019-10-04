@@ -36,11 +36,10 @@ public class DeviceInfoDatastreamsGetterTest {
     private static final String A_DEVICE_ID = "aDeviceId";
     private static final String A_SERIAL_NUMBER = "aSerialNumber";
     private static final String AN_API_KEY = "anApiKey";
+    private static final String A_SOURCE = "aSource";
     private static final String A_PATH = "aPath";
-    private static final String ECHO_COMMAND = "echo ";
-    private static final String SERIAL_NUMBER_COMMAND = ECHO_COMMAND + A_SERIAL_NUMBER;
     private static final DeviceInfoConfiguration TEST_CONFIGURATION =
-            new DeviceInfoConfiguration(A_DEVICE_ID, AN_API_KEY, SERIAL_NUMBER_COMMAND, A_PATH);
+            new DeviceInfoConfiguration(A_DEVICE_ID, AN_API_KEY, A_SOURCE, A_PATH);
 
     @Mock
     private CommandProcessor mockedCommandProcessor;
@@ -61,7 +60,7 @@ public class DeviceInfoDatastreamsGetterTest {
 
         deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
 
-        verify(mockedCommandProcessor).execute(SERIAL_NUMBER_COMMAND);
+        verify(mockedCommandProcessor).execute(A_PATH + "/" + SERIAL_NUMBER_SCRIPT);
         assertEquals(A_DEVICE_ID, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "deviceId"));
         assertEquals(AN_API_KEY, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "apiKey"));
         assertEquals(A_SERIAL_NUMBER, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "serialNumber"));
@@ -77,7 +76,7 @@ public class DeviceInfoDatastreamsGetterTest {
         
         deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
 
-        verify(mockedCommandProcessor).execute(SERIAL_NUMBER_COMMAND);
+        verify(mockedCommandProcessor).execute(A_PATH + "/" + SERIAL_NUMBER_SCRIPT);
         assertEquals(A_DEVICE_ID, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "deviceId"));
         assertEquals(AN_API_KEY, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "apiKey"));
         assertNull(Whitebox.getInternalState(deviceInfoDatastreamsGetter, "serialNumber"));
