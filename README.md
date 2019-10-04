@@ -21,6 +21,7 @@ To build the project you should use Maven. Before compiling the software you sho
 
 ```shell
 git clone --recursive git@github.com:amplia-iiot/oda.git
+cd oda
 cd oda-externaldependencies
 mvn clean install
 cd ..
@@ -34,8 +35,8 @@ The build includes two ODA assemblies to make some test with our software using 
 To run ODA you have to untar the assembly and run the script provided inside the *bin* folder. This script will launch ODA in background.
 
 ```shell
-tar xjf oda-mqtt-${project.version}.tar.bz
-cd oda-mqtt
+tar xjf mqtt-${project.version}.tar.bz
+cd mqtt
 bin/run.sh
 ```
 
