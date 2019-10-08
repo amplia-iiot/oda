@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ApnDatastreamGetter implements DatastreamsGetter {
-
+	// TODO: This, and the other classes, could be implemented extending a DatastreamGetterTemplate
 	private DeviceInfoFX30 deviceInfo;
 
 	public ApnDatastreamGetter(DeviceInfoFX30 deviceInfo) {

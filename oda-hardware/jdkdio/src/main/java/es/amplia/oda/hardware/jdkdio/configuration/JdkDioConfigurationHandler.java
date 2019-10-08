@@ -16,9 +16,9 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.Properties;
 
-public class JDkDioConfigurationHandler implements ConfigurationUpdateHandler {
+public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JDkDioConfigurationHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdkDioConfigurationHandler.class);
 
     static final String JDK_DIO_REGISTRY_PROPERTY = "jdk.dio.registry";
 
@@ -37,7 +37,7 @@ public class JDkDioConfigurationHandler implements ConfigurationUpdateHandler {
     private Map<String, ?> gpioPinsConfiguration;
 
 
-    public JDkDioConfigurationHandler(JdkDioGpioService jdkDioGpioService) {
+    public JdkDioConfigurationHandler(JdkDioGpioService jdkDioGpioService) {
         this.jdkDioGpioService = jdkDioGpioService;
     }
 

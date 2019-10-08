@@ -1,7 +1,5 @@
 package es.amplia.oda.hardware.atmanager;
 
-import es.amplia.oda.hardware.atmanager.ATParser.LineType;
-import es.amplia.oda.hardware.atmanager.ATParser.Result;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
@@ -82,28 +80,28 @@ public class ATManagerImpl implements ATManager {
 
     @Override
     public void process(String line) {
-        Result parserResult = atParser.process(line);
-        LineType type = parserResult.getType();
-        if (type == LineType.UNSOLICITED_RESPONSE) {
+        ATParser.Result parserResult = atParser.process(line);
+        ATParser.LineType type = parserResult.getType();
+        if (type == ATParser.LineType.UNSOLICITED_RESPONSE) {
             handleUnsolicitedResponse(parserResult);
-        } else if (type == LineType.COMMANDS) {
+        } else if (type == ATParser.LineType.COMMANDS) {
             handleCommands(parserResult);
-        } else if (type == LineType.ERROR) {
+        } else if (type == ATParser.LineType.ERROR) {
             logger.warn("Received the malformed string '{}' (Error = '{}'). It is discarded.", line, parserResult.getErrorMsg());
-        } else if (type == LineType.PARTIAL_RESPONSE) {
+        } else if (type == ATParser.LineType.PARTIAL_RESPONSE) {
             ATEvent evt = ATEvent.event(parserResult.getResponseName(), parserResult.getResponseParameters());
             if (partialResponses == null) {
                 partialResponses = new ArrayList<>();
             }
             partialResponses.add(evt);
-        } else if (type == LineType.BODY_LINE) {
+        } else if (type == ATParser.LineType.BODY_LINE) {
             if (body == null) {
                 body = new StringBuilder();
             } else {
                 body.append('\n');
             }
             body.append(parserResult.getBody());
-        } else if (type == LineType.COMPLETE_RESPONSE) {
+        } else if (type == ATParser.LineType.COMPLETE_RESPONSE) {
             if (commandFuture == null) {
                 logger.error("No command future when a complete response is received.");
                 return;
@@ -124,7 +122,7 @@ public class ATManagerImpl implements ATManager {
         }
     }
 
-    private void handleUnsolicitedResponse(Result parserResult) {
+    private void handleUnsolicitedResponse(ATParser.Result parserResult) {
         String responseName = parserResult.getResponseName();
         List<String> responseParameters = parserResult.getResponseParameters();
         ATEvent event = ATEvent.event(responseName, responseParameters);
@@ -136,7 +134,7 @@ public class ATManagerImpl implements ATManager {
         }
     }
 
-    private void handleCommands(Result parserResult) {
+    private void handleCommands(ATParser.Result parserResult) {
         List<ATCommand> commands = parserResult.getCommands();
         if (commands.size() != 1) {
             logger.error("It is currently not supported to handle AT strings with various commands");

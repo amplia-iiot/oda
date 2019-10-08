@@ -62,6 +62,8 @@
                 <include>es.amplia.oda.subsystem:sshserver</include>
                 <include>es.amplia.oda.datastreams:deviceinfo</include>
                 <include>es.amplia.oda.datastreams:simulator</include>
+                <include>es.amplia.oda.datastreams:diozero</include>
+                <include>es.amplia.oda.hardware:diozero</include>
             </includes>
             <outputDirectory>deploy</outputDirectory>
             <outputFileNameMapping>
