@@ -6,9 +6,8 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.operation.api.OperationDiscover;
-
-import es.amplia.oda.operation.api.OperationSetClock;
 import es.amplia.oda.operation.localprotocoldiscovery.configuration.LocalProtocolDiscoveryConfiguration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +35,10 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover {
         try {
             byte[] mess = serializer.serialize("{}");
             mqttClient.publish(topic, MqttMessage.newInstance(mess));
-            new Result(OperationSetClock.ResultCode.ERROR_PROCESSING, "");
-            future.complete(new Result(OperationSetClock.ResultCode.ERROR_PROCESSING, ""));
+            new Result(ResultCode.ERROR_PROCESSING, "");
+            future.complete(new Result(ResultCode.ERROR_PROCESSING, ""));
         } catch (IOException | MqttException e) {
-            future.complete(new Result(OperationSetClock.ResultCode.ERROR_PROCESSING, e.getMessage()));
+            future.complete(new Result(ResultCode.ERROR_PROCESSING, e.getMessage()));
         }
         return future;
     }

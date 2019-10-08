@@ -10,6 +10,7 @@ import java.util.List;
 public class Response {
     String id;
     String deviceId;
+    String[] path;
     String name;
     OperationResultCode resultCode;
     String resultDescription;

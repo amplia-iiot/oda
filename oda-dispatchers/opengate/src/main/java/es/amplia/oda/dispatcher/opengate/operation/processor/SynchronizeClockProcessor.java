@@ -49,10 +49,10 @@ class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Resul
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         Step setClockStep = new Step(SYNCHRONIZE_CLOCK_OPERATION_NAME, getStepResult(result),
                 result.getResultDescription(), null, null);
-        Response response = new Response(requestId, deviceId, SYNCHRONIZE_CLOCK_OPERATION_NAME,
+        Response response = new Response(requestId, deviceId, path, SYNCHRONIZE_CLOCK_OPERATION_NAME,
                 getOperationResult(result), result.getResultDescription(), Collections.singletonList(setClockStep));
         OutputOperation operation = new OutputOperation(response);
         return new Output(OPENGATE_VERSION, operation);

@@ -35,13 +35,15 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
             T params = parseParameters(request);
             CompletableFuture<R> future = processOperation(deviceIdForOperations, params);
             if (future == null) {
-                output = translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse);
+                output = translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse,
+                        request.getPath());
             } else {
-                output = translateToOutput(future.get(), request.getId(), deviceIdForResponse);
+                output = translateToOutput(future.get(), request.getId(), deviceIdForResponse, request.getPath());
             }
         } catch (Exception e) {
             LOGGER.error("Uncontrolled exception processing request {}", request, e);
-            output = translateThrowableToOutput(request.getName(), request.getId(), request.getDeviceId(), e);
+            output = translateThrowableToOutput(request.getName(), request.getId(), deviceIdForResponse,
+                    request.getPath(), e);
         }
 
         try {
@@ -54,18 +56,20 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
         }
     }
 
-    private Output translateNoOperationToOutput(String operationId, String operationName, String deviceId) {
+    private Output translateNoOperationToOutput(String operationId, String operationName, String deviceId, String[] path) {
         Response notSupportedResponse =
-                new Response(operationId, deviceId, operationName, OperationResultCode.NOT_SUPPORTED,
+                new Response(operationId, deviceId, path, operationName, OperationResultCode.NOT_SUPPORTED,
                         "Operation not supported by the device", Collections.emptyList());
         return new Output(OPENGATE_VERSION, new OutputOperation(notSupportedResponse));
     }
 
-    private Output translateThrowableToOutput(String operationName, String operationId, String deviceId, Throwable e) {
+    private Output translateThrowableToOutput(String operationName, String operationId, String deviceId, String[] path,
+                                              Throwable e) {
         String errorMsg = e.getClass().getSimpleName() + ": " + e.getMessage();
-        List<Step> steps = Collections.singletonList(new Step(operationName, StepResultCode.ERROR, errorMsg, 0L, null));
+        List<Step> steps =
+                Collections.singletonList(new Step(operationName, StepResultCode.ERROR, errorMsg, null, null));
         OutputOperation operation =
-                new OutputOperation(new Response(operationId, deviceId, operationName,
+                new OutputOperation(new Response(operationId, deviceId, path, operationName,
                         OperationResultCode.ERROR_PROCESSING, errorMsg, steps));
         return new Output(OPENGATE_VERSION, operation);
     }
@@ -74,5 +78,5 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
     abstract CompletableFuture<R> processOperation(String deviceIdForOperations, T params);
 
-    abstract Output translateToOutput(R result, String requestId, String deviceId);
+    abstract Output translateToOutput(R result, String requestId, String deviceId, String[] path);
 }

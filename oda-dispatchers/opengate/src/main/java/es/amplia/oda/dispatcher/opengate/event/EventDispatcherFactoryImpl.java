@@ -11,9 +11,21 @@ import java.util.function.Function;
 
 public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
 
-    private static final Map<Boolean, Function<DeviceInfoProvider, EventParser>> eventParserCreators = new HashMap<>();
+    private final DeviceInfoProvider deviceInfoProvider;
+    private final Serializer serializer;
+    private final OpenGateConnector connector;
+    private final Map<Boolean, Function<DeviceInfoProvider, EventParser>> eventParserCreators = new HashMap<>();
 
-    static {
+
+    public EventDispatcherFactoryImpl(DeviceInfoProvider deviceInfoProvider, Serializer serializer,
+                                      OpenGateConnector connector) {
+        this.deviceInfoProvider = deviceInfoProvider;
+        this.serializer = serializer;
+        this.connector = connector;
+        populateEventParserCreators();
+    }
+
+    private void populateEventParserCreators() {
         eventParserCreators.put(false, EventDispatcherFactoryImpl::createCompleteEventParser);
         eventParserCreators.put(true, EventDispatcherFactoryImpl::createReducedOutputEventParser);
     }
@@ -24,19 +36,6 @@ public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
 
     private static EventParser createReducedOutputEventParser(DeviceInfoProvider deviceInfoProvider) {
         return new EventParserReducedOutputImpl(deviceInfoProvider);
-    }
-
-
-    private final DeviceInfoProvider deviceInfoProvider;
-    private final Serializer serializer;
-    private final OpenGateConnector connector;
-
-
-    public EventDispatcherFactoryImpl(DeviceInfoProvider deviceInfoProvider, Serializer serializer,
-                                      OpenGateConnector connector) {
-        this.deviceInfoProvider = deviceInfoProvider;
-        this.serializer = serializer;
-        this.connector = connector;
     }
 
     @Override

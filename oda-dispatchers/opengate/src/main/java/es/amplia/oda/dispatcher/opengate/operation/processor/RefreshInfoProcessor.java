@@ -37,15 +37,15 @@ class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         List<Object> outputVariables = result.getObtained().entrySet().stream()
                 .map(es -> new OutputVariable(es.getKey(), es.getValue(), SUCCESS_RESULT, SUCCESS_RESULT))
                 .collect(Collectors.toList());
         List<Step> steps =
-                Collections.singletonList(new Step(REFRESH_INFO_OPERATION_NAME, StepResultCode.SUCCESSFUL, "", 0L,
-                        outputVariables));
+                Collections.singletonList(new Step(REFRESH_INFO_OPERATION_NAME, StepResultCode.SUCCESSFUL, "",
+                        null, outputVariables));
         OutputOperation operation =
-                new OutputOperation(new Response(requestId, deviceId, REFRESH_INFO_OPERATION_NAME,
+                new OutputOperation(new Response(requestId, deviceId, path, REFRESH_INFO_OPERATION_NAME,
                         OperationResultCode.SUCCESSFUL, "No Error.", steps));
         return new Output(OPENGATE_VERSION, operation);
     }

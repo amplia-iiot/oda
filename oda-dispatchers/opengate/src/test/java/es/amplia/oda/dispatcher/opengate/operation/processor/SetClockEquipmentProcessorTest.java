@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 public class SetClockEquipmentProcessorTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String[] TEST_PATH = new String[] { "path", "to", "device" };
     private static final Long TEST_TIMESTAMP = 123567789L;
     private static final ZoneId GMT_ZONE_ID = ZoneId.of("GMT+00:00");
     private static final String TEST_REQUEST_ID = "testRequest";
@@ -200,7 +201,7 @@ public class SetClockEquipmentProcessorTest {
     public void testTranslateToOutputSuccessful() {
         Result successResult = new Result(ResultCode.SUCCESSFUL, null);
 
-        Output output = testProcessor.translateToOutput(successResult, TEST_REQUEST_ID, TEST_DEVICE_ID);
+        Output output = testProcessor.translateToOutput(successResult, TEST_REQUEST_ID, TEST_DEVICE_ID, TEST_PATH);
         Response response = output.getOperation().getResponse();
         List<Step> steps = response.getSteps();
 
@@ -221,7 +222,7 @@ public class SetClockEquipmentProcessorTest {
         String errorDescription = "Error description";
         Result errorResult = new Result(ResultCode.ERROR_PROCESSING, errorDescription);
 
-        Output output = testProcessor.translateToOutput(errorResult, TEST_REQUEST_ID, TEST_DEVICE_ID);
+        Output output = testProcessor.translateToOutput(errorResult, TEST_REQUEST_ID, TEST_DEVICE_ID, TEST_PATH);
         Response response = output.getOperation().getResponse();
         List<Step> steps = response.getSteps();
 
