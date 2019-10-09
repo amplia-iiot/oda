@@ -2,11 +2,13 @@ package es.amplia.oda.hardware.diozero.analog;
 
 import com.diozero.api.AnalogInputEvent;
 import com.diozero.api.InputEventListener;
-import es.amplia.oda.core.commons.diozero.AdcChannelListener;
+
+import es.amplia.oda.core.commons.adc.AdcChannelListener;
 
 class DioZeroAdcPinListenerBridge implements InputEventListener<AnalogInputEvent> {
 
-	private AdcChannelListener listener;
+	private final AdcChannelListener listener;
+
 
 	DioZeroAdcPinListenerBridge(AdcChannelListener listener) {
 		this.listener = listener;

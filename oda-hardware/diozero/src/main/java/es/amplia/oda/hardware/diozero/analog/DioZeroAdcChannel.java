@@ -1,15 +1,15 @@
 package es.amplia.oda.hardware.diozero.analog;
 
 import com.diozero.api.AnalogInputDevice;
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcChannelListener;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcChannelListener;
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
 
 public class DioZeroAdcChannel implements AdcChannel {
 
-	private int pinNumber;
+	private final int pinNumber;
+	private final AnalogInputDevice device;
 
-	private AnalogInputDevice device;
 
 	public DioZeroAdcChannel(int pinNumber, AnalogInputDevice device) {
 		this.pinNumber = pinNumber;
@@ -32,40 +32,40 @@ public class DioZeroAdcChannel implements AdcChannel {
 	}
 
 	@Override
-	public void close() throws AdcDeviceException {
-		device.close();
-	}
-
-	@Override
-	public float getRange() throws AdcDeviceException {
+	public float getRange() {
 		return device.getRange();
 	}
 
 	@Override
-	public float getScaledValue() throws AdcDeviceException {
+	public float getScaledValue() {
 		return device.getScaledValue();
 	}
 
 	@Override
-	public float getUnscaledValue() throws AdcDeviceException {
+	public float getUnscaledValue() {
 		return device.getUnscaledValue();
 	}
 
 	@Override
-	public void addAdcPinListener(AdcChannelListener listener) throws AdcDeviceException {
+	public void addAdcPinListener(AdcChannelListener listener) {
 		checkDeviceOpened();
 		device.addListener(new DioZeroAdcPinListenerBridge(listener));
 	}
 
 	@Override
-	public void removeAllAdcPinListener() throws AdcDeviceException {
+	public void removeAllAdcPinListener() {
 		checkDeviceOpened();
 		device.removeAllListeners();
 	}
 
-	private void checkDeviceOpened() throws AdcDeviceException {
+	private void checkDeviceOpened() {
 		if (this.device == null) {
 			throw new AdcDeviceException("There is not a device registered to do operations");
 		}
+	}
+
+	@Override
+	public void close() {
+		device.close();
 	}
 }

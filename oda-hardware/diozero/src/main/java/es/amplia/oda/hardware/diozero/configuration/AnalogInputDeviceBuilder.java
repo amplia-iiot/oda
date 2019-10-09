@@ -1,26 +1,27 @@
 package es.amplia.oda.hardware.diozero.configuration;
 
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.DeviceType;
+import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDeviceFactory;
+
 import com.diozero.api.AnalogInputDevice;
 import com.diozero.internal.provider.AnalogInputDeviceFactoryInterface;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
-import es.amplia.oda.core.commons.diozero.DeviceType;
-import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDeviceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class AnalogInputDeviceBuilder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnalogInputDeviceBuilder.class);
 
-	static final String DEFAULT_PATH = "/sys/class/hwmon/hwmon0/device/mpp_0";
 	static final boolean DEFAULT_LOW_MODE = false;
-	static final DeviceType DEFAULT_DEVICE = DeviceType.DEFAULT;
+	private static final DeviceType DEFAULT_DEVICE = DeviceType.DEFAULT;
+
 
 	private int channelIndex = -1;
 	private String name = null;
-	//private int pinNumber;
-	private String path = DEFAULT_PATH;
+	private String path;
 	private boolean lowMode = DEFAULT_LOW_MODE;
 	private DeviceType deviceType = DEFAULT_DEVICE;
+
 
 	static AnalogInputDeviceBuilder newBuilder() {
 		return new AnalogInputDeviceBuilder();
@@ -35,10 +36,6 @@ class AnalogInputDeviceBuilder {
 	void setName(String name) {
 		this.name = name;
 	}
-
-	/*void setPinNumber(int pinNumber) {
-		this.pinNumber = pinNumber;
-	}*/
 
 	void setPath(String path) {
 		this.path = path;
@@ -69,13 +66,13 @@ class AnalogInputDeviceBuilder {
 	}
 
 	private void checkRequiredParameters() {
-		if (channelIndex == -1) {
-			throw new AdcDeviceException("Invalid parameters to build ADC Channel: index is a required property");
+		if (channelIndex == -1 || path == null) {
+			throw new AdcDeviceException("Invalid parameters to build ADC Channel: index and path are required properties");
 		}
 	}
 
 	private void checkCompatibleParameters() {
-		if (deviceType.equals(DeviceType.FX30) && (channelIndex != 0 && channelIndex != 1)/*(pinNumber != 1 && pinNumber != 5)*/) {
+		if (deviceType.equals(DeviceType.FX30) && channelIndex != 0 && channelIndex != 1) {
 				throw new AdcDeviceException("Invalid parameters to build ADC Channel: Only Channel 0 and Channel 1 of FX30" +
 						"are ADC inputs. Change the channel index");
 		}

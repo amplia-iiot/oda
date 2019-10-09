@@ -1,11 +1,13 @@
 package es.amplia.oda.hardware.diozero.analog;
 
+import es.amplia.oda.core.commons.adc.AdcEvent;
+
 import com.diozero.api.AnalogInputEvent;
-import es.amplia.oda.core.commons.diozero.AdcEvent;
 
-public class DioZeroAdcEvent implements AdcEvent {
+class DioZeroAdcEvent implements AdcEvent {
 
-	private AnalogInputEvent event;
+	private final AnalogInputEvent event;
+
 
 	DioZeroAdcEvent(AnalogInputEvent event) {
 		this.event = event;

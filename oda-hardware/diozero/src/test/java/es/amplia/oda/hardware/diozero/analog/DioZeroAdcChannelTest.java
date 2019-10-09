@@ -1,8 +1,8 @@
 package es.amplia.oda.hardware.diozero.analog;
 
 import com.diozero.api.AnalogInputDevice;
-import es.amplia.oda.core.commons.diozero.AdcChannelListener;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.AdcChannelListener;
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -97,5 +97,12 @@ public class DioZeroAdcChannelTest {
 		Whitebox.setInternalState(adcChannel, "device", null);
 
 		adcChannel.removeAllAdcPinListener();
+	}
+
+	@Test
+	public void testClose() {
+		adcChannel.close();
+
+		verify(mockedAnalogDevice).close();
 	}
 }

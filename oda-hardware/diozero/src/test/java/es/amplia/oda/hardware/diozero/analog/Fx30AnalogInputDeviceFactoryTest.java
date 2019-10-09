@@ -1,7 +1,7 @@
 package es.amplia.oda.hardware.diozero.analog;
 
 import com.diozero.api.PinInfo;
-import es.amplia.oda.core.commons.diozero.DeviceType;
+import es.amplia.oda.core.commons.adc.DeviceType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

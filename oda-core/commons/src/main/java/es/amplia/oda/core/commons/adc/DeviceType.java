@@ -1,4 +1,4 @@
-package es.amplia.oda.core.commons.diozero;
+package es.amplia.oda.core.commons.adc;
 
 public enum DeviceType {
 	FX30("fx30"),

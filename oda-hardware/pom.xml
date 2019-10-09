@@ -15,7 +15,6 @@
         <module>jdkdio</module>
         <module>modbus</module>
         <module>diozero</module>
-        <module>test</module>
     </modules>
 
     <parent>

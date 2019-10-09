@@ -1,19 +1,20 @@
 package es.amplia.oda.hardware.diozero.analog;
 
+import es.amplia.oda.core.commons.adc.DeviceType;
+
 import com.diozero.api.PinInfo;
 import com.diozero.internal.provider.AbstractDeviceFactory;
 import com.diozero.internal.provider.AnalogInputDeviceFactoryInterface;
 import com.diozero.util.BoardInfo;
 import com.diozero.util.BoardPinInfo;
 import com.diozero.util.DeviceFactoryHelper;
-import es.amplia.oda.core.commons.diozero.DeviceType;
 
 public class Fx30AnalogInputDeviceFactory extends AbstractDeviceFactory implements AnalogInputDeviceFactoryInterface {
 
-	private String name;
-	private float vRef;
-	private boolean activeLow;
-	private String path;
+	private final String name;
+	private final float vRef;
+	private final boolean activeLow;
+	private final String path;
 
 	private BoardInfo boardInfo;
 

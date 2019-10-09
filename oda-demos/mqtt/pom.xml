@@ -178,10 +178,5 @@
             <artifactId>simulator</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.hardware</groupId>
-            <artifactId>test</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>

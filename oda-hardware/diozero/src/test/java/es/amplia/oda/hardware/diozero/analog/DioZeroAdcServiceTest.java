@@ -1,7 +1,7 @@
 package es.amplia.oda.hardware.diozero.analog;
 
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,22 +74,28 @@ public class DioZeroAdcServiceTest {
 
 	@Test
 	public void testAddConfiguredPin() {
+		Map<Integer, AdcChannel> channels = new HashMap<>();
+		AdcChannel oldChannel = mock(AdcChannel.class);
+		channels.put(9, oldChannel);
+		Whitebox.setInternalState(testService, "channels", channels);
+
+		when(ADC1.getIndex()).thenReturn(0);
+		when(ADC1.getIndex()).thenReturn(1);
 		when(ADC2.getIndex()).thenReturn(2);
 
-		testService.addConfiguredPin(ADC2);
+		testService.loadConfiguration(Arrays.asList(ADC0, ADC1, ADC2));
 
-		Map<Integer, AdcChannel> channels =
-				(Map<Integer, AdcChannel>) Whitebox.getInternalState(testService, "channels");
+		verify(oldChannel).close();
 		assertEquals(3, channels.size());
 		assertEquals(ADC0, channels.get(0));
 		assertEquals(ADC1, channels.get(1));
 		assertEquals(ADC2, channels.get(2));
-		assertNull(channels.get(3));
+		assertNull(channels.get(9));
 	}
 
 	@Test
 	public void testRelease() {
-		testService.release();
+		testService.close();
 
 		verify(ADC0).close();
 		verify(ADC1).close();
@@ -98,7 +105,7 @@ public class DioZeroAdcServiceTest {
 	public void testReleaseWithException() {
 		doThrow(AdcDeviceException.class).when(ADC1).close();
 
-		testService.release();
+		testService.close();
 
 		verify(ADC0).close();
 	}

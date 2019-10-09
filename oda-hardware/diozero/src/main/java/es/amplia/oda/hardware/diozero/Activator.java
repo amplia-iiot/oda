@@ -1,10 +1,11 @@
 package es.amplia.oda.hardware.diozero;
 
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.diozero.analog.DioZeroAdcService;
 import es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationHandler;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -17,8 +18,8 @@ public class Activator implements BundleActivator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-	private DioZeroAdcService adcService;
 
+	private DioZeroAdcService adcService;
 	private ConfigurableBundle configurableBundle;
 	private ServiceRegistration<AdcService> adcServiceRegistration;
 
@@ -27,7 +28,6 @@ public class Activator implements BundleActivator {
 		LOGGER.info("Starting Device I/O Zero bundle");
 
 		adcService = new DioZeroAdcService();
-
 		DioZeroConfigurationHandler configHandler = new DioZeroConfigurationHandler(adcService);
 		adcServiceRegistration = bundleContext.registerService(AdcService.class, adcService, null);
 		configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
@@ -42,7 +42,7 @@ public class Activator implements BundleActivator {
 
 		adcServiceRegistration.unregister();
 		configurableBundle.close();
-		adcService.release();
+		adcService.close();
 
 		LOGGER.info("Device I/O Zero bundle stopped");
 	}

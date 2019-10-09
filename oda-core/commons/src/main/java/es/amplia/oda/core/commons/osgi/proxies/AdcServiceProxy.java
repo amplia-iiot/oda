@@ -1,8 +1,8 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.AdcService;
 import org.osgi.framework.BundleContext;
 
 import java.util.Map;

@@ -1,7 +1,7 @@
 package es.amplia.oda.datastreams.diozero.configuration;
 
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;

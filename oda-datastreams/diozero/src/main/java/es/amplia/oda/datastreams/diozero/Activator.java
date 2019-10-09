@@ -1,6 +1,6 @@
 package es.amplia.oda.datastreams.diozero;
 
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.osgi.proxies.AdcServiceProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;

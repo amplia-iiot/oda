@@ -1,7 +1,7 @@
 package es.amplia.oda.datastreams.diozero;
 
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.datastreams.diozero.datastreams.adc.AdcDatastreamsEvent;
 import es.amplia.oda.event.api.EventDispatcher;

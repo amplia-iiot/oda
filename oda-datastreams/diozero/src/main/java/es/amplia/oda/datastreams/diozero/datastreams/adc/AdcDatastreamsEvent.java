@@ -1,8 +1,8 @@
 package es.amplia.oda.datastreams.diozero.datastreams.adc;
 
-import es.amplia.oda.core.commons.diozero.AdcChannel;
-import es.amplia.oda.core.commons.diozero.AdcDeviceException;
-import es.amplia.oda.core.commons.diozero.AdcService;
+import es.amplia.oda.core.commons.adc.AdcChannel;
+import es.amplia.oda.core.commons.adc.AdcDeviceException;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.datastreams.diozero.datastreams.AbstractDatastreamsEvent;
 import es.amplia.oda.event.api.EventDispatcher;
 import org.slf4j.Logger;

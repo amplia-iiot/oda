@@ -1,8 +1,8 @@
 package es.amplia.oda.hardware.diozero.analog;
 
-import es.amplia.oda.core.commons.diozero.BadAdcChannelException;
+import es.amplia.oda.core.commons.adc.BadAdcChannelException;
 
-public class DioZeroAdcPinMapper {
+class DioZeroAdcPinMapper {
 
 	private DioZeroAdcPinMapper() {}
 
