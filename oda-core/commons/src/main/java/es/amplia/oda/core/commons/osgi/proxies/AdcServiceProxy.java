@@ -23,12 +23,12 @@ public class AdcServiceProxy implements AdcService, AutoCloseable {
 	}
 
 	@Override
-	public AdcChannel getChannelByName(String channelName) throws AdcDeviceException {
+	public AdcChannel getChannelByName(String channelName) {
 		return returnValueOrExceptionIfNull(() -> proxy.callFirst(adcService -> adcService.getChannelByName(channelName)));
 	}
 
 	@Override
-	public AdcChannel getChannelByIndex(int index) throws AdcDeviceException {
+	public AdcChannel getChannelByIndex(int index) {
 		return returnValueOrExceptionIfNull(() -> proxy.callFirst(adcService -> adcService.getChannelByIndex(index)));
 	}
 
@@ -38,7 +38,7 @@ public class AdcServiceProxy implements AdcService, AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() {
 		proxy.close();
 	}
 }

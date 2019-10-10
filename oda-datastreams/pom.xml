@@ -15,7 +15,7 @@
         <module>mqtt</module>
         <module>deviceinfofx30</module>
         <module>simulator</module>
-        <module>diozero</module>
+        <module>adc</module>
     </modules>
 
     <parent>

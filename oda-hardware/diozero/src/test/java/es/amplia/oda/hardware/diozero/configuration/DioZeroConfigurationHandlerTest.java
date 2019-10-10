@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -19,7 +18,6 @@ import java.util.*;
 import static es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationHandler.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -46,7 +44,7 @@ public class DioZeroConfigurationHandlerTest {
     AnalogInputDevice mockedAnalogInputDevice;
 
     @Test
-    public void testLoadDefaultConfiguration() throws Exception {
+    public void testLoadDefaultConfiguration() {
         List<AnalogInputDevice> configuredChannels = new ArrayList<>();
         configuredChannels.add(mockedAnalogInputDevice);
 
@@ -74,6 +72,7 @@ public class DioZeroConfigurationHandlerTest {
         testHandler.loadConfiguration(props);
 
         PowerMockito.verifyStatic(AnalogInputDeviceBuilder.class, times(2));
+        //noinspection ResultOfMethodCallIgnored
         AnalogInputDeviceBuilder.newBuilder();
         verify(mockedBuilder).setChannelIndex(eq(TEST_ADC_CHANNEL_1_INDEX));
         verify(mockedBuilder).setName(eq(TEST_ADC_CHANNEL_1_NAME));

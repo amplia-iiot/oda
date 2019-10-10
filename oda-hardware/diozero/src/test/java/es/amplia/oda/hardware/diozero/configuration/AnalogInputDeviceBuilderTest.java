@@ -4,7 +4,6 @@ import com.diozero.api.AnalogInputDevice;
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.DeviceType;
 
-import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDevice;
 import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDeviceFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;

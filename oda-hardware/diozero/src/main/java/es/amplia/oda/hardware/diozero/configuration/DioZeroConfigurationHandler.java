@@ -37,7 +37,7 @@ public class DioZeroConfigurationHandler implements ConfigurationUpdateHandler {
 	}
 
 	@Override
-	public void loadDefaultConfiguration() throws Exception {
+	public void loadDefaultConfiguration() {
 		LOGGER.info("Loading default configuration");
 		configuredChannels.clear();
 	}
