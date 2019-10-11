@@ -1,6 +1,6 @@
 package es.amplia.oda.connector.iec104.codecs;
 
-import es.amplia.oda.connector.iec104.types.BitstringCommand;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSequence;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -8,27 +8,25 @@ import org.eclipse.neoscada.protocol.iec60870.CauseOfTransmissionType;
 import org.eclipse.neoscada.protocol.iec60870.InformationObjectAddressType;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
-import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDUAddress;
-import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
-import org.eclipse.neoscada.protocol.iec60870.asdu.types.InformationObjectAddress;
+import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.TimeZone;
+import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BitstringCommandCodec.class)
-public class BitstringCommandCodecTest {
+@PrepareForTest(BitStringPointSequenceCodec.class)
+public class BitStringPointSequenceCodecTest {
 
 	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private BitstringCommandCodec codec = new BitstringCommandCodec();
+	private final BitStringPointSequenceCodec codec = new BitStringPointSequenceCodec();
 
 	@Test
 	public void testParse() {
@@ -38,7 +36,7 @@ public class BitstringCommandCodecTest {
 
 		Object o = codec.parse(options, (byte) 0x00, null, bytebuf);
 
-		assertTrue(o instanceof BitstringCommand);
+		assertTrue(o instanceof BitStringPointInformationSequence);
 	}
 
 	@Test
@@ -48,7 +46,10 @@ public class BitstringCommandCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		codec.encode(options, new BitstringCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, bytes), buffer);
+		Value<byte[]> v = new Value<>(bytes, System.currentTimeMillis(), QualityInformation.OK);
+		List <Value<byte[]>> l = Collections.singletonList(v);
+
+		codec.encode(options, BitStringPointInformationSequence.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, l), buffer);
 
 		assertTrue(buffer.readableBytes() > 0);
 	}

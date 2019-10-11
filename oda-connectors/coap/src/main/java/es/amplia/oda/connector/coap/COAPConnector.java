@@ -69,7 +69,7 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
                 LOGGER.info("Message sent");
             }
         } catch (Exception e) {
-            LOGGER.error("Exception sending message: {}", e);
+            LOGGER.error("Exception sending message", e);
         }
     }
 

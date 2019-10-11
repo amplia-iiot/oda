@@ -25,11 +25,11 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final String LOCAL_PORT_PROPERTY_NAME = "localPort";
     static final String KEY_STORE_TYPE_PROPERTY_NAME = "keyStoreType";
     static final String KEY_STORE_LOCATION_PROPERTY_NAME = "keyStoreLocation";
-    static final String KEY_STORE_PASSWORD_PROPERTY_NAME = "keyStorePassword";
+    static final String KEY_STORE_PASS_PROPERTY_NAME = "keyStorePassword";
     static final String CLIENT_KEY_ALIAS_PROPERTY_NAME = "clientKeyAlias";
     static final String TRUST_STORE_TYPE_PROPERTY_NAME = "trustStoreType";
     static final String TRUST_STORE_LOCATION_PROPERTY_NAME = "trustStoreLocation";
-    static final String TRUST_STORE_PASSWORD_PROPERTY_NAME = "trustStorePassword";
+    static final String TRUST_STORE_PASS_PROPERTY_NAME = "trustStorePassword";
     static final String TRUSTED_CERTIFICATES_PROPERTY_NAME = "trustedCertificates";
 
     static final String TRUSTED_CERTIFICATES_SEPARATOR = ",";
@@ -68,12 +68,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
         Optional.ofNullable((String) props.get(KEY_STORE_TYPE_PROPERTY_NAME)).ifPresent(builder::keyStoreType);
         Optional.ofNullable((String) props.get(KEY_STORE_LOCATION_PROPERTY_NAME)).ifPresent(builder::keyStoreLocation);
-        Optional.ofNullable((String) props.get(KEY_STORE_PASSWORD_PROPERTY_NAME)).ifPresent(builder::keyStorePassword);
+        Optional.ofNullable((String) props.get(KEY_STORE_PASS_PROPERTY_NAME)).ifPresent(builder::keyStorePassword);
         Optional.ofNullable((String) props.get(CLIENT_KEY_ALIAS_PROPERTY_NAME)).ifPresent(builder::clientKeyAlias);
         Optional.ofNullable((String) props.get(TRUST_STORE_TYPE_PROPERTY_NAME)).ifPresent(builder::trustStoreType);
         Optional.ofNullable((String) props.get(TRUST_STORE_LOCATION_PROPERTY_NAME))
                 .ifPresent(builder::trustStoreLocation);
-        Optional.ofNullable((String) props.get(TRUST_STORE_PASSWORD_PROPERTY_NAME))
+        Optional.ofNullable((String) props.get(TRUST_STORE_PASS_PROPERTY_NAME))
                 .ifPresent(builder::trustStorePassword);
         Optional.ofNullable((String) props.get(TRUSTED_CERTIFICATES_PROPERTY_NAME))
                 .ifPresent(value -> builder.trustedCertificates(value.split(TRUSTED_CERTIFICATES_SEPARATOR)));

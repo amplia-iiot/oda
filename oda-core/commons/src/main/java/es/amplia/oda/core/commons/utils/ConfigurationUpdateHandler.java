@@ -9,43 +9,29 @@ import java.util.Optional;
  * Interface to define how to handle configuration updates
  */
 public interface ConfigurationUpdateHandler {
-    /**
-     * Default split property tokens string.
-     */
-    String SPLIT_TOKENS_STRING = ",";
-
-    /**
-     * Default split property value string.
-     */
-    String SPLIT_VALUE_STRING = ":";
-
-    /**
-     * Default configuration not allowed default exception message
-     */
-    String DEFAULT_CONFIGURATION_NOT_ALLOWED = "Default configuration is not allowed";
 
     /**
      * Load the configuration provided as parameter.
      * @param props Configuration to load.
-     * @throws Exception Exception during the configuration loading.
+     * @throws RuntimeException Exception during the configuration loading.
      */
-    void loadConfiguration(Dictionary<String, ?> props) throws Exception;
+    void loadConfiguration(Dictionary<String, ?> props);
 
     /**
      * Load the default configuration.
      * Interface provide a default implementation throwing an exception to not
      * allow loading the default configuration.
-     * @throws Exception Exception during the default configuration loading.
+     * @throws RuntimeException Exception during the default configuration loading.
      */
-    default void loadDefaultConfiguration() throws Exception {
-        throw new ConfigurationException(DEFAULT_CONFIGURATION_NOT_ALLOWED);
+    default void loadDefaultConfiguration(){
+        throw new ConfigurationException("Default configuration is not allowed");
     }
 
     /**
      * Apply configuration.
-     * @throws Exception Exception applying configuration.
+     * @throws RuntimeException Exception applying configuration.
      */
-    void applyConfiguration() throws Exception;
+    void applyConfiguration();
 
     /**
      * Get the tokens from the given property
@@ -53,7 +39,7 @@ public interface ConfigurationUpdateHandler {
      * @return Property tokens.
      */
     default String[] getTokensFromProperty(String property) {
-        return property.split(SPLIT_TOKENS_STRING);
+        return property.split(",");
     }
 
     /**
@@ -66,7 +52,7 @@ public interface ConfigurationUpdateHandler {
         String value = null;
 
         for (String token: tokens) {
-            String[] elements = token.split(SPLIT_VALUE_STRING);
+            String[] elements = token.split(":");
             if (tokenName.equals(elements[0].trim())) {
                 value = elements[1].trim();
                 break;

@@ -16,11 +16,11 @@ import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
-import static es.amplia.oda.connector.websocket.configuration.ConnectorConfigurationUpdateHandler.*;
+import static es.amplia.oda.connector.websocket.configuration.WebSocketConfigurationUpdateHandler.*;
 import static es.amplia.oda.connector.websocket.configuration.ConnectorConfiguration.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ConnectorConfigurationUpdateHandlerTest {
+public class WebSocketConfigurationUpdateHandlerTest {
 
     private static final String TEST_HOST = "localhost";
     private static final int TEST_PORT = 12345;
@@ -35,7 +35,7 @@ public class ConnectorConfigurationUpdateHandlerTest {
     @Mock
     private WebSocketConnector mockedConnector;
     @InjectMocks
-    private ConnectorConfigurationUpdateHandler testConfigurationHandler;
+    private WebSocketConfigurationUpdateHandler testConfigurationHandler;
 
     @Test
     public void testLoadConfiguration() {
@@ -65,7 +65,7 @@ public class ConnectorConfigurationUpdateHandlerTest {
         assertEquals(DEFAULT_PORT, loadedConfiguration.getPort());
         assertEquals(TEST_PATH, loadedConfiguration.getPath());
         assertEquals(DEFAULT_CONNECTION_TIMEOUT, loadedConfiguration.getConnectionTimeout());
-        assertEquals(DEFAULT_KEEPALIVE_INTERVAL, loadedConfiguration.getKeepAliveInterval());
+        assertEquals(DEFAULT_KEEP_ALIVE_INTERVAL, loadedConfiguration.getKeepAliveInterval());
     }
 
     @Test(expected = IllegalArgumentException.class)

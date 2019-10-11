@@ -21,40 +21,24 @@ public class Iec104ConnectorTest {
 	private Iec104Connector connector;
 
 	@Mock
-	ScadaDispatcherProxy mockedDispatcher;
+	private Iec104Cache mockedCache;
 	@Mock
-	Iec104ServerModule mockedModule;
+	private ScadaDispatcherProxy mockedDispatcher;
 	@Mock
-	ServerKeepAlive mockedServer;
+	private Iec104ServerModule mockedModule;
 	@Mock
-	SocketChannel mockedChannel;
+	private ServerKeepAlive mockedServer;
+	@Mock
+	private SocketChannel mockedChannel;
 
 	@Before
 	public void prepareForTest() {
-		connector = new Iec104Connector(mockedDispatcher);
+		connector = new Iec104Connector(mockedCache, mockedDispatcher);
 		Whitebox.setInternalState(connector, "serverModule", mockedModule);
 		Whitebox.setInternalState(connector, "server", mockedServer);
 		Whitebox.setInternalState(connector, "socketChannel", mockedChannel);
 		Whitebox.setInternalState(connector, "spontaneousEnabled", true);
 		Whitebox.setInternalState(connector, "commonAddress", 0);
-	}
-
-	@Test
-	public void testClearLastConfiguration() throws Exception {
-		connector.close();
-
-		verify(mockedModule).dispose();
-		verify(mockedChannel).close();
-		verify(mockedServer).close();
-		assertNull(Whitebox.getInternalState(connector, "server"));
-		assertNull(Whitebox.getInternalState(connector, "socketChannel"));
-	}
-
-	@Test
-	public void testClearLastConfigurationWithException() {
-		when(mockedChannel.close()).thenThrow(new NumberFormatException());
-
-		connector.close();
 	}
 
 	@Test
@@ -104,5 +88,26 @@ public class Iec104ConnectorTest {
 				.build();
 
 		connector.loadConfiguration(configuration);
+	}
+
+	@Test
+	public void testClose() throws Exception {
+		connector.close();
+
+		verify(mockedModule).dispose();
+		verify(mockedChannel).close();
+		verify(mockedServer).close();
+		verify(mockedCache).clear();
+		assertNull(Whitebox.getInternalState(connector, "server"));
+		assertNull(Whitebox.getInternalState(connector, "socketChannel"));
+	}
+
+	@Test
+	public void testCloseWithException() {
+		when(mockedChannel.close()).thenThrow(new NumberFormatException());
+
+		connector.close();
+
+		verify(mockedCache).clear();
 	}
 }

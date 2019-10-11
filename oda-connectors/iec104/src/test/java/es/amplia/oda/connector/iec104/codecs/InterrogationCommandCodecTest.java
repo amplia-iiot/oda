@@ -1,6 +1,5 @@
 package es.amplia.oda.connector.iec104.codecs;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -27,7 +26,7 @@ public class InterrogationCommandCodecTest {
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private InterrogationCommandCodec codec = new InterrogationCommandCodec();
+	private final InterrogationCommandCodec codec = new InterrogationCommandCodec();
 
 	@Test
 	public void testParse() {

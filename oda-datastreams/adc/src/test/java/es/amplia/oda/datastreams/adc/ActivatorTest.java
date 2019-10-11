@@ -76,7 +76,7 @@ public class ActivatorTest {
 	}
 
 	@Test
-	public void testOnServiceChanged() throws Exception {
+	public void testOnServiceChanged() {
 		Whitebox.setInternalState(activator, "configurationUpdateHandler", mockedConfigurationUpdateHandler);
 
 		activator.onServiceChanged();
@@ -85,7 +85,7 @@ public class ActivatorTest {
 	}
 
 	@Test
-	public void testOnServiceChangedExceptionIsCaught() throws Exception {
+	public void testOnServiceChangedExceptionIsCaught() {
 		doThrow(new NumberFormatException()).when(mockedConfigurationUpdateHandler).applyConfiguration();
 
 		activator.onServiceChanged();

@@ -42,11 +42,14 @@ public class DeploymentElementOperationBaseTest {
                                                                mockedOperationConfirmationProcessor)
         {
             @Override
+            @SuppressWarnings("RedundantThrows")
             protected void executeSpecificOperation(FileManager fileManager) throws FileException {
                 // Test stub
             }
 
+
             @Override
+            @SuppressWarnings("RedundantThrows")
             protected void rollbackSpecificOperation(FileManager fileManager, String backupFile) throws FileException {
                 // Test stub
             }

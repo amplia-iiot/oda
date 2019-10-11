@@ -25,6 +25,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
      * Class logger.
      */
     private static final Logger logger = LoggerFactory.getLogger(OsgiServiceProxy.class);
+    private static final String NO_SERVICE_IMPLEMENTATION_MESSAGE = "No service implementation of {} available in OSGi";
 
     /**
      * Class type parameter of the proxy.
@@ -60,7 +61,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
             Filter filter = bundleContext.createFilter(createFilter(typeClassParameter, filterProperties));
             tracker = new ServiceTracker<>(bundleContext, filter, null);
         } catch (InvalidSyntaxException e) {
-            logger.error("Filter is not valid. Creating Service Tracker from class parameter type: {}", e);
+            logger.error("Filter is not valid. Creating Service Tracker from class parameter type", e);
             tracker = new ServiceTracker<>(bundleContext, typeClassParameter, null);
         }
         serviceTracker = tracker;
@@ -74,10 +75,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
                         .reduce(String::concat)
                         .orElse("");
 
-        return new StringBuilder("(&(" + Constants.OBJECTCLASS + "=" + clazz.getName() + ")")
-                .append(propertiesToFilter)
-                .append(")")
-                .toString();
+        return "(&(" + Constants.OBJECTCLASS + "=" + clazz.getName() + ")" + propertiesToFilter + ")";
     }
 
     /**
@@ -90,7 +88,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
     public <T> T callFirst(Function<S, T> serviceMethod) {
         S real = serviceTracker.getService();
         if(real==null) {
-            logger.warn("No service implementation of {} available in OSGi", typeClassParameter.getName());
+            logger.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
             return null;
         } else {
             logger.debug("Passing request to real implementation");
@@ -106,7 +104,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
     public void consumeFirst(Consumer<S> serviceMethod) {
         S real = serviceTracker.getService();
         if(real==null) {
-            logger.warn("No service implementation of {} available in OSGi", typeClassParameter.getName());
+            logger.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
         } else {
             logger.debug("Passing request to real implementation");
             serviceMethod.accept(real);
@@ -122,7 +120,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
     public <T> List<T> callAll(Function<S, T> serviceMethod) {
         Object[] reals = serviceTracker.getServices();
         if(reals==null) {
-            logger.warn("No service implementation of {} available in OSGi", typeClassParameter.getName());
+            logger.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
             return Collections.emptyList();
         } else {
             logger.debug("Passing request to real implementations");
@@ -140,7 +138,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
     public void consumeAll(Consumer<S> serviceMethod) {
         Object[] reals = serviceTracker.getServices();
         if(reals==null) {
-            logger.warn("No service implementation of {} available in OSGi", typeClassParameter.getName());
+            logger.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
         } else {
             logger.debug("Passing request to real implementations");
             Arrays.stream(reals).filter(typeClassParameter::isInstance)

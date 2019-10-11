@@ -51,7 +51,7 @@ public class HttpConnector implements OpenGateConnector {
         try {
             hostUrl = new URL(HTTP_PROTOCOL, configuration.getHost(), configuration.getPort(), "");
         } catch (MalformedURLException e) {
-            LOGGER.error("Error loading configuration: Invalid params for URL, {}", e);
+            LOGGER.error("Error loading configuration: Invalid params for URL", e);
             throw new ConfigurationException("Invalid params to build URL");
         }
 
@@ -79,7 +79,7 @@ public class HttpConnector implements OpenGateConnector {
         try {
             url = getUrl();
         } catch (MalformedURLException e) {
-            LOGGER.error("Error sending HTTP message: Invalid URL, {}", e);
+            LOGGER.error("Error sending HTTP message: Invalid URL", e);
             return;
         }
 
@@ -110,7 +110,7 @@ public class HttpConnector implements OpenGateConnector {
 
             httpResponse.close();
         } catch (IOException exception) {
-            LOGGER.error("Error sending HTTP message: {}", exception);
+            LOGGER.error("Error sending HTTP message", exception);
         }
     }
 

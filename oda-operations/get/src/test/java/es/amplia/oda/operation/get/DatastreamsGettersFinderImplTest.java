@@ -92,7 +92,7 @@ public class DatastreamsGettersFinderImplTest {
     }
     
     @Test
-    public void gettersThatDoesntManageAnyOfTheSpecifiedIdsAreNotReturned() {
+    public void gettersThatDoesNotManageAnyOfTheSpecifiedIdsAreNotReturned() {
         Return actual = datastreamsGettersFinder.getGettersSatisfying("", asSet(ID2, ID3, ID4));
         
         Return expected = new Return(Arrays.asList(datastreamsGetterForId2, datastreamsGetterForId3), asSet(ID4));

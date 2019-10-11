@@ -2,9 +2,9 @@ package es.amplia.oda.connector.dnp3;
 
 import com.automatak.dnp3.LogEntry;
 import com.automatak.dnp3.LogLevels;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.slf4j.Logger;
@@ -21,9 +21,13 @@ public class DNP3LogHandlerTest {
 
     @Mock
     private Logger mockedLogger;
-    @InjectMocks
     private DNP3LogHandler testLogHandler;
 
+
+    @Before
+    public void setUp() {
+        testLogHandler = new DNP3LogHandler(mockedLogger);
+    }
 
     @Test
     public void logError() {

@@ -29,7 +29,8 @@ public class Activator implements BundleActivator {
 		LOGGER.info("Starting IEC 104 connector");
 
 		dispatcher = new ScadaDispatcherProxy(bundleContext);
-		connector = new Iec104Connector(dispatcher);
+		Iec104Cache cache = new Iec104Cache();
+		connector = new Iec104Connector(cache, dispatcher);
 		scadaConnectorServiceRegistration =
 				bundleContext.registerService(ScadaConnector.class, connector, null);
 		configHandler = new Iec104ConnectorConfigurationUpdateHandler(connector);

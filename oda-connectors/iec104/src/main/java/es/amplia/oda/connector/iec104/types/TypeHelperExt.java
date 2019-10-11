@@ -11,7 +11,7 @@ import java.util.GregorianCalendar;
 
 class TypeHelperExt extends TypeHelper {
 
-	static void encodeBytestringValue(ProtocolOptions options, ByteBuf out, Value<byte[]> value, boolean withTimestamp) {
+	static void encodeBitStringValue(ProtocolOptions options, ByteBuf out, Value<byte[]> value, boolean withTimestamp) {
 		byte qds = (byte)(value.isOverflow() ? 1 : 0);
 		byte siq = value.getQualityInformation().apply(qds);
 		out.writeBytes(value.getValue());
@@ -22,13 +22,13 @@ class TypeHelperExt extends TypeHelper {
 
 	}
 
-	static Value<byte[]> parseBytestringValue(ProtocolOptions options, ByteBuf data, boolean withTimestamp) {
+	static Value<byte[]> parseBitStringValue(ProtocolOptions options, ByteBuf data, boolean withTimestamp) {
 		byte[] value = new byte[data.readableBytes()];
 		data.getBytes(data.readerIndex(), value);
 		byte siq = data.readByte();
 		QualityInformation qualityInformation = QualityInformation.parse(siq);
 		long timestamp = withTimestamp ? parseTimestamp(options, data) : System.currentTimeMillis();
-		return new Value(value, timestamp, qualityInformation);
+		return new Value<>(value, timestamp, qualityInformation);
 	}
 
 	private static long parseTimestamp(ProtocolOptions options, ByteBuf data) {

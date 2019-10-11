@@ -56,13 +56,13 @@ public class DNP3ConnectorConfigurationHandler implements ConfigurationUpdateHan
         Optional.ofNullable((String) props.get(REMOTE_DEVICE_DNP_ADDRESS_PROPERTY_NAME))
                 .ifPresent(value -> builder.remoteDeviceDNP3Address(Integer.parseInt(value)));
         Optional.ofNullable((String) props.get(UNSOLICITED_RESPONSE_PROPERTY_NAME))
-                .ifPresent(value -> builder.unsolicitedResponse(Boolean.valueOf(value)));
+                .ifPresent(value -> builder.unsolicitedResponse(Boolean.parseBoolean(value)));
         Optional.ofNullable((String) props.get(EVENT_BUFFER_SIZE_PROPERTY_NAME))
                 .ifPresent(value -> builder.eventBufferSize(Integer.parseInt(value)));
         Optional.ofNullable((String) props.get(LOG_LEVEL_PROPERTY_NAME))
                 .ifPresent(value -> builder.logLevel(Integer.parseInt(value)));
         Optional.ofNullable((String) props.get(ENABLE_PROPERTY_NAME))
-                .ifPresent(value -> builder.enable(Boolean.valueOf(value)));
+                .ifPresent(value -> builder.enable(Boolean.parseBoolean(value)));
 
         currentConfiguration = builder.build();
 
@@ -70,16 +70,20 @@ public class DNP3ConnectorConfigurationHandler implements ConfigurationUpdateHan
     }
 
     @Override
-    public void applyConfiguration() throws DNP3Exception {
-        logger.info("Applying last configuration");
-        connector.loadConfiguration(currentConfiguration);
+    public void applyConfiguration() {
+        try {
+            logger.info("Applying last configuration");
+            connector.loadConfiguration(currentConfiguration);
 
-        if (currentConfiguration.isEnable()) {
-            connector.init();
-            logger.info("Connector is configured and enabled");
-        } else {
-            logger.info("Connector is configured but disabled");
+            if (currentConfiguration.isEnable()) {
+                connector.init();
+                logger.info("Connector is configured and enabled");
+            } else {
+                logger.info("Connector is configured but disabled");
+            }
+            logger.info("Last configuration applied");
+        } catch (DNP3Exception e) {
+            throw new IllegalArgumentException("Invalid configuration for DNP3 Connector", e);
         }
-        logger.info("Last configuration applied");
     }
 }

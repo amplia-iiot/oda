@@ -223,7 +223,7 @@ public class HttpConnectorTest {
 
     @Test
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void testUplinkConnectorUnconfigured() {
+    public void testUplinkConnectorNoConfigured() {
         Whitebox.setInternalState(testConnector, "hostUrl", null);
 
         PowerMockito.mockStatic(HttpClientBuilder.class);

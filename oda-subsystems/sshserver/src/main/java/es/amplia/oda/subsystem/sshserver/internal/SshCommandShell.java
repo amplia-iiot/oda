@@ -56,7 +56,7 @@ public class SshCommandShell implements AutoCloseable {
             try {
                 server.stop();
             } catch (IOException exception) {
-                LOGGER.error("Error stopping SSH command shell: {}", exception);
+                LOGGER.error("Error stopping SSH command shell", exception);
             }
             server = null;
         }

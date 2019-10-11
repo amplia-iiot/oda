@@ -1,6 +1,6 @@
 package es.amplia.oda.connector.http;
 
-import es.amplia.oda.connector.http.configuration.ConnectorConfigurationUpdateHandler;
+import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
@@ -36,7 +36,7 @@ public class ActivatorTest {
     @Mock
     private HttpConnector mockedConnector;
     @Mock
-    private ConnectorConfigurationUpdateHandler mockedConfigHandler;
+    private HttpConnectorConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundle;
     @Mock
@@ -49,7 +49,7 @@ public class ActivatorTest {
     public void testStart() throws Exception {
         PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
         PowerMockito.whenNew(HttpConnector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(ConnectorConfigurationUpdateHandler.class).withAnyArguments()
+        PowerMockito.whenNew(HttpConnectorConfigurationUpdateHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
@@ -58,7 +58,7 @@ public class ActivatorTest {
 
         PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(HttpConnector.class).withArguments(eq(mockedDeviceInfoProvider));
-        PowerMockito.verifyNew(ConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
+        PowerMockito.verifyNew(HttpConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
         PowerMockito.verifyNew(ServiceListenerBundle.class)
@@ -67,7 +67,7 @@ public class ActivatorTest {
 
     @Test
     public void testOnServiceChanged() {
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+        Whitebox.setInternalState(testActivator, "httpConfigHandler", mockedConfigHandler);
 
         testActivator.onServiceChanged();
 
@@ -76,7 +76,7 @@ public class ActivatorTest {
 
     @Test
     public void testOnServiceChangedExceptionCaught() {
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+        Whitebox.setInternalState(testActivator, "httpConfigHandler", mockedConfigHandler);
 
         doThrow(new RuntimeException()).when(mockedConfigHandler).applyConfiguration();
 
@@ -91,7 +91,7 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "deviceInfoProviderListener", mockedListener);
-        Whitebox.setInternalState(testActivator, "openGateConnectorRegistration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "httpConnectorRegistration", mockedRegistration);
 
         testActivator.stop(mockedContext);
 

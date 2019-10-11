@@ -2,6 +2,7 @@ package es.amplia.oda.subsystem.sshserver.configuration;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.subsystem.sshserver.internal.SshCommandShell;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ public class SshConfigurationUpdateHandler implements ConfigurationUpdateHandler
     static final String IP_PROPERTY_NAME = "ip";
     static final String PORT_PROPERTY_NAME = "port";
     static final String USERNAME_PROPERTY_NAME = "username";
-    static final String PASSWORD_PROPERTY_NAME = "password";
+    static final String PASS_PROPERTY_NAME = "password";
 
     private final SshCommandShell sshServer;
 
@@ -36,7 +37,7 @@ public class SshConfigurationUpdateHandler implements ConfigurationUpdateHandler
         Optional.ofNullable((String) props.get(IP_PROPERTY_NAME)).ifPresent(builder::ip);
         Optional.ofNullable((String) props.get(PORT_PROPERTY_NAME)).ifPresent(v -> builder.port(Integer.parseInt(v)));
         Optional.ofNullable((String) props.get(USERNAME_PROPERTY_NAME)).ifPresent(builder::username);
-        Optional.ofNullable((String) props.get(PASSWORD_PROPERTY_NAME)).ifPresent(builder::password);
+        Optional.ofNullable((String) props.get(PASS_PROPERTY_NAME)).ifPresent(builder::password);
 
         currentConfiguration = builder.build();
 
@@ -44,10 +45,14 @@ public class SshConfigurationUpdateHandler implements ConfigurationUpdateHandler
     }
 
     @Override
-    public void applyConfiguration() throws IOException {
+    public void applyConfiguration() {
         if (currentConfiguration != null) {
             sshServer.loadConfiguration(currentConfiguration);
-            sshServer.init();
+            try {
+                sshServer.init();
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Illegal SSH Server configuration");
+            }
         }
     }
 }

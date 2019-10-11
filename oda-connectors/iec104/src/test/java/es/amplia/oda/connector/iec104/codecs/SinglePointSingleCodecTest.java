@@ -7,7 +7,6 @@ import org.eclipse.neoscada.protocol.iec60870.CauseOfTransmissionType;
 import org.eclipse.neoscada.protocol.iec60870.InformationObjectAddressType;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformationSingle;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.junit.Test;
@@ -27,7 +26,8 @@ public class SinglePointSingleCodecTest {
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private SinglePointSingleCodec codec = new SinglePointSingleCodec();
+	private final SinglePointSingleCodec codec = new SinglePointSingleCodec();
+
 
 	@Test
 	public void testParse() {
@@ -47,7 +47,7 @@ public class SinglePointSingleCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<Boolean> v = new Value(true, System.currentTimeMillis(), QualityInformation.OK);
+		Value<Boolean> v = new Value<>(true, System.currentTimeMillis(), QualityInformation.OK);
 
 		codec.encode(options, SinglePointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
 

@@ -16,13 +16,8 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -86,7 +81,7 @@ public class DNP3ConnectorTest {
     @Test
     public void testConstructor() throws Exception {
         assertNotNull(testConnector);
-        PowerMockito.verifyNew(DNP3LogHandler.class).withArguments(any(Logger.class));
+        PowerMockito.verifyNew(DNP3LogHandler.class).withNoArguments();
         PowerMockito.verifyStatic(DNP3ManagerFactory.class);
         DNP3ManagerFactory.createManager(eq(mockedLogHandler));
     }

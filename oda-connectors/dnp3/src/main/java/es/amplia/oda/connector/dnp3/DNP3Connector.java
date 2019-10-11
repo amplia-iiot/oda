@@ -15,7 +15,7 @@ import es.amplia.oda.connector.dnp3.configuration.DNP3ConnectorConfiguration;
 
 public class DNP3Connector implements ScadaConnector, AutoCloseable {
 
-    private static final Logger logger = LoggerFactory.getLogger(DNP3Connector.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DNP3Connector.class);
 
 
     private final ScadaTableInfo tableInfo;
@@ -35,7 +35,7 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
         this.tableInfo = tableInfo;
         this.dispatcher = dispatcher;
         this.scadaConnectorRegistrationManager = scadaConnectorRegistrationManager;
-        manager = DNP3ManagerFactory.createManager(new DNP3LogHandler(logger));
+        manager = DNP3ManagerFactory.createManager(new DNP3LogHandler());
     }
 
     public void loadConfiguration(DNP3ConnectorConfiguration config) throws DNP3Exception {
@@ -88,7 +88,7 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
     @Override
     public <T, S> void uplink(int index, T value, S type, long timestamp) {
         if (!isConnected()) {
-            logger.warn("Can not uplink data: DNP 3.0 connector is not connected");
+            LOGGER.warn("Can not uplink data: DNP 3.0 connector is not connected");
             return;
         }
 
@@ -96,15 +96,15 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
         byte dataQuality = 0x01;
 
         if (isBinaryOutput(value)) {
-            logger.info("Uplink binary input {} in index {}", value, index);
+            LOGGER.info("Uplink binary input {} in index {}", value, index);
             BinaryInput binaryInput = new BinaryInput(Boolean.parseBoolean(value.toString()), dataQuality, timestamp);
             updateSet.update(binaryInput, index);
         } else if (isAnalogInput(value)) {
-            logger.info("Uplink analog input {} in index {}", value, index);
+            LOGGER.info("Uplink analog input {} in index {}", value, index);
             AnalogInput analogInput = new AnalogInput(Double.parseDouble(value.toString()), dataQuality, timestamp);
             updateSet.update(analogInput, index);
         } else {
-            logger.warn("Can not uplink data: Unknown type");
+            LOGGER.warn("Can not uplink data: Unknown type");
             return;
         }
 

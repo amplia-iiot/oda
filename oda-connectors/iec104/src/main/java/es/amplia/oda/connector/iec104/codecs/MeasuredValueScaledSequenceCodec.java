@@ -5,7 +5,6 @@ import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageCodec;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
 
 public class MeasuredValueScaledSequenceCodec implements MessageCodec {
 

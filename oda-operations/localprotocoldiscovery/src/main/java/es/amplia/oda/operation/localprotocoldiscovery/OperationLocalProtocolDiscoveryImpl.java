@@ -43,7 +43,7 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover {
         return future;
     }
 
-    public void loadConfiguration(LocalProtocolDiscoveryConfiguration currentConfiguration) throws MqttException {
+    public void loadConfiguration(LocalProtocolDiscoveryConfiguration currentConfiguration) {
         try {
             if (mqttClient != null) {
                 mqttClient.disconnect();

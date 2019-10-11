@@ -7,7 +7,7 @@ import es.amplia.oda.hardware.atmanager.api.ATCommand;
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atmanager.api.ATResponse;
-import org.osgi.service.cm.ConfigurationException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import purejavacomm.*;
@@ -35,15 +35,14 @@ class ATServer implements ATManager, AutoCloseable {
         this.atManagerRegistrationManager = atManagerRegistrationManager;
     }
 
-    void loadConfiguration(ATServerConfiguration configuration) throws ConfigurationException {
+    void loadConfiguration(ATServerConfiguration configuration) {
         try {
             close();
 
             commPort = (SerialPort) CommPortIdentifier.getPortIdentifier(configuration.getPortName())
                                         .open(configuration.getAppName(), configuration.getTimeToGetPort());
             if (commPort == null) {
-                LOGGER.error("Cannot open {} as AT comm port", configuration.getPortName());
-                throw new ConfigurationException("port-name", "Cannot open as AT comm port");
+                throw new IllegalArgumentException("Cannot open " + configuration.getPortName() + " as AT comm port");
             }
             commPort.setSerialPortParams(configuration.getBaudRate(), configuration.getDataBits(),
                     configuration.getStopBits(), configuration.getParity());
@@ -59,25 +58,21 @@ class ATServer implements ATManager, AutoCloseable {
 
             atManagerRegistrationManager.register(atManager);
         } catch (NoSuchPortException e) {
-            LOGGER.error("", e);
             close();
-            throw new ConfigurationException("port-name", "No such port");
+            throw new IllegalArgumentException("No such port: " + configuration.getPortName());
         } catch (PortInUseException e) {
-            LOGGER.error("", e);
             close();
-            throw new ConfigurationException("port-name", "Port already in use");
+            throw new IllegalArgumentException("Port already in use: " + configuration.getPortName());
         } catch (UnsupportedCommOperationException e) {
-            LOGGER.error("", e);
             close();
-            throw new ConfigurationException("port-name", "The combination of baud-rate, data-bits, stop-bits and parity is not supported");
+            throw new IllegalArgumentException("Invalid configuration " + configuration + " of port " +
+                    configuration.getPortName());
         } catch (IOException e) {
-            LOGGER.error("", e);
             close();
-            throw new ConfigurationException("port-name", "Error getting output stream");
+            throw new IllegalArgumentException("Error getting output stream");
         } catch (TooManyListenersException e) {
-            LOGGER.error("", e);
             close();
-            throw new ConfigurationException("port-name", "Too many listeners");
+            throw new IllegalArgumentException("Too many listeners");
         }
     }
 

@@ -1,6 +1,6 @@
 package es.amplia.oda.comms.mqtt.api;
 
-public class MqttException extends Exception {
+public class MqttException extends RuntimeException {
     public MqttException(String message) {
         super(message);
     }

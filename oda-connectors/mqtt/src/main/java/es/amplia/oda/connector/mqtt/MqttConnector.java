@@ -32,8 +32,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         this.client = null;
     }
 
-    public void loadConfigurationAndInit(ConnectorConfiguration connectorConfiguration)
-            throws MqttException {
+    public void loadConfigurationAndInit(ConnectorConfiguration connectorConfiguration) {
         close();
         client = mqttClientFactory.createMqttClient(connectorConfiguration.getBrokerUrl(),
                 connectorConfiguration.getClientId());

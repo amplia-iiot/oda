@@ -20,7 +20,6 @@ import static es.amplia.oda.operation.update.internal.InstallManagerImpl.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class InstallManagerImplTest {

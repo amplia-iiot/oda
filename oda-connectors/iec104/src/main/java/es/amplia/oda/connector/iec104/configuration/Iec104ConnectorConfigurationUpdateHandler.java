@@ -1,8 +1,8 @@
 package es.amplia.oda.connector.iec104.configuration;
 
 import es.amplia.oda.connector.iec104.Iec104Connector;
-import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,6 @@ public class Iec104ConnectorConfigurationUpdateHandler implements ConfigurationU
 	private static final String ORIGINATOR_ADDRESS_PROPERTY = "originatorAddress";
 	private static final String COMMON_ADDRESS_PROPERTY = "commonAddress";
 	private static final String SPONTANEOUS_ENABLED_PROPERTY = "spontaneousEnabled";
-	private static final String ENABLE_PROPERTY = "enable";
 
 	private final Iec104Connector connector;
 	private Iec104ConnectorConfiguration currentConfiguration;

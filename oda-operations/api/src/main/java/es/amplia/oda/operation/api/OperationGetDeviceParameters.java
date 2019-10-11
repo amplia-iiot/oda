@@ -8,14 +8,14 @@ import java.util.concurrent.CompletableFuture;
 
 public interface OperationGetDeviceParameters {
     
-    public static enum Status {
+    enum Status {
         OK,
         NOT_FOUND,
         PROCESSING_ERROR
     }
     
     @Value
-    public static class GetValue {
+    class GetValue {
         String datastreamId;
         Status status;
         Object value; //null if status != OK
@@ -23,7 +23,7 @@ public interface OperationGetDeviceParameters {
     }
     
     @Value
-    public static class Result {
+    class Result {
         List<GetValue> values;
     }
     

@@ -9,9 +9,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class LocalProtocolDiscoveryConfigurationUpdateHandler implements ConfigurationUpdateHandler {
-	static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
-	static final String CLIENT_ID_PROPERTY_NAME = "clientId";
-	static final String DISCOVERY_TOPIC_PROPERTY_NAME = "discoverTopic";
+	private static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
+	private static final String CLIENT_ID_PROPERTY_NAME = "clientId";
+	private static final String DISCOVERY_TOPIC_PROPERTY_NAME = "discoverTopic";
 
 	private final OperationLocalProtocolDiscoveryImpl operationDiscover;
 
@@ -22,7 +22,7 @@ public class LocalProtocolDiscoveryConfigurationUpdateHandler implements Configu
 	}
 
 	@Override
-	public void loadConfiguration(Dictionary<String, ?> props) throws Exception {
+	public void loadConfiguration(Dictionary<String, ?> props) {
 		String brokerURI = Optional.ofNullable((String) props.get(SERVER_URI_PROPERTY_NAME)).orElseThrow(
 				() -> new ConfigurationException("Missing required parameter: " + SERVER_URI_PROPERTY_NAME));
 		String clientId = Optional.ofNullable((String) props.get(CLIENT_ID_PROPERTY_NAME)).orElse(UUID.randomUUID().toString());
@@ -33,7 +33,7 @@ public class LocalProtocolDiscoveryConfigurationUpdateHandler implements Configu
 	}
 
 	@Override
-	public void applyConfiguration() throws Exception {
+	public void applyConfiguration() {
 		operationDiscover.loadConfiguration(currentConfiguration);
 	}
 }

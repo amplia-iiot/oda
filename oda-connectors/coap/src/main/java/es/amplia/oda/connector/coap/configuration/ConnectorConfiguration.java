@@ -15,6 +15,10 @@ public class ConnectorConfiguration {
         AT
     }
 
+    static {
+        NetworkConfig.createStandardWithoutFile();
+    }
+
     public static final ConnectorType DEFAULT_CONNECTOR_TYPE = ConnectorType.UDP;
     public static final String COAP_SCHEME = "coap";
     public static final String COAP_SECURE_SCHEME = "coaps";
