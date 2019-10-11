@@ -1,8 +1,6 @@
 package es.amplia.oda.hardware.atmanager.grammar;
 
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
-import es.amplia.oda.hardware.atmanager.grammar.GrammarException;
-import es.amplia.oda.hardware.atmanager.grammar.ResponseGrammar;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -3,8 +3,8 @@ package es.amplia.oda.hardware.modbus.configuration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;
+import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
 
 import java.util.Dictionary;
 import java.util.HashMap;

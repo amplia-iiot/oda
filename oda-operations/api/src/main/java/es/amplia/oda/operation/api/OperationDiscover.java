@@ -13,7 +13,7 @@ public interface OperationDiscover {
 
 	@Value
 	class Result {
-		OperationSetClock.ResultCode resultCode;
+		OperationDiscover.ResultCode resultCode;
 		String resultDescription; // null if resultCode == SUCCESSFUL
 	}
 

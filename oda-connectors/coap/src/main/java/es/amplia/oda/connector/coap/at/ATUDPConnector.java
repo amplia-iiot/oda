@@ -1,7 +1,6 @@
 package es.amplia.oda.connector.coap.at;
 
 import es.amplia.oda.hardware.atmanager.api.*;
-
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.eclipse.californium.elements.Connector;

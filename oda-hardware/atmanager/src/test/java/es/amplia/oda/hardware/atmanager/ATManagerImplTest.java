@@ -5,7 +5,6 @@ import es.amplia.oda.hardware.atmanager.ATParser;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
-import es.amplia.oda.hardware.atmanager.api.ATManager.AlreadyRegisteredException;
 import es.amplia.oda.hardware.atmanager.api.ATResponse;
 
 import org.junit.Before;
@@ -86,39 +85,39 @@ public class ATManagerImplTest {
         }
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
-    public void canNotRegisterSameEventTwoTimes() throws AlreadyRegisteredException {
+    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    public void canNotRegisterSameEventTwoTimes() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
         atManager.registerEvent(AN_EVENT, eventHandler);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
-    public void canNotRegisterSameCommandTwoTimes() throws AlreadyRegisteredException {
+    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    public void canNotRegisterSameCommandTwoTimes() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
         atManager.registerCommand(A_COMMAND, aCommandHandler);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
-    public void canNotRegisterEventIfACommandWithSameNameIsAlreadyRegistered() throws AlreadyRegisteredException {
+    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    public void canNotRegisterEventIfACommandWithSameNameIsAlreadyRegistered() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
         atManager.registerEvent(A_COMMAND, eventHandler);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
-    public void canNotRegisterCommandIfAnEventWithSameNameIsAlreadyRegistered() throws AlreadyRegisteredException {
+    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    public void canNotRegisterCommandIfAnEventWithSameNameIsAlreadyRegistered() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
         atManager.registerCommand(AN_EVENT, aCommandHandler);
     }
 
     @Test
-    public void canRegisterSameEventTwoTimesIfItIsUnregisteredBefore() throws AlreadyRegisteredException {
+    public void canRegisterSameEventTwoTimesIfItIsUnregisteredBefore() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
         atManager.unregisterEvent(AN_EVENT);
         atManager.registerEvent(AN_EVENT, eventHandler);
     }
 
     @Test
-    public void canRegisterSameCommandTwoTimesIfItIsUnregisteredBefore() throws AlreadyRegisteredException {
+    public void canRegisterSameCommandTwoTimesIfItIsUnregisteredBefore() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
         atManager.unregisterCommand(A_COMMAND);
         atManager.registerCommand(A_COMMAND, aCommandHandler);
@@ -139,7 +138,7 @@ public class ATManagerImplTest {
     }
 
     @Test
-    public void whenAnEventIsReceivedItsHandlerIsCalled() throws AlreadyRegisteredException {
+    public void whenAnEventIsReceivedItsHandlerIsCalled() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
 
         atManager.process(AN_EVENT_STRING);
@@ -148,7 +147,7 @@ public class ATManagerImplTest {
     }
 
     @Test
-    public void whenACommandIsReceivedItsHandlerIsCalled() throws AlreadyRegisteredException {
+    public void whenACommandIsReceivedItsHandlerIsCalled() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
 
         atManager.process(A_COMMAND_STRING);
@@ -185,7 +184,7 @@ public class ATManagerImplTest {
     }
 
     @Test
-    public void registeredCommandsSendsItsResponseToTheWire() throws IOException, AlreadyRegisteredException {
+    public void registeredCommandsSendsItsResponseToTheWire() throws IOException, ATManager.AlreadyRegisteredException {
         atManager.registerCommand(ANOTHER_COMMAND, anotherCommandHandler);
         when(anotherCommandHandler.apply(ANOTHER_COMMAND_AS_CLASS)).thenReturn(ATResponse.error(12));
 

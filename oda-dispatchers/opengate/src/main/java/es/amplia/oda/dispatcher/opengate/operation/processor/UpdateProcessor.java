@@ -113,12 +113,12 @@ class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateP
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         List<Step> steps = result.getSteps().stream()
-                .map(r -> new Step(translate(r.getName()), translate(r.getCode()), r.getDescription(), 0L, null))
+                .map(r -> new Step(translate(r.getName()), translate(r.getCode()), r.getDescription(), null, null))
                 .collect(Collectors.toList());
         OutputOperation operation =
-                new OutputOperation(new Response(requestId, deviceId, UPDATE_OPERATION_NAME,
+                new OutputOperation(new Response(requestId, deviceId, path, UPDATE_OPERATION_NAME,
                         translate(result.getResultCode()), result.getResultDescription(), steps));
         return new Output(OPENGATE_VERSION, operation);
     }

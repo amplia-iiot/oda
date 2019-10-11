@@ -67,15 +67,15 @@ class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         List<Object> outputVariables = result.getValues().stream()
                 .map(this::translateGetResultToOutput)
                 .collect(Collectors.toList());
 
         List<Step> steps =
                 Collections.singletonList(new Step(GET_DEVICE_PARAMETERS_OPERATION_NAME, StepResultCode.SUCCESSFUL, "",
-                        0L, outputVariables));
-        OutputOperation operation = new OutputOperation(new Response(requestId, deviceId,
+                        null, outputVariables));
+        OutputOperation operation = new OutputOperation(new Response(requestId, deviceId, path,
                 GET_DEVICE_PARAMETERS_OPERATION_NAME, OperationResultCode.SUCCESSFUL, "No Error.", steps));
         return new Output(OPENGATE_VERSION, operation);
     }

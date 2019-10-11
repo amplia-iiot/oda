@@ -34,11 +34,11 @@ class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscov
 	}
 
 	@Override
-	Output translateToOutput(OperationDiscover.Result result, String requestId, String deviceId) {
+	Output translateToOutput(OperationDiscover.Result result, String requestId, String deviceId, String[] path) {
 		List<Step> steps =
-				Collections.singletonList(new Step(DISCOVER_OPERATION_NAME, StepResultCode.SUCCESSFUL, "", 0L, null));
+				Collections.singletonList(new Step(DISCOVER_OPERATION_NAME, StepResultCode.SUCCESSFUL, "", null, null));
 		OutputOperation operation =
-				new OutputOperation(new Response(requestId, deviceId, DISCOVER_OPERATION_NAME,
+				new OutputOperation(new Response(requestId, deviceId, path, DISCOVER_OPERATION_NAME,
 						OperationResultCode.SUCCESSFUL, "No Error.", steps));
 		return new Output(OPENGATE_VERSION, operation);
 	}

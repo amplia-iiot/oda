@@ -99,10 +99,10 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         Step setClockStep = new Step(SET_CLOCK_EQUIPMENT_OPERATION_NAME, getStepResult(result),
                 result.getResultDescription(), null, null);
-        Response response = new Response(requestId, deviceId, SET_CLOCK_EQUIPMENT_OPERATION_NAME,
+        Response response = new Response(requestId, deviceId, path, SET_CLOCK_EQUIPMENT_OPERATION_NAME,
                 getOperationResult(result), result.getResultDescription(), Collections.singletonList(setClockStep));
         OutputOperation operation = new OutputOperation(response);
         return new Output(OPENGATE_VERSION, operation);

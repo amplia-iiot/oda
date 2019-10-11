@@ -54,6 +54,7 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
                 .filter(Map.class::isInstance)
                 .map(Map.class::cast)
                 .map(this::extractNameAndValue)
+                .filter(variable -> Objects.nonNull(variable.getIdentifier()))
                 .collect(Collectors.toList());
 
         if (variables.isEmpty()){
@@ -75,13 +76,13 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         if (result.getResulCode() == ResultCode.ERROR_IN_PARAM) {
             List<Step> steps =
                     Collections.singletonList(new Step(SET_DEVICE_PARAMETERS_OPERATION_NAME, StepResultCode.ERROR,
-                            result.getResultDescription(), 0L, null));
+                            result.getResultDescription(), null, null));
             OutputOperation operation =
-                    new OutputOperation(new Response(requestId, deviceId, SET_DEVICE_PARAMETERS_OPERATION_NAME,
+                    new OutputOperation(new Response(requestId, deviceId, path, SET_DEVICE_PARAMETERS_OPERATION_NAME,
                             OperationResultCode.ERROR_IN_PARAM, result.getResultDescription(), steps));
             return new Output(OPENGATE_VERSION, operation);
         } else {
@@ -90,9 +91,9 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
                     .collect(Collectors.toList());
             List<Step> steps =
                     Collections.singletonList(new Step(SET_DEVICE_PARAMETERS_OPERATION_NAME, StepResultCode.SUCCESSFUL,
-                            "", 0L, outputVariables));
+                            "", null, outputVariables));
             OutputOperation operation =
-                    new OutputOperation(new Response(requestId, deviceId, SET_DEVICE_PARAMETERS_OPERATION_NAME,
+                    new OutputOperation(new Response(requestId, deviceId, path, SET_DEVICE_PARAMETERS_OPERATION_NAME,
                             OperationResultCode.SUCCESSFUL, result.getResultDescription(), steps));
             return new Output(OPENGATE_VERSION, operation);
         }

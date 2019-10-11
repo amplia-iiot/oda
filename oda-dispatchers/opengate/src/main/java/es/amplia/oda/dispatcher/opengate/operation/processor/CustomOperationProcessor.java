@@ -63,9 +63,9 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
     }
 
     @Override
-    Output translateToOutput(Result result, String requestId, String deviceId) {
+    Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
         List<Step> steps = translateCustomSteps(result);
-        Response response = new Response(requestId, deviceId, customOperationName, getOperationResult(result),
+        Response response = new Response(requestId, deviceId, path, customOperationName, getOperationResult(result),
                 result.getDescription(), steps);
         OutputOperation operation = new OutputOperation(response);
         return new Output(OPENGATE_VERSION, operation);

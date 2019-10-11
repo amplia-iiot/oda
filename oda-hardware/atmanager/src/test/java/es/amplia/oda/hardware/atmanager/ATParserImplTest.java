@@ -4,7 +4,6 @@ import es.amplia.oda.hardware.atmanager.ATParser;
 import es.amplia.oda.hardware.atmanager.ATParserImpl;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,14 +25,14 @@ public class ATParserImplTest {
     public void emptyString() {
         ATParser.Result actual = atParser.process("");
 
-        Assert.assertEquals(actual, ATParser.Result.empty());
+        assertEquals(actual, ATParser.Result.empty());
     }
 
     @Test
     public void startSpacesAreDiscarded() {
         ATParser.Result actual = atParser.process("  \r  \r  ");
 
-        Assert.assertEquals(actual, ATParser.Result.empty());
+        assertEquals(actual, ATParser.Result.empty());
     }
 
     @Test
@@ -218,7 +217,7 @@ public class ATParserImplTest {
 
         ATParser.Result actual = atParser.process("oK");
 
-        Assert.assertEquals(actual, ATParser.Result.completeResponseOk());
+        assertEquals(actual, ATParser.Result.completeResponseOk());
     }
 
     @Test

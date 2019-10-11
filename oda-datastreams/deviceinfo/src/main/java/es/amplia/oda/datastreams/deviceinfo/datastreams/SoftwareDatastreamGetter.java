@@ -29,7 +29,8 @@ public class SoftwareDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getSoftware().toString()).orElse(""))
+				new CollectedValue(System.currentTimeMillis(),
+						Optional.ofNullable(this.deviceInfo.getSoftware()).orElse(Collections.emptyList()))
 		);
 	}
 }

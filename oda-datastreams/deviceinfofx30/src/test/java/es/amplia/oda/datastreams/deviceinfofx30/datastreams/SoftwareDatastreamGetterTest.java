@@ -41,6 +41,6 @@ public class SoftwareDatastreamGetterTest {
 
 		List<Software> list = Collections.singletonList(new Software("SO VERSION", "12.34.5", "FIRMWARE"));
 
-		assertEquals(list.toString(), datastreamGetter.get("").get().getValue());
+		assertEquals(list, datastreamGetter.get("").get().getValue());
 	}
 }

@@ -3,6 +3,7 @@ package es.amplia.oda.hardware.modbus;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
+import es.amplia.oda.hardware.modbus.Activator;
 import es.amplia.oda.hardware.modbus.configuration.ModbusMasterConfigurationUpdateHandler;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;

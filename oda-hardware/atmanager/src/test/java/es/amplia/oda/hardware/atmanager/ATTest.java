@@ -2,7 +2,6 @@ package es.amplia.oda.hardware.atmanager;
 
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
-import es.amplia.oda.hardware.atmanager.api.ATManager.AlreadyRegisteredException;
 import es.amplia.oda.hardware.atmanager.api.ATResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +18,7 @@ public class ATTest {
     private boolean end = false;
 
 
-    private ATTest() throws AlreadyRegisteredException {
+    private ATTest() throws ATManager.AlreadyRegisteredException {
         // First, we need to create an ATManager.
         atManager = new ATManagerImpl(new ATParserImpl(), System.out);
 
@@ -43,7 +42,7 @@ public class ATTest {
      * Will create an AT server that reads from standard input and writes in
      * standard output.
      */
-    public static void main(String[] args) throws AlreadyRegisteredException {
+    public static void main(String[] args) throws ATManager.AlreadyRegisteredException {
         new ATTest().start();
     }
 
