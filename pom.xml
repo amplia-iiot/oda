@@ -4,7 +4,7 @@
 
     <groupId>es.amplia.oda</groupId>
     <artifactId>oda-parent</artifactId>
-    <version>3.26.3-SNAPSHOT</version>
+    <version>3.27.0</version>
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
@@ -51,7 +51,7 @@
     <scm>
         <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
         <url>scm:git:http://github.com/amplia-iiot/oda.git</url>
-        <tag>HEAD</tag>
+        <tag>oda-parent-3.27.0</tag>
     </scm>
 
     <distributionManagement>
