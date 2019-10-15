@@ -24,7 +24,7 @@ public class Activator implements BundleActivator {
 		LOGGER.info("Starting I2C I/O Devices bundle");
 
 		i2CService = new DioZeroI2CService();
-		DioZeroI2CConfigurationHandler configHandler = new DioZeroI2CConfigurationHandler();
+		DioZeroI2CConfigurationHandler configHandler = new DioZeroI2CConfigurationHandler(i2CService);
 		i2CServiceRegistration = bundleContext.registerService(I2CService.class, i2CService, null);
 		configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler,
 				Collections.singletonList(i2CServiceRegistration));
