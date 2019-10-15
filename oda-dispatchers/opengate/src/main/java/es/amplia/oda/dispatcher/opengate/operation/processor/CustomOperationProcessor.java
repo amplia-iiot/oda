@@ -75,10 +75,11 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
         Collection<CustomOperation.Step> customSteps = result.getSteps();
         if (customSteps != null && !customSteps.isEmpty()) {
             return customSteps.stream().map(this::translateStep).collect(Collectors.toList());
+        } else if (result.getStatus().equals(Status.SUCCESSFUL)) {
+            return Collections.singletonList(
+                    new Step(customOperationName, getStepResult(result), result.getDescription(), null, null));
         }
-
-        return Collections.singletonList(
-                new Step(customOperationName, getStepResult(result), result.getDescription(), null, null));
+        return Collections.emptyList();
     }
 
     private Step translateStep(CustomOperation.Step customStep) {

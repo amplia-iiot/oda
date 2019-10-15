@@ -132,7 +132,7 @@ public class CustomOperationProcessorTest {
     }
 
     @Test
-    public void testTranslateToOutput() {
+    public void testTranslateToOutputSuccessfulResultWithoutSteps() {
         Whitebox.setInternalState(testProcessor, "customOperationName", TEST_CUSTOM_OPERATION_NAME);
 
         Output output = testProcessor.translateToOutput(TEST_RESULT, TEST_ID, TEST_DEVICE_ID, TEST_PATH);
@@ -151,6 +151,28 @@ public class CustomOperationProcessorTest {
         Step step = steps.get(0);
         assertEquals(TEST_CUSTOM_OPERATION_NAME, step.getName());
         assertEquals(StepResultCode.SUCCESSFUL, step.getResult());
+    }
+
+    @Test
+    public void testTranslateToOutputErrorResultWithoutSteps() {
+        CustomOperation.Result errorResult =
+                new CustomOperation.Result(CustomOperation.Status.ERROR_PROCESSING, TEST_DESCRIPTION, null);
+
+        Whitebox.setInternalState(testProcessor, "customOperationName", TEST_CUSTOM_OPERATION_NAME);
+
+        Output output = testProcessor.translateToOutput(errorResult, TEST_ID, TEST_DEVICE_ID, TEST_PATH);
+
+        assertEquals(OPENGATE_VERSION, output.getVersion());
+        OutputOperation outputOperation = output.getOperation();
+        Response response = outputOperation.getResponse();
+        assertEquals(TEST_ID, response.getId());
+        assertEquals(TEST_DEVICE_ID, response.getDeviceId());
+        assertArrayEquals(TEST_PATH, response.getPath());
+        assertEquals(TEST_CUSTOM_OPERATION_NAME, response.getName());
+        assertEquals(OperationResultCode.ERROR_PROCESSING, response.getResultCode());
+        List<Step> steps = response.getSteps();
+        assertNotNull(steps);
+        assertTrue(steps.isEmpty());
     }
 
     @Test
