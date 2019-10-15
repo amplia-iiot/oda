@@ -96,25 +96,42 @@ public class OperationSetDeviceParametersImplTest {
     }
     
     @Test
-    public void ifUnknownIdsAreUsedAnAlreadyCompletedCompletableFutureIsReturned() throws InterruptedException, ExecutionException {
+    public void ifUnknownIdsAreUsedAnAlreadyCompletedCompletableFutureIsReturnedWithErrorDescription() throws InterruptedException, ExecutionException {
         List<VariableValue> aSetOfID3 = Collections.singletonList(new VariableValue(ID3, VALUE_1_FOR_ID_3));
         when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, asSet(ID3))).thenReturn(new DatastreamsSettersFinder.Return(new HashMap<>(), asSet(ID3)));
         
-        CompletableFuture<Result> actual = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID3);
+        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID3);
         
-        assertTrue(actual.isDone());
-        assertEquals(ResultCode.ERROR_IN_PARAM, actual.get().getResulCode());
+        assertTrue(future.isDone());
+        Result result = future.get();
+        assertEquals(ResultCode.SUCCESSFUL, result.getResultCode());
+        List<VariableResult> variables = result.getVariables();
+        assertNotNull(variables);
+        assertEquals(1, variables.size());
+        VariableResult variableResult = variables.get(0);
+        assertEquals(ID3, variableResult.getIdentifier());
+        assertNotNull(variableResult.getError());
     }
 
     @Test
-    public void ifNullValuesAreUsedAnAlreadyCompletedCompletableFutureIsReturned() throws InterruptedException, ExecutionException {
+    public void ifNullValuesAreUsedAnAlreadyCompletedCompletableFutureIsReturnedWithErrorDescription() throws InterruptedException, ExecutionException {
         List<VariableValue> aSetOfID1 = Collections.singletonList(new VariableValue(ID1, null));
-        when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, asSet(ID1))).thenReturn(new DatastreamsSettersFinder.Return(new HashMap<>(), asSet(ID1)));
+        Map<String, DatastreamsSetter> foundSetters = new HashMap<>();
+        foundSetters.put(ID1, datastreamsSetterId1);
+        when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, asSet(ID1)))
+                .thenReturn(new DatastreamsSettersFinder.Return(foundSetters, Collections.emptySet()));
 
-        CompletableFuture<Result> actual = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID1);
+        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID1);
 
-        assertTrue(actual.isDone());
-        assertEquals(ResultCode.ERROR_IN_PARAM, actual.get().getResulCode());
+        assertTrue(future.isDone());
+        Result result = future.get();
+        assertEquals(ResultCode.SUCCESSFUL, result.getResultCode());
+        List<VariableResult> variables = result.getVariables();
+        assertNotNull(variables);
+        assertEquals(1, variables.size());
+        VariableResult variableResult = variables.get(0);
+        assertEquals(ID1, variableResult.getIdentifier());
+        assertNotNull(variableResult.getError());
     }
     
     @Test

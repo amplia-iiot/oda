@@ -77,7 +77,7 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
-        if (result.getResulCode() == ResultCode.ERROR_IN_PARAM) {
+        if (result.getResultCode() == ResultCode.ERROR_IN_PARAM) {
             List<Step> steps =
                     Collections.singletonList(new Step(SET_DEVICE_PARAMETERS_OPERATION_NAME, StepResultCode.ERROR,
                             result.getResultDescription(), null, null));

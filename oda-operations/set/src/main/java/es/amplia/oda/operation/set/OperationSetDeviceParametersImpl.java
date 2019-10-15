@@ -4,10 +4,10 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 
+import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,48 +30,67 @@ class OperationSetDeviceParametersImpl implements OperationSetDeviceParameters {
         Set<String> datastreamIdentifiers = values.stream()
             .map(VariableValue::getIdentifier)
             .collect(Collectors.toSet());
-        DatastreamsSettersFinder.Return setters = datastreamsSettersFinder.getSettersSatisfying(deviceId, datastreamIdentifiers);
-        
-        if(!setters.getNotFoundIds().isEmpty()) {
-            String variables = setters.getNotFoundIds().stream().collect(Collectors.joining(","));
-            String resultDescription = "Variables [" + variables + "] do not exist.";
-            logger.warn(resultDescription);
-            return CompletableFuture.completedFuture(new Result(ResultCode.ERROR_IN_PARAM, resultDescription, null));
-        }
+        DatastreamsSettersFinder.Return foundSetters = datastreamsSettersFinder.getSettersSatisfying(deviceId, datastreamIdentifiers);
 
-        List<VariableValue> nullDatastreamValues = values.stream()
-                .filter(datastream -> datastream.getValue() == null)
+        List<CompletableFuture<VariableResult>> notFoundValues = getNotFoundIdsAsFutures(foundSetters.getNotFoundIds());
+        List<CompletableFuture<VariableResult>> allRecollectedValuesFutures = getFoundIdsAsFutures(deviceId, createSettersWithValues(foundSetters.getSetters(), values));
+        allRecollectedValuesFutures.addAll(notFoundValues);
+
+        CompletableFuture<Void> futureThatWillCompleteWhenAllFuturesComplete =
+                CompletableFuture.allOf(allRecollectedValuesFutures.toArray(new CompletableFuture<?>[0]));
+
+        CompletableFuture<Result> future = futureThatWillCompleteWhenAllFuturesComplete.thenApply(v -> {
+            List<VariableResult> results = allRecollectedValuesFutures.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+            return new Result(ResultCode.SUCCESSFUL, "SUCCESSFUL", results);
+        });
+
+        logger.debug("Wiring done. Waiting for all values to be complete.");
+        return future;
+    }
+
+    private static List<CompletableFuture<VariableResult>> getNotFoundIdsAsFutures(Set<String> notFoundIds) {
+        return notFoundIds.stream()
+                .map(id-> CompletableFuture.completedFuture(new VariableResult(id, "Datastream not found")))
                 .collect(Collectors.toList());
-
-        if (!nullDatastreamValues.isEmpty()) {
-            String variables =
-                    nullDatastreamValues.stream().map(VariableValue::getIdentifier).collect(Collectors.joining(","));
-            String resultDescription = "Variables [" + variables + "] has no value to set.";
-            logger.warn(resultDescription);
-            return CompletableFuture.completedFuture(new Result(ResultCode.ERROR_IN_PARAM, resultDescription, null));
-        }
-        
-        CompletableFuture<Result> inSequence = CompletableFuture.completedFuture(new Result(ResultCode.SUCCESSFUL, "SUCCESSFUL", new ArrayList<>()));
-        
-        for(VariableValue value: values) {
-            inSequence = inSequence.thenCompose(result->execAndAccumulate(result, value, deviceId, setters.getSetters()));
-        }
-
-        return inSequence;
     }
 
-    private static CompletableFuture<Result> execAndAccumulate(Result result, VariableValue value, String deviceId, Map<String, DatastreamsSetter> setters) {
-        return setters
-                .get(value.getIdentifier())
-                .set(deviceId, value.getValue())
-                .handle((ok,error)->{
-                    if(error!=null) return new VariableResult(value.getIdentifier(), error.getMessage());
-                    return new VariableResult(value.getIdentifier(), null);
-                })
-                .thenApply(e->{
-                    result.getVariables().add(e);
-                    return result;
+    @Value
+    private static class SetterWithValue {
+        private DatastreamsSetter setter;
+        private Object value;
+    }
+
+    private static List<CompletableFuture<VariableResult>> getFoundIdsAsFutures(String deviceId, List<SetterWithValue> settersWithValue) {
+        return settersWithValue.stream()
+                .map(setterWithValue-> getValueFromFutureHandlingExceptions(deviceId, setterWithValue.getSetter(), setterWithValue.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private List<SetterWithValue> createSettersWithValues(Map<String, DatastreamsSetter> foundSetters, List<VariableValue> values) {
+        return values.stream()
+                .filter(variableValue -> foundSetters.containsKey(variableValue.getIdentifier()))
+                .map(variableValue -> new SetterWithValue(foundSetters.get(variableValue.getIdentifier()), variableValue.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private static CompletableFuture<VariableResult> getValueFromFutureHandlingExceptions(String deviceId, DatastreamsSetter setter, Object value) {
+        String datastreamId = setter.getDatastreamIdSatisfied();
+        try {
+            if (value != null) {
+                CompletableFuture<Void> getFuture = setter.set(deviceId, value);
+                return getFuture.handle((ok,error)-> {
+                    if (error != null) {
+                        return new VariableResult(datastreamId, error.getMessage());
+                    }
+                    return new VariableResult(datastreamId, null);
                 });
+            } else {
+                return CompletableFuture.completedFuture(new VariableResult(datastreamId, "Value can not be null"));
+            }
+        } catch (Exception e) {
+            return CompletableFuture.completedFuture(new VariableResult(datastreamId, e.getMessage()));
+        }
     }
-
 }
