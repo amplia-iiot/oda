@@ -1,6 +1,5 @@
 package es.amplia.oda.connector.iec104.codecs;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -27,7 +26,7 @@ public class MeasuredValueScaledSingleCodecTest {
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private MeasuredValueScaledSingleCodec codec = new MeasuredValueScaledSingleCodec();
+	private final MeasuredValueScaledSingleCodec codec = new MeasuredValueScaledSingleCodec();
 
 	@Test
 	public void testParse() {
@@ -47,7 +46,7 @@ public class MeasuredValueScaledSingleCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<Short> v = new Value(Short.parseShort("10"), System.currentTimeMillis(), QualityInformation.OK);
+		Value<Short> v = new Value<>(Short.parseShort("10"), System.currentTimeMillis(), QualityInformation.OK);
 
 		codec.encode(options, MeasuredValueScaledSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
 

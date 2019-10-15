@@ -9,7 +9,7 @@ import lombok.Value;
 public class ConnectorConfiguration {
     public static final int DEFAULT_PORT = 80;
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30;
-    public static final int DEFAULT_KEEPALIVE_INTERVAL = 180;
+    public static final int DEFAULT_KEEP_ALIVE_INTERVAL = 180;
 
     @NonNull
     private String host;
@@ -20,5 +20,5 @@ public class ConnectorConfiguration {
     @Builder.Default
     private int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
     @Builder.Default
-    private int keepAliveInterval = DEFAULT_KEEPALIVE_INTERVAL;
+    private int keepAliveInterval = DEFAULT_KEEP_ALIVE_INTERVAL;
 }

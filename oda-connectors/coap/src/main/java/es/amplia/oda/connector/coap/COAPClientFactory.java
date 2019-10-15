@@ -47,6 +47,7 @@ class COAPClientFactory {
     COAPClientFactory(DeviceInfoProvider deviceInfoProvider, ATManager atManager) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.atManager = atManager;
+        NetworkConfig.createStandardWithoutFile();
         CaliforniumLogger.disableLogging();
     }
 
@@ -91,8 +92,8 @@ class COAPClientFactory {
                 builder.setSupportedCipherSuites(new CipherSuite[]{ CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 });
 
                 return new DTLSConnector(builder.build());
-            } catch (IllegalArgumentException | IllegalStateException | GeneralSecurityException | IOException ex) {
-                LOGGER.error("Error creating CoAP DTLS Connector: {}", ex);
+            } catch (IllegalArgumentException | IllegalStateException | GeneralSecurityException | IOException e) {
+                LOGGER.error("Error creating CoAP DTLS Connector", e);
                 throw new ConfigurationException("Error creating Coap Connector: Invalid configuration");
             }
         } else {

@@ -12,16 +12,17 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractBytestringPointInformation extends AbstractMessage {
+public abstract class AbstractBitStringPointInformation extends AbstractMessage {
+
+	private static final boolean WITH_TIMESTAMP = false;
+
 
 	private final List<InformationEntry<byte[]>> entries;
 
-	private final boolean withTimestamp;
 
-	AbstractBytestringPointInformation(ASDUHeader header, List<InformationEntry<byte[]>> entries, boolean withTimestamp) {
+	AbstractBitStringPointInformation(ASDUHeader header, List<InformationEntry<byte[]>> entries) {
 		super(header);
 		this.entries = entries;
-		this.withTimestamp = withTimestamp;
 	}
 
 	@Override
@@ -30,23 +31,18 @@ public abstract class AbstractBytestringPointInformation extends AbstractMessage
 
 		for (InformationEntry<byte[]> entry : this.entries) {
 			entry.getAddress().encode(protocolOptions, byteBuf);
-			TypeHelperExt.encodeBytestringValue(protocolOptions, byteBuf, entry.getValue(), this.withTimestamp);
+			TypeHelperExt.encodeBitStringValue(protocolOptions, byteBuf, entry.getValue(), WITH_TIMESTAMP);
 		}
 	}
 
-	static List<InformationEntry<byte[]>> parseEntries (final ProtocolOptions options, final byte length, final ByteBuf data, final boolean withTimestamp) {
-
+	static List<InformationEntry<byte[]>> parseEntries (ProtocolOptions options, byte length, ByteBuf data) {
 		final List<InformationEntry<byte[]>> values = new ArrayList<>(length);
 
 		for (int i = 0; i < length; i++) {
 			final InformationObjectAddress address = InformationObjectAddress.parse(options, data);
-			final Value<byte[]> value = TypeHelperExt.parseBytestringValue(options, data, withTimestamp);
+			final Value<byte[]> value = TypeHelperExt.parseBitStringValue(options, data, WITH_TIMESTAMP);
 			values.add(new InformationEntry<>(address, value));
 		}
 		return values;
-	}
-
-	public List<InformationEntry<byte[]>> getEntries() {
-		return this.entries;
 	}
 }

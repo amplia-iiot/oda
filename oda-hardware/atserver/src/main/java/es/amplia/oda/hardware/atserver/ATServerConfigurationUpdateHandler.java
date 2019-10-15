@@ -2,7 +2,6 @@ package es.amplia.oda.hardware.atserver;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 
-import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import purejavacomm.SerialPort;
@@ -22,7 +21,7 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
     }
 
     @Override
-    public void loadConfiguration(Dictionary<String, ?> properties) throws Exception {
+    public void loadConfiguration(Dictionary<String, ?> properties) {
         LOGGER.debug("AT Server updated with {} properties", properties.size());
 
         String appName = get(properties, "appName", String.class);
@@ -50,7 +49,7 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 parityAsInt = SerialPort.PARITY_SPACE;
                 break;
             default:
-                throw new ConfigurationException("parity", "Parity value error. Only 'N', 'O', 'E', 'M' and 'S' are supported");
+                throw new IllegalArgumentException("Parity value error. Only 'N', 'O', 'E', 'M' and 'S' are supported");
         }
         long timeBetweenCommands = get(properties, "timeBetweenCommands", Long.class, 0L);
 
@@ -58,17 +57,17 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 stopBits, parityAsInt, timeBetweenCommands);
     }
 
-    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz, T defaultValue)
-            throws ConfigurationException {
+    @SuppressWarnings({"unchecked", "WrapperTypeMayBePrimitive"})
+    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz, T defaultValue) {
         Object v = properties.get(key);
         if (v == null) {
             if (defaultValue == null) {
-                throw new ConfigurationException(key, "Property not found in config");
+                throw new IllegalAccessError(key + " not found in config");
             }
             return defaultValue;
         }
         if (!(v instanceof String)) {
-            throw new ConfigurationException(key, "Value in config is not a String");
+            throw new IllegalArgumentException(key + " in config is not a String");
         }
         String value = (String) v;
         if (clazz == String.class) {
@@ -79,7 +78,7 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 Integer i = Integer.parseInt(value);
                 return (T) i;
             } catch (NumberFormatException e) {
-                throw new ConfigurationException(key, "Value is not an Integer");
+                throw new IllegalArgumentException(key + " in config is not a Integer");
             }
         }
         if (clazz == Long.class) {
@@ -87,7 +86,7 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 Long l = Long.parseLong(value);
                 return (T) l;
             } catch (NumberFormatException e) {
-                throw new ConfigurationException(key, "Value is not an Integer");
+                throw new IllegalArgumentException(key + " in config is not a Long");
             }
         }
         if (clazz == Character.class) {
@@ -95,17 +94,17 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 Character c = value.charAt(0);
                 return (T) c;
             }
-            throw new ConfigurationException(key, "Property has more than one char");
+            throw new IllegalArgumentException("Property has more than one char");
         }
-        throw new ConfigurationException(key, "Not implemented exception. Type " + clazz.getName() + " not parseable");
+        throw new IllegalArgumentException("Not implemented exception. Type " + clazz.getName() + " not parseable");
     }
 
-    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz) throws ConfigurationException {
+    private <T> T get(Dictionary<String, ?> properties, String key, Class<T> clazz) {
         return get(properties, key, clazz, null);
     }
 
     @Override
-    public void applyConfiguration() throws ConfigurationException {
+    public void applyConfiguration() {
         atServer.loadConfiguration(currentConfiguration);
     }
 }

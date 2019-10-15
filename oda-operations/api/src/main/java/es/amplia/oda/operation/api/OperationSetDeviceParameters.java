@@ -26,7 +26,7 @@ public interface OperationSetDeviceParameters {
 
     @Value
     class Result {
-        ResultCode resulCode;
+        ResultCode resultCode;
         String resultDescription; //null if resulCode == SUCCESSFUL
         List<VariableResult> variables; //null if resultCode == ERROR_IN_PARAM
     }

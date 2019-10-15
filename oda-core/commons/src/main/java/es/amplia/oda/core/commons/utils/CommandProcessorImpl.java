@@ -35,11 +35,17 @@ public class CommandProcessorImpl implements CommandProcessor {
             reader.close();
 
             return result;
-        } catch (IOException|InterruptedException exception) {
+        } catch (IOException exception) {
             String message = "Error executing command " + command;
             LOGGER.error(message);
             if (processCommand != null) processCommand.destroy();
             throw new CommandExecutionException(command, message, exception);
+        } catch (InterruptedException e) {
+            LOGGER.error("Interrupted exception executing command {}", command, e);
+            processCommand.destroy();
+            Thread.currentThread().interrupt();
+            return "";
         }
+
     }
 }

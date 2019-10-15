@@ -1,6 +1,6 @@
 package es.amplia.oda.connector.websocket;
 
-import es.amplia.oda.connector.websocket.configuration.ConnectorConfigurationUpdateHandler;
+import es.amplia.oda.connector.websocket.configuration.WebSocketConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
@@ -19,13 +19,15 @@ public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
+
     private DeviceInfoProviderProxy deviceInfoProvider;
     private DispatcherProxy dispatcher;
-    private WebSocketConnector connector;
-    private ConnectorConfigurationUpdateHandler configHandler;
+    private WebSocketConnector webSocketConnector;
+    private WebSocketConfigurationUpdateHandler webSocketConfigHandler;
     private ConfigurableBundle configurableBundle;
-    private ServiceRegistration<OpenGateConnector> openGateConnectorRegistration;
+    private ServiceRegistration<OpenGateConnector> webSocketConnectorRegistration;
     private ServiceListenerBundle<DeviceInfoProvider> deviceInfoProviderListener;
+
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -34,10 +36,10 @@ public class Activator implements BundleActivator {
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
         dispatcher = new DispatcherProxy(bundleContext);
         WebSocketClientFactory clientFactory = new WebSocketClientFactory(dispatcher);
-        connector = new WebSocketConnector(deviceInfoProvider, clientFactory);
-        configHandler = new ConnectorConfigurationUpdateHandler(connector);
-        configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
-        openGateConnectorRegistration = bundleContext.registerService(OpenGateConnector.class, connector, null);
+        webSocketConnector = new WebSocketConnector(deviceInfoProvider, clientFactory);
+        webSocketConfigHandler = new WebSocketConfigurationUpdateHandler(webSocketConnector);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, webSocketConfigHandler);
+        webSocketConnectorRegistration = bundleContext.registerService(OpenGateConnector.class, webSocketConnector, null);
         deviceInfoProviderListener =
                 new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class, this::onServiceChanged);
 
@@ -45,11 +47,10 @@ public class Activator implements BundleActivator {
     }
 
     void onServiceChanged() {
-        LOGGER.info("Device Info Provider service changed. Reapplying WebSocket connector configuration");
         try {
-            configHandler.applyConfiguration();
+            webSocketConfigHandler.applyConfiguration();
         } catch (Exception e) {
-            LOGGER.error("Error reapplying configuration: {}", e);
+            LOGGER.error("Error reapplying WebSocket configuration", e);
         }
     }
 
@@ -57,10 +58,10 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext bundleContext) {
         LOGGER.info("Stopping WebSocket connector bundle");
 
-        openGateConnectorRegistration.unregister();
+        webSocketConnectorRegistration.unregister();
         deviceInfoProviderListener.close();
         configurableBundle.close();
-        connector.close();
+        webSocketConnector.close();
         dispatcher.close();
         deviceInfoProvider.close();
 

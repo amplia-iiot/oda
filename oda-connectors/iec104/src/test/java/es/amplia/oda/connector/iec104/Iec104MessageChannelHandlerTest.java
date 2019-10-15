@@ -6,7 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.Timer;
-import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.DataTransmissionMessage;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,8 +14,6 @@ import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -27,8 +24,6 @@ public class Iec104MessageChannelHandlerTest {
 
 	@Mock
 	ProtocolOptions mockedOptions;
-	@Mock
-	MessageManager mockedManager;
 	@InjectMocks
 	Iec104MessageChannelHandler handler;
 	@Mock

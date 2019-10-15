@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Properties;
@@ -48,7 +48,7 @@ public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
     }
 
     @Override
-    public void loadDefaultConfiguration() throws Exception {
+    public void loadDefaultConfiguration() {
         LOGGER.info("Loading default configuration");
         gpioPinsConfiguration = null;
 
@@ -60,8 +60,8 @@ public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
                 FileInputStream fis = new FileInputStream(defaultConfigurationFile);
                 properties.load(fis);
                 gpioPinsConfiguration = Collections.propertiesToMap(properties);
-            } catch (FileNotFoundException fileNotFoundException) {
-                LOGGER.warn("Default configuration file not found");
+            } catch (IOException fileNotFoundException) {
+                LOGGER.warn("Default configuration file not found or is invalid");
             }
         }
     }
@@ -87,9 +87,9 @@ public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
                         getValueByToken(TRIGGER_PROPERTY_NAME, tokens)
                                 .ifPresent(value -> builder.setTrigger(GpioTrigger.valueOf(value)));
                         getValueByToken(ACTIVE_LOW_PROPERTY_NAME, tokens)
-                                .ifPresent(value -> builder.setActiveLow(Boolean.valueOf(value)));
+                                .ifPresent(value -> builder.setActiveLow(Boolean.parseBoolean(value)));
                         getValueByToken(INITIAL_VALUE_PROPERTY_NAME, tokens)
-                                .ifPresent(value -> builder.setInitialValue(Boolean.valueOf(value)));
+                                .ifPresent(value -> builder.setInitialValue(Boolean.parseBoolean(value)));
                         jdkDioGpioService.addConfiguredPin(builder.build());
                     }
                 } catch (Exception exception) {

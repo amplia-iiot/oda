@@ -18,11 +18,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import static es.amplia.oda.connector.http.configuration.ConnectorConfigurationUpdateHandler.*;
+import static es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler.*;
 import static es.amplia.oda.connector.http.configuration.ConnectorConfiguration.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ConnectorConfigurationUpdateHandlerTest {
+public class HttpConnectorConfigurationUpdateHandlerTest {
 
     private static final String TEST_HOST = "localhost";
     private static final int TEST_PORT = 1234;
@@ -40,7 +40,7 @@ public class ConnectorConfigurationUpdateHandlerTest {
     @Mock
     private HttpConnector mockedConnector;
     @InjectMocks
-    private ConnectorConfigurationUpdateHandler testConfigHandler;
+    private HttpConnectorConfigurationUpdateHandler testConfigHandler;
 
     private Dictionary<String, String> createDictionary() {
         return new Hashtable<>();

@@ -1,7 +1,7 @@
 package es.amplia.oda.connector.iec104.codecs;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSequence;
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSingle;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -15,21 +15,19 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BytestringPointSingleCodec.class)
-public class BytestringPointSingleCodecTest {
+@PrepareForTest(BitStringPointSingleCodec.class)
+public class BitStringPointSingleCodecTest {
 
 	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private BytestringPointSingleCodec codec = new BytestringPointSingleCodec();
+	private final BitStringPointSingleCodec codec = new BitStringPointSingleCodec();
 
 	@Test
 	public void testParse() {
@@ -39,7 +37,7 @@ public class BytestringPointSingleCodecTest {
 
 		Object o = codec.parse(options, (byte) 0x00, null, bytebuf);
 
-		assertTrue(o instanceof BytestringPointInformationSingle);
+		assertTrue(o instanceof BitStringPointInformationSingle);
 	}
 
 	@Test
@@ -49,9 +47,9 @@ public class BytestringPointSingleCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<byte[]> v = new Value(bytes, System.currentTimeMillis(), QualityInformation.OK);
+		Value<byte[]> v = new Value<>(bytes, System.currentTimeMillis(), QualityInformation.OK);
 
-		codec.encode(options, BytestringPointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
+		codec.encode(options, BitStringPointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
 
 		assertTrue(buffer.readableBytes() > 0);
 	}

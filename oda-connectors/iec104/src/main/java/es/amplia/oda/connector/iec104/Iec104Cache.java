@@ -1,7 +1,8 @@
 package es.amplia.oda.connector.iec104;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSequence;
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSequence;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSingle;
+
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
@@ -17,11 +18,11 @@ class Iec104Cache {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Iec104Cache.class);
 
-	private static Map<String, Map<Integer, Object>> cache = new HashMap<>();
 
-	Iec104Cache() {}
+	private final Map<String, Map<Integer, Object>> cache = new HashMap<>();
 
-	static <T> void add(String typeId, T value, int index) {
+
+	<T> void add(String typeId, T value, int index) {
 		LOGGER.info("Adding data with SCADA type {} with index {} and value {}", typeId, index, value);
 		Map<Integer, Object> contain = cache.get(typeId);
 
@@ -34,7 +35,7 @@ class Iec104Cache {
 		}
 	}
 
-	static <T> Object getAsdu(String type, T value, int index, long timestamp, int commonAddress) {
+	<T> Object getAsdu(String type, T value, int index, long timestamp, int commonAddress) {
 		CauseOfTransmission cot = new CauseOfTransmission(StandardCause.SPONTANEOUS);
 		ASDUAddress address = ASDUAddress.valueOf(commonAddress);
 		ASDUHeader header = new ASDUHeader(cot, address);
@@ -42,7 +43,7 @@ class Iec104Cache {
 			case "M_SP_NA_1":
 				return getSinglePointInformation(value, header, index, timestamp);
 			case "M_BO_NA_1":
-				return getBytestringPointInformation(value, header, index, timestamp);
+				return getBitStringPointInformation(value, header, index, timestamp);
 			case "M_ME_NB_1":
 				return getMeasuredValueScaled(value, header, index, timestamp);
 			default:
@@ -51,7 +52,7 @@ class Iec104Cache {
 		}
 	}
 
-	private static <T> Object getSinglePointInformation(T value, ASDUHeader header, int index, long timestamp){
+	private <T> Object getSinglePointInformation(T value, ASDUHeader header, int index, long timestamp){
 		if(value instanceof ArrayList) {
 			List<Value<Boolean>> result = new ArrayList<>();
 			for (Object val: ((ArrayList) value).toArray()) {
@@ -64,21 +65,21 @@ class Iec104Cache {
 				new Value<>(Boolean.parseBoolean(value.toString()), timestamp, QualityInformation.OK));
 	}
 
-	private static <T> Object getBytestringPointInformation(T value, ASDUHeader header, int index, long timestamp){
+	private <T> Object getBitStringPointInformation(T value, ASDUHeader header, int index, long timestamp){
 		if(value instanceof ArrayList) {
 			List<Value<byte[]>> result = new ArrayList<>();
 			for (Object val: ((ArrayList) value).toArray()) {
-				result.add(new Value(transformValueToBytestring(val), timestamp, QualityInformation.OK));
+				result.add(new Value(transformValueToBitString(val), timestamp, QualityInformation.OK));
 			}
-			return BytestringPointInformationSequence.create(header, InformationObjectAddress.valueOf(index), result);
+			return BitStringPointInformationSequence.create(header, InformationObjectAddress.valueOf(index), result);
 		}
 
-		return BytestringPointInformationSingle.create(header, InformationObjectAddress.valueOf(index),
-				new Value<>(transformValueToBytestring(value),
+		return BitStringPointInformationSingle.create(header, InformationObjectAddress.valueOf(index),
+				new Value<>(transformValueToBitString(value),
 						timestamp, QualityInformation.OK));
 	}
 
-	private static byte[] transformValueToBytestring(Object value) {
+	private byte[] transformValueToBitString(Object value) {
 		if(value == null) {
 			return new byte[] {0x00, 0x00, 0x00, 0x00};
 		} else {
@@ -87,7 +88,7 @@ class Iec104Cache {
 		}
 	}
 
-	private static <T> Object getMeasuredValueScaled(T value, ASDUHeader header, int index, long timestamp){
+	private <T> Object getMeasuredValueScaled(T value, ASDUHeader header, int index, long timestamp){
 		if(value instanceof ArrayList) {
 			List<Value<Short>> result = new ArrayList<>();
 			for (Object val: ((ArrayList) value).toArray()) {
@@ -103,11 +104,11 @@ class Iec104Cache {
 		return type.equals(SinglePointInformationSingle.class.getAnnotation(ASDU.class).name());
 	}
 
-	static void clear() {
+	void clear() {
 		cache.clear();
 	}
 
-	static List<Object> getASDUS(int commonAddress) {
+	List<Object> getASDUS(int commonAddress) {
 		List<Object> ret = new ArrayList<>();
 		for (Map.Entry<String, Map<Integer, Object>> entry: cache.entrySet()) {
 			String key = entry.getKey();
@@ -132,7 +133,7 @@ class Iec104Cache {
 		return ret;
 	}
 
-	private static int[] getLowestAndHighestIndex(Map<Integer, Object> info) {
+	private int[] getLowestAndHighestIndex(Map<Integer, Object> info) {
 		int lowest = Integer.MAX_VALUE;
 		int highest = 0;
 		for (Integer index : info.keySet()) {

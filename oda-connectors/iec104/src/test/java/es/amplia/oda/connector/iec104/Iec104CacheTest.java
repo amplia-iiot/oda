@@ -1,7 +1,7 @@
 package es.amplia.oda.connector.iec104;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSequence;
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSequence;
+
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
@@ -20,7 +20,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,7 +66,7 @@ public class Iec104CacheTest {
 		cacheValue.put(index, value);
 		Mockito.when(mockedCache.get(eq(typeId))).thenReturn(null);
 
-		Iec104Cache.add(typeId, value, index);
+		testCache.add(typeId, value, index);
 
 		verify(mockedCache).put(eq(typeId), eq(cacheValue));
 	}
@@ -81,7 +80,7 @@ public class Iec104CacheTest {
 		cacheValue.put(index, value);
 		Mockito.when(mockedCache.get(eq(typeId))).thenReturn(cacheValue);
 
-		Iec104Cache.add(typeId, value, index);
+		testCache.add(typeId, value, index);
 
 		verify(mockedCache, times(0)).put(eq(typeId), eq(cacheValue));
 	}
@@ -94,7 +93,7 @@ public class Iec104CacheTest {
 		int index = 42, commonAddress = 1;
 		long timestamp = System.currentTimeMillis();
 
-		Object result = Iec104Cache.getAsdu(type, true, index, timestamp, commonAddress);
+		Object result = testCache.getAsdu(type, true, index, timestamp, commonAddress);
 
 		assertTrue(result instanceof SinglePointInformationSingle);
 	}
@@ -106,47 +105,15 @@ public class Iec104CacheTest {
 		String type = "M_SP_NA_1";
 		int index = 42, commonAddress = 1;
 		long timestamp = System.currentTimeMillis();
-		Value<Boolean> val1 = new Value(true, timestamp, QualityInformation.OK);
-		Value<Boolean> val2 = new Value(false, timestamp, QualityInformation.OK);
+		Value<Boolean> val1 = new Value<>(true, timestamp, QualityInformation.OK);
+		Value<Boolean> val2 = new Value<>(false, timestamp, QualityInformation.OK);
 		List<Value<Boolean>> list = new ArrayList<>();
 		list.add(val1); list.add(val2);
 
-		Object result = Iec104Cache.getAsdu(type, list, index, timestamp, commonAddress);
+		Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
 
 		assertTrue(result instanceof SinglePointInformationSequence);
 	}
-
-	/*@Test
-	public void getAsduLongSingle() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_BO_NA_1";
-		ByteBuffer wrapped = ByteBuffer.allocate(8).putLong(1984);
-		byte[] value = wrapped.array();
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
-
-		Object result = Iec104Cache.getAsdu(type, value, index, timestamp, commonAddress);
-
-		assertTrue(result instanceof BytestringPointInformationSingle);
-	}
-
-	@Test
-	public void getAsduLongSequence() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_BO_NA_1";
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
-		Value<Boolean> val1 = new Value(new byte[]{0x00, 0x01}, timestamp, QualityInformation.OK);
-		Value<Boolean> val2 = new Value(new byte[]{0x04, 0x02}, timestamp, QualityInformation.OK);
-		List<Value<Boolean>> list = new ArrayList<>();
-		list.add(val1); list.add(val2);
-
-		Object result = Iec104Cache.getAsdu(type, list, index, timestamp, commonAddress);
-
-		assertTrue(result instanceof BytestringPointInformationSequence);
-	}*/
 
 	@Test
 	public void getAsduShortSingle() throws Exception {
@@ -157,7 +124,7 @@ public class Iec104CacheTest {
 		int index = 42, commonAddress = 1;
 		long timestamp = System.currentTimeMillis();
 
-		Object result = Iec104Cache.getAsdu(type, value, index, timestamp, commonAddress);
+		Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
 
 		assertTrue(result instanceof MeasuredValueScaledSingle);
 	}
@@ -169,12 +136,12 @@ public class Iec104CacheTest {
 		String type = "M_ME_NB_1";
 		int index = 42, commonAddress = 1;
 		long timestamp = System.currentTimeMillis();
-		Value<Boolean> val1 = new Value(71, timestamp, QualityInformation.OK);
-		Value<Boolean> val2 = new Value(59, timestamp, QualityInformation.OK);
-		List<Value<Boolean>> list = new ArrayList<>();
+		Value<Short> val1 = new Value<>((short) 71, timestamp, QualityInformation.OK);
+		Value<Short> val2 = new Value<>((short) 59, timestamp, QualityInformation.OK);
+		List<Value<Short>> list = new ArrayList<>();
 		list.add(val1); list.add(val2);
 
-		Object result = Iec104Cache.getAsdu(type, list, index, timestamp, commonAddress);
+		Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
 
 		assertTrue(result instanceof MeasuredValueScaledSequence);
 	}
@@ -183,12 +150,12 @@ public class Iec104CacheTest {
 	public void getAsduDefault() throws Exception {
 		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
 		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "UNKOWN";
+		String type = "UNKNOWN";
 		byte value = 0x00;
 		int index = 42, commonAddress = 1;
 		long timestamp = System.currentTimeMillis();
 
-		Object result = Iec104Cache.getAsdu(type, value, index, timestamp, commonAddress);
+		Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
 
 		assertNull(result);
 	}
@@ -211,9 +178,7 @@ public class Iec104CacheTest {
 	public void clear() {
 		Whitebox.setInternalState(testCache, "cache", cache);
 
-		Iec104Cache.clear();
-
-		cache = (Map<String, Map<Integer, Object>>) Whitebox.getInternalState(testCache, "cache");
+		testCache.clear();
 
 		assertEquals(0, cache.size());
 	}
@@ -222,12 +187,10 @@ public class Iec104CacheTest {
 	public void getASDUS() {
 		Whitebox.setInternalState(testCache, "cache", cache);
 
-		List<Object> result = Iec104Cache.getASDUS(1);
+		List<Object> result = testCache.getASDUS(1);
 
 		assertEquals(2, result.size());
 		assertTrue(result.get(0) instanceof SinglePointInformationSequence);
-		assertTrue(result.get(1) instanceof BytestringPointInformationSequence);
+		assertTrue(result.get(1) instanceof BitStringPointInformationSequence);
 	}
-
-	//TODO: Excepción del getASDUS y getLowestAndHighest
 }

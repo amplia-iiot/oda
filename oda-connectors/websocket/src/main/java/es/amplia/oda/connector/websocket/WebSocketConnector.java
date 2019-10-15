@@ -78,7 +78,7 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
                 LOGGER.info("Sending message {}", message);
                 client.send(message.getPayload());
             } catch (Exception e) {
-                LOGGER.error("Error sending message through WebSocket connector: {}", e);
+                LOGGER.error("Error sending message through WebSocket connector", e);
             }
         } else {
             LOGGER.error("WebSocket connector is not properly configured");
@@ -86,7 +86,7 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
     }
 
     @Value
-    private class WebSocketMessage {
+    private static class WebSocketMessage {
         private final byte[] payload;
 
         @Override

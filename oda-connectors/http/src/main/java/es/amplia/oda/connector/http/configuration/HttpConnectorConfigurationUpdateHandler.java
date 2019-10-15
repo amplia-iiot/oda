@@ -6,7 +6,7 @@ import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import java.util.Dictionary;
 import java.util.Optional;
 
-public class ConnectorConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+public class HttpConnectorConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     static final String HOST_PROPERTY_NAME = "host";
     static final String PORT_PROPERTY_NAME = "port";
@@ -21,7 +21,7 @@ public class ConnectorConfigurationUpdateHandler implements ConfigurationUpdateH
     private ConnectorConfiguration currentConfiguration;
 
 
-    public ConnectorConfigurationUpdateHandler(HttpConnector connector) {
+    public HttpConnectorConfigurationUpdateHandler(HttpConnector connector) {
         this.connector = connector;
     }
 
@@ -34,7 +34,7 @@ public class ConnectorConfigurationUpdateHandler implements ConfigurationUpdateH
         Optional.ofNullable((String) props.get(GENERAL_PATH_PROPERTY_NAME)).ifPresent(builder::generalPath);
         Optional.ofNullable((String) props.get(COLLECTION_PATH_PROPERTY_NAME)).ifPresent(builder::collectionPath);
         Optional.ofNullable((String) props.get(COMPRESSION_ENABLED_PROPERTY_NAME)).ifPresent(value ->
-                builder.compressionEnabled(Boolean.valueOf(value)));
+                builder.compressionEnabled(Boolean.parseBoolean(value)));
         Optional.ofNullable((String) props.get(COMPRESSION_THRESHOLD_PROPERTY_NAME)).ifPresent(value ->
                 builder.compressionThreshold(Integer.parseInt(value)));
 

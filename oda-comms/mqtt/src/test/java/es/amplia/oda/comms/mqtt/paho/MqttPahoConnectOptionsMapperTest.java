@@ -72,11 +72,11 @@ public class MqttPahoConnectOptionsMapperTest {
 
         assertEquals(TEST_KEYSTORE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTORE));
         assertEquals(TEST_KEYSTORE_TYPE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTORETYPE));
-        assertArrayEquals(TEST_KEYSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTOREPWD));
+        assertArrayEquals(TEST_KEYSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTOREPASS));
         assertEquals(TEST_KEY_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYMGRALGO));
         assertEquals(TEST_TRUSTSTORE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTORE));
         assertEquals(TEST_TRUSTSTORE_TYPE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTORETYPE));
-        assertArrayEquals(TEST_TRUSTSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTOREPWD));
+        assertArrayEquals(TEST_TRUSTSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTOREPASS));
         assertEquals(TEST_TRUST_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTMGRALGO));
 
     }

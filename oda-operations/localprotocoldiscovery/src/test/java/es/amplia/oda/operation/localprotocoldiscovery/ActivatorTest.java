@@ -16,6 +16,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 
@@ -62,7 +63,7 @@ public class ActivatorTest {
 	}
 
 	@Test
-	public void testOnServiceChanged() throws Exception {
+	public void testOnServiceChanged() {
 		Whitebox.setInternalState(testActivator, "configHandler", mockedLocalProtocolDiscoveryConfigurationUpdateHandler);
 
 		testActivator.onServiceChanged();
@@ -71,11 +72,13 @@ public class ActivatorTest {
 	}
 
 	@Test
-	public void testOnServiceChangedWithException() throws Exception {
+	public void testOnServiceChangedWithExceptionIsCaught() {
 		Whitebox.setInternalState(testActivator, "configHandler", mockedLocalProtocolDiscoveryConfigurationUpdateHandler);
 		Mockito.doThrow(Exception.class).when(mockedLocalProtocolDiscoveryConfigurationUpdateHandler).applyConfiguration();
 
 		testActivator.onServiceChanged();
+
+		assertTrue("Exception should be caught", true);
 	}
 
 	@Test

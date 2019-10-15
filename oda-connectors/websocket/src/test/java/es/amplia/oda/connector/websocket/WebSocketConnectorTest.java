@@ -131,6 +131,8 @@ public class WebSocketConnectorTest {
         Whitebox.setInternalState(testConnector, "client", null);
 
         testConnector.uplink(TEST_PAYLOAD);
+
+        assertTrue("No exception is thrown", true);
     }
 
     @Test
@@ -183,5 +185,7 @@ public class WebSocketConnectorTest {
         Whitebox.setInternalState(testConnector, "client", null);
 
         testConnector.close();
+
+        assertTrue("No exception is thrown", true);
     }
 }

@@ -1,6 +1,6 @@
 package es.amplia.oda.connector.websocket;
 
-import es.amplia.oda.connector.websocket.configuration.ConnectorConfigurationUpdateHandler;
+import es.amplia.oda.connector.websocket.configuration.WebSocketConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -41,7 +41,7 @@ public class ActivatorTest {
     @Mock
     private WebSocketConnector mockedConnector;
     @Mock
-    private ConnectorConfigurationUpdateHandler mockedConfigHandler;
+    private WebSocketConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundle;
     @Mock
@@ -55,7 +55,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(DispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
         PowerMockito.whenNew(WebSocketClientFactory.class).withAnyArguments().thenReturn(mockedFactory);
         PowerMockito.whenNew(WebSocketConnector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(ConnectorConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
+        PowerMockito.whenNew(WebSocketConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
 
@@ -65,7 +65,7 @@ public class ActivatorTest {
         PowerMockito.verifyNew(DispatcherProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(WebSocketClientFactory.class).withArguments(eq(mockedDispatcher));
         PowerMockito.verifyNew(WebSocketConnector.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedFactory));
-        PowerMockito.verifyNew(ConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
+        PowerMockito.verifyNew(WebSocketConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
         PowerMockito.verifyNew(ServiceListenerBundle.class)
@@ -74,7 +74,7 @@ public class ActivatorTest {
 
     @Test
     public void testOnServiceChanged() {
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+        Whitebox.setInternalState(testActivator, "webSocketConfigHandler", mockedConfigHandler);
 
         testActivator.onServiceChanged();
 
@@ -83,7 +83,7 @@ public class ActivatorTest {
 
     @Test
     public void testOnServiceChangedExceptionCaught() {
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+        Whitebox.setInternalState(testActivator, "webSocketConfigHandler", mockedConfigHandler);
 
         doThrow(new ConfigurationException("")).when(mockedConfigHandler).applyConfiguration();
 
@@ -96,10 +96,10 @@ public class ActivatorTest {
     public void testStop() {
         Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
         Whitebox.setInternalState(testActivator, "dispatcher", mockedDispatcher);
-        Whitebox.setInternalState(testActivator, "connector", mockedConnector);
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+        Whitebox.setInternalState(testActivator, "webSocketConnector", mockedConnector);
+        Whitebox.setInternalState(testActivator, "webSocketConfigHandler", mockedConfigHandler);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
-        Whitebox.setInternalState(testActivator, "openGateConnectorRegistration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "webSocketConnectorRegistration", mockedRegistration);
         Whitebox.setInternalState(testActivator, "deviceInfoProviderListener", mockedListener);
 
         testActivator.stop(mockedContext);

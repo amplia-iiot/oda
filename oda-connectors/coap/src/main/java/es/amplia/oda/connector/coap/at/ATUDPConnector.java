@@ -77,8 +77,12 @@ public class ATUDPConnector implements Connector {
                 LOGGER.error("Can not start the AT UPD connector");
                 return;
             }
-        } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Can not start the AT UDP connector: {}", e);
+        } catch (ExecutionException e) {
+            LOGGER.error("Can not start the AT UDP connector", e);
+            return;
+        } catch (InterruptedException e) {
+            LOGGER.error("Interrupted Exception starting AT UDP connector", e);
+            Thread.currentThread().interrupt();
             return;
         }
 
@@ -173,7 +177,7 @@ public class ATUDPConnector implements Connector {
 
             receiver.receiveData(rawData);
         } catch (DecoderException | UnknownHostException e) {
-            LOGGER.warn("Error reading receive data in message {} from socket {}: {}", messageId, socketId, e);
+            LOGGER.warn("Error reading receive data in message {} from socket {}", messageId, socketId, e);
         }
     }
 
@@ -198,8 +202,11 @@ public class ATUDPConnector implements Connector {
                 LOGGER.info("Error reading message {} from socket {}: {}", messageId, socketId,
                         response.getErrorMsg());
             }
-        } catch (ExecutionException | InterruptedException e) {
-            LOGGER.warn("Error reading message {} from socket {}: {}", messageId, socketId, e);
+        } catch (ExecutionException e) {
+            LOGGER.warn("Error reading message {} from socket {}", messageId, socketId, e);
+        }catch (InterruptedException e) {
+            LOGGER.error("Interrupted Exception reading message {} from socket {}", messageId, socketId, e);
+            Thread.currentThread().interrupt();
         }
 
         return null;
@@ -239,8 +246,11 @@ public class ATUDPConnector implements Connector {
             } else {
                 LOGGER.info("Error sending message through socket {}: {}", socketId, response.getErrorMsg());
             }
-        } catch (ExecutionException | InterruptedException e) {
-            LOGGER.warn("Error sending message through socket {}: {}", socketId, e);
+        } catch (ExecutionException e) {
+            LOGGER.warn("Error sending message {} through socket {}", msg, socketId, e);
+        } catch (InterruptedException e) {
+            LOGGER.error("Interrupted Exception sending message {} through socket {}", msg, socketId, e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -283,8 +293,11 @@ public class ATUDPConnector implements Connector {
             } else {
                 LOGGER.info("Error closing socket {}: {}", localSocketId, response.getErrorMsg());
             }
-        } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Error closing socket {}: {}", localSocketId, e);
+        } catch (ExecutionException e) {
+            LOGGER.error("Error closing socket {}", localSocketId, e);
+        } catch (InterruptedException e) {
+            LOGGER.error("Interrupted Exception closing socket {}", localSocketId, e);
+            Thread.currentThread().interrupt();
         }
     }
 

@@ -16,8 +16,6 @@ import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -77,7 +75,6 @@ public class DNP3ConnectorConfigurationHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("ConstantConditions")
     public void testLoadConfigurationComplete() {
         Dictionary<String, String> props = createDictionaryInstance();
 
@@ -151,7 +148,7 @@ public class DNP3ConnectorConfigurationHandlerTest {
         props.put(DNP3ConnectorConfigurationHandler.CHANNEL_IDENTIFIER_PROPERTY_NAME, TEST_CHANNEL_ID);
         props.put(DNP3ConnectorConfigurationHandler.OUTSTATION_IDENTIFIER_PROPERTY_NAME, TEST_OUTSTATION_ID);
         props.put(DNP3ConnectorConfigurationHandler.IP_ADDRESS_PROPERTY_NAME, TEST_IP_ADDRESS);
-        props.put(DNP3ConnectorConfigurationHandler.IP_PORT_PROPERTY_NAME, String.valueOf(wrongIpPort));
+        props.put(DNP3ConnectorConfigurationHandler.IP_PORT_PROPERTY_NAME, wrongIpPort);
 
         testConfigHandler.loadConfiguration(props);
 

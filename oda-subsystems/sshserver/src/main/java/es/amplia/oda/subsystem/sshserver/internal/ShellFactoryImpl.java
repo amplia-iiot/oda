@@ -109,7 +109,7 @@ class ShellFactoryImpl implements Factory<Command> {
                     try {
                         ShellImpl.this.run(env);
                     } catch (Exception exception) {
-                        LOGGER.error("Error starting shell: {}", exception);
+                        LOGGER.error("Error starting shell", exception);
                     }
                 }).start();
             } catch (Exception e) {
@@ -147,7 +147,7 @@ class ShellFactoryImpl implements Factory<Command> {
                 };
                 new Shell(context, processor, "ssh_profile").gosh(session, new String[]{"--login"});
             } catch (Exception exception) {
-                LOGGER.error("Error creating terminal: {}", exception);
+                LOGGER.error("Error creating terminal", exception);
             }
         }
 

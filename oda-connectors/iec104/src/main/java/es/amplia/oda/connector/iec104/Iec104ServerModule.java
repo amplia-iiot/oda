@@ -1,12 +1,11 @@
 package es.amplia.oda.connector.iec104;
 
 import es.amplia.oda.connector.iec104.codecs.*;
-import es.amplia.oda.connector.iec104.types.BitstringCommand;
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSequence;
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSingle;
-import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
+import es.amplia.oda.connector.iec104.types.BitStringCommand;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSequence;
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSingle;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
-import io.netty.channel.ChannelHandler;
+
 import io.netty.channel.socket.SocketChannel;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
@@ -18,20 +17,21 @@ import org.eclipse.neoscada.protocol.iec60870.server.ServerModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Iec104ServerModule implements ServerModule {
+class Iec104ServerModule implements ServerModule {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ServerModule.class);
 
-	private ServerKeepAlive server;
+	private final Iec104Cache cache;
+	private final ProtocolOptions options;
+	private final ScadaDispatcherProxy dispatcher;
+	private final int commonAddress;
+	private Server server;
 	private MessageManager messageManager;
 	private SocketChannel socketChannel;
 	private MessageChannel messageChannel;
-	private Iec104CommandHandler commandHandler;
-	private ProtocolOptions options;
-	private ScadaDispatcherProxy dispatcher;
-	private int commonAddress;
 
-	Iec104ServerModule(ProtocolOptions options, ScadaDispatcherProxy dispatcher, int commonAddress) {
+	Iec104ServerModule(Iec104Cache cache, ProtocolOptions options, ScadaDispatcherProxy dispatcher, int commonAddress) {
+		this.cache = cache;
 		this.options = options;
 		this.dispatcher = dispatcher;
 		this.commonAddress = commonAddress;
@@ -39,7 +39,7 @@ public class Iec104ServerModule implements ServerModule {
 
 	@Override
 	public void initializeServer(Server server, MessageManager messageManager) {
-		this.server = (ServerKeepAlive) server;
+		this.server = server;
 		this.messageManager = messageManager;
 		this.messageManager.registerCodec(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
@@ -47,12 +47,12 @@ public class Iec104ServerModule implements ServerModule {
 		this.messageManager.registerCodec(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new SinglePointSequenceCodec());
-		this.messageManager.registerCodec(BytestringPointInformationSingle.class.getAnnotation(ASDU.class).id(),
-				BytestringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
-				new BytestringPointSingleCodec());
-		this.messageManager.registerCodec(BytestringPointInformationSequence.class.getAnnotation(ASDU.class).id(),
-				BytestringPointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
-				new BytestringPointSequenceCodec());
+		this.messageManager.registerCodec(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).id(),
+				BitStringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new BitStringPointSingleCodec());
+		this.messageManager.registerCodec(BitStringPointInformationSequence.class.getAnnotation(ASDU.class).id(),
+				BitStringPointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new BitStringPointSequenceCodec());
 		this.messageManager.registerCodec(MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledSingleCodec());
@@ -62,19 +62,19 @@ public class Iec104ServerModule implements ServerModule {
 		this.messageManager.registerCodec(InterrogationCommand.class.getAnnotation(ASDU.class).id(),
 				InterrogationCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new InterrogationCommandCodec());
-		this.messageManager.registerCodec(BitstringCommand.class.getAnnotation(ASDU.class).id(),
-				BitstringCommand.class.getAnnotation(ASDU.class).informationStructure(),
-				new BitstringCommandCodec());
+		this.messageManager.registerCodec(BitStringCommand.class.getAnnotation(ASDU.class).id(),
+				BitStringCommand.class.getAnnotation(ASDU.class).informationStructure(),
+				new BitStringCommandCodec());
 	}
 
 	@Override
 	public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
 		this.messageChannel = new Iec104MessageChannelHandler(this.options,
 				this.messageManager);
-		this.commandHandler = new Iec104CommandHandler(this.dispatcher, this.commonAddress);
+		Iec104CommandHandler commandHandler = new Iec104CommandHandler(cache, this.dispatcher, this.commonAddress);
 		socketChannel.pipeline().removeLast();
-		socketChannel.pipeline().addLast(new ChannelHandler[]{this.messageChannel});
-		socketChannel.pipeline().addLast(new ChannelHandler[]{this.commandHandler});
+		socketChannel.pipeline().addLast(this.messageChannel);
+		socketChannel.pipeline().addLast(commandHandler);
 		this.socketChannel = socketChannel;
 	}
 
@@ -95,8 +95,8 @@ public class Iec104ServerModule implements ServerModule {
 
 	void send(Object asdu) {
 		try {
-			messageChannel.write(this.socketChannel.pipeline().context(this.messageChannel),
-					asdu, this.socketChannel.newPromise());
+			messageChannel.write(this.socketChannel.pipeline().context(this.messageChannel), asdu,
+					this.socketChannel.newPromise());
 			LOGGER.info("ASDU sent to Master SCADA: {}", asdu);
 		} catch (Exception e) {
 			LOGGER.error("Error sending ASDU to Master SCADA: {}", e.getMessage());

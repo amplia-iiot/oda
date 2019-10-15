@@ -1,7 +1,6 @@
 package es.amplia.oda.connector.mqtt.configuration;
 
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
-import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.connector.mqtt.MqttConnector;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
@@ -254,12 +253,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     }
 
     @Override
-    public void applyConfiguration() throws MqttException {
+    public void applyConfiguration() {
         LOGGER.info("Apply MQTT connector configuration");
         connector.loadConfigurationAndInit(currentConfiguration);
     }
 
-    public void reapplyConfiguration() throws MqttException {
+    public void reapplyConfiguration() {
         if (lastProperties != null) {
             loadConfiguration(lastProperties);
             applyConfiguration();

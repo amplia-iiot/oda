@@ -1,6 +1,6 @@
 package es.amplia.oda.hardware.atmanager.grammar;
 
-public class SyntacticParser {
+class SyntacticParser {
     private String toParse;
     private int index;
     private Tokens current;
@@ -141,7 +141,7 @@ public class SyntacticParser {
                         } else if (c < '0' || c > '9') {
                             return;
                         }
-                        lastFloat = lastFloat + (c - '0') * Math.pow(10,(decimals++)*-1);
+                        lastFloat = lastFloat + (c - '0') * Math.pow(10,(decimals++)*-1.0);
                     }
                 } else if (c < '0' || c > '9') {
                     return;
@@ -157,7 +157,7 @@ public class SyntacticParser {
                 return;
             }
             c = currentChar();
-            if (!isExtendedNameChar(c)) {
+            if (isNotExtendedNameChar(c)) {
                 current = Tokens.ERROR;
                 return;
             }
@@ -169,7 +169,7 @@ public class SyntacticParser {
                     return;
                 }
                 c = currentChar();
-                if (!isExtendedNameChar(c)) {
+                if (isNotExtendedNameChar(c)) {
                     return;
                 }
                 lastCommand = lastCommand + c;
@@ -204,8 +204,6 @@ public class SyntacticParser {
                 current = Tokens.QUESTION;
                 break;
             case ' ':
-                current = Tokens.SPACE;
-                break;
             case '\r':
                 current = Tokens.SPACE;
                 break;
@@ -231,9 +229,9 @@ public class SyntacticParser {
         index++;
     }
 
-    private boolean isExtendedNameChar(char c) {
-        if (c >= 'A' && c <= 'Z') return true;
-        if (c >= '0' && c <= '9') return true;
+    private boolean isNotExtendedNameChar(char c) {
+        if (c >= 'A' && c <= 'Z') return false;
+        if (c >= '0' && c <= '9') return false;
         switch (c) {
             case '!':
             case '%':
@@ -241,9 +239,10 @@ public class SyntacticParser {
             case '_':
             case '.':
             case '/':
+                return false;
+            default:
                 return true;
         }
-        return false;
     }
 
     private char currentChar() {

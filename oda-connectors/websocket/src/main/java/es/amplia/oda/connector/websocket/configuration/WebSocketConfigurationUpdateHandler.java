@@ -8,21 +8,21 @@ import org.slf4j.LoggerFactory;
 import java.util.Dictionary;
 import java.util.Optional;
 
-public class ConnectorConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+public class WebSocketConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorConfigurationUpdateHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketConfigurationUpdateHandler.class);
 
     static final String HOST_PROPERTY_NAME = "host";
     static final String PORT_PROPERTY_NAME = "port";
     static final String PATH_PROPERTY_NAME = "path";
     static final String CONNECTION_TIMEOUT_PROPERTY_NAME = "connectionTimeout";
-    static final String KEEP_ALIVE_INTERVAL_PROPERTY_NAME = "keepaliveInterval";
+    static final String KEEP_ALIVE_INTERVAL_PROPERTY_NAME = "keepAliveInterval";
 
     private final WebSocketConnector webSocketConnector;
 
     private ConnectorConfiguration currentConfiguration;
 
-    public ConnectorConfigurationUpdateHandler(WebSocketConnector webSocketConnector) {
+    public WebSocketConfigurationUpdateHandler(WebSocketConnector webSocketConnector) {
         this.webSocketConnector = webSocketConnector;
     }
 

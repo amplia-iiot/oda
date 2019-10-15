@@ -26,11 +26,13 @@ public class ActivatorTest {
 	@Mock
 	private BundleContext mockedContext;
 	@Mock
+	private Iec104Cache mockedCache;
+	@Mock
 	private ScadaDispatcherProxy mockedDispatcher;
 	@Mock
 	private Iec104Connector mockedConnector;
 	@Mock
-	private ServiceRegistration<ScadaTableInfo> mockedRegistrator;
+	private ServiceRegistration<ScadaTableInfo> mockedRegistration;
 	@Mock
 	private ServiceListenerBundle<?> mockedListener;
 	@Mock
@@ -41,6 +43,7 @@ public class ActivatorTest {
 	@Test
 	public void testStart() throws Exception {
 		PowerMockito.whenNew(ScadaDispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
+		PowerMockito.whenNew(Iec104Cache.class).withAnyArguments().thenReturn(mockedCache);
 		PowerMockito.whenNew(Iec104Connector.class).withAnyArguments().thenReturn(mockedConnector);
 		PowerMockito.whenNew(Iec104ConnectorConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigurationHandler);
 		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurable);
@@ -49,7 +52,8 @@ public class ActivatorTest {
 		testActivator.start(mockedContext);
 
 		PowerMockito.verifyNew(ScadaDispatcherProxy.class).withArguments(eq(mockedContext));
-		PowerMockito.verifyNew(Iec104Connector.class).withArguments(eq(mockedDispatcher));
+		PowerMockito.verifyNew(Iec104Cache.class).withNoArguments();
+		PowerMockito.verifyNew(Iec104Connector.class).withArguments(eq(mockedCache), eq(mockedDispatcher));
 		PowerMockito.verifyNew(Iec104ConnectorConfigurationUpdateHandler.class).withArguments(mockedConnector);
 		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigurationHandler));
 		PowerMockito.verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(ScadaTableInfo.class), any(Runnable.class));
@@ -66,7 +70,7 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(testActivator, "scadaConnectorServiceRegistration", mockedRegistrator);
+		Whitebox.setInternalState(testActivator, "scadaConnectorServiceRegistration", mockedRegistration);
 		Whitebox.setInternalState(testActivator, "serviceListenerBundle", mockedListener);
 		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurable);
 		Whitebox.setInternalState(testActivator, "connector", mockedConnector);
@@ -74,7 +78,7 @@ public class ActivatorTest {
 
 		testActivator.stop(mockedContext);
 
-		Mockito.verify(mockedRegistrator).unregister();
+		Mockito.verify(mockedRegistration).unregister();
 		Mockito.verify(mockedListener).close();
 		Mockito.verify(mockedConfigurable).close();
 		Mockito.verify(mockedConnector).close();

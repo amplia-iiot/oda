@@ -47,7 +47,7 @@ public class ConfigurationUpdateHandlerImplTest {
     private static final String TEST_TRUST_STORE_TYPE = "PKCS12";
     private static final String TEST_TRUST_STORE_LOCATION = "location/to/truststore";
     private static final String TEST_TRUST_STORE_PASSWORD = "anotherPassword";
-    private static final String[] TEST_TRUSTED_CERTIFICATES = {"opengateCertificate","othertrustedcertificate"};
+    private static final String[] TEST_TRUSTED_CERTIFICATES = {"opengateCertificate","otherTrustedCertificate"};
 
     @Mock
     private COAPConnector mockedConnector;
@@ -136,11 +136,11 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(PROVISION_PATH_PROPERTY_NAME, TEST_PROVISION_PATH);
         props.put(KEY_STORE_TYPE_PROPERTY_NAME, TEST_KEY_STORE_TYPE);
         props.put(KEY_STORE_LOCATION_PROPERTY_NAME, TEST_KEY_STORE_LOCATION);
-        props.put(KEY_STORE_PASSWORD_PROPERTY_NAME, TEST_KEY_STORE_PASSWORD);
+        props.put(KEY_STORE_PASS_PROPERTY_NAME, TEST_KEY_STORE_PASSWORD);
         props.put(CLIENT_KEY_ALIAS_PROPERTY_NAME, TEST_CLIENT_KEY_ALIAS);
         props.put(TRUST_STORE_TYPE_PROPERTY_NAME, TEST_TRUST_STORE_TYPE);
         props.put(TRUST_STORE_LOCATION_PROPERTY_NAME, TEST_TRUST_STORE_LOCATION);
-        props.put(TRUST_STORE_PASSWORD_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
+        props.put(TRUST_STORE_PASS_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
         props.put(TRUSTED_CERTIFICATES_PROPERTY_NAME, String.join(TRUSTED_CERTIFICATES_SEPARATOR, TEST_TRUSTED_CERTIFICATES));
 
         testConfigHandler.loadConfiguration(props);
@@ -163,9 +163,9 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(PATH_PROPERTY_NAME, TEST_PATH);
         props.put(PROVISION_PATH_PROPERTY_NAME, TEST_PROVISION_PATH);
         props.put(KEY_STORE_LOCATION_PROPERTY_NAME, TEST_KEY_STORE_LOCATION);
-        props.put(KEY_STORE_PASSWORD_PROPERTY_NAME, TEST_KEY_STORE_PASSWORD);
+        props.put(KEY_STORE_PASS_PROPERTY_NAME, TEST_KEY_STORE_PASSWORD);
         props.put(TRUST_STORE_LOCATION_PROPERTY_NAME, TEST_TRUST_STORE_LOCATION);
-        props.put(TRUST_STORE_PASSWORD_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
+        props.put(TRUST_STORE_PASS_PROPERTY_NAME, TEST_TRUST_STORE_PASSWORD);
         props.put(TRUSTED_CERTIFICATES_PROPERTY_NAME, String.join(TRUSTED_CERTIFICATES_SEPARATOR, TEST_TRUSTED_CERTIFICATES));
 
         testConfigHandler.loadConfiguration(props);

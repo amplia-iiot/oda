@@ -1,8 +1,9 @@
 package es.amplia.oda.connector.iec104;
 
-import es.amplia.oda.connector.iec104.types.BitstringCommand;
+import es.amplia.oda.connector.iec104.types.BitStringCommand;
 import es.amplia.oda.core.commons.interfaces.ScadaDispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
@@ -13,41 +14,33 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class Iec104CommandHandlerTest {
 
-	Iec104CommandHandler commandHandler;
+	private Iec104CommandHandler commandHandler;
 
 	@Mock
-	ScadaDispatcherProxy mockedDispatcher;
+	private Iec104Cache mockedCache;
 	@Mock
-	ChannelHandlerContext mockedContext;
+	private ScadaDispatcherProxy mockedDispatcher;
 	@Mock
-	ChannelPromise mockedPromise;
+	private ChannelHandlerContext mockedContext;
 	@Mock
-	ASDUHeader mockedHeader;
+	private ChannelPromise mockedPromise;
 	@Mock
-	ASDUAddress mockedAsduAddress;
+	private ASDUHeader mockedHeader;
 	@Mock
-	IOException mockedException;
+	private ASDUAddress mockedAsduAddress;
 
 	@Before
 	public void prepareForTest() {
-		commandHandler = new Iec104CommandHandler(mockedDispatcher, 0);
+		commandHandler = new Iec104CommandHandler(mockedCache, mockedDispatcher, 0);
 	}
 
 	@Test
@@ -61,7 +54,7 @@ public class Iec104CommandHandlerTest {
 	}
 
 	@Test
-	public void testChannelReadInterrogationCommandActivated() throws Exception {
+	public void testChannelReadInterrogationCommandActivated() {
 		InterrogationCommand ic = new InterrogationCommand(mockedHeader,  Integer.valueOf(0).shortValue());
 		when(mockedHeader.getCauseOfTransmission()).thenReturn(new CauseOfTransmission(StandardCause.ACTIVATED));
 		when(mockedHeader.getAsduAddress()).thenReturn(mockedAsduAddress);
@@ -74,7 +67,7 @@ public class Iec104CommandHandlerTest {
 	}
 
 	@Test
-	public void testChannelReadInterrogationCommandDeactivated() throws Exception {
+	public void testChannelReadInterrogationCommandDeactivated() {
 		InterrogationCommand ic = new InterrogationCommand(mockedHeader,  Integer.valueOf(0).shortValue());
 		when(mockedHeader.getCauseOfTransmission()).thenReturn(new CauseOfTransmission(StandardCause.DEACTIVATED));
 		when(mockedHeader.getAsduAddress()).thenReturn(null);
@@ -87,8 +80,8 @@ public class Iec104CommandHandlerTest {
 	}
 
 	@Test
-	public void testChannelReadBitstringCommandActivated() throws Exception {
-		BitstringCommand bc = new BitstringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
+	public void testChannelReadBitStringCommandActivated() {
+		BitStringCommand bc = new BitStringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
 		when(mockedHeader.getCauseOfTransmission()).thenReturn(new CauseOfTransmission(StandardCause.ACTIVATED));
 		when(mockedHeader.getAsduAddress()).thenReturn(mockedAsduAddress);
 		when(mockedContext.writeAndFlush(any(), any())).thenReturn(null);
@@ -97,16 +90,16 @@ public class Iec104CommandHandlerTest {
 
 		commandHandler.channelRead(mockedContext, bc);
 
-		verify(mockedContext).writeAndFlush(any(BitstringCommand.class), eq(mockedPromise));
+		verify(mockedContext).writeAndFlush(any(BitStringCommand.class), eq(mockedPromise));
 		verify(mockedDispatcher).process(eq(ScadaDispatcher.ScadaOperation.DIRECT_OPERATE_NO_ACK),
 				eq(InformationObjectAddress.DEFAULT.getAddress()),
-				eq(bc.parseBytestring()),
-				eq(BitstringCommand.class.getAnnotation(ASDU.class).name()));
+				eq(bc.parseBitString()),
+				eq(BitStringCommand.class.getAnnotation(ASDU.class).name()));
 	}
 
 	@Test
-	public void testChannelReadBitstringCommandDeactivated() throws Exception {
-		BitstringCommand bc = new BitstringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
+	public void testChannelReadBitStringCommandDeactivated() {
+		BitStringCommand bc = new BitStringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
 		when(mockedHeader.getCauseOfTransmission()).thenReturn(new CauseOfTransmission(StandardCause.DEACTIVATED));
 		when(mockedHeader.getAsduAddress()).thenReturn(null);
 		when(mockedContext.writeAndFlush(any(), any())).thenReturn(null);
@@ -114,15 +107,15 @@ public class Iec104CommandHandlerTest {
 
 		commandHandler.channelRead(mockedContext, bc);
 
-		verify(mockedContext).writeAndFlush(any(BitstringCommand.class), eq(mockedPromise));
+		verify(mockedContext).writeAndFlush(any(BitStringCommand.class), eq(mockedPromise));
 		verify(mockedDispatcher).process(eq(ScadaDispatcher.ScadaOperation.DIRECT_OPERATE_NO_ACK),
 				eq(InformationObjectAddress.DEFAULT.getAddress()),
-				eq(bc.parseBytestring()),
-				eq(BitstringCommand.class.getAnnotation(ASDU.class).name()));
+				eq(bc.parseBitString()),
+				eq(BitStringCommand.class.getAnnotation(ASDU.class).name()));
 	}
 
 	@Test
-	public void testChannelReadUnknownRequest() throws Exception {
+	public void testChannelReadUnknownRequest() {
 		SingleCommand sc = new SingleCommand(mockedHeader, InformationObjectAddress.DEFAULT, false);
 		when(mockedHeader.getCauseOfTransmission()).thenReturn(new CauseOfTransmission(StandardCause.DEACTIVATED));
 		when(mockedHeader.getAsduAddress()).thenReturn(null);
@@ -135,8 +128,8 @@ public class Iec104CommandHandlerTest {
 	}
 
 	@Test
-	public void testChannelReadWithException() throws Exception {
-		BitstringCommand bc = new BitstringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
+	public void testChannelReadWithException() {
+		BitStringCommand bc = new BitStringCommand(mockedHeader, InformationObjectAddress.DEFAULT, new byte[] {0x00, 0x01, 0x02, 0x03});
 		when(mockedContext.writeAndFlush(any())).thenThrow(new ArrayIndexOutOfBoundsException());
 
 		commandHandler.channelRead(mockedContext, bc);

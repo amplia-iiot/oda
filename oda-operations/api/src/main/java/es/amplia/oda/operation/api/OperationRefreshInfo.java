@@ -7,9 +7,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface OperationRefreshInfo {
     
-    //TODO: Maybe this structure is too much. It doesn't seem to make much sense right now, really. But I'm reluctant to delete it...
     @Value
-    public static class Result
+    class Result
     {
         Map<String, Object> obtained;
     }

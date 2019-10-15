@@ -19,7 +19,7 @@ class OperationUpdateImpl implements OperationUpdate {
     private static final Logger LOGGER = LoggerFactory.getLogger(OperationUpdateImpl.class);
 
 
-    class UpdateOperationException extends Exception {
+    static class UpdateOperationException extends Exception {
         UpdateOperationException(String message) {
             super(message);
         }

@@ -20,6 +20,7 @@ import static es.amplia.oda.core.commons.interfaces.ScadaDispatcher.ScadaOperati
 import static es.amplia.oda.core.commons.interfaces.ScadaDispatcher.ScadaOperationResult;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,7 @@ public class ScadaCommandHandlerTest {
     public void testStart() {
         testHandler.start();
 
-        // Nothing to test
+        assertTrue("Nothing to test", true);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -177,6 +178,6 @@ public class ScadaCommandHandlerTest {
     public void testEnd() {
         testHandler.end();
 
-        // Nothing to test
+        assertTrue("Nothing to test", true);
     }
 }

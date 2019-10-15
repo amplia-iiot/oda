@@ -4,13 +4,11 @@ import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaTableInfoProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.connector.dnp3.configuration.DNP3ConnectorConfigurationHandler;
 
-import com.automatak.dnp3.DNP3Exception;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -20,6 +18,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -76,7 +75,7 @@ public class ActivatorTest {
     }
 
     @Test
-    public void testOnServiceChanged() throws DNP3Exception {
+    public void testOnServiceChanged() {
         Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
 
         testActivator.onServiceChanged();
@@ -85,12 +84,14 @@ public class ActivatorTest {
     }
 
     @Test
-    public void testOnServiceChangedExceptionCaught() throws DNP3Exception {
+    public void testOnServiceChangedExceptionCaught() {
         Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
 
-        doThrow(new DNP3Exception("")).when(mockedConfigHandler).applyConfiguration();
+        doThrow(new IllegalArgumentException("")).when(mockedConfigHandler).applyConfiguration();
 
         testActivator.onServiceChanged();
+
+        assertTrue("Exceptions should be caught", true);
     }
 
     @Test

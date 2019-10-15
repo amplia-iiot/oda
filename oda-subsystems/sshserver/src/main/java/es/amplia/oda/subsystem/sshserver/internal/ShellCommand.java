@@ -85,7 +85,7 @@ class ShellCommand implements Command, Runnable, SessionAware {
             session.execute(command);
         } catch (Exception e) {
             exitStatus = 1;
-            LOGGER.error("Unable to start shell: {}", e);
+            LOGGER.error("Unable to start shell", e);
         } finally {
             ShellFactoryImpl.close(in, out, err);
             callback.onExit(exitStatus);

@@ -1,6 +1,5 @@
 package es.amplia.oda.connector.iec104.codecs;
 
-import es.amplia.oda.connector.iec104.types.BytestringPointInformationSequence;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -15,8 +14,6 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
@@ -29,7 +26,7 @@ public class MeasuredValueScaledSequenceCodecTest {
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private MeasuredValueScaledSequenceCodec codec = new MeasuredValueScaledSequenceCodec();
+	private final MeasuredValueScaledSequenceCodec codec = new MeasuredValueScaledSequenceCodec();
 
 	@Test
 	public void testParse() {
@@ -49,7 +46,7 @@ public class MeasuredValueScaledSequenceCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<Short> v = new Value(Short.parseShort("10"), System.currentTimeMillis(), QualityInformation.OK);
+		Value<Short> v = new Value<>(Short.parseShort("10"), System.currentTimeMillis(), QualityInformation.OK);
 
 		codec.encode(options, MeasuredValueScaledSequence.create(InformationObjectAddress.DEFAULT, new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), v), buffer);
 

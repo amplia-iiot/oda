@@ -16,7 +16,7 @@ import static es.amplia.oda.core.commons.interfaces.ScadaDispatcher.ScadaOperati
 
 class ScadaCommandHandler implements CommandHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScadaCommandHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScadaCommandHandler.class);
 
     private final ScadaDispatcher scadaDispatcher;
 
@@ -29,10 +29,15 @@ class ScadaCommandHandler implements CommandHandler {
         ScadaOperationResult result;
         try {
             result = scadaDispatcher.process(operation, index, value, null).get();
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            LOGGER.error("Error processing SCADA operation " + operation, e);
             result = ScadaOperationResult.ERROR;
+        } catch (InterruptedException e) {
+            LOGGER.error("Interrupted exception processing SCADA operation " + operation, e);
+            result = ScadaOperationResult.ERROR;
+            Thread.currentThread().interrupt();
         }
-        logger.info("Operation {} on index {} with value {}: {}", operation, index, value, result);
+        LOGGER.info("Operation {} on index {} with value {}: {}", operation, index, value, result);
         return toCommandStatus(result);
     }
 

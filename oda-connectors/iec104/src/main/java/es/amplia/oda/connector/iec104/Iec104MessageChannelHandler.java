@@ -7,7 +7,7 @@ import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.DataTransmissionMessage;
 
-public class Iec104MessageChannelHandler extends MessageChannel {
+class Iec104MessageChannelHandler extends MessageChannel {
 
 	Iec104MessageChannelHandler(ProtocolOptions options, MessageManager manager) {
 		super(options, manager);

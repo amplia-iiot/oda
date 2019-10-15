@@ -8,7 +8,7 @@ import org.eclipse.californium.core.network.interceptors.MessageInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageLoggerInterceptor implements MessageInterceptor {
+class MessageLoggerInterceptor implements MessageInterceptor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageLoggerInterceptor.class);
 

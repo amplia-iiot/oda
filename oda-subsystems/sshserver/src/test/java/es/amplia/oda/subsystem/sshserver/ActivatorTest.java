@@ -16,8 +16,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
-
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -74,7 +72,7 @@ public class ActivatorTest {
     }
 
     @Test
-    public void testOnServiceChanged() throws IOException {
+    public void testOnServiceChanged() {
         Whitebox.setInternalState(testActivator, CONFIG_HANDLER_FIELD_NAME, mockedConfigHandler);
 
         testActivator.onServiceChanged();
@@ -83,10 +81,10 @@ public class ActivatorTest {
     }
 
     @Test
-    public void testOnServiceChangedOIOExceptionCaught() throws IOException {
+    public void testOnServiceChangedOIOExceptionCaught() {
         Whitebox.setInternalState(testActivator, CONFIG_HANDLER_FIELD_NAME, mockedConfigHandler);
 
-        doThrow(new IOException()).when(mockedConfigHandler).applyConfiguration();
+        doThrow(new IllegalArgumentException()).when(mockedConfigHandler).applyConfiguration();
 
         testActivator.onServiceChanged();
 

@@ -49,7 +49,7 @@ public class ConfigurablePasswordAuthenticatorImpl implements ConfigurablePasswo
             }
             generatedPassword = sb.toString();
         } catch (NoSuchAlgorithmException exception) {
-            LOGGER.error("Error validating password: {}", exception);
+            LOGGER.error("Error validating password", exception);
         }
         return hashPassword.equalsIgnoreCase(generatedPassword);
     }
