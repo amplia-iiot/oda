@@ -60,12 +60,16 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         LOGGER.info("Messaged arrived: {},{}", topic, message);
-        CompletableFuture<byte[]> response = dispatcher.process(message.getPayload());
-        if (response == null) {
-            LOGGER.warn("Cannot process message as Dispatcher is not present");
-            return;
+        try {
+            CompletableFuture<byte[]> response = dispatcher.process(message.getPayload());
+            if (response == null) {
+                LOGGER.warn("Cannot process message as Dispatcher is not present");
+                return;
+            }
+            response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes));
+        } catch (RuntimeException e) {
+            LOGGER.error("Error processing message {}", message, e);
         }
-        response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes));
     }
 
     private void sendMessage(String topic, byte[] payload) {

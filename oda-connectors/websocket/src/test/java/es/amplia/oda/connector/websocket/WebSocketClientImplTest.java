@@ -2,6 +2,7 @@ package es.amplia.oda.connector.websocket;
 
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+
 import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +25,7 @@ import static org.mockito.Mockito.*;
 public class WebSocketClientImplTest {
 
     private static final int TEST_TIMEOUT = 5;
+    private static final String TEST_MESSAGE = "Test message";
 
     @Mock
     private OpenGateConnector mockedConnector;
@@ -48,20 +51,19 @@ public class WebSocketClientImplTest {
 
         testClient.onOpen(mockedHandshake);
 
-        // Nothing to test
+        assertTrue("Nothing to test", true);
     }
 
     @Test
     public void onMessage() {
-        String testMessage = "Test message";
         Consumer<byte[]> consumer;
         byte[] testResponse = new byte[10];
 
         when(mockedDispatcher.process(any(byte[].class))).thenReturn(mockedDispatcherResponse);
 
-        testClient.onMessage(testMessage);
+        testClient.onMessage(TEST_MESSAGE);
 
-        verify(mockedDispatcher).process(aryEq(testMessage.getBytes(StandardCharsets.UTF_8)));
+        verify(mockedDispatcher).process(aryEq(TEST_MESSAGE.getBytes(StandardCharsets.UTF_8)));
         verify(mockedDispatcherResponse).thenAccept(consumerCaptor.capture());
         consumer = consumerCaptor.getValue();
         consumer.accept(testResponse);
@@ -69,14 +71,22 @@ public class WebSocketClientImplTest {
     }
 
     @Test
-    public void testOnMessageNoDispatcher() {
-        String testMessage = "Test message";
+    public void onMessageRuntimeExceptionProcessingIsCaught() {
+        when(mockedDispatcher.process(any(byte[].class))).thenThrow(new RuntimeException());
 
+        testClient.onMessage(TEST_MESSAGE);
+
+        verify(mockedDispatcher).process(aryEq(TEST_MESSAGE.getBytes(StandardCharsets.UTF_8)));
+        verifyZeroInteractions(mockedConnector);
+    }
+
+    @Test
+    public void testOnMessageNoDispatcher() {
         when(mockedDispatcher.process(any(byte[].class))).thenReturn(null);
 
-        testClient.onMessage(testMessage);
+        testClient.onMessage(TEST_MESSAGE);
 
-        verify(mockedDispatcher).process(aryEq(testMessage.getBytes(StandardCharsets.UTF_8)));
+        verify(mockedDispatcher).process(aryEq(TEST_MESSAGE.getBytes(StandardCharsets.UTF_8)));
         verify(mockedConnector, never()).uplink(any(byte[].class));
     }
 
@@ -87,7 +97,7 @@ public class WebSocketClientImplTest {
 
         testClient.onClose(closeCode, reason, false);
 
-        // Nothing to test
+        assertTrue("Nothing to test", true);
     }
 
     @Test
@@ -96,6 +106,6 @@ public class WebSocketClientImplTest {
 
         testClient.onError(error);
 
-        // Nothing to test
+        assertTrue("Nothing to test", true);
     }
 }

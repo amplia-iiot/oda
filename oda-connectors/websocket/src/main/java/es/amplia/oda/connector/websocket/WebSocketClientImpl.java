@@ -35,12 +35,16 @@ class WebSocketClientImpl extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         LOGGER.info("Messaged arrived: {}", message);
-        CompletableFuture<byte[]> response = dispatcher.process(message.getBytes(StandardCharsets.UTF_8));
-        if (response == null) {
-            LOGGER.warn("Cannot process message as Dispatcher is not present");
-            return;
+        try {
+            CompletableFuture<byte[]> response = dispatcher.process(message.getBytes(StandardCharsets.UTF_8));
+            if (response == null) {
+                LOGGER.warn("Cannot process message as Dispatcher is not present");
+                return;
+            }
+            response.thenAccept(connector::uplink);
+        } catch (RuntimeException e) {
+            LOGGER.error("Error processing message {}", message, e);
         }
-        response.thenAccept(connector::uplink);
     }
 
     @Override
@@ -50,6 +54,6 @@ class WebSocketClientImpl extends WebSocketClient {
 
     @Override
     public void onError(Exception exception) {
-        LOGGER.error("Error on WebSocket connection: {}", exception);
+        LOGGER.error("Error on WebSocket connection", exception);
     }
 }

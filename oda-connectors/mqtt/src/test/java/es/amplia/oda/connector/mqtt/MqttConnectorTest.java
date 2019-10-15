@@ -154,6 +154,8 @@ public class MqttConnectorTest {
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
     }
 
+
+    @SuppressWarnings("SameParameterValue")
     private void verifyConnectionRetry(MqttConnectOptions testOptions, MqttClient newMockedClient, long initialDelay, long retryDelay) {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         ScheduledFuture<?> scheduledFuture = executor.schedule(() -> {
@@ -190,6 +192,16 @@ public class MqttConnectorTest {
         verify(mockedResponse).thenAccept(byteArrayConsumerCaptor.capture());
         byteArrayConsumerCaptor.getValue().accept(testResponseBytes);
         verify(mockedMqttClient).publish(eq(TEST_RESPONSE_TOPIC), eq(responseMessage));
+    }
+
+    @Test
+    public void testMessageArrivedRuntimeExceptionIsCaught() {
+        when(mockedDispatcher.process(any(byte[].class))).thenThrow(new RuntimeException());
+
+        testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
+
+        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD));
+        verifyZeroInteractions(mockedMqttClient);
     }
 
     @Test
