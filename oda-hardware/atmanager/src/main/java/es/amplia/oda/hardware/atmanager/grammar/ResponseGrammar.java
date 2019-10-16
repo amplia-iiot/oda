@@ -29,6 +29,7 @@ public class ResponseGrammar {
             throw new GrammarException("Unexpected token '" + syntacticParser.current() + "'");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void advanceAndAssertTokenIs(Tokens token) {
         syntacticParser.advance();
         assertTokenIs(token);

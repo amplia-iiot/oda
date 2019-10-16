@@ -57,7 +57,7 @@ public interface GpioPin {
      * Open the GPIO pin.
      * @throws GpioDeviceException Exception opening GPIO pin.
      */
-    void open() throws GpioDeviceException;
+    void open();
 
     /**
      * Close the GPIO pin.
@@ -65,21 +65,21 @@ public interface GpioPin {
      *
      * @throws GpioDeviceException Exception closing the GPIO pin.
      */
-    void close() throws GpioDeviceException;
+    void close();
 
     /**
      * Get the GPIO pin value.
      * @return GPIO pin value.
      * @throws GpioDeviceException Exception getting the GPIO pin value.
      */
-    boolean getValue() throws GpioDeviceException;
+    boolean getValue();
 
     /**
      * Set the GPIO pin value.
      * @param value Value to set.
      * @throws GpioDeviceException Exception setting the GPIO pin value.
      */
-    void setValue(boolean value) throws GpioDeviceException;
+    void setValue(boolean value);
 
     /**
      * Add a listener to the GPIO pin to be notified when the input changes.
@@ -91,11 +91,11 @@ public interface GpioPin {
      * @param listener GPIO pin listener represented by {@link GpioPinListener}
      * @throws GpioDeviceException Exception adding the listener.
      */
-    void addGpioPinListener(GpioPinListener listener) throws GpioDeviceException;
+    void addGpioPinListener(GpioPinListener listener);
 
     /**
      * Remove the previously added GPIO pin listener.
      * @throws GpioDeviceException Exception removing the listener.
      */
-    void removeGpioPinListener() throws GpioDeviceException;
+    void removeGpioPinListener();
 }

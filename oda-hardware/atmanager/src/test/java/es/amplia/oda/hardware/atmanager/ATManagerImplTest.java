@@ -24,8 +24,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 public class ATManagerImplTest {
@@ -72,6 +70,7 @@ public class ATManagerImplTest {
         when(atParser.process(ANOTHER_COMMAND_STRING)).thenReturn(ATParser.Result.commands(Collections.singletonList(ANOTHER_COMMAND_AS_CLASS)));
     }
 
+    @SuppressWarnings("SameReturnValue")
     private void peerWillRespondWith(ATParser.Result... responses) throws IOException {
         doAnswer((InvocationOnMock invocation) -> {
             for (int j = 0; j < responses.length; j++) {
@@ -131,7 +130,7 @@ public class ATManagerImplTest {
     }
 
     @Test
-    public void atParserIsUsedToParseIncommingStrings() {
+    public void atParserIsUsedToParseIncomingStrings() {
         atManager.process(AN_EVENT_STRING);
 
         verify(atParser).process(AN_EVENT_STRING);

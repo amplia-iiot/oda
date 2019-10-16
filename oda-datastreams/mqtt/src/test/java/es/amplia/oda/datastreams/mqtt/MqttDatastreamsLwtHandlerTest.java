@@ -40,7 +40,7 @@ public class MqttDatastreamsLwtHandlerTest {
     private ArgumentCaptor<MqttDatastreamsLwtHandler.LwtMessageListener> messageListenerCaptor;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         testLwtHandler = new MqttDatastreamsLwtHandler(mockedClient, mockedSerializer, mockedPermissionManager,
                 mockedDatastreamsManager, TEST_LWT_TOPIC);
     }

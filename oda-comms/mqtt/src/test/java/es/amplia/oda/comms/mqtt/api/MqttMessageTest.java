@@ -52,13 +52,8 @@ public class MqttMessageTest {
     }
 
     @Test
-    @SuppressWarnings("UnnecessaryLocalVariable")
     public void testEqualsWithThis() {
-        MqttMessage message2 = TEST_MESSAGE;
-
-        boolean equals = TEST_MESSAGE.equals(message2);
-
-        assertTrue(equals);
+        assertEquals(TEST_MESSAGE, TEST_MESSAGE);
     }
 
     @Test

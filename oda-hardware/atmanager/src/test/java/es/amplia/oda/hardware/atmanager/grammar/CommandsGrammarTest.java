@@ -169,7 +169,7 @@ public class CommandsGrammarTest {
     }
 
     @Test
-    public void spacesAreOmmittedOutsideStrings() {
+    public void spacesAreOmittedOutsideStrings() {
         List<ATCommand> actual = commandsGrammar.parse("  +CPIN = 23 ,\"kkk ; llll\" ; D 917429966  ");
 
         List<ATCommand> expected = Arrays.asList(

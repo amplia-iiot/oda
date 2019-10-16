@@ -9,7 +9,7 @@ public enum GpioMode {
     OPEN_DRAIN("open_drain"),
     PUSH_PULL("push_pull");
 
-    private String displayName;
+    private final String displayName;
 
     GpioMode(String displayName) {
         this.displayName = displayName;

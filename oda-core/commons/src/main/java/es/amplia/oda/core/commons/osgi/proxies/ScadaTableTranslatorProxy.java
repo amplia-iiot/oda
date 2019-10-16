@@ -16,7 +16,7 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     }
 
     @Override
-    public ScadaInfo translate(DatastreamInfo info) throws DataNotFoundException {
+    public ScadaInfo translate(DatastreamInfo info) {
         Optional<ScadaInfo> scadaInfo =
                 Optional.ofNullable(proxy.callFirst(translator -> translator.translate(info)));
         return scadaInfo.orElseThrow(() ->
@@ -24,7 +24,7 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     }
 
     @Override
-    public DatastreamInfo getDatastreamInfo(ScadaInfo info) throws DataNotFoundException {
+    public DatastreamInfo getDatastreamInfo(ScadaInfo info) {
         Optional<DatastreamInfo> datastreamInfo =
                 Optional.ofNullable(proxy.callFirst(translator -> translator.getDatastreamInfo(info)));
         return datastreamInfo

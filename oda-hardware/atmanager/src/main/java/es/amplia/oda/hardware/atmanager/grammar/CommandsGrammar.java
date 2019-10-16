@@ -26,12 +26,9 @@ public class CommandsGrammar {
      *          | FLOAT
      *          | STRING
      */
-    private List<ATCommand> commandsRead;
+    private final List<ATCommand> commandsRead = new ArrayList<>();
     private SyntacticParser syntacticParser;
 
-    public CommandsGrammar() {
-        this.commandsRead = new ArrayList<>();
-    }
 
     public List<ATCommand> parse(String toParse) {
         this.syntacticParser = new SyntacticParser(toParse);
@@ -43,8 +40,12 @@ public class CommandsGrammar {
         }
         commands();
         if (syntacticParser.current() != Tokens.EOF)
-            throw new GrammarException("Unexpected token '" + syntacticParser.current() + "'");
+            throwNewGrammarException();
         return commandsRead;
+    }
+
+    private void throwNewGrammarException() {
+        throw new GrammarException("Unexpected token '" + syntacticParser.current() + "'");
     }
 
     private void commands() {
@@ -54,11 +55,11 @@ public class CommandsGrammar {
          *             |  <extended_command> SEMICOLON <commands>
          */
         if (syntacticParser.current() == Tokens.BASIC_NAME || syntacticParser.current() == Tokens.S_NAME) {
-            basic_command();
+            basicCommand();
             if (syntacticParser.current() != Tokens.EOF)
                 commands();
         } else {
-            extended_command();
+            extendedCommand();
             if (syntacticParser.current() == Tokens.SEMICOLON) {
                 advance();
                 if (syntacticParser.current() != Tokens.EOF)
@@ -67,7 +68,7 @@ public class CommandsGrammar {
         }
     }
 
-    private void basic_command() {
+    private void basicCommand() {
         /*
          * <basic_command> ::= BASIC_NAME NUMBER?
          *                  |  S_NAME EQUALS NUMBER
@@ -84,7 +85,7 @@ public class CommandsGrammar {
             return;
         }
         if (syntacticParser.current() != Tokens.S_NAME)
-            throw new GrammarException("Unexpected token '" + syntacticParser.current() + "'");
+            throwNewGrammarException();
         String cmd = syntacticParser.getLastCommand();
         advance();
 
@@ -99,10 +100,9 @@ public class CommandsGrammar {
 
         int register = Integer.parseInt(cmd.substring(1));
         commandsRead.add(ATCommand.sSetCommand(register, number));
-        return;
     }
 
-    private void extended_command() {
+    private void extendedCommand() {
         /*
          * <extended_command> ::= EXTENDED_NAME <command_end>?
          */
@@ -113,9 +113,9 @@ public class CommandsGrammar {
 
         Tokens t = syntacticParser.current();
         if (t != Tokens.EQUAL && t != Tokens.EQUAL_QUESTION && t != Tokens.QUESTION) {
-            commandsRead.add(ATCommand.extendedCommand(ATCommandType.ACTION, name.toString()));
+            commandsRead.add(ATCommand.extendedCommand(ATCommandType.ACTION, name));
         } else {
-            ATCommand c = command_end(name);
+            ATCommand c = commandEnd(name);
             commandsRead.add(c);
         }
     }
@@ -126,7 +126,7 @@ public class CommandsGrammar {
             syntacticParser.advance();
     }
 
-    private ATCommand command_end(String cmdName) {
+    private ATCommand commandEnd(String cmdName) {
         /*
          * <command_end> ::= QUESTION
          *                |  EQUAL_QUESTION
@@ -154,7 +154,9 @@ public class CommandsGrammar {
             return ATCommand.extendedSetCommand(cmdName, params);
         }
 
-        throw new GrammarException("Unexpected token '" + syntacticParser.current() + "'");
+        throwNewGrammarException();
+        // Should not get here. Exception must be thrown before
+        return null;
     }
 
     private void parameters(List<String> params) {
@@ -166,12 +168,12 @@ public class CommandsGrammar {
          *          | STRING
          */
         if (syntacticParser.current() == Tokens.NUMBER) {
-            Integer number = syntacticParser.getLastNumber();
-            params.add(number.toString());
+            int number = syntacticParser.getLastNumber();
+            params.add(Integer.toString(number));
             advance();
         } else if (syntacticParser.current() == Tokens.FLOAT) {
-            Double lastFloat = syntacticParser.getLastFloat();
-            params.add(lastFloat.toString());
+            double lastFloat = syntacticParser.getLastFloat();
+            params.add(Double.toString(lastFloat));
             advance();
         } else if (syntacticParser.current() == Tokens.STRING) {
             String param = syntacticParser.getLastString();

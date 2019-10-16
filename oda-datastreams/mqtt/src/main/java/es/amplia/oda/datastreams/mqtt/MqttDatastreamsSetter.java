@@ -38,8 +38,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
 
     MqttDatastreamsSetter(String datastreamId, MqttClient mqttClient,
                           MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager, Serializer serializer,
-                          String writeRequestOperationRootTopic, String writeResponseOperationRootTopic)
-            throws MqttException {
+                          String writeRequestOperationRootTopic, String writeResponseOperationRootTopic) {
         this.datastreamId = datastreamId;
         this.mqttClient = mqttClient;
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
@@ -50,7 +49,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         subscribeToWriteResponseOperationTopic();
     }
 
-    private void subscribeToWriteResponseOperationTopic() throws MqttException {
+    private void subscribeToWriteResponseOperationTopic() {
         mqttClient.subscribe(writeResponseOperationRootTopic, new WriteResponseMessageListener());
     }
 
@@ -162,7 +161,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
         }
     }
 
-    private void unsubscribeFromWriteOperationResponseTopic() throws MqttException {
+    private void unsubscribeFromWriteOperationResponseTopic() {
         mqttClient.unsubscribe(writeResponseOperationRootTopic);
     }
 }

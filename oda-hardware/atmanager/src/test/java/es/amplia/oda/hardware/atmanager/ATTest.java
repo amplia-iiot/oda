@@ -14,7 +14,7 @@ public class ATTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ATTest.class);
 
-    private ATManager atManager;
+    private final ATManager atManager;
     private boolean end = false;
 
 
@@ -55,7 +55,7 @@ public class ATTest {
                 String line = buffer.readLine();
                 atManager.process(line);
             } catch (IOException e) {
-                LOGGER.error("Error processing line: {}", e);
+                LOGGER.error("Error processing line", e);
             }
         }
     }

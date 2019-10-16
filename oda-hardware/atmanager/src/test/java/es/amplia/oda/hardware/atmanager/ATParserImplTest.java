@@ -52,7 +52,7 @@ public class ATParserImplTest {
     }
 
     @Test
-    public void inputIsUppercased() {
+    public void inputIsUppercase() {
         ATParser.Result actual = atParser.process("at");
 
         ATParser.Result expected = ATParser.Result.commands(Collections.singletonList(ATCommand.emptyCommand()));

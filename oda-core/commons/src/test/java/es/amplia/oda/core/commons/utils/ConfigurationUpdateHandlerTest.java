@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 
 public class ConfigurationUpdateHandlerTest {
 
-    private ConfigurationUpdateHandler testDefaultConfigHandler = new ConfigurationUpdateHandler() {
+    private final ConfigurationUpdateHandler testDefaultConfigHandler = new ConfigurationUpdateHandler() {
         @Override
         public void loadConfiguration(Dictionary<String, ?> props) {}
 
@@ -20,7 +20,7 @@ public class ConfigurationUpdateHandlerTest {
     };
 
     @Test(expected = ConfigurationException.class)
-    public void testLoadDefaultConfiguration() throws Exception {
+    public void testLoadDefaultConfiguration() {
         testDefaultConfigHandler.loadDefaultConfiguration();
 
         fail("Configuration exception must be thrown");

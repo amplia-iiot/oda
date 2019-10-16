@@ -12,7 +12,7 @@ public interface GpioService {
      * @return GPIO pin associated with the given name.
      * @throws GpioDeviceException Exception getting the GPIO pin with the given associated name.
      */
-    GpioPin getPinByName(String pinName) throws GpioDeviceException;
+    GpioPin getPinByName(String pinName);
 
     /**
      * Get GPIO pin associated with the given name and with the given configuration.
@@ -26,8 +26,7 @@ public interface GpioService {
      * @throws GpioDeviceException Exception getting the GPIO pin with the given name and configuration.
      */
     GpioPin getPinByName(String pinName, GpioDirection direction, GpioMode mode, GpioTrigger trigger,
-                         boolean activeLow, boolean initialValue)
-            throws GpioDeviceException;
+                         boolean activeLow, boolean initialValue);
 
     /**
      * Get the GPIO pin associated with the given pin's terminal index.
@@ -35,7 +34,7 @@ public interface GpioService {
      * @return GPIO pin associated with the given pin's terminal index.
      * @throws GpioDeviceException Exception getting the GPIO pin with the given pin's terminal index.
      */
-    GpioPin getPinByIndex(int index) throws GpioDeviceException;
+    GpioPin getPinByIndex(int index);
 
     /**
      * Get the GPIO pin associated with the given pin's terminal index and with the given configuration.

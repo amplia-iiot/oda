@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 public class ServiceLocatorOsgiTest {
 
     @Value
-    private class TestService {
+    private static class TestService {
         int id;
         String name;
         double value;
@@ -58,7 +58,7 @@ public class ServiceLocatorOsgiTest {
     @Test
     public void testFindAll() {
         TestService[] services =
-                new TestService[] { new TestService(1,"test", 50.0), new TestService(2,"other", 99.99) };
+                new TestService[] {new TestService(1, "test", 50.0), new TestService(2, "other", 99.99)};
         when(mockedServiceTracker.getServices(any(TestService[].class))).thenReturn(services);
 
         List<TestService> result = testServiceLocator.findAll();

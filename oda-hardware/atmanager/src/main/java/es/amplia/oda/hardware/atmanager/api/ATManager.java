@@ -18,14 +18,13 @@ public interface ATManager {
 
     CompletableFuture<ATResponse> send(ATCommand cmd, long timeout, TimeUnit unit); //Used to issue AT commands to peer.
 
-    //TODO: CompletableFuture<ATResponse> send(List<ATCommand> cmd);
     void send(ATEvent evt); //Used to send responses, both solicited and unsolicited.
 
-    public class EOFException extends Exception {
+    class EOFException extends Exception {
         private static final long serialVersionUID = -883441841752633569L;
     }
 
-    public class AlreadyRegisteredException extends Exception {
+    class AlreadyRegisteredException extends Exception {
         private static final long serialVersionUID = -3794438709003306250L;
 
         public AlreadyRegisteredException(String msg) {

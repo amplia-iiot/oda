@@ -8,7 +8,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 public class MqttPahoClientFactory implements MqttClientFactory {
 
     @Override
-    public MqttClient createMqttClient(String serverUri, String clientId) throws MqttException {
+    public MqttClient createMqttClient(String serverUri, String clientId) {
         try {
             org.eclipse.paho.client.mqttv3.IMqttClient innerClient =
                     new org.eclipse.paho.client.mqttv3.MqttClient(serverUri, clientId, new MemoryPersistence());

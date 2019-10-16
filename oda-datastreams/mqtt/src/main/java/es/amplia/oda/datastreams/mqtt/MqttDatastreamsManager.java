@@ -8,7 +8,6 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerWithKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 class MqttDatastreamsManager implements AutoCloseable {
 
     private final ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager;
@@ -26,7 +25,7 @@ class MqttDatastreamsManager implements AutoCloseable {
         this.mqttDatastreamsFactory = mqttDatastreamsFactory;
     }
 
-    void createDatastream(String deviceId, String datastreamId) throws MqttException {
+    void createDatastream(String deviceId, String datastreamId) {
         createDatastreamsGetter(deviceId, datastreamId);
         createDatastreamsSetter(deviceId, datastreamId);
     }
@@ -37,32 +36,31 @@ class MqttDatastreamsManager implements AutoCloseable {
     }
 
     private <T> void createDatastreamIfNotExists(String datastreamId, Map<String, T> datastreams,
-                                                 ThrowableFunction<String, T, MqttException> datastreamCreator)
-            throws MqttException {
+                                                 ThrowableFunction<String, T, MqttException> datastreamCreator) {
         if (!datastreams.containsKey(datastreamId)) {
             datastreams.put(datastreamId, datastreamCreator.apply(datastreamId));
         }
     }
 
-    private void createDatastreamsGetter(String deviceId, String datastreamId) throws MqttException {
+    private void createDatastreamsGetter(String deviceId, String datastreamId) {
         createDatastreamIfNotExists(datastreamId, mqttDatastreamsGetters, this::createAndRegisterDatastreamsGetter);
         MqttDatastreamsGetter getter = mqttDatastreamsGetters.get(datastreamId);
         getter.addManagedDevice(deviceId);
     }
 
-    private MqttDatastreamsGetter createAndRegisterDatastreamsGetter(String datastreamId) throws MqttException {
+    private MqttDatastreamsGetter createAndRegisterDatastreamsGetter(String datastreamId) {
         MqttDatastreamsGetter getter = mqttDatastreamsFactory.createDatastreamGetter(datastreamId);
         datastreamsGetterRegistrationManager.register(datastreamId, getter);
         return getter;
     }
 
-    private void createDatastreamsSetter(String deviceId, String datastreamId) throws MqttException {
+    private void createDatastreamsSetter(String deviceId, String datastreamId) {
         createDatastreamIfNotExists(datastreamId, mqttDatastreamsSetters, this::createAndRegisterDatastreamsSetter);
         MqttDatastreamsSetter setter = mqttDatastreamsSetters.get(datastreamId);
         setter.addManagedDevice(deviceId);
     }
 
-    private MqttDatastreamsSetter createAndRegisterDatastreamsSetter(String datastreamId) throws MqttException {
+    private MqttDatastreamsSetter createAndRegisterDatastreamsSetter(String datastreamId) {
         MqttDatastreamsSetter setter = mqttDatastreamsFactory.createDatastreamSetter(datastreamId);
         datastreamsSetterRegistrationManager.register(datastreamId, setter);
         return setter;
