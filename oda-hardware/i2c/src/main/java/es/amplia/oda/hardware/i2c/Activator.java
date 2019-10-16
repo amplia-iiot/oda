@@ -3,6 +3,7 @@ package es.amplia.oda.hardware.i2c;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
+import es.amplia.oda.hardware.i2c.configuration.DioZeroI2CConfigurationHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;

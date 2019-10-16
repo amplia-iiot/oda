@@ -46,7 +46,7 @@ public class DioZeroI2CService implements I2CService {
 		devices.clear();
 	}
 
-	void loadConfiguration(List<I2CDevice> configuredDevices) {
+	public void loadConfiguration(List<I2CDevice> configuredDevices) {
 		close();
 		for (I2CDevice device : configuredDevices) {
 			if (this.devices.get(device.getController()) == null) {

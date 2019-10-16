@@ -1,6 +1,7 @@
 package es.amplia.oda.hardware.i2c;
 
 import es.amplia.oda.core.commons.i2c.I2CDevice;
+import es.amplia.oda.hardware.i2c.configuration.DioZeroI2CConfiguration;
 
 import java.nio.ByteBuffer;
 
@@ -9,11 +10,15 @@ public class DioZeroI2CDevice implements I2CDevice {
 	private String name;
 	private int register;
 	private com.diozero.api.I2CDevice i2cDevice;
+	private long minimum;
+	private long maximum;
 
-	DioZeroI2CDevice(String name, int controller, int address, int register) {
+	public DioZeroI2CDevice(String name, DioZeroI2CConfiguration config) {
 		this.name = name;
-		this.register = register;
-		this.i2cDevice = new com.diozero.api.I2CDevice(controller, address);
+		this.register = config.getRegister();
+		this.i2cDevice = new com.diozero.api.I2CDevice(config.getController(), config.getAddress());
+		this.minimum = config.getMin();
+		this.maximum = config.getMax();
 	}
 
 	@Override
@@ -33,7 +38,7 @@ public class DioZeroI2CDevice implements I2CDevice {
 
 	@Override
 	public long readUInt() {
-		return this.i2cDevice.readUInt(this.register);
+		return (this.i2cDevice.readUInt(this.register) - minimum) / (maximum - minimum);
 	}
 
 	@Override
