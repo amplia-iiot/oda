@@ -12,9 +12,11 @@ public class DioZeroI2CService implements I2CService {
 
 	@Override
 	public I2CDevice getI2CFromAddress(int controller, int address) {
-		return Optional.ofNullable(devices.get(controller).get(address))
-				.orElseThrow(() ->
-						new I2CDeviceException("No I2C device on controller " + controller + " and address " +  address));
+		return Optional.ofNullable(
+			Optional.ofNullable(devices.get(controller)).orElseThrow(
+				() -> new I2CDeviceException("No I2C device on controller " + controller + " and address " +  address))
+			.get(address)).orElseThrow(
+				() -> new I2CDeviceException("No I2C device on controller " + controller + " and address " +  address));
 	}
 
 	@Override
@@ -31,7 +33,7 @@ public class DioZeroI2CService implements I2CService {
 
 	@Override
 	public List<I2CDevice> getAllI2CFromController(int controller) {
-		return new ArrayList<>(this.devices.get(controller).values());
+		return new ArrayList<>(Optional.ofNullable(this.devices.get(controller)).orElse(new HashMap<>()).values());
 	}
 
 	@Override
@@ -50,7 +52,9 @@ public class DioZeroI2CService implements I2CService {
 		close();
 		for (I2CDevice device : configuredDevices) {
 			if (this.devices.get(device.getController()) == null) {
-				this.devices.put(device.getController(), Collections.singletonMap(device.getAddress(), device));
+				Map<Integer,I2CDevice> devicesOfAController = new HashMap<>();
+				devicesOfAController.put(device.getAddress(), device);
+				this.devices.put(device.getController(), devicesOfAController);
 			} else {
 				this.devices.get(device.getController()).put(device.getAddress(), device);
 			}

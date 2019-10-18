@@ -24,11 +24,11 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 	private static final String MINIMUM_MEASURE_PROPERTY_NAME = "min";
 	private static final String MAXIMUM_MEASURE_PROPERTY_NAME = "max";
 
-	private final DioZeroI2CService i2CService;
+	private final DioZeroI2CService i2cService;
 	private final List<I2CDevice> configuredDevices = new ArrayList<>();
 
 	public DioZeroI2CConfigurationHandler(DioZeroI2CService service) {
-		this.i2CService = service;
+		this.i2cService = service;
 	}
 
 	@Override
@@ -63,6 +63,6 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 	@Override
 	public void applyConfiguration() {
 		LOGGER.info("Applying current configuration");
-		i2CService.loadConfiguration(configuredDevices);
+		i2cService.loadConfiguration(configuredDevices);
 	}
 }

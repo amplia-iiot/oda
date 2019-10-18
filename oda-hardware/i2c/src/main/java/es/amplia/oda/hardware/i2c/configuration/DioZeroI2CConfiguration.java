@@ -1,6 +1,8 @@
 package es.amplia.oda.hardware.i2c.configuration;
 
 import lombok.Builder;
+import lombok.Data;
+import lombok.Generated;
 import lombok.Value;
 
 @Value
