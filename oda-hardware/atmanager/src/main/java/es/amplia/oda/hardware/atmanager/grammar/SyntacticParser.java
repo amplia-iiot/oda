@@ -1,7 +1,7 @@
 package es.amplia.oda.hardware.atmanager.grammar;
 
 class SyntacticParser {
-    private String toParse;
+    private final String toParse;
     private int index;
     private Tokens current;
     private String lastCommand;

@@ -13,7 +13,7 @@ import java.util.List;
 public class DatastreamsGettersLocatorOsgi implements DatastreamsGettersLocator {
     private static final Logger logger = LoggerFactory.getLogger(DatastreamsGettersLocatorOsgi.class);
 
-    private ServiceTracker<DatastreamsGetter, DatastreamsGetter> datastreamsGetterTracker;
+    private final ServiceTracker<DatastreamsGetter, DatastreamsGetter> datastreamsGetterTracker;
     
     public DatastreamsGettersLocatorOsgi(BundleContext bundleContext) {
         datastreamsGetterTracker = new ServiceTracker<>(bundleContext, DatastreamsGetter.class, null);

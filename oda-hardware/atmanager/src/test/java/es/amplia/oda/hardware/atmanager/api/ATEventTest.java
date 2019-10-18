@@ -29,7 +29,7 @@ public class ATEventTest {
     }
 
     @Test
-    public void eventsAreUppercased() {
+    public void eventsAreUppercase() {
         String actual = ATEvent.event("+foo", "1").asWireString();
         assertThat(actual, is("+FOO: 1"));
     }

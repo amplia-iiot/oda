@@ -1,7 +1,6 @@
 package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
-import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 import es.amplia.oda.core.commons.interfaces.Serializer;
@@ -26,7 +25,7 @@ class MqttDatastreamsLwtHandler implements AutoCloseable {
 
     MqttDatastreamsLwtHandler(MqttClient mqttClient, Serializer serializer,
                               MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager,
-                              MqttDatastreamsManager mqttDatastreamsManager, String lwtTopic) throws MqttException {
+                              MqttDatastreamsManager mqttDatastreamsManager, String lwtTopic) {
         this.mqttClient = mqttClient;
         this.serializer = serializer;
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
@@ -35,7 +34,7 @@ class MqttDatastreamsLwtHandler implements AutoCloseable {
         subscribeToLwtTopic();
     }
 
-    private void subscribeToLwtTopic() throws MqttException {
+    private void subscribeToLwtTopic() {
         mqttClient.subscribe(lwtTopic, new LwtMessageListener());
     }
 
@@ -63,7 +62,7 @@ class MqttDatastreamsLwtHandler implements AutoCloseable {
     }
 
     @Override
-    public void close() throws MqttException {
+    public void close() {
         mqttClient.unsubscribe(lwtTopic);
     }
 }

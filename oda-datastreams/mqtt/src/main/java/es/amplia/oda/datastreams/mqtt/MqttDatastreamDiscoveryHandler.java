@@ -36,8 +36,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
     MqttDatastreamDiscoveryHandler(MqttClient mqttClient, Serializer serializer,
                                    MqttDatastreamsManager mqttDatastreamsManager,
                                    MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager,
-                                   String enableTopic, String disableTopic)
-            throws MqttException {
+                                   String enableTopic, String disableTopic) {
         this.mqttClient = mqttClient;
         this.serializer = serializer;
         this.mqttDatastreamsManager = mqttDatastreamsManager;
@@ -49,7 +48,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
         subscribeToDiscoveryTopics();
     }
 
-    private void subscribeToDiscoveryTopics() throws MqttException {
+    private void subscribeToDiscoveryTopics() {
         mqttClient.subscribe(enableDeviceTopic, new EnableDeviceMessageListener());
         mqttClient.subscribe(enableDatastreamTopic, new EnableDatastreamMessageListener());
         mqttClient.subscribe(disableDeviceTopic, new DisableDeviceMessageListener());
@@ -161,7 +160,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
     }
 
     @Override
-    public void close() throws MqttException {
+    public void close() {
         mqttClient.unsubscribe(enableDatastreamTopic);
         mqttClient.unsubscribe(disableDatastreamTopic);
         executor.shutdown();

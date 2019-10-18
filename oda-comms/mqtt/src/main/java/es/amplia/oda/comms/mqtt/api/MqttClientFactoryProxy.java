@@ -3,12 +3,8 @@ package es.amplia.oda.comms.mqtt.api;
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 
 import org.osgi.framework.BundleContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MqttClientFactoryProxy implements MqttClientFactory, AutoCloseable {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MqttClientFactoryProxy.class);
 
     private final OsgiServiceProxy<MqttClientFactory> proxy;
 
@@ -17,7 +13,7 @@ public class MqttClientFactoryProxy implements MqttClientFactory, AutoCloseable 
     }
 
     @Override
-    public MqttClient createMqttClient(String serverUri, String clientId) throws MqttException {
+    public MqttClient createMqttClient(String serverUri, String clientId) {
         try {
             return proxy.callFirst(factory -> {
                 try {
@@ -27,7 +23,6 @@ public class MqttClientFactoryProxy implements MqttClientFactory, AutoCloseable 
                 }
             });
         } catch (MqttExceptionWrapper exceptionWrapper) {
-            LOGGER.warn("Error calling MqttClientFactory proxy to create a new MQTT client: {}", exceptionWrapper);
             throw (MqttException) exceptionWrapper.getCause();
         }
     }

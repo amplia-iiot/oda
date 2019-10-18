@@ -22,7 +22,7 @@ public interface ScadaTableTranslator {
      * @return Correspondent SCADA info.
      * @throws DataNotFoundException Data with the given parameters was not found.
      */
-    ScadaInfo translate(DatastreamInfo info) throws DataNotFoundException;
+    ScadaInfo translate(DatastreamInfo info);
 
     @Value
     class DatastreamInfo {
@@ -31,5 +31,5 @@ public interface ScadaTableTranslator {
         private Object value;
     }
 
-    DatastreamInfo getDatastreamInfo(ScadaInfo info) throws DataNotFoundException;
+    DatastreamInfo getDatastreamInfo(ScadaInfo info);
 }

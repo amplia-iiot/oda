@@ -4,7 +4,7 @@ public enum DeviceType {
 	FX30("fx30"),
 	DEFAULT("default");
 
-	private String displayName;
+	private final String displayName;
 
 	DeviceType(String displayName) {
 		this.displayName = displayName;

@@ -1,7 +1,6 @@
 package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
-import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.event.api.EventDispatcher;
 
@@ -37,12 +36,12 @@ class MqttDatastreamsFactory {
                 eventDispatcher, eventTopic);
     }
 
-    MqttDatastreamsGetter createDatastreamGetter(String datastreamId) throws MqttException {
+    MqttDatastreamsGetter createDatastreamGetter(String datastreamId) {
         return new MqttDatastreamsGetter(datastreamId, mqttClient, mqttDatastreamsPermissionManager, serializer,
                 readRequestOperationTopic, readResponseOperationTopic);
     }
 
-    MqttDatastreamsSetter createDatastreamSetter(String datastreamId) throws MqttException {
+    MqttDatastreamsSetter createDatastreamSetter(String datastreamId) {
         return new MqttDatastreamsSetter(datastreamId, mqttClient, mqttDatastreamsPermissionManager,
                 serializer, writeRequestOperationTopic, writeResponseOperationTopic);
     }

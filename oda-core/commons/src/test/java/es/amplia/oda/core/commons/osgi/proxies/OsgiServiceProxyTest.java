@@ -3,7 +3,6 @@ package es.amplia.oda.core.commons.osgi.proxies;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;

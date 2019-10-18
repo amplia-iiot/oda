@@ -38,8 +38,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
 
     MqttDatastreamsGetter(String datastreamId, MqttClient mqttClient,
                           MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager, Serializer serializer,
-                          String readRequestOperationRootTopic, String readResponseOperationRootTopic)
-            throws MqttException {
+                          String readRequestOperationRootTopic, String readResponseOperationRootTopic) {
         this.datastreamId = datastreamId;
         this.mqttClient = mqttClient;
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
@@ -50,7 +49,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
         subscribeToReadResponseOperationTopic(mqttClient);
     }
 
-    private void subscribeToReadResponseOperationTopic(MqttClient mqttClient) throws MqttException {
+    private void subscribeToReadResponseOperationTopic(MqttClient mqttClient) {
         mqttClient.subscribe(readResponseOperationRootTopic, new ReadResponseMessageListener());
     }
 
@@ -160,7 +159,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
         }
     }
 
-    private void unsubscribeFromReadOperationResponseTopic() throws MqttException {
+    private void unsubscribeFromReadOperationResponseTopic() {
         mqttClient.unsubscribe(readResponseOperationRootTopic);
     }
 }

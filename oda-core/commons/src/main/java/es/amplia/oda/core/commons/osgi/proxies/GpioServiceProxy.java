@@ -23,20 +23,19 @@ public class GpioServiceProxy implements GpioService, AutoCloseable {
     }
 
     @Override
-    public GpioPin getPinByName(String pinName) throws GpioDeviceException {
+    public GpioPin getPinByName(String pinName) {
         return returnValueOrExceptionIfNull(() -> proxy.callFirst(gpioService -> gpioService.getPinByName(pinName)));
     }
 
     @Override
     public GpioPin getPinByName(String pinName, GpioDirection direction, GpioMode mode, GpioTrigger trigger,
-                                boolean activeLow, boolean initialValue)
-            throws GpioDeviceException {
+                                boolean activeLow, boolean initialValue) {
         return returnValueOrExceptionIfNull(() ->
                 proxy.callFirst(gpioService -> gpioService.getPinByName(pinName, direction, mode, trigger, activeLow, initialValue)));
     }
 
     @Override
-    public GpioPin getPinByIndex(int index) throws GpioDeviceException {
+    public GpioPin getPinByIndex(int index) {
         return returnValueOrExceptionIfNull(() -> proxy.callFirst(gpioService -> gpioService.getPinByIndex(index)));
     }
 

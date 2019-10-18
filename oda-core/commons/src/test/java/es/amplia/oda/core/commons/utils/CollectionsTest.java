@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 
 public class CollectionsTest {
 
-    private int NUMBER_ELEMENTS_TO_TEST = 10;
+    private final int NUMBER_ELEMENTS_TO_TEST = 10;
 
     @Test
     public void testDictionaryToMap() {

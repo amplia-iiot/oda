@@ -1,6 +1,5 @@
 package es.amplia.oda.datastreams.mqtt;
 
-import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
@@ -78,7 +77,7 @@ class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHa
     }
 
     @Override
-    public void applyConfiguration() throws MqttException {
+    public void applyConfiguration() {
         mqttDatastreamsOrchestrator.loadConfiguration(currentConfiguration, initialDatastreamsConfiguration);
     }
 }

@@ -12,12 +12,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ATParserImpl implements ATParser {
-    private static Pattern errorPattern = Pattern.compile("(?i)^(\\+CME )? *ERROR:? *\"?([^\"]*)\"?$");
-    private static int groupNumberInPatternForErrorText = 2;
+    
+    private static final Pattern ERROR_PATTERN = Pattern.compile("(?i)^(\\+CME )? *ERROR:? *\"?([^\"]*)\"?$");
+    private static final int GROUP_NUMBER_IN_PATTERN_FOR_ERROR_TEXT = 2;
+    
     private boolean inResponseMode = false;
     private String responseModeCommandName = "";
 
-    static private String clean(String line) {
+    private static String clean(String line) {
         int index = 0;
         while (index < line.length() && (line.charAt(index) == ' ' || line.charAt(index) == '\r'))
             index++;
@@ -25,7 +27,7 @@ public class ATParserImpl implements ATParser {
         return line.substring(index);
     }
 
-    static private Result parseCommand(String line) {
+    private static Result parseCommand(String line) {
         if (line.equals("")) {
             return Result.empty();
         }
@@ -88,9 +90,9 @@ public class ATParserImpl implements ATParser {
         line = line.toUpperCase();
         if (line.equals("OK")) return new EndOfResponseResult(true, true, null);
 
-        Matcher matcher = errorPattern.matcher(backup);
+        Matcher matcher = ERROR_PATTERN.matcher(backup);
         if (matcher.matches()) {
-            String err = matcher.group(groupNumberInPatternForErrorText);
+            String err = matcher.group(GROUP_NUMBER_IN_PATTERN_FOR_ERROR_TEXT);
             return new EndOfResponseResult(true, false, err);
         }
         return new EndOfResponseResult(false, false, null);
@@ -111,7 +113,7 @@ public class ATParserImpl implements ATParser {
     @Override
     public void setResponseMode(String cmd) {
         if (inResponseMode)
-            throw new RuntimeException("Cannot change to responseMode(\"" + cmd
+            throw new IllegalArgumentException("Cannot change to responseMode(\"" + cmd
                     + "\") because already in responseMode(\"" + responseModeCommandName + "\")");
         inResponseMode = true;
         responseModeCommandName = cmd;

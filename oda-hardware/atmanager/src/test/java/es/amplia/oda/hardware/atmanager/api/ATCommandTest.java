@@ -14,12 +14,12 @@ public class ATCommandTest {
     }
 
     @Test
-    public void basicIsUppercased() {
+    public void basicIsUppercase() {
         String actual = ATCommand.basicCommand('a').asWireString();
         assertThat(actual, is("A0"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void basicCommandsCannotBeS() {
         ATCommand.basicCommand('S');
     }
@@ -42,7 +42,7 @@ public class ATCommandTest {
         assertThat(actual, is("&M35"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void ampersandCommandsCannotBeS() {
         ATCommand.ampersandCommand('S');
     }
@@ -65,12 +65,12 @@ public class ATCommandTest {
         assertThat(actual, is("+FOO"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void extendedCommandsMustBeginWithPlus() {
         ATCommand.extendedCommand(ATCommandType.ACTION, "FOO");
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void extendedCommandsMustHaveTwoChars() {
         ATCommand.extendedCommand(ATCommandType.ACTION, "+");
     }
