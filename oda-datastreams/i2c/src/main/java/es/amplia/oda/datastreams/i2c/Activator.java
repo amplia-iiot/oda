@@ -38,7 +38,7 @@ public class Activator implements BundleActivator {
 		LOGGER.info("I2C datastreams bundle started");
 	}
 
-	private void onServiceChanged(ConfigurationUpdateHandler configurationHandler) {
+	void onServiceChanged(ConfigurationUpdateHandler configurationHandler) {
 		try {
 			configurationHandler.applyConfiguration();
 		} catch (Exception e) {

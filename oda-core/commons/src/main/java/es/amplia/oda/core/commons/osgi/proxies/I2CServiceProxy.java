@@ -2,6 +2,7 @@ package es.amplia.oda.core.commons.osgi.proxies;
 
 import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CService;
+import org.osgi.framework.BundleContext;
 
 import java.util.List;
 
@@ -9,8 +10,8 @@ public class I2CServiceProxy implements I2CService, AutoCloseable {
 
 	private final OsgiServiceProxy<I2CService> proxy;
 
-	public I2CServiceProxy(OsgiServiceProxy<I2CService> proxy) {
-		this.proxy = proxy;
+	public I2CServiceProxy(BundleContext bundleContext) {
+		this.proxy = new OsgiServiceProxy<>(I2CService.class, bundleContext);
 	}
 
 	@Override
