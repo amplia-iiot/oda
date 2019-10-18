@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 @RunWith(PowerMockRunner.class)
 public class I2CDatastreamFactoryTest {
 
-	String name = "datastreamId";
+	private final String name = "datastreamId";
 	@Mock
 	I2CService mockedService;
 	@Mock

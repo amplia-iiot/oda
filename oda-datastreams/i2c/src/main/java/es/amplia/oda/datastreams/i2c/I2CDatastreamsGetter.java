@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public class I2CDatastreamsGetter implements DatastreamsGetter {
+class I2CDatastreamsGetter implements DatastreamsGetter {
 
 	private final String datastreamId;
 	private final I2CService service;

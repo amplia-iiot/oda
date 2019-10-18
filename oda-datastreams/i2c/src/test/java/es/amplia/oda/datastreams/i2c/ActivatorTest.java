@@ -22,7 +22,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
 public class ActivatorTest {
-	private Activator testActivator = new Activator();
+	private final Activator testActivator = new Activator();
 
 	@Mock
 	I2CServiceProxy mockedProxy;

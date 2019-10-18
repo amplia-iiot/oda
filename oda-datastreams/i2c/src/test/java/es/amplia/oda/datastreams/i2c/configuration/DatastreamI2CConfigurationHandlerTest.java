@@ -4,7 +4,6 @@ import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.datastreams.i2c.I2CDatastreamsRegistry;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;

@@ -23,15 +23,15 @@ import static org.powermock.api.mockito.PowerMockito.*;
 public class DioZeroI2CDeviceTest {
 	private DioZeroI2CDevice testDevice;
 
-	private String name = "name";
-	private int register = 0;
-	private int address = 123;
-	private int controller = 1;
-	private long minimum = 0;
-	private long maximum = 100;
+	private final String name = "name";
+	private final int register = 0;
+	private final int address = 123;
+	private final int controller = 1;
+	private final long minimum = 0;
+	private final long maximum = 100;
 
-	private ByteBuffer buffer = ByteBuffer.wrap(new byte[] {0x00, 0x01, 0x02});
-	private byte b = 0x42;
+	private final ByteBuffer buffer = ByteBuffer.wrap(new byte[] {0x00, 0x01, 0x02});
+	private final byte b = 0x42;
 
 	@Mock
 	I2CDevice mockedDevice;

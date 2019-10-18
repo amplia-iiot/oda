@@ -4,7 +4,7 @@ import es.amplia.oda.core.commons.i2c.I2CService;
 
 import java.util.concurrent.Executor;
 
-public class I2CDatastreamFactory {
+class I2CDatastreamFactory {
 
 	private I2CDatastreamFactory() {}
 

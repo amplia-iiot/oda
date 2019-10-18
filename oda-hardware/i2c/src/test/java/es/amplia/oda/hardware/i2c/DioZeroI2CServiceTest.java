@@ -20,13 +20,13 @@ import static org.mockito.Mockito.when;
 public class DioZeroI2CServiceTest {
 	private final DioZeroI2CService testService = new DioZeroI2CService();
 
-	private int cont1 = 0;
-	private int cont2 = 1;
-	private int add1 = 104;
-	private int add2 = 106;
-	private String name1 = "dev1";
-	private String name2 = "dev2";
-	private String name3 = "dev3";
+	private final int cont1 = 0;
+	private final int cont2 = 1;
+	private final int add1 = 104;
+	private final int add2 = 106;
+	private final String name1 = "dev1";
+	private final String name2 = "dev2";
+	private final String name3 = "dev3";
 
 	@Mock
 	I2CDevice dev1;

@@ -7,8 +7,6 @@ import es.amplia.oda.hardware.i2c.configuration.DioZeroI2CConfigurationHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.pmw.tinylog.Configurator;
-import org.pmw.tinylog.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

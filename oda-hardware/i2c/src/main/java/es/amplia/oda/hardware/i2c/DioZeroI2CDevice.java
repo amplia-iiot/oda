@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
 
 public class DioZeroI2CDevice implements I2CDevice {
 
-	private String name;
-	private int register;
-	private com.diozero.api.I2CDevice i2cDevice;
-	private long minimum;
-	private long maximum;
+	private final String name;
+	private final int register;
+	private final com.diozero.api.I2CDevice i2cDevice;
+	private final long minimum;
+	private final long maximum;
 
 	public DioZeroI2CDevice(String name, DioZeroI2CConfiguration config) {
 		this.name = name;
