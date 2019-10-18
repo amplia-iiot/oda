@@ -50,7 +50,7 @@ public class I2CDatastreamsGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		long data = 131000000L;
+		double data = 131000000.0;
 		long before = System.currentTimeMillis();
 		when(mockedService.getI2CFromName(eq(datastreamId))).thenReturn(mockedDevice);
 		when(mockedDevice.readUInt()).thenReturn(data);
@@ -59,8 +59,8 @@ public class I2CDatastreamsGetterTest {
 
 
 		long after = System.currentTimeMillis();
-		assertEquals(data, (long) result.getValue());
-		assertTrue((before<=result.getAt())&(result.getAt()<=after));
+		assertEquals(Double.valueOf(data), Double.valueOf((double) result.getValue()));
+		assertTrue((before<=result.getAt())&&(result.getAt()<=after));
 	}
 
 	@Test(expected = ExecutionException.class)

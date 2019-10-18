@@ -10,15 +10,15 @@ public class DioZeroI2CDevice implements I2CDevice {
 	private final String name;
 	private final int register;
 	private final com.diozero.api.I2CDevice i2cDevice;
-	private final long minimum;
-	private final long maximum;
+	private final double minimum;
+	private final double maximum;
 
 	public DioZeroI2CDevice(String name, DioZeroI2CConfiguration config) {
 		this.name = name;
 		this.register = config.getRegister();
 		this.i2cDevice = new com.diozero.api.I2CDevice(config.getController(), config.getAddress());
-		this.minimum = config.getMin();
-		this.maximum = config.getMax();
+		this.minimum = (double) config.getMin();
+		this.maximum = (double) config.getMax();
 	}
 
 	@Override
@@ -37,7 +37,7 @@ public class DioZeroI2CDevice implements I2CDevice {
 	}
 
 	@Override
-	public long readUInt() {
+	public double readUInt() {
 		return (this.i2cDevice.readUInt(this.register) - minimum) / (maximum - minimum);
 	}
 

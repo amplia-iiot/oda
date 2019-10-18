@@ -42,7 +42,7 @@ class I2CDatastreamsGetter implements DatastreamsGetter {
 		try {
 			I2CDevice device = service.getI2CFromName(datastreamId);
 			long at = System.currentTimeMillis();
-			long value = device.readUInt();
+			double value = device.readUInt();
 			return new CollectedValue(at, value);
 		} catch (I2CDeviceException e) {
 			throw new DataNotFoundException(
