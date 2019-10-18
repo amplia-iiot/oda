@@ -15,6 +15,7 @@
         <module>jdkdio</module>
         <module>modbus</module>
         <module>diozero</module>
+        <module>i2c</module>
     </modules>
 
     <parent>

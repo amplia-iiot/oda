@@ -16,6 +16,7 @@
         <module>deviceinfofx30</module>
         <module>simulator</module>
         <module>adc</module>
+        <module>i2c</module>
     </modules>
 
     <parent>
