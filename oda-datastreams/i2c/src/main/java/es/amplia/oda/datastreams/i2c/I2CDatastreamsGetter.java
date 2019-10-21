@@ -9,21 +9,18 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 class I2CDatastreamsGetter implements DatastreamsGetter {
 
 	private final String datastreamId;
-	private final I2CService service;
-	private final Executor executor;
 	private final long min;
 	private final long max;
+	private final I2CService service;
 
 
-	I2CDatastreamsGetter(String datastreamId, I2CService service, Executor executor, long min, long max) {
+	I2CDatastreamsGetter(String datastreamId, long min, long max, I2CService service) {
 		this.datastreamId = datastreamId;
 		this.service = service;
-		this.executor = executor;
 		this.min = min;
 		this.max = max;
 	}
@@ -40,7 +37,7 @@ class I2CDatastreamsGetter implements DatastreamsGetter {
 
 	@Override
 	public CompletableFuture<CollectedValue> get(String deviceId) {
-		return CompletableFuture.supplyAsync(() -> getDatastreamIdValuesForDevicePattern(deviceId), executor);
+		return CompletableFuture.supplyAsync(() -> getDatastreamIdValuesForDevicePattern(deviceId));
 	}
 
 	private CollectedValue getDatastreamIdValuesForDevicePattern(String deviceId) {

@@ -1,81 +1,74 @@
 package es.amplia.oda.datastreams.i2c;
 
-import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(I2CDatastreamsRegistry.class)
 public class I2CDatastreamsRegistryTest {
+
+	private static final String TEST_DATASTREAM_ID = "datastreamId";
+	private static final long TEST_MIN = 1;
+	private static final long TEST_MAX = 50;
+
+
+	@Mock
+	private I2CDatastreamsFactory mockedFactory;
+	@Mock
+	private ServiceRegistrationManager<DatastreamsGetter> mockedGetterRegistrationManager;
+	@Mock
+	private ServiceRegistrationManager<DatastreamsSetter> mockedSetterRegistrationManager;
 	private I2CDatastreamsRegistry testRegistry;
 
-	private final String testName = "datastreamId";
-	private final long min = 0;
-	private final long max = 1;
+	@Mock
+	private DatastreamsGetter mockedGetter;
+	@Mock
+	private DatastreamsSetter mockedSetter;
 
-	@Mock
-	BundleContext mockedContext;
-	@Mock
-	I2CService mockedService;
-	@Mock
-	ServiceRegistration mockedRegistration;
 
 	@Before
 	public void setUp() {
-		when(mockedContext.registerService(eq(DatastreamsGetter.class),any(),any())).thenReturn(mockedRegistration);
-		when(mockedContext.registerService(eq(DatastreamsSetter.class),any(),any())).thenReturn(mockedRegistration);
-		testRegistry = new I2CDatastreamsRegistry(mockedContext, mockedService);
+		testRegistry = new I2CDatastreamsRegistry(mockedFactory, mockedGetterRegistrationManager,
+				mockedSetterRegistrationManager);
 	}
 
 	@Test
 	public void testAddDatastreamGetter() {
-		testRegistry.addDatastreamGetter(testName, min, max);
+		when(mockedFactory.createDatastreamsGetter(anyString(), anyLong(), anyLong())).thenReturn(mockedGetter);
 
-		List<ServiceRegistration<?>> serviceRegistration =
-				getServiceRegistrations();
-		verify(mockedContext).registerService(eq(DatastreamsGetter.class), any(), any());
-		assertEquals(1, serviceRegistration.size());
+		testRegistry.addDatastreamGetter(TEST_DATASTREAM_ID, TEST_MIN, TEST_MAX);
+
+		verify(mockedFactory).createDatastreamsGetter(eq(TEST_DATASTREAM_ID), eq(TEST_MIN), eq(TEST_MAX));
+		verify(mockedGetterRegistrationManager).register(eq(mockedGetter));
 	}
 
 	@Test
 	public void testAddDatastreamSetter() {
-		testRegistry.addDatastreamSetter(testName);
+		when(mockedFactory.createDatastreamsSetter(anyString())).thenReturn(mockedSetter);
 
-		List<ServiceRegistration<?>> serviceRegistration =
-				getServiceRegistrations();
-		verify(mockedContext).registerService(eq(DatastreamsSetter.class), any(), any());
-		assertEquals(1, serviceRegistration.size());
+		testRegistry.addDatastreamSetter(TEST_DATASTREAM_ID);
+
+		verify(mockedFactory).createDatastreamsSetter(eq(TEST_DATASTREAM_ID));
+		verify(mockedSetterRegistrationManager).register(eq(mockedSetter));
 	}
 
 	@Test
 	public void testClose() {
-		testRegistry.addDatastreamGetter(testName, min, max);
 		testRegistry.close();
 
-		List<ServiceRegistration<?>> serviceRegistration =
-				getServiceRegistrations();
-		assertTrue(serviceRegistration.isEmpty());
-	}
-
-	@SuppressWarnings("unchecked")
-	private List<ServiceRegistration<?>> getServiceRegistrations() {
-		return (List<ServiceRegistration<?>>) Whitebox.getInternalState(testRegistry, "serviceRegistrations");
+		verify(mockedGetterRegistrationManager).unregister();
+		verify(mockedSetterRegistrationManager).unregister();
 	}
 }

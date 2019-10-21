@@ -11,18 +11,16 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 class I2CDatastreamsSetter implements DatastreamsSetter {
 
 	private final String datastreamId;
 	private final I2CService service;
-	private final Executor executor;
 
-	I2CDatastreamsSetter(String datastreamId, I2CService service, Executor executor) {
+
+	I2CDatastreamsSetter(String datastreamId, I2CService service) {
 		this.datastreamId = datastreamId;
 		this.service = service;
-		this.executor = executor;
 	}
 
 	@Override
@@ -42,9 +40,10 @@ class I2CDatastreamsSetter implements DatastreamsSetter {
 
 	@Override
 	public CompletableFuture<Void> set(String deviceId, Object value) {
-		return CompletableFuture.supplyAsync(() -> setValue(deviceId, value), executor);
+		return CompletableFuture.supplyAsync(() -> setValue(deviceId, value));
 	}
 
+	@SuppressWarnings("SameReturnValue")
 	private Void setValue(String deviceId, Object value) {
 		try {
 			I2CDevice device = service.getI2CFromName(datastreamId);

@@ -4,45 +4,45 @@ import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CDeviceException;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({I2CDatastreamsGetter.class, I2CService.class})
+@RunWith(MockitoJUnitRunner.class)
 public class I2CDatastreamsGetterTest {
+
+	private static final String TEST_DATASTREAM_ID = "testId";
+	private static final long TEST_MIN = 0;
+	private static final long TEST_MAX = 50;
+	private static final double DELTA = 0.001;
+
+
+	@Mock
+	private I2CService mockedService;
 	private I2CDatastreamsGetter testGetter;
 
-	private final String datastreamId = "testId";
-	private final long min = 0;
-	private final long max = 1;
-	private final Executor executor = Executors.newSingleThreadExecutor();
+	@Mock
+	private I2CDevice mockedDevice;
 
-	@Mock
-	I2CService mockedService;
-	@Mock
-	I2CDevice mockedDevice;
 
 	@Before
 	public void setUp() {
-		testGetter = new I2CDatastreamsGetter(datastreamId, mockedService, executor, min, max);
+		testGetter = new I2CDatastreamsGetter(TEST_DATASTREAM_ID, TEST_MIN, TEST_MAX, mockedService);
 	}
 
 	@Test
 	public void testGetDatastreamIdSatisfied() {
-		assertEquals(datastreamId, testGetter.getDatastreamIdSatisfied());
+		assertEquals(TEST_DATASTREAM_ID, testGetter.getDatastreamIdSatisfied());
 	}
 
 	@Test
@@ -52,22 +52,22 @@ public class I2CDatastreamsGetterTest {
 
 	@Test
 	public void testGet() throws ExecutionException, InterruptedException {
-		double data = 131000000.0;
+		double data = 0.50;
 		long before = System.currentTimeMillis();
-		when(mockedService.getI2CFromName(eq(datastreamId))).thenReturn(mockedDevice);
+
+		when(mockedService.getI2CFromName(eq(TEST_DATASTREAM_ID))).thenReturn(mockedDevice);
 		when(mockedDevice.readScaledData()).thenReturn(data);
 
 		DatastreamsGetter.CollectedValue result = testGetter.get("dumbData").get();
 
-
 		long after = System.currentTimeMillis();
-		assertEquals(Double.valueOf(data), Double.valueOf((double) result.getValue()));
+		assertEquals(25, (double) result.getValue(), DELTA);
 		assertTrue((before<=result.getAt())&&(result.getAt()<=after));
 	}
 
 	@Test(expected = ExecutionException.class)
 	public void testGetAnException() throws ExecutionException, InterruptedException {
-		when(mockedService.getI2CFromName(eq(datastreamId))).thenThrow(new I2CDeviceException(""));
+		when(mockedService.getI2CFromName(eq(TEST_DATASTREAM_ID))).thenThrow(new I2CDeviceException(""));
 
 		testGetter.get("dumbData").get();
 	}
