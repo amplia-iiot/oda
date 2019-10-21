@@ -1,6 +1,6 @@
 package es.amplia.oda.hardware.i2c.configuration;
 
-import es.amplia.oda.core.commons.i2c.I2CDevice;
+import com.diozero.api.I2CDevice;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.hardware.i2c.DioZeroI2CDevice;
@@ -25,7 +25,8 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 	private static final String MAXIMUM_MEASURE_PROPERTY_NAME = "max";
 
 	private final DioZeroI2CService i2cService;
-	private final List<I2CDevice> configuredDevices = new ArrayList<>();
+	private final List<es.amplia.oda.core.commons.i2c.I2CDevice> configuredDevices = new ArrayList<>();
+	private final List<I2CDevice> configuredDirections = new ArrayList<>();
 
 	public DioZeroI2CConfigurationHandler(DioZeroI2CService service) {
 		this.i2cService = service;
@@ -43,21 +44,39 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 
 				DioZeroI2CConfiguration.DioZeroI2CConfigurationBuilder builder = DioZeroI2CConfiguration.builder();
 
-				builder.controller(Integer.parseInt(getValueByToken(CONTROLLER_PROPERTY_NAME, tokens)
-						.orElseThrow(ConfigurationException::new)));
-				builder.address(Integer.parseInt(getValueByToken(ADDRESS_PROPERTY_NAME, tokens)
-						.orElseThrow(ConfigurationException::new)));
-				builder.register(Integer.parseInt(getValueByToken(REGISTER_PROPERTY_NAME, tokens)
-						.orElseThrow(ConfigurationException::new)));
-				builder.min(Long.parseLong(getValueByToken(MINIMUM_MEASURE_PROPERTY_NAME, tokens)
-						.orElseThrow(ConfigurationException::new)));
-				builder.max(Long.parseLong(getValueByToken(MAXIMUM_MEASURE_PROPERTY_NAME, tokens)
-						.orElseThrow(ConfigurationException::new)));
-				configuredDevices.add(new DioZeroI2CDevice(name, builder.build()));
+				int controller = Integer.parseInt(getValueByToken(CONTROLLER_PROPERTY_NAME, tokens)
+						.orElseThrow(ConfigurationException::new));
+				int address = Integer.parseInt(getValueByToken(ADDRESS_PROPERTY_NAME, tokens)
+						.orElseThrow(ConfigurationException::new));
+				int register = Integer.parseInt(getValueByToken(REGISTER_PROPERTY_NAME, tokens)
+						.orElseThrow(ConfigurationException::new));
+				double min = Double.parseDouble(getValueByToken(MINIMUM_MEASURE_PROPERTY_NAME, tokens)
+						.orElseThrow(ConfigurationException::new));
+				double max = Double.parseDouble(getValueByToken(MAXIMUM_MEASURE_PROPERTY_NAME, tokens)
+						.orElseThrow(ConfigurationException::new));
+				if(min >= max) {
+					max = 1;
+					min = 0;
+				}
+				I2CDevice device = searchConfiguredDevice(controller, address);
+				if(device == null) {
+					device = new I2CDevice(controller, address);
+					configuredDirections.add(device);
+				}
+				configuredDevices.add(new DioZeroI2CDevice(name, register, device, min, max));
 			} catch (Exception exception) {
 				LOGGER.warn("Invalid device configuration {}: {}", entry.getKey(), entry.getValue());
 			}
 		}
+	}
+
+	private I2CDevice searchConfiguredDevice(int controller, int address) {
+		for (I2CDevice device: configuredDirections) {
+			if (device.getAddress() == address && device.getController() == controller) {
+				return device;
+			}
+		}
+		return null;
 	}
 
 	@Override

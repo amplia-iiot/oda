@@ -38,19 +38,27 @@ public class DioZeroI2CConfigurationHandlerTest {
 	Dictionary<String, String> mockedDictionary;
 	@Mock
 	DioZeroI2CDevice mockedDevice;
+	@Mock
+	com.diozero.api.I2CDevice mockedDirection;
 
 	@Test
 	public void loadConfiguration() throws Exception {
 		Map<Object, Object> map = java.util.Collections.singletonMap(TEST_DEVICE_NAME, "controller:0,address:104,register:160,min:0,max:100");
 		PowerMockito.mockStatic(Collections.class);
 		PowerMockito.when(Collections.dictionaryToMap(any())).thenReturn(map);
+		whenNew(com.diozero.api.I2CDevice.class).withAnyArguments().thenReturn(mockedDirection);
 		whenNew(DioZeroI2CDevice.class).withAnyArguments().thenReturn(mockedDevice);
 
 		testHandler.loadConfiguration(mockedDictionary);
 
-		List<I2CDevice> devices = (List<I2CDevice>)Whitebox.getInternalState(testHandler, "configuredDevices");
-		verifyNew(DioZeroI2CDevice.class).withArguments(eq(TEST_DEVICE_NAME), any());
+		List<I2CDevice> devices = getConfiguredDevices();
+		verifyNew(DioZeroI2CDevice.class).withArguments(eq(TEST_DEVICE_NAME), eq(160), eq(mockedDirection), eq(0.), eq (100.));
 		assertEquals(1, devices.size());
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<I2CDevice> getConfiguredDevices() {
+		return (List<I2CDevice>) Whitebox.getInternalState(testHandler, "configuredDevices");
 	}
 
 	@Test
@@ -62,7 +70,7 @@ public class DioZeroI2CConfigurationHandlerTest {
 
 		testHandler.loadConfiguration(mockedDictionary);
 
-		List<I2CDevice> devices = (List<I2CDevice>)Whitebox.getInternalState(testHandler, "configuredDevices");
+		List<I2CDevice> devices = getConfiguredDevices();
 		assertEquals(0, devices.size());
 	}
 

@@ -38,10 +38,8 @@ public class DioZeroI2CDeviceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		DioZeroI2CConfiguration config = DioZeroI2CConfiguration.builder().address(address).controller(controller)
-				.max(Double.valueOf(maximum).longValue()).min(Double.valueOf(minimum).longValue()).name(name).register(register).build();
 		whenNew(I2CDevice.class).withAnyArguments().thenReturn(mockedDevice);
-		testDevice = new DioZeroI2CDevice(name, config);
+		testDevice = new DioZeroI2CDevice(name, register, mockedDevice, minimum, maximum);
 	}
 
 	@Test
@@ -64,11 +62,16 @@ public class DioZeroI2CDeviceTest {
 	}
 
 	@Test
-	public void tesReadUInt() {
+	public void testRawData() {
+
+	}
+
+	@Test
+	public void testScaledValue() {
 		long dataLong = 65000000L;
 		when(mockedDevice.readUInt(eq(register))).thenReturn(dataLong);
 
-		assertEquals(Double.valueOf(((dataLong - minimum) / (maximum - minimum))), Double.valueOf(testDevice.readUInt()));
+		assertEquals(Double.valueOf(((dataLong - minimum) / (maximum - minimum))), Double.valueOf(testDevice.readScaledData()));
 	}
 
 	@Test

@@ -37,14 +37,10 @@ public class DioZeroI2CServiceTest {
 
 	@Before
 	public void setUp() {
-		Map<Integer, Map<Integer, I2CDevice>> devices = new HashMap<>();
-		Map<Integer, I2CDevice> devsCont1 = new HashMap<>();
-		Map<Integer, I2CDevice> devsCont2 = new HashMap<>();
-		devsCont1.put(add1, dev1);
-		devsCont1.put(add2, dev2);
-		devsCont2.put(add1, dev3);
-		devices.put(cont1, devsCont1);
-		devices.put(cont2, devsCont2);
+		Map<String, I2CDevice> devices = new HashMap<>();
+		devices.put(name1, dev1);
+		devices.put(name2, dev2);
+		devices.put(name3, dev3);
 		when(dev1.getName()).thenReturn(name1);
 		when(dev2.getName()).thenReturn(name2);
 		when(dev3.getName()).thenReturn(name3);
