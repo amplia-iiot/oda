@@ -21,7 +21,7 @@ public class I2CDatastreamFactoryTest {
 
 	@Test
 	public void testCreateDatastreamsGetter() {
-		I2CDatastreamsGetter getter = I2CDatastreamFactory.createDatastreamsGetter(name, mockedService, mockedExecutor);
+		I2CDatastreamsGetter getter = I2CDatastreamFactory.createDatastreamsGetter(name, mockedService, mockedExecutor, 0, 1);
 
 		assertNotNull(getter);
 	}

@@ -9,4 +9,6 @@ class I2CDatastreamConfiguration {
 	String name;
 	boolean getter;
 	boolean setter;
+	long min;
+	long max;
 }

@@ -26,7 +26,9 @@ public interface I2CDevice {
 	 * Read an unsigned integer from the device (on the file of the controller, in the address and register specified).
 	 * @return long representing the actual value read from the device.
 	 */
-	double readUInt();
+	double readRawData();
+
+	double readScaledData();
 
 	/**
 	 * Read the specified amount of bytes and return it in a byteBuffer.

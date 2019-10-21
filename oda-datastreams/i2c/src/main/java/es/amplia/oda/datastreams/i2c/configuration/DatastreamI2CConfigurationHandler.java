@@ -17,6 +17,8 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 
 	private static final String GETTER_PROPERTY_NAME = "getter";
 	private static final String SETTER_PROPERTY_NAME = "setter";
+	private static final String MINIMUM_PROPERTY_NAME = "min";
+	private static final String MAXIMUM_PROPERTY_NAME = "max";
 
 	private final I2CService i2CService;
 	private final I2CDatastreamsRegistry i2cDatastreamsRegistry;
@@ -47,6 +49,15 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 						.ifPresent(getterValue -> builder.getter(Boolean.parseBoolean(getterValue)));
 				getValueByToken(SETTER_PROPERTY_NAME, tokens)
 						.ifPresent(setterValue -> builder.setter(Boolean.parseBoolean(setterValue)));
+				builder.min(Long.parseLong(getValueByToken(MINIMUM_PROPERTY_NAME, tokens)
+						.orElse("0")));
+				builder.max(Long.parseLong(getValueByToken(MAXIMUM_PROPERTY_NAME, tokens)
+						.orElse("1")));
+
+				if (builder.build().getMin() >= builder.build().getMax()) {
+					builder.min(0);
+					builder.max(1);
+				}
 
 				currentConfiguration.put(datastreamName, builder.build());
 			} catch (Exception e) {
@@ -71,6 +82,8 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 				I2CDatastreamConfiguration config = I2CDatastreamConfiguration.builder()
 						.getter(true)
 						.setter(false)
+						.min(0)
+						.max(1)
 						.build();
 
 				currentConfiguration.put(datastreamName, config);
@@ -92,7 +105,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 			I2CDatastreamConfiguration configuration = entry.getValue();
 
 			if(configuration.isGetter()) {
-				createDatastreamGetter(name);
+				createDatastreamGetter(name, configuration.getMin(), configuration.getMax());
 			}
 			if(configuration.isSetter()) {
 				createDatastreamSetter(name);
@@ -100,8 +113,8 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 		}
 	}
 
-	private void createDatastreamGetter(String name) {
-		i2cDatastreamsRegistry.addDatastreamGetter(name);
+	private void createDatastreamGetter(String name, long min, long max) {
+		i2cDatastreamsRegistry.addDatastreamGetter(name, min, max);
 	}
 
 	private void createDatastreamSetter(String name) {

@@ -26,9 +26,9 @@ public class I2CDatastreamsRegistry {
 		this.service = service;
 	}
 
-	public void addDatastreamGetter(String name) {
+	public void addDatastreamGetter(String name, long min, long max) {
 		I2CDatastreamsGetter getter =
-				I2CDatastreamFactory.createDatastreamsGetter(name, service, executor);
+				I2CDatastreamFactory.createDatastreamsGetter(name, service, executor, min, max);
 		ServiceRegistration<DatastreamsGetter> registration =
 				bundleContext.registerService(DatastreamsGetter.class, getter, null);
 		serviceRegistrations.add(registration);

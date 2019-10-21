@@ -16,11 +16,16 @@ class I2CDatastreamsGetter implements DatastreamsGetter {
 	private final String datastreamId;
 	private final I2CService service;
 	private final Executor executor;
+	private final long min;
+	private final long max;
 
-	I2CDatastreamsGetter(String datastreamId, I2CService service, Executor executor) {
+
+	I2CDatastreamsGetter(String datastreamId, I2CService service, Executor executor, long min, long max) {
 		this.datastreamId = datastreamId;
 		this.service = service;
 		this.executor = executor;
+		this.min = min;
+		this.max = max;
 	}
 
 	@Override
@@ -42,7 +47,7 @@ class I2CDatastreamsGetter implements DatastreamsGetter {
 		try {
 			I2CDevice device = service.getI2CFromName(datastreamId);
 			long at = System.currentTimeMillis();
-			double value = device.readUInt();
+			double value = (device.readScaledData() * max) - min;
 			return new CollectedValue(at, value);
 		} catch (I2CDeviceException e) {
 			throw new DataNotFoundException(

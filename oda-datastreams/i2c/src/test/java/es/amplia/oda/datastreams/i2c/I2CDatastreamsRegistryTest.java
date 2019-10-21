@@ -27,6 +27,8 @@ public class I2CDatastreamsRegistryTest {
 	private I2CDatastreamsRegistry testRegistry;
 
 	private final String testName = "datastreamId";
+	private final long min = 0;
+	private final long max = 1;
 
 	@Mock
 	BundleContext mockedContext;
@@ -44,10 +46,10 @@ public class I2CDatastreamsRegistryTest {
 
 	@Test
 	public void testAddDatastreamGetter() {
-		testRegistry.addDatastreamGetter(testName);
+		testRegistry.addDatastreamGetter(testName, min, max);
 
 		List<ServiceRegistration<?>> serviceRegistration =
-				(List<ServiceRegistration<?>>) Whitebox.getInternalState(testRegistry, "serviceRegistrations");
+				getServiceRegistrations();
 		verify(mockedContext).registerService(eq(DatastreamsGetter.class), any(), any());
 		assertEquals(1, serviceRegistration.size());
 	}
@@ -57,18 +59,23 @@ public class I2CDatastreamsRegistryTest {
 		testRegistry.addDatastreamSetter(testName);
 
 		List<ServiceRegistration<?>> serviceRegistration =
-				(List<ServiceRegistration<?>>) Whitebox.getInternalState(testRegistry, "serviceRegistrations");
+				getServiceRegistrations();
 		verify(mockedContext).registerService(eq(DatastreamsSetter.class), any(), any());
 		assertEquals(1, serviceRegistration.size());
 	}
 
 	@Test
 	public void testClose() {
-		testRegistry.addDatastreamGetter(testName);
+		testRegistry.addDatastreamGetter(testName, min, max);
 		testRegistry.close();
 
 		List<ServiceRegistration<?>> serviceRegistration =
-				(List<ServiceRegistration<?>>) Whitebox.getInternalState(testRegistry, "serviceRegistrations");
+				getServiceRegistrations();
 		assertTrue(serviceRegistration.isEmpty());
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<ServiceRegistration<?>> getServiceRegistrations() {
+		return (List<ServiceRegistration<?>>) Whitebox.getInternalState(testRegistry, "serviceRegistrations");
 	}
 }

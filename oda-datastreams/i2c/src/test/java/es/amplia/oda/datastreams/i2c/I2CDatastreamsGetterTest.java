@@ -26,6 +26,8 @@ public class I2CDatastreamsGetterTest {
 	private I2CDatastreamsGetter testGetter;
 
 	private final String datastreamId = "testId";
+	private final long min = 0;
+	private final long max = 1;
 	private final Executor executor = Executors.newSingleThreadExecutor();
 
 	@Mock
@@ -35,7 +37,7 @@ public class I2CDatastreamsGetterTest {
 
 	@Before
 	public void setUp() {
-		testGetter = new I2CDatastreamsGetter(datastreamId, mockedService, executor);
+		testGetter = new I2CDatastreamsGetter(datastreamId, mockedService, executor, min, max);
 	}
 
 	@Test
@@ -53,7 +55,7 @@ public class I2CDatastreamsGetterTest {
 		double data = 131000000.0;
 		long before = System.currentTimeMillis();
 		when(mockedService.getI2CFromName(eq(datastreamId))).thenReturn(mockedDevice);
-		when(mockedDevice.readUInt()).thenReturn(data);
+		when(mockedDevice.readScaledData()).thenReturn(data);
 
 		DatastreamsGetter.CollectedValue result = testGetter.get("dumbData").get();
 

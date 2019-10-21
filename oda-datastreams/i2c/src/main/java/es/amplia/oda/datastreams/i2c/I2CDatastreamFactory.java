@@ -8,8 +8,8 @@ class I2CDatastreamFactory {
 
 	private I2CDatastreamFactory() {}
 
-	static I2CDatastreamsGetter createDatastreamsGetter(String name, I2CService service, Executor executor) {
-		return new I2CDatastreamsGetter(name, service, executor);
+	static I2CDatastreamsGetter createDatastreamsGetter(String name, I2CService service, Executor executor, long min, long max) {
+		return new I2CDatastreamsGetter(name, service, executor, min, max);
 	}
 
 	static I2CDatastreamsSetter createDatastreamsSetter(String name, I2CService service, Executor executor) {
