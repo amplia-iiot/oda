@@ -101,17 +101,18 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	public String getSerialNumber() {
 		try {
 			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
-			logger.info("Getting actual hour: {}", serialNumber);
 			return serialNumber;
 		} catch (CommandExecutionException ex) {
-			logger.error("Error executing Serial Number command '{}': ", SERIAL_NUMBER_SCRIPT,
-					ex);
+			logger.error("Error executing Serial Number command '{}': ", SERIAL_NUMBER_SCRIPT, ex);
 			return null;
 		}
 	}
 	@Override
 	public String getDeviceId() {
-		return (deviceId != null && !deviceId.equals("")) ? deviceId : getSerialNumber();
+		if (deviceId == null || deviceId.equals("")) {
+			deviceId = getSerialNumber();
+		}
+		return deviceId;
 	}
 
 	@Override
