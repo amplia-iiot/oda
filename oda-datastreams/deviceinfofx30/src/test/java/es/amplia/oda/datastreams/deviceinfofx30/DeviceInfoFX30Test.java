@@ -57,7 +57,6 @@ public class DeviceInfoFX30Test {
 		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
 		when(mockedBundle.getSymbolicName()).thenReturn("MyName");
 		when(mockedBundle.getVersion()).thenReturn(new Version("1"));
-//		when(mockedCommandProcessor.execute("chmod +x path/*.sh")).thenReturn("");
 		when(mockedFile.listFiles()).thenReturn(new File[0]);
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SERIAL_NUMBER_SCRIPT)).thenReturn("serialNumber");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.MODEL_SCRIPT)).thenReturn("model");
