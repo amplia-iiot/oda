@@ -63,8 +63,12 @@ public class EventCollectorImpl implements EventCollector {
 
         for(String datastreamId : datastreamIds) {
             List<Event> events = collectedEvents.remove(datastreamId);
-            events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(), eventDispatcher.parse(event),
-                    this::mergeOutputDatastreams));
+            if (events != null) {
+                events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(), eventDispatcher.parse(event),
+                        this::mergeOutputDatastreams));
+            } else {
+                LOGGER.info("No events collected for {}", datastreamId);
+            }
         }
 
         outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.publish(outputDatastream));
