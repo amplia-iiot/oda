@@ -26,6 +26,8 @@ public class DatastreamsRegistryTest {
 
 	private static final int TEST_INDEX = 1;
 	private static final String TEST_DATASTREAM = "testDatastream";
+	private static final double TEST_MINIMUM = 0;
+	private static final double TEST_MAXIMUM = 1;
 
 
 	@Mock
@@ -43,11 +45,11 @@ public class DatastreamsRegistryTest {
 
 	@Test
 	public void testAddAdcDatastreamsGetter() {
-		when(mockedFactory.createAdcDatastreamsGetter(anyString(), anyInt())).thenReturn(mockedGetter);
+		when(mockedFactory.createAdcDatastreamsGetter(anyString(), anyInt(), anyDouble(), anyDouble())).thenReturn(mockedGetter);
 
-		testRegistry.addAdcDatastreamGetter(TEST_INDEX, TEST_DATASTREAM);
+		testRegistry.addAdcDatastreamGetter(TEST_INDEX, TEST_DATASTREAM, TEST_MINIMUM, TEST_MAXIMUM);
 
-		verify(mockedFactory).createAdcDatastreamsGetter(eq(TEST_DATASTREAM), eq(TEST_INDEX));
+		verify(mockedFactory).createAdcDatastreamsGetter(eq(TEST_DATASTREAM), eq(TEST_INDEX), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 		verify(mockedDatastreamsGetterRegistrationManager).register(eq(mockedGetter));
 	}
 

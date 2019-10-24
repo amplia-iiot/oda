@@ -2,6 +2,9 @@ package es.amplia.oda.datastreams.i2c;
 
 import es.amplia.oda.core.commons.i2c.I2CService;
 
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsFactoryImpl;
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsGetter;
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsSetter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -17,6 +20,7 @@ import static org.mockito.Matchers.eq;
 public class I2CDatastreamsFactoryImplTest {
 
 	private static final String TEST_NAME = "datastreamId";
+	private static final String TEST_DEFAULT_DEVICE_NAME = "defaultDeviceName";
 	private static final long TEST_MIN = 1;
 	private static final long TEST_MAX = 50;
 
@@ -36,9 +40,9 @@ public class I2CDatastreamsFactoryImplTest {
 	public void testCreateDatastreamsGetter() throws Exception {
 		PowerMockito.whenNew(I2CDatastreamsGetter.class).withAnyArguments().thenReturn(mockedGetter);
 
-		testFactory.createDatastreamsGetter(TEST_NAME, TEST_MIN, TEST_MAX);
+		testFactory.createDatastreamsGetter(TEST_NAME, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX);
 
-		PowerMockito.verifyNew(I2CDatastreamsGetter.class).withArguments(eq(TEST_NAME), eq(TEST_MIN), eq(TEST_MAX),
+		PowerMockito.verifyNew(I2CDatastreamsGetter.class).withArguments(eq(TEST_NAME), eq(TEST_DEFAULT_DEVICE_NAME), eq(TEST_MIN), eq(TEST_MAX),
 				eq(mockedService));
 	}
 

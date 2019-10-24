@@ -19,8 +19,8 @@ public class I2CDatastreamsRegistry {
 		this.setterRegistrationManager = setterRegistrationManager;
 	}
 
-	public void addDatastreamGetter(String name, long min, long max) {
-		DatastreamsGetter getter = i2CDatastreamsFactory.createDatastreamsGetter(name, min, max);
+	public void addDatastreamGetter(String name, String device, long min, long max) {
+		DatastreamsGetter getter = i2CDatastreamsFactory.createDatastreamsGetter(name, device, min, max);
 		getterRegistrationManager.register(getter);
 	}
 

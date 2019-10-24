@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.i2c;
 import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CDeviceException;
 import es.amplia.oda.core.commons.i2c.I2CService;
-
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsSetter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +46,7 @@ public class I2CDatastreamsSetterTest {
 
 	@Test
 	public void testGetDatastreamType() {
-		assertEquals(ByteBuffer.class, testSetter.getDatastreamType());
+		assertEquals(float.class, testSetter.getDatastreamType());
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class I2CDatastreamsSetterTest {
 
 	@Test
 	public void testSet() throws ExecutionException, InterruptedException {
-		ByteBuffer dumbData = ByteBuffer.wrap(new byte[]{new Long(131000000L).byteValue()});
+		float dumbData = 131000000L;
 		when(mockedService.getI2CFromName(eq(TEST_DATASTREAMS_ID))).thenReturn(mockedDevice);
 
 		testSetter.set("dumbData", dumbData).get();

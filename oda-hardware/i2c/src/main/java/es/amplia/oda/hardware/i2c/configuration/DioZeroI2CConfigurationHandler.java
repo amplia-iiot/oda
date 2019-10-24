@@ -42,8 +42,6 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 				String name = entry.getKey();
 				String[] tokens = getTokensFromProperty((String) entry.getValue());
 
-				DioZeroI2CConfiguration.DioZeroI2CConfigurationBuilder builder = DioZeroI2CConfiguration.builder();
-
 				int controller = Integer.parseInt(getValueByToken(CONTROLLER_PROPERTY_NAME, tokens)
 						.orElseThrow(ConfigurationException::new));
 				int address = Integer.parseInt(getValueByToken(ADDRESS_PROPERTY_NAME, tokens)

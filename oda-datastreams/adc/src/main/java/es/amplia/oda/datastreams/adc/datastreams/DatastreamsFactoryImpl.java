@@ -15,8 +15,8 @@ public class DatastreamsFactoryImpl implements DatastreamsFactory {
 	}
 
 	@Override
-	public AdcDatastreamsGetter createAdcDatastreamsGetter(String datastreamId, int pinIndex) {
-		return new AdcDatastreamsGetter(datastreamId, pinIndex, adcService);
+	public AdcDatastreamsGetter createAdcDatastreamsGetter(String datastreamId, int pinIndex, double min, double max) {
+		return new AdcDatastreamsGetter(datastreamId, pinIndex, adcService, min, max);
 	}
 
 	@Override

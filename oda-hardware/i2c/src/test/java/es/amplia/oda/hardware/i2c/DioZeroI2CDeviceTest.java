@@ -1,7 +1,6 @@
 package es.amplia.oda.hardware.i2c;
 
 import com.diozero.api.I2CDevice;
-import es.amplia.oda.hardware.i2c.configuration.DioZeroI2CConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,8 +12,7 @@ import java.nio.ByteBuffer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
@@ -25,8 +23,6 @@ public class DioZeroI2CDeviceTest {
 
 	private final String name = "name";
 	private final int register = 0;
-	private final int address = 123;
-	private final int controller = 1;
 	private final double minimum = 0;
 	private final double maximum = 100;
 
@@ -44,6 +40,7 @@ public class DioZeroI2CDeviceTest {
 
 	@Test
 	public void testGetAddress() {
+		int address = 123;
 		when(mockedDevice.getAddress()).thenReturn(address);
 
 		assertEquals(address, testDevice.getAddress());
@@ -51,6 +48,7 @@ public class DioZeroI2CDeviceTest {
 
 	@Test
 	public void testGetController() {
+		int controller = 1;
 		when(mockedDevice.getController()).thenReturn(controller);
 
 		assertEquals(controller, testDevice.getController());
@@ -62,16 +60,44 @@ public class DioZeroI2CDeviceTest {
 	}
 
 	@Test
-	public void testRawData() {
+	public void testReadRawData() throws InterruptedException {
+		long testValue = 4;
+		when(mockedDevice.readUInt(anyInt())).thenReturn(testValue);
 
+		double result = testDevice.readRawData();
+
+		assertEquals(testValue, (long) result);
 	}
 
 	@Test
-	public void testScaledValue() {
-		long dataLong = 65000000L;
-		when(mockedDevice.readUInt(eq(register))).thenReturn(dataLong);
+	public void testReadScaledData() throws InterruptedException {
+		long testValue = 23;
+		double expectedValue = (testValue - minimum) / (maximum - minimum);
+		when(mockedDevice.readUInt(anyInt())).thenReturn(testValue);
 
-		assertEquals(Double.valueOf(((dataLong - minimum) / (maximum - minimum))), Double.valueOf(testDevice.readScaledData()));
+		double result = testDevice.readScaledData();
+
+		assertEquals(Double.valueOf(expectedValue), Double.valueOf(result));
+	}
+
+	@Test
+	public void testReadScaledDataUnderMin() throws InterruptedException {
+		long testValue = -1;
+		when(mockedDevice.readUInt(anyInt())).thenReturn(testValue);
+
+		double result = testDevice.readScaledData();
+
+		assertEquals(Double.valueOf(0), Double.valueOf(result));
+	}
+
+	@Test
+	public void testReadScaledDataOverMax() throws InterruptedException {
+		long testValue = 110;
+		when(mockedDevice.readUInt(anyInt())).thenReturn(testValue);
+
+		double result = testDevice.readScaledData();
+
+		assertEquals(Double.valueOf(1), Double.valueOf(result));
 	}
 
 	@Test
@@ -92,11 +118,8 @@ public class DioZeroI2CDeviceTest {
 	public void testWrite() {
 		doNothing().when(mockedDevice).write(any(), any());
 
-		testDevice.write(buffer);
-		verify(mockedDevice).write(eq(buffer),eq(3));
-		buffer.position(3);
-		testDevice.write(buffer);
-		verify(mockedDevice).write(eq(buffer),eq(0));
+		testDevice.write(42);
+		verify(mockedDevice).write(anyObject(), eq(4));
 	}
 
 	@Test

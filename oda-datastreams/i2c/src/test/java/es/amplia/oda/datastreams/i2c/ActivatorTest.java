@@ -9,6 +9,7 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.i2c.configuration.DatastreamI2CConfigurationHandler;
 
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsFactoryImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

@@ -57,9 +57,9 @@ class AnalogInputDeviceBuilder {
 		switch (deviceType) {
 			case FX30:
 				AnalogInputDeviceFactoryInterface factory = new Fx30AnalogInputDeviceFactory(name, path, lowMode, deviceType);
-				return new AnalogInputDevice(factory, channelIndex);
+				return new AnalogInputDevice(factory, channelIndex, 1);
 			case DEFAULT:
-				return new AnalogInputDevice(channelIndex);
+				return new AnalogInputDevice(channelIndex, 1);
 			default:
 				return null;
 		}

@@ -7,6 +7,7 @@ import es.amplia.oda.core.commons.osgi.proxies.I2CServiceProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.i2c.configuration.DatastreamI2CConfigurationHandler;
 
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsFactoryImpl;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;

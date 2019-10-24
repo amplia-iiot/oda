@@ -14,6 +14,7 @@ class I2CDatastreamsConfiguration {
 	private String name;
 	private long min;
 	private long max;
+	private String device;
 	private boolean getter;
 	private boolean setter;
 
@@ -39,6 +40,11 @@ class I2CDatastreamsConfiguration {
 			return this;
 		}
 
+		I2CDatastreamsConfigurationBuilder device(String device) {
+			this.device = device;
+			return this;
+		}
+
 		I2CDatastreamsConfigurationBuilder getter(boolean getter) {
 			this.getter = getter;
 			return this;
@@ -51,13 +57,13 @@ class I2CDatastreamsConfiguration {
 
 		I2CDatastreamsConfiguration build() {
 			checkConfigurationParams();
-			return new I2CDatastreamsConfiguration(name, min, max, getter, setter);
+			return new I2CDatastreamsConfiguration(name, min, max, device, getter, setter);
 		}
 
 		private void checkConfigurationParams() {
-			if (name == null || (!getter && ! setter) || (min >= max)) {
+			if (name == null || device == null || (!getter && ! setter) || (min >= max)) {
 				throw new IllegalArgumentException("Invalid configuration for I2C Datastreams: name=" + name +
-						", min=" + min + ", max=" + max + ", getter=" + getter + ", setter=" + setter);
+						", min=" + min + ", max=" + max + ", device=" + device + ", getter=" + getter + ", setter=" + setter);
 			}
 		}
 	}

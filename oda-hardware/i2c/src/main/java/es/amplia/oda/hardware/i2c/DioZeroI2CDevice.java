@@ -3,8 +3,7 @@ package es.amplia.oda.hardware.i2c;
 import es.amplia.oda.core.commons.i2c.I2CDevice;
 
 import java.nio.ByteBuffer;
-
-import static java.lang.Thread.sleep;
+import java.util.concurrent.TimeUnit;
 
 public class DioZeroI2CDevice implements I2CDevice {
 
@@ -38,15 +37,26 @@ public class DioZeroI2CDevice implements I2CDevice {
 	}
 
 	@Override
-	public double readRawData() {
+	public double readRawData() throws InterruptedException {
 		synchronized (i2cDevice) {
+			this.i2cDevice.readUInt(this.register);
+			TimeUnit.MILLISECONDS.sleep(500);
 			return (this.i2cDevice.readUInt(this.register));
 		}
 	}
 
 	@Override
-	public double readScaledData() {
-		return (this.i2cDevice.readUInt(this.register) - minimum) / (maximum - minimum);
+	public double readScaledData() throws InterruptedException {
+		synchronized (i2cDevice) {
+			this.i2cDevice.readUInt(this.register);
+			TimeUnit.MILLISECONDS.sleep(500);
+			double result = (this.i2cDevice.readUInt(this.register) - minimum) / (maximum - minimum);
+			if(result < 0)
+				return 0;
+			if(result > 1)
+				return 1;
+			return result;
+		}
 	}
 
 	@Override
@@ -60,8 +70,11 @@ public class DioZeroI2CDevice implements I2CDevice {
 	}
 
 	@Override
-	public void write(ByteBuffer bytebuffer) {
-		this.i2cDevice.write(bytebuffer, bytebuffer.capacity() - bytebuffer.position());
+	public void write(float data) {
+		ByteBuffer result = ByteBuffer.allocate(4);
+		result.putFloat(data);
+		result.rewind();
+		this.i2cDevice.write(result, result.remaining());
 	}
 
 	@Override
@@ -78,4 +91,5 @@ public class DioZeroI2CDevice implements I2CDevice {
 	public void close() {
 		this.i2cDevice.close();
 	}
+
 }

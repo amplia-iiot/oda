@@ -19,6 +19,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 
 	private static final String GETTER_PROPERTY_NAME = "getter";
 	private static final String SETTER_PROPERTY_NAME = "setter";
+	private static final String DEVICE_PROPERTY_NAME = "device";
 	private static final String MINIMUM_PROPERTY_NAME = "min";
 	private static final String MAXIMUM_PROPERTY_NAME = "max";
 
@@ -46,6 +47,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 				I2CDatastreamsConfigurationBuilder builder = I2CDatastreamsConfiguration.builder().name(datastreamName);
 				getValueByToken(MINIMUM_PROPERTY_NAME, tokens).map(Long::parseLong).ifPresent(builder::min);
 				getValueByToken(MAXIMUM_PROPERTY_NAME, tokens).map(Long::parseLong).ifPresent(builder::max);
+				getValueByToken(DEVICE_PROPERTY_NAME, tokens).ifPresent(builder::device);
 				getValueByToken(GETTER_PROPERTY_NAME, tokens).map(Boolean::parseBoolean).ifPresent(builder::getter);
 				getValueByToken(SETTER_PROPERTY_NAME, tokens).map(Boolean::parseBoolean).ifPresent(builder::setter);
 				currentConfiguration.put(datastreamName, builder.build());
@@ -70,6 +72,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 					.name(datastreamName)
 					.min(I2CDatastreamsConfiguration.DEFAULT_MIN)
 					.max(I2CDatastreamsConfiguration.DEFAULT_MAX)
+					.device(datastreamName)
 					.getter(I2CDatastreamsConfiguration.DEFAULT_GETTER)
 					.setter(I2CDatastreamsConfiguration.DEFAULT_SETTER)
 					.build();
@@ -88,7 +91,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 			String name = entry.getKey();
 			I2CDatastreamsConfiguration configuration = entry.getValue();
 			if(configuration.isGetter()) {
-				createDatastreamGetter(name, configuration.getMin(), configuration.getMax());
+				createDatastreamGetter(name, configuration.getDevice(), configuration.getMin(), configuration.getMax());
 			}
 			if(configuration.isSetter()) {
 				createDatastreamSetter(name);
@@ -96,8 +99,8 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 		}
 	}
 
-	private void createDatastreamGetter(String name, long min, long max) {
-		i2cDatastreamsRegistry.addDatastreamGetter(name, min, max);
+	private void createDatastreamGetter(String name, String device, long min, long max) {
+		i2cDatastreamsRegistry.addDatastreamGetter(name, device, min, max);
 	}
 
 	private void createDatastreamSetter(String name) {

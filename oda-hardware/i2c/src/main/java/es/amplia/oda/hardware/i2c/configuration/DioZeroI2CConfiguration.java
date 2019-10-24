@@ -1,11 +1,10 @@
 package es.amplia.oda.hardware.i2c.configuration;
 
-import lombok.Builder;
 import lombok.Value;
+import lombok.Builder;
 
 @Value
 @Builder
-public
 class DioZeroI2CConfiguration {
 	String name;
 	int controller;
