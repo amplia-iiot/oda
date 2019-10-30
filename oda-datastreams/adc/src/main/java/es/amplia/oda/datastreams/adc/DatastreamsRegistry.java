@@ -21,8 +21,8 @@ public class DatastreamsRegistry {
 
 	}
 
-	public void addAdcDatastreamGetter(int pinIndex, String datastreamId) {
-		DatastreamsGetter datastreamsGetter = datastreamsFactory.createAdcDatastreamsGetter(datastreamId, pinIndex);
+	public void addAdcDatastreamGetter(int pinIndex, String datastreamId, double min, double max) {
+		DatastreamsGetter datastreamsGetter = datastreamsFactory.createAdcDatastreamsGetter(datastreamId, pinIndex, min, max);
 		datastreamsGetterRegistrationManager.register(datastreamsGetter);
 	}
 

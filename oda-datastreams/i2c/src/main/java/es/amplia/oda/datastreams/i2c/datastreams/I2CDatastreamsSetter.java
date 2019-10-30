@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.i2c;
+package es.amplia.oda.datastreams.i2c.datastreams;
 
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.i2c.I2CDevice;
@@ -7,18 +7,17 @@ import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-class I2CDatastreamsSetter implements DatastreamsSetter {
+public class I2CDatastreamsSetter implements DatastreamsSetter {
 
 	private final String datastreamId;
 	private final I2CService service;
 
 
-	I2CDatastreamsSetter(String datastreamId, I2CService service) {
+	public I2CDatastreamsSetter(String datastreamId, I2CService service) {
 		this.datastreamId = datastreamId;
 		this.service = service;
 	}
@@ -30,7 +29,7 @@ class I2CDatastreamsSetter implements DatastreamsSetter {
 
 	@Override
 	public Type getDatastreamType() {
-		return ByteBuffer.class;
+		return float.class;
 	}
 
 	@Override
@@ -47,8 +46,8 @@ class I2CDatastreamsSetter implements DatastreamsSetter {
 	private Void setValue(String deviceId, Object value) {
 		try {
 			I2CDevice device = service.getI2CFromName(datastreamId);
-			ByteBuffer buffer = (ByteBuffer) value;
-			device.write(buffer);
+			float data = (float) value;
+			device.write(data);
 		} catch (I2CDeviceException | ClassCastException e) {
 			throw new DataNotFoundException(createErrorMessage(deviceId, e.getMessage()));
 		}

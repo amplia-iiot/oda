@@ -24,11 +24,17 @@ public interface I2CDevice {
 
 	/**
 	 * Read an unsigned integer from the device (on the file of the controller, in the address and register specified).
-	 * @return long representing the actual value read from the device.
+	 * @return double representing the actual value read from the device.
 	 */
-	double readRawData();
+	double readRawData() throws InterruptedException;
 
-	double readScaledData();
+	/**
+	 * Read an unsigned integer like readRawData() but converts the value into a decimal value 0-1 depending of the scale
+	 * specified by configuration.
+	 * @return double representing actual value between 0 and 1.
+	 * @throws InterruptedException if there is an error during the wait of bus are ready
+	 */
+	double readScaledData() throws InterruptedException;
 
 	/**
 	 * Read the specified amount of bytes and return it in a byteBuffer.
@@ -45,12 +51,10 @@ public interface I2CDevice {
 	byte readByte();
 
 	/**
-	 * Write the content of bytebuffer in the device. If the bytebuffer is started (position is not on byte #0),
-	 * method will read until it reach the end of bytebuffer.
-	 * @param bytebuffer data that will be write into the device.
-	 * @see ByteBuffer
+	 * Write the content of data into device.
+	 * @param data data that will be write into the device.
 	 */
-	void write(ByteBuffer bytebuffer);
+	void write(float data);
 
 	/**
 	 * Write a byte into device

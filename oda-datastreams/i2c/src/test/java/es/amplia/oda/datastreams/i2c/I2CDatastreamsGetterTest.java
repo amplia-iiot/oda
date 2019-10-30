@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.i2c.I2CDeviceException;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
+import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsGetter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class I2CDatastreamsGetterTest {
 
 	private static final String TEST_DATASTREAM_ID = "testId";
+
+	private static final String TEST_DEFAULT_DEVICE_NAME = "defaultDeviceName";
 	private static final long TEST_MIN = 0;
 	private static final long TEST_MAX = 50;
 	private static final double DELTA = 0.001;
@@ -37,7 +40,7 @@ public class I2CDatastreamsGetterTest {
 
 	@Before
 	public void setUp() {
-		testGetter = new I2CDatastreamsGetter(TEST_DATASTREAM_ID, TEST_MIN, TEST_MAX, mockedService);
+		testGetter = new I2CDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX, mockedService);
 	}
 
 	@Test
@@ -55,7 +58,7 @@ public class I2CDatastreamsGetterTest {
 		double data = 0.50;
 		long before = System.currentTimeMillis();
 
-		when(mockedService.getI2CFromName(eq(TEST_DATASTREAM_ID))).thenReturn(mockedDevice);
+		when(mockedService.getI2CFromName(eq(TEST_DEFAULT_DEVICE_NAME))).thenReturn(mockedDevice);
 		when(mockedDevice.readScaledData()).thenReturn(data);
 
 		DatastreamsGetter.CollectedValue result = testGetter.get("dumbData").get();

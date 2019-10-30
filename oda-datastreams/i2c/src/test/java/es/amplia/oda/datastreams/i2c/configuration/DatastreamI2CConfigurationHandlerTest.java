@@ -29,11 +29,12 @@ public class DatastreamI2CConfigurationHandlerTest {
 	private static final long TEST_MAX_1 = 50;
 	private static final String TEST_DEVICE_2 = "deviceWithSetAndDefaultGet";
 	private static final String TEST_DEVICE_3 = "defaultWithGetAndDefaultSet";
+	private static final String TEST_DEFAULT_DEVICE_NAME = "defaultDeviceName";
 	private static final String TEST_INVALID_1 = "minGreaterThanMax";
 	private static final String TEST_INVALID_2 = "falseGetterAndSetter";
 
 	private static final I2CDatastreamsConfiguration TEST_CONFIGURATION = I2CDatastreamsConfiguration.builder()
-			.name(TEST_DEVICE_1).min(TEST_MIN_1).max(TEST_MAX_1).getter(true).setter(true).build();
+			.name(TEST_DEVICE_1).device(TEST_DEFAULT_DEVICE_NAME).min(TEST_MIN_1).max(TEST_MAX_1).getter(true).setter(true).build();
 
 
 	@Mock
@@ -50,9 +51,9 @@ public class DatastreamI2CConfigurationHandlerTest {
 	@Test
 	public void testLoadConfiguration() {
 		Dictionary<String, String> props = new Hashtable<>();
-		props.put(TEST_DEVICE_1, "min:" + TEST_MIN_1 + ", max:" + TEST_MAX_1 + ", getter:false,setter:true");
-		props.put(TEST_DEVICE_2, "setter:true");
-		props.put(TEST_DEVICE_3, "getter:true");
+		props.put(TEST_DEVICE_1, "device:" + TEST_DEFAULT_DEVICE_NAME + ", min:" + TEST_MIN_1 + ", max:" + TEST_MAX_1 + ", getter:false,setter:true");
+		props.put(TEST_DEVICE_2, "device:" + TEST_DEFAULT_DEVICE_NAME + ", setter:true");
+		props.put(TEST_DEVICE_3, "device:" + TEST_DEFAULT_DEVICE_NAME + ", getter:true");
 		props.put(TEST_INVALID_1, "min:40,max:1");
 		props.put(TEST_INVALID_2, "getter:false,setter:false");
 
@@ -63,6 +64,7 @@ public class DatastreamI2CConfigurationHandlerTest {
 		I2CDatastreamsConfiguration configuration = datastreams.get(TEST_DEVICE_1);
 		assertNotNull(configuration);
 		assertEquals(TEST_DEVICE_1, configuration.getName());
+		assertEquals(TEST_DEFAULT_DEVICE_NAME, configuration.getDevice());
 		assertEquals(TEST_MIN_1, configuration.getMin());
 		assertEquals(TEST_MAX_1, configuration.getMax());
 		assertFalse(configuration.isGetter());
@@ -71,6 +73,7 @@ public class DatastreamI2CConfigurationHandlerTest {
 		configuration = datastreams.get(TEST_DEVICE_2);
 		assertNotNull(configuration);
 		assertEquals(TEST_DEVICE_2, configuration.getName());
+		assertEquals(TEST_DEFAULT_DEVICE_NAME, configuration.getDevice());
 		assertEquals(I2CDatastreamsConfiguration.DEFAULT_MIN, configuration.getMin());
 		assertEquals(I2CDatastreamsConfiguration.DEFAULT_MAX, configuration.getMax());
 		assertTrue(configuration.isGetter());
@@ -79,6 +82,7 @@ public class DatastreamI2CConfigurationHandlerTest {
 		configuration = datastreams.get(TEST_DEVICE_3);
 		assertNotNull(configuration);
 		assertEquals(TEST_DEVICE_3, configuration.getName());
+		assertEquals(TEST_DEFAULT_DEVICE_NAME, configuration.getDevice());
 		assertEquals(I2CDatastreamsConfiguration.DEFAULT_MIN, configuration.getMin());
 		assertEquals(I2CDatastreamsConfiguration.DEFAULT_MAX, configuration.getMax());
 		assertTrue(configuration.isGetter());
@@ -119,7 +123,7 @@ public class DatastreamI2CConfigurationHandlerTest {
 		testHandler.applyConfiguration();
 
 		verify(mockedRegistry).close();
-		verify(mockedRegistry).addDatastreamGetter(eq(TEST_DEVICE_1), eq(TEST_MIN_1), eq(TEST_MAX_1));
+		verify(mockedRegistry).addDatastreamGetter(eq(TEST_DEVICE_1), eq(TEST_DEFAULT_DEVICE_NAME) , eq(TEST_MIN_1), eq(TEST_MAX_1));
 		verify(mockedRegistry).addDatastreamSetter(eq(TEST_DEVICE_1));
 	}
 }

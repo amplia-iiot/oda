@@ -20,6 +20,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class I2CDatastreamsRegistryTest {
 
 	private static final String TEST_DATASTREAM_ID = "datastreamId";
+	private static final String TEST_DEFAULT_DEVICE_NAME = "defaultDeviceName";
 	private static final long TEST_MIN = 1;
 	private static final long TEST_MAX = 50;
 
@@ -46,11 +47,11 @@ public class I2CDatastreamsRegistryTest {
 
 	@Test
 	public void testAddDatastreamGetter() {
-		when(mockedFactory.createDatastreamsGetter(anyString(), anyLong(), anyLong())).thenReturn(mockedGetter);
+		when(mockedFactory.createDatastreamsGetter(anyString(), anyString(), anyLong(), anyLong())).thenReturn(mockedGetter);
 
-		testRegistry.addDatastreamGetter(TEST_DATASTREAM_ID, TEST_MIN, TEST_MAX);
+		testRegistry.addDatastreamGetter(TEST_DATASTREAM_ID, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX);
 
-		verify(mockedFactory).createDatastreamsGetter(eq(TEST_DATASTREAM_ID), eq(TEST_MIN), eq(TEST_MAX));
+		verify(mockedFactory).createDatastreamsGetter(eq(TEST_DATASTREAM_ID), eq(TEST_DEFAULT_DEVICE_NAME), eq(TEST_MIN), eq(TEST_MAX));
 		verify(mockedGetterRegistrationManager).register(eq(mockedGetter));
 	}
 

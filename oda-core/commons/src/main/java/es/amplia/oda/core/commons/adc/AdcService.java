@@ -15,15 +15,15 @@ public interface AdcService {
     AdcChannel getChannelByName(String channelName);
 
     /**
-     * Get the ADC channel associated with the given pin's terminal index.
+     * Get the ADC channel associated with the given pin's hardware index.
      * @param index Index of the ADC channel's terminal.
-     * @return ADC pin associated with the given channel's terminal index.
+     * @return ADC channel associated with the given pin's hardware index.
      */
     AdcChannel getChannelByIndex(int index);
 
     /**
-     * Get the available ADC channels with the associated pin's terminal index.
-     * @return The available ADC channel with the associated pin's terminal index.
+     * Get the available ADC channels with the associated pin's hardware index.
+     * @return The available ADC channel with the associated pin's hardware index.
      */
     Map<Integer, AdcChannel> getAvailableChannels();
 }

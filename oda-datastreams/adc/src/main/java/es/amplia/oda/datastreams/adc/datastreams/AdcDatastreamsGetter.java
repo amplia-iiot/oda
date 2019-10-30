@@ -15,12 +15,16 @@ public class AdcDatastreamsGetter implements DatastreamsGetter {
 	private final String datastreamId;
 	private final int pinIndex;
 	private final AdcService adcService;
+	private final double min;
+	private final double max;
 
 
-	public AdcDatastreamsGetter(String datastreamId, int pinIndex, AdcService adcService) {
+	public AdcDatastreamsGetter(String datastreamId, int pinIndex, AdcService adcService, double min, double max) {
 		this.datastreamId = datastreamId;
 		this.pinIndex = pinIndex;
 		this.adcService = adcService;
+		this.min = min;
+		this.max = max;
 	}
 
 	@Override
@@ -43,7 +47,7 @@ public class AdcDatastreamsGetter implements DatastreamsGetter {
 			AdcChannel channel = adcService.getChannelByIndex(pinIndex);
 
 			long at = System.currentTimeMillis();
-			Float value = channel.getScaledValue();
+			Float value = (float) (((max - min) * channel.getScaledValue()) + min);
 			return new DatastreamsGetter.CollectedValue(at , value );
 		} catch (AdcDeviceException e) {
 			throw new DataNotFoundException("Error getting value from ADC channel " + pinIndex +

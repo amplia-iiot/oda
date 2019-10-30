@@ -20,6 +20,8 @@ public class DatastreamsFactoryImplTest {
 
 	private static final String TEST_DATASTREAM = "testDatastream";
 	private static final int TEST_PIN_INDEX = 1;
+	private static final double TEST_MINIMUM = 0;
+	private static final double TEST_MAXIMUM = 1;
 
 
 	@Mock
@@ -39,11 +41,12 @@ public class DatastreamsFactoryImplTest {
 	public void testCreateAdcDatastreamsGetter() throws Exception {
 		PowerMockito.whenNew(AdcDatastreamsGetter.class).withAnyArguments().thenReturn(mockedGetter);
 
-		AdcDatastreamsGetter getter = testFactory.createAdcDatastreamsGetter(TEST_DATASTREAM, TEST_PIN_INDEX);
+		AdcDatastreamsGetter getter = testFactory.createAdcDatastreamsGetter(
+				TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
 
 		assertNotNull(getter);
 		PowerMockito.verifyNew(AdcDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM), eq(TEST_PIN_INDEX),
-				eq(mockedService));
+				eq(mockedService), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 	}
 
 	@Test

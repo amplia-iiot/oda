@@ -25,6 +25,7 @@ public class AnalogInputDeviceBuilderTest {
 	private static final String TEST_NAME = "testDevice";
 	private static final String TEST_PATH = "path";
 	private static final boolean TEST_LOW_MODE = true;
+	private static final float TEST_SCALE = 1;
 	private static final DeviceType TEST_DEVICE_TYPE = DeviceType.DEFAULT;
 
 
@@ -81,7 +82,7 @@ public class AnalogInputDeviceBuilderTest {
 		AnalogInputDevice device = builder.build();
 
 		assertEquals(mockedAnalogInputDevice, device);
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(TEST_CHANNEL_INDEX));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test
@@ -100,7 +101,7 @@ public class AnalogInputDeviceBuilderTest {
 		assertEquals(mockedAnalogInputDevice, device);
 		PowerMockito.verifyNew(Fx30AnalogInputDeviceFactory.class)
 				.withArguments(eq(TEST_NAME), eq(TEST_PATH), eq(TEST_LOW_MODE), eq(DeviceType.FX30));
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test
@@ -117,7 +118,7 @@ public class AnalogInputDeviceBuilderTest {
 		assertEquals(mockedAnalogInputDevice, device);
 		PowerMockito.verifyNew(Fx30AnalogInputDeviceFactory.class)
 				.withArguments(eq(null), eq(TEST_PATH), eq(DEFAULT_LOW_MODE), eq(DeviceType.FX30));
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test(expected = AdcDeviceException.class)

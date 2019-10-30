@@ -24,6 +24,8 @@ public class AdcDatastreamsGetterTest {
 	private static final String TEST_DATASTREAM = "testDatastream";
 	private static final int TEST_INDEX = 1;
 	private static final float TEST_VALUE = 3.14f;
+	private static final double TEST_MINIMUM = 0;
+	private static final double TEST_MAXIMUM = 1;
 
 
 	@Mock
@@ -35,7 +37,7 @@ public class AdcDatastreamsGetterTest {
 
 	@Before
 	public void prepareForTest() {
-		testGetter = new AdcDatastreamsGetter(TEST_DATASTREAM, TEST_INDEX, mockedService);
+		testGetter = new AdcDatastreamsGetter(TEST_DATASTREAM, TEST_INDEX, mockedService, TEST_MINIMUM, TEST_MAXIMUM);
 	}
 
 	@Test
