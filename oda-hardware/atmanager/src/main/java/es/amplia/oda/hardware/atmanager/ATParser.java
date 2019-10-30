@@ -8,13 +8,13 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * <p>ATParser is a state machine with two states:
+ * ATParser is a state machine with two states:
  * <ul>
  * <li>Idle</li>
  * <li>Waiting Response</li>
  * </ul>
- * process(String line) function is used to received input data. Should be invoke with complete lines without \n.</p>
- * <p>It processes the following line types:
+ * process(String line) function is used to received input data. Should be invoke with complete lines without \n.<p>
+ * It processes the following line types:
  * <ul>
  * <li>"" -&gt; Empty line. It return EMPTY. Spaces are not meaningful, so "   " is considered EMPTY also.</li>
  * <li>"AT..." -&gt; Line starting with "AT". Differentiates the next subtypes:
@@ -24,14 +24,14 @@ import java.util.List;
  * Command may be concatenated with ';'(e.g. "ATA;+CPIN=0000;")</li>
  * </ul></li>
  * <li>"+...." (e.g. "+WIND: 11,,,2") -&gt; Response type</li>
- * </ul></p>
- * <p>Any other line format results in type==LineType.ERROR and is discarded.</p>
- * <p>In the "waiting response" state the same line types are processed but, instead of discarding the lines with other formats,
+ * </ul>
+ * Any other line format results in type==LineType.ERROR and is discarded.<p>
+ * In the "waiting response" state the same line types are processed but, instead of discarding the lines with other formats,
  * it waits to read the next keywords: OK, ERROR, CONNECT, RING, NO CARRIER, NO DIALTONE, BUSY, NO ANSWER ó CONNECT.
- * This key words can be optionally preceded with "+CME" and followed by ": free format text".</p>
- * <p>When a line of this kind is received, it exits the "waiting response" state.</p>
- * <p>To transit to the "waiting response" state, the ATParser should received an explicit order to wait for response.
- * While the ATParser is in "waiting response" state, all responses are buffered until OK, ERROR, etc. is received.</p>
+ * This key words can be optionally preceded with "+CME" and followed by ": free format text".<p>
+ * When a line of this kind is received, it exits the "waiting response" state.<p>
+ * To transit to the "waiting response" state, the ATParser should received an explicit order to wait for response.
+ * While the ATParser is in "waiting response" state, all responses are buffered until OK, ERROR, etc. is received.<p>
  * An example of the ATParser behaviour is the following:
  * <pre>
  * ==&gt; AT+CGACT?
@@ -42,8 +42,8 @@ import java.util.List;
  * &lt;==
  * &lt;== OK
  * </pre>
- * <p>Just before sending "AT+CGACT?" to peer, it transits to "Waiting Response" state storing the command to wait to "CGACT"
- * using setResponseMode(String cmd) function</p>
+ * Just before sending "AT+CGACT?" to peer, it transits to "Waiting Response" state storing the command to wait to "CGACT"
+ * using setResponseMode(String cmd) function<p>
  * Execution:
  * <table border="2" cellpadding="4" cellspacing="0" summary="">
  * <tr>
@@ -74,7 +74,7 @@ import java.util.List;
  * <td> process("OK") </td> <td> COMPLETE_RESPONSE </td> <td> Idle </td>
  * </tr>
  * </table>
- * <p>Last line make the state machine to transit to Idle state.</p>
+ * Last line make the state machine to transit to Idle state.<p>
  * Other scenarios while we are in "Waiting Response" are:
  * <table border="2" cellpadding="4" cellspacing="0" summary="">
  * <tr>
@@ -93,12 +93,12 @@ import java.util.List;
  * <td> setResponseMode(anyString) </td> <td> throws RuntimeException("...") </td> <td> Waiting Response </td>
  * </tr>
  * </table>
- * <p>First scenario is the arrived of a different response than the one we are waiting.</p>
- * <p>Second scenario shows that in "Waiting Response" state we can also received AT commands from peer.</p>
- * <p>Third scenario shows any text different from an AT command or response is buffered until an end line keywords is
- * received (OK, ERROR, ...)</p>
- * <p>Forth scenario shows a programming error: it is not allowed to transit to "Wait Response" state when we are already
- * in this state.</p>
+ * First scenario is the arrived of a different response than the one we are waiting.<p>
+ * Second scenario shows that in "Waiting Response" state we can also received AT commands from peer.<p>
+ * Third scenario shows any text different from an AT command or response is buffered until an end line keywords is
+ * received (OK, ERROR, ...)<p>
+ * Forth scenario shows a programming error: it is not allowed to transit to "Wait Response" state when we are already
+ * in this state.
  */
 public interface ATParser {
 
