@@ -13,7 +13,7 @@
     <parent>
         <artifactId>oda-hardware</artifactId>
         <groupId>es.amplia.oda.hardware</groupId>
-        <version>3.28.4-SNAPSHOT</version>
+        <version>3.29.3-SNAPSHOT</version>
     </parent>
 
     <properties>
