@@ -15,12 +15,6 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.StandardCause;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// Could be an implementation of inbound handler instead of MessageChannel?
-	// This will have less priority than our own MessageChannel. This means that only do the things that the other
-		// handler send to the next handler.
-	// In the other hand, an implementation of MessageChannel ensure more functionally than an Inbound implementation.
-// The only question that we have to answer here is: This handler need more than a simple implementation of channel read?
-// Hey, listen! This will receive the fired ChannelRead's by our MessageChannel. If you wanna do with that, is here.
 class Iec104CommandHandler extends ChannelInboundHandlerAdapter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Iec104CommandHandler.class);
 

@@ -31,6 +31,7 @@ class TypeHelperExt extends TypeHelper {
 		return new Value<>(value, timestamp, qualityInformation);
 	}
 
+	@SuppressWarnings("all")
 	private static long parseTimestamp(ProtocolOptions options, ByteBuf data) {
 		int ms = data.readUnsignedShort();
 		int minutes = data.readUnsignedByte();
@@ -47,6 +48,7 @@ class TypeHelperExt extends TypeHelper {
 		return c.getTimeInMillis();
 	}
 
+	@SuppressWarnings("all")
 	private static void encodeTimestamp(ProtocolOptions options, ByteBuf out, long timestamp) {
 		Calendar c = new GregorianCalendar(options.getTimeZone());
 		c.setTimeInMillis(timestamp);

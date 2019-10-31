@@ -4,6 +4,7 @@ import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfiguration
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 import io.netty.channel.socket.SocketChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.InterrogationCommand;
+import org.eclipse.neoscada.protocol.iec60870.server.Server;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ public class Iec104ConnectorTest {
 	@Mock
 	private Iec104ServerModule mockedModule;
 	@Mock
-	private ServerKeepAlive mockedServer;
+	private Server mockedServer;
 	@Mock
 	private SocketChannel mockedChannel;
 

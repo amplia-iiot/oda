@@ -68,7 +68,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 			optionsBuilder.setTimeout3(10000);
 			ProtocolOptions options = optionsBuilder.build();
 			serverModule = new Iec104ServerModule(cache, options, dispatcher, commonAddress);
-			this.server = new ServerKeepAlive(socketAddress, options, Collections.singletonList(serverModule), dispatcher, commonAddress);
+			this.server = new Server(socketAddress, options, Collections.singletonList(serverModule));
 			this.spontaneousEnabled = currentConfiguration.isSpontaneousEnabled();
 			LOGGER.info("Configured IEC104 server {} at port:{}", address, port);
 		} catch (IOException e) {
