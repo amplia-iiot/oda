@@ -1,24 +1,25 @@
 package es.amplia.oda.datastreams.deviceinfo.datastreams;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class TemperatureStatusDatastreamGetter implements DatastreamsGetter {
+public class DatastreamGetterTemplate implements DatastreamsGetter {
 
-	private DeviceInfoDatastreamsGetter deviceInfo;
+	private String datastreamId;
+	private GetValue getterFunction;
 
-	public TemperatureStatusDatastreamGetter(DeviceInfoDatastreamsGetter deviceInfo) {
-		this.deviceInfo = deviceInfo;
+	public DatastreamGetterTemplate(String datastreamId, GetValue getterFunction) {
+		this.datastreamId = datastreamId;
+		this.getterFunction = getterFunction;
 	}
 
 	@Override
 	public String getDatastreamIdSatisfied() {
-		return DeviceInfoDatastreamsGetter.TEMPERATURE_STATUS_DATASTREAM_ID;
+		return datastreamId;
 	}
 
 	@Override
@@ -29,7 +30,6 @@ public class TemperatureStatusDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getTemperatureStatus()).orElse(""))
-		);
+				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(getterFunction.op()).orElse("")));
 	}
 }

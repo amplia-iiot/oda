@@ -57,67 +57,88 @@ public class Activator implements BundleActivator {
 				Collections.singletonList(deviceIdProviderRegistration));
 		datastreamsGetterRegistrationForSerialNumber =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new SerialNumberDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.SERIAL_NUMBER_DATASTREAM_ID,
+								deviceInfoFX30::getSerialNumber), null);
 		datastreamsGetterRegistrationForDeviceId =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new DeviceIdDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.DEVICE_ID_DATASTREAM_ID,
+								deviceInfoFX30::getDeviceId), null);
 		datastreamsGetterRegistrationForMaker =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new MakerDatastreamGetter(), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.MAKER_DATASTREAM_ID,
+								()->"Sierra Wireless"), null);
 		datastreamsGetterRegistrationForModel =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new ModelDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.MODEL_DATASTREAM_ID,
+								deviceInfoFX30::getModel), null);
 		datastreamsGetterRegistrationForImei =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new ImeiDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.IMEI_DATASTREAM_ID,
+								deviceInfoFX30::getImei), null);
 		datastreamsGetterRegistrationForImsi =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new ImsiDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.IMSI_DATASTREAM_ID,
+								deviceInfoFX30::getImsi), null);
 		datastreamsGetterRegistrationForIcc =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new IccDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.ICC_DATASTREAM_ID,
+								deviceInfoFX30::getIcc), null);
 		datastreamsGetterRegistrationForRssi =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new RssiDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.RSSI_DATASTREAM_ID,
+								deviceInfoFX30::getRssi), null);
 		datastreamsGetterRegistrationForSoftware =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new SoftwareDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.SOFTWARE_DATASTREAM_ID,
+								deviceInfoFX30::getSoftware), null);
 		datastreamsGetterRegistrationForApn =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new ApnDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.APN_DATASTREAM_ID,
+								deviceInfoFX30::getApn), null);
 		datastreamsGetterRegistrationForClock =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new ClockDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.CLOCK_DATASTREAM_ID,
+								deviceInfoFX30::getClock), null);
 		datastreamsGetterRegistrationForUptime =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new UptimeDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.UPTIME_DATASTREAM_ID,
+								deviceInfoFX30::getUptime), null);
 		datastreamsGetterRegistrationForTemperatureValue =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new TemperatureValueDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.TEMPERATURE_VALUE_DATASTREAM_ID,
+								deviceInfoFX30::getTemperatureValue), null);
 		datastreamsGetterRegistrationForTemperatureStatus =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new TemperatureStatusDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.TEMPERATURE_STATUS_DATASTREAM_ID,
+								deviceInfoFX30::getTemperatureStatus), null);
 		datastreamsGetterRegistrationForCpuStatus =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new CpuStatusDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.CPU_STATUS_DATASTREAM_ID,
+								deviceInfoFX30::getCpuStatus), null);
 		datastreamsGetterRegistrationForCpuUsage =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new CpuUsageDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.CPU_USAGE_DATASTREAM_ID,
+								deviceInfoFX30::getCpuUsage), null);
 		datastreamsGetterRegistrationForCpuTotal =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new CpuTotalDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.CPU_TOTAL_DATASTREAM_ID,
+								deviceInfoFX30::getCpuTotal), null);
 		datastreamsGetterRegistrationForRamUsage =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new RamUsageDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.RAM_USAGE_DATASTREAM_ID,
+								deviceInfoFX30::getRamUsage), null);
 		datastreamsGetterRegistrationForRamTotal =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new RamTotalDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.RAM_TOTAL_DATASTREAM_ID,
+								deviceInfoFX30::getRamTotal), null);
 		datastreamsGetterRegistrationForDiskUsage =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new DiskUsageDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.DISK_USAGE_DATASTREAM_ID,
+								deviceInfoFX30::getDiskUsage), null);
 		datastreamsGetterRegistrationForDiskTotal =
 				bundleContext.registerService(DatastreamsGetter.class,
-						new DiskTotalDatastreamGetter(deviceInfoFX30), null);
+						new DatastreamGetterTemplate(DeviceInfoFX30.DISK_TOTAL_DATASTREAM_ID,
+								deviceInfoFX30::getDiskTotal), null);
 
 		LOGGER.info("Datastreams Getter Device Info started");
 	}

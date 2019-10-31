@@ -3,6 +3,7 @@ package es.amplia.oda.datastreams.deviceinfo;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.*;
+import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfiguration;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
 import es.amplia.oda.datastreams.deviceinfo.configuration.ScriptsLoader;
@@ -53,46 +54,60 @@ public class Activator implements BundleActivator {
 
         datastreamsGetterRegistrationForDeviceId =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        deviceInfoDatastreamsGetter.getDatastreamsGetterForDeviceId(), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.DEVICE_ID_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getDeviceId), null);
         datastreamsGetterRegistrationForSerialNumber =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        deviceInfoDatastreamsGetter.getDatastreamsGetterForSerialNumber(), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.SERIAL_NUMBER_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getDatastreamsGetterForSerialNumber), null);
         datastreamsGetterRegistrationForClock =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new ClockDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CLOCK_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getClock), null);
         datastreamsGetterRegistrationForUptime =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new UptimeDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.UPTIME_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getUptime), null);
         datastreamsGetterRegistrationForCpuTotal =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new CpuTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CPU_TOTAL_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getCpuTotal), null);
         datastreamsGetterRegistrationForCpuStatus =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new CpuStatusDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CPU_STATUS_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getCpuStatus), null);
         datastreamsGetterRegistrationForCpuUsage =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new CpuUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CPU_USAGE_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getCpuUsage), null);
         datastreamsGetterRegistrationForRamTotal =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new RamTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.RAM_TOTAL_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getRamTotal), null);
         datastreamsGetterRegistrationForRamUsage =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new RamUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.RAM_USAGE_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getRamUsage), null);
         datastreamsGetterRegistrationForDiskTotal =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new DiskTotalDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.DISK_TOTAL_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getDiskTotal), null);
         datastreamsGetterRegistrationForDiskUsage =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new DiskUsageDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.DISK_USAGE_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getDiskUsage), null);
         datastreamsGetterRegistrationForSoftware =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new SoftwareDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.SOFTWARE_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getSoftware), null);
         datastreamsGetterRegistrationForTemperatureStatus =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new TemperatureStatusDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.TEMPERATURE_STATUS_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getTemperatureStatus), null);
         datastreamsGetterRegistrationForTemperatureValue =
                 bundleContext.registerService(DatastreamsGetter.class,
-                        new TemperatureValueDatastreamGetter(deviceInfoDatastreamsGetter), null);
+                        new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.TEMPERATURE_VALUE_DATASTREAM_ID,
+                                deviceInfoDatastreamsGetter::getTemperatureValue), null);
 
         LOGGER.info("Datastreams Getter Device Info started");
     }

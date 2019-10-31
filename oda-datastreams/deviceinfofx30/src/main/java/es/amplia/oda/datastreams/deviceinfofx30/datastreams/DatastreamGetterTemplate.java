@@ -1,24 +1,25 @@
 package es.amplia.oda.datastreams.deviceinfofx30.datastreams;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class ImsiDatastreamGetter implements DatastreamsGetter {
+public class DatastreamGetterTemplate implements DatastreamsGetter {
 
-	private DeviceInfoFX30 deviceInfo;
+	private String datastreamId;
+	private GetValue getterFunction;
 
-	public ImsiDatastreamGetter(DeviceInfoFX30 deviceInfo) {
-		this.deviceInfo = deviceInfo;
+	public DatastreamGetterTemplate(String datastreamId, GetValue getterFunction) {
+		this.datastreamId = datastreamId;
+		this.getterFunction = getterFunction;
 	}
 
 	@Override
 	public String getDatastreamIdSatisfied() {
-		return DeviceInfoFX30.IMSI_DATASTREAM_ID;
+		return datastreamId;
 	}
 
 	@Override
@@ -29,7 +30,6 @@ public class ImsiDatastreamGetter implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(this.deviceInfo.getImsi()).orElse(""))
-		);
+				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(getterFunction.op()).orElse("")));
 	}
 }

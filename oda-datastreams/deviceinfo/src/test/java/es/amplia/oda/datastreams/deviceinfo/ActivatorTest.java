@@ -44,29 +44,29 @@ public class ActivatorTest {
     @Mock
     private DatastreamsGetter datastreamsGetterForSerialNumber;
     @Mock
-    private SoftwareDatastreamGetter mockedSoftwareGetter;
+    private DatastreamGetterTemplate mockedSoftwareGetter;
     @Mock
-    private ClockDatastreamGetter mockedClockGetter;
+    private DatastreamGetterTemplate mockedClockGetter;
     @Mock
-    private UptimeDatastreamGetter mockedUptimeGetter;
+    private DatastreamGetterTemplate mockedUptimeGetter;
     @Mock
-    private TemperatureValueDatastreamGetter mockedTemperatureValueGetter;
+    private DatastreamGetterTemplate mockedTemperatureValueGetter;
     @Mock
-    private TemperatureStatusDatastreamGetter mockedTemperatureStatusGetter;
+    private DatastreamGetterTemplate mockedTemperatureStatusGetter;
     @Mock
-    private CpuStatusDatastreamGetter mockedCpuStatusGetter;
+    private DatastreamGetterTemplate mockedCpuStatusGetter;
     @Mock
-    private CpuUsageDatastreamGetter mockedCpuUsageGetter;
+    private DatastreamGetterTemplate mockedCpuUsageGetter;
     @Mock
-    private CpuTotalDatastreamGetter mockedCpuTotalGetter;
+    private DatastreamGetterTemplate mockedCpuTotalGetter;
     @Mock
-    private RamUsageDatastreamGetter mockedRamUsageGetter;
+    private DatastreamGetterTemplate mockedRamUsageGetter;
     @Mock
-    private RamTotalDatastreamGetter mockedRamTotalGetter;
+    private DatastreamGetterTemplate mockedRamTotalGetter;
     @Mock
-    private DiskUsageDatastreamGetter mockedDiskUsageGetter;
+    private DatastreamGetterTemplate mockedDiskUsageGetter;
     @Mock
-    private DiskTotalDatastreamGetter mockedDiskTotalGetter;
+    private DatastreamGetterTemplate mockedDiskTotalGetter;
     @Mock
     private ServiceRegistration<DatastreamsGetter> mockedDatastreamsGetterRegistrationForSerialNumber;
     @Mock
@@ -113,18 +113,18 @@ public class ActivatorTest {
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
         when(mockedContext.registerService(eq(DeviceInfoProvider.class), any(), any()))
                 .thenReturn(mockedDeviceInfoProviderRegistration);
-        PowerMockito.whenNew(SoftwareDatastreamGetter.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
-        PowerMockito.whenNew(ClockDatastreamGetter.class).withAnyArguments().thenReturn(mockedClockGetter);
-        PowerMockito.whenNew(UptimeDatastreamGetter.class).withAnyArguments().thenReturn(mockedUptimeGetter);
-        PowerMockito.whenNew(TemperatureValueDatastreamGetter.class).withAnyArguments().thenReturn(mockedTemperatureValueGetter);
-        PowerMockito.whenNew(TemperatureStatusDatastreamGetter.class).withAnyArguments().thenReturn(mockedTemperatureStatusGetter);
-        PowerMockito.whenNew(CpuStatusDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuStatusGetter);
-        PowerMockito.whenNew(CpuUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuUsageGetter);
-        PowerMockito.whenNew(CpuTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuTotalGetter);
-        PowerMockito.whenNew(RamUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedRamUsageGetter);
-        PowerMockito.whenNew(RamTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedRamTotalGetter);
-        PowerMockito.whenNew(DiskUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedDiskUsageGetter);
-        PowerMockito.whenNew(DiskTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedDiskTotalGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedClockGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedUptimeGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureValueGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureStatusGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuStatusGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuUsageGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuTotalGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamUsageGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamTotalGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskUsageGetter);
+        PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskTotalGetter);
         when(mockedContext.getBundles()).thenReturn(new Bundle[0]);
 
         testActivator.start(mockedContext);
@@ -132,21 +132,8 @@ public class ActivatorTest {
         PowerMockito.verifyNew(DeviceInfoConfigurationHandler.class).withArguments(eq(mockedDeviceDatastreamsGetter), eq(mockedScriptsLoader));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler),
                 eq(Collections.singletonList(mockedDeviceInfoProviderRegistration)));
-        verify(mockedContext).registerService(eq(DeviceInfoProvider.class), eq(mockedDeviceDatastreamsGetter), any());
-        verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForDeviceId), any());
-        verify(mockedContext).registerService(eq(DatastreamsGetter.class), eq(datastreamsGetterForSerialNumber), any());
-        PowerMockito.verifyNew(SoftwareDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(ClockDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(UptimeDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(TemperatureValueDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(TemperatureStatusDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(CpuStatusDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(CpuUsageDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(CpuTotalDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(RamUsageDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(RamTotalDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(DiskUsageDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
-        PowerMockito.verifyNew(DiskTotalDatastreamGetter.class).withArguments(eq(mockedDeviceDatastreamsGetter));
+        verify(mockedContext).registerService(eq(DeviceInfoProvider.class), eq(mockedDeviceDatastreamsGetter), eq(null));
+        PowerMockito.verifyNew(DatastreamGetterTemplate.class, times(14)).withArguments(anyString(), any());
     }
 
     @Test

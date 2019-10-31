@@ -21,27 +21,27 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	private final CommandProcessor commandProcessor;
 	private final Bundle[] bundles;
 
-	public static final String DEVICE_ID_DATASTREAM_ID = "deviceId";
-	public static final String SERIAL_NUMBER_DATASTREAM_ID = "device.serialNumber";
-	public static final String MAKER_DATASTREAM_ID = "device.maker";
-	public static final String MODEL_DATASTREAM_ID = "device.model";
-	public static final String IMEI_DATASTREAM_ID = "device.communicationModules[].mobile.imei";
-	public static final String IMSI_DATASTREAM_ID = "device.communicationModules[].subscription.mobile.imsi";
-	public static final String ICC_DATASTREAM_ID = "device.communicationModules[].subscriber.mobile.icc";
-	public static final String RSSI_DATASTREAM_ID = "device.communicationModules[].subscription.mobile.signalStrength";
-	public static final String SOFTWARE_DATASTREAM_ID = "device.software";
-	public static final String APN_DATASTREAM_ID = "device.apn";
-	public static final String CLOCK_DATASTREAM_ID = "device.clock";
-	public static final String UPTIME_DATASTREAM_ID = "device.upTime";
-	public static final String TEMPERATURE_VALUE_DATASTREAM_ID = "device.temperature.value";
-	public static final String TEMPERATURE_STATUS_DATASTREAM_ID = "device.temperature.status";
-	public static final String CPU_STATUS_DATASTREAM_ID = "device.cpu.status";
-	public static final String CPU_USAGE_DATASTREAM_ID = "device.cpu.usage";
-	public static final String CPU_TOTAL_DATASTREAM_ID = "device.cpu.total";
-	public static final String RAM_USAGE_DATASTREAM_ID = "device.ram.usage";
-	public static final String RAM_TOTAL_DATASTREAM_ID = "device.ram.total";
-	public static final String DISK_USAGE_DATASTREAM_ID = "device.disk.usage";
-	public static final String DISK_TOTAL_DATASTREAM_ID = "device.disk.total";
+	static final String DEVICE_ID_DATASTREAM_ID = "deviceId";
+	static final String SERIAL_NUMBER_DATASTREAM_ID = "device.serialNumber";
+	static final String MAKER_DATASTREAM_ID = "device.maker";
+	static final String MODEL_DATASTREAM_ID = "device.model";
+	static final String IMEI_DATASTREAM_ID = "device.communicationModules[].mobile.imei";
+	static final String IMSI_DATASTREAM_ID = "device.communicationModules[].subscription.mobile.imsi";
+	static final String ICC_DATASTREAM_ID = "device.communicationModules[].subscriber.mobile.icc";
+	static final String RSSI_DATASTREAM_ID = "device.communicationModules[].subscription.mobile.signalStrength";
+	static final String SOFTWARE_DATASTREAM_ID = "device.software";
+	static final String APN_DATASTREAM_ID = "device.apn";
+	static final String CLOCK_DATASTREAM_ID = "device.clock";
+	static final String UPTIME_DATASTREAM_ID = "device.upTime";
+	static final String TEMPERATURE_VALUE_DATASTREAM_ID = "device.temperature.value";
+	static final String TEMPERATURE_STATUS_DATASTREAM_ID = "device.temperature.status";
+	static final String CPU_STATUS_DATASTREAM_ID = "device.cpu.status";
+	static final String CPU_USAGE_DATASTREAM_ID = "device.cpu.usage";
+	static final String CPU_TOTAL_DATASTREAM_ID = "device.cpu.total";
+	static final String RAM_USAGE_DATASTREAM_ID = "device.ram.usage";
+	static final String RAM_TOTAL_DATASTREAM_ID = "device.ram.total";
+	static final String DISK_USAGE_DATASTREAM_ID = "device.disk.usage";
+	static final String DISK_TOTAL_DATASTREAM_ID = "device.disk.total";
 
 	static final String SERIAL_NUMBER_SCRIPT = "obtainSerialNumber.sh";
 	static final String MODEL_SCRIPT = "obtainModel.sh";
@@ -98,7 +98,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getSerialNumber() {
+	String getSerialNumber() {
 		try {
 			serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
 			return serialNumber;
@@ -124,7 +124,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		return path;
 	}
 
-	public String getModel() {
+	String getModel() {
 		try {
 			String model = commandProcessor.execute(path + "/" + MODEL_SCRIPT);
 			logger.info("Getting actual model of device: {}", model);
@@ -136,7 +136,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getImei() {
+	String getImei() {
 		try {
 			String imei = commandProcessor.execute(path + "/" + IMEI_SCRIPT);
 			logger.info("Getting actual imei of device: {}", imei);
@@ -148,7 +148,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getImsi() {
+	String getImsi() {
 		try {
 			String imsi = commandProcessor.execute(path + "/" + IMSI_SCRIPT);
 			logger.info("Getting actual imsi of device: {}", imsi);
@@ -160,7 +160,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getIcc() {
+	String getIcc() {
 		try {
 			String icc = commandProcessor.execute(path + "/" + ICC_SCRIPT);
 			logger.info("Getting actual icc of device: {}", icc);
@@ -172,7 +172,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getRssi() {
+	String getRssi() {
 		try {
 			String rssi = commandProcessor.execute(path + "/" + RSSI_SCRIPT);
 			logger.info("Getting actual rssi of device: {}", rssi);
@@ -207,7 +207,7 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	public String getApn() {
+	String getApn() {
 		try {
 			String apn = commandProcessor.execute(path + "/" + APN_SCRIPT);
 			logger.info("Getting actual apn of device: {}", apn);

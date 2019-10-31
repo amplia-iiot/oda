@@ -17,6 +17,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
@@ -39,47 +40,47 @@ public class ActivatorTest {
 	private ConfigurableBundleImpl mockedConfigurableBundle;
 
 	@Mock
-	private SerialNumberDatastreamGetter mockedSerialNumberGetter;
+	private DatastreamGetterTemplate mockedSerialNumberGetter;
 	@Mock
-	private DeviceIdDatastreamGetter mockedDeviceIdGetter;
+	private DatastreamGetterTemplate mockedDeviceIdGetter;
 	@Mock
-	private MakerDatastreamGetter mockedMakerGetter;
+	private DatastreamGetterTemplate mockedMakerGetter;
 	@Mock
-	private ModelDatastreamGetter mockedModelGetter;
+	private DatastreamGetterTemplate mockedModelGetter;
 	@Mock
-	private ImeiDatastreamGetter mockedImeiGetter;
+	private DatastreamGetterTemplate mockedImeiGetter;
 	@Mock
-	private ImsiDatastreamGetter mockedImsiGetter;
+	private DatastreamGetterTemplate mockedImsiGetter;
 	@Mock
-	private IccDatastreamGetter mockedIccGetter;
+	private DatastreamGetterTemplate mockedIccGetter;
 	@Mock
-	private RssiDatastreamGetter mockedRssiGetter;
+	private DatastreamGetterTemplate mockedRssiGetter;
 	@Mock
-	private SoftwareDatastreamGetter mockedSoftwareGetter;
+	private DatastreamGetterTemplate mockedSoftwareGetter;
 	@Mock
-	private ApnDatastreamGetter mockedApnGetter;
+	private DatastreamGetterTemplate mockedApnGetter;
 	@Mock
-	private ClockDatastreamGetter mockedClockGetter;
+	private DatastreamGetterTemplate mockedClockGetter;
 	@Mock
-	private UptimeDatastreamGetter mockedUptimeGetter;
+	private DatastreamGetterTemplate mockedUptimeGetter;
 	@Mock
-	private TemperatureValueDatastreamGetter mockedTemperatureValueGetter;
+	private DatastreamGetterTemplate mockedTemperatureValueGetter;
 	@Mock
-	private TemperatureStatusDatastreamGetter mockedTemperatureStatusGetter;
+	private DatastreamGetterTemplate mockedTemperatureStatusGetter;
 	@Mock
-	private CpuStatusDatastreamGetter mockedCpuStatusGetter;
+	private DatastreamGetterTemplate mockedCpuStatusGetter;
 	@Mock
-	private CpuUsageDatastreamGetter mockedCpuUsageGetter;
+	private DatastreamGetterTemplate mockedCpuUsageGetter;
 	@Mock
-	private CpuTotalDatastreamGetter mockedCpuTotalGetter;
+	private DatastreamGetterTemplate mockedCpuTotalGetter;
 	@Mock
-	private RamUsageDatastreamGetter mockedRamUsageGetter;
+	private DatastreamGetterTemplate mockedRamUsageGetter;
 	@Mock
-	private RamTotalDatastreamGetter mockedRamTotalGetter;
+	private DatastreamGetterTemplate mockedRamTotalGetter;
 	@Mock
-	private DiskUsageDatastreamGetter mockedDiskUsageGetter;
+	private DatastreamGetterTemplate mockedDiskUsageGetter;
 	@Mock
-	private DiskTotalDatastreamGetter mockedDiskTotalGetter;
+	private DatastreamGetterTemplate mockedDiskTotalGetter;
 
 	@Mock
 	private ServiceRegistration<DeviceInfoProvider> mockedRegistrationDeviceInfo;
@@ -133,27 +134,27 @@ public class ActivatorTest {
 		PowerMockito.whenNew(DeviceInfoFX30.class).withAnyArguments().thenReturn(mockedDeviceInfo);
 		PowerMockito.whenNew(DeviceInfoFX30ConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
 		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		PowerMockito.whenNew(SerialNumberDatastreamGetter.class).withAnyArguments().thenReturn(mockedSerialNumberGetter);
-		PowerMockito.whenNew(DeviceIdDatastreamGetter.class).withAnyArguments().thenReturn(mockedDeviceIdGetter);
-		PowerMockito.whenNew(MakerDatastreamGetter.class).withAnyArguments().thenReturn(mockedMakerGetter);
-		PowerMockito.whenNew(ModelDatastreamGetter.class).withAnyArguments().thenReturn(mockedModelGetter);
-		PowerMockito.whenNew(ImeiDatastreamGetter.class).withAnyArguments().thenReturn(mockedImeiGetter);
-		PowerMockito.whenNew(ImsiDatastreamGetter.class).withAnyArguments().thenReturn(mockedImsiGetter);
-		PowerMockito.whenNew(IccDatastreamGetter.class).withAnyArguments().thenReturn(mockedIccGetter);
-		PowerMockito.whenNew(RssiDatastreamGetter.class).withAnyArguments().thenReturn(mockedRssiGetter);
-		PowerMockito.whenNew(SoftwareDatastreamGetter.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
-		PowerMockito.whenNew(ApnDatastreamGetter.class).withAnyArguments().thenReturn(mockedApnGetter);
-		PowerMockito.whenNew(ClockDatastreamGetter.class).withAnyArguments().thenReturn(mockedClockGetter);
-		PowerMockito.whenNew(UptimeDatastreamGetter.class).withAnyArguments().thenReturn(mockedUptimeGetter);
-		PowerMockito.whenNew(TemperatureValueDatastreamGetter.class).withAnyArguments().thenReturn(mockedTemperatureValueGetter);
-		PowerMockito.whenNew(TemperatureStatusDatastreamGetter.class).withAnyArguments().thenReturn(mockedTemperatureStatusGetter);
-		PowerMockito.whenNew(CpuStatusDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuStatusGetter);
-		PowerMockito.whenNew(CpuUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuUsageGetter);
-		PowerMockito.whenNew(CpuTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedCpuTotalGetter);
-		PowerMockito.whenNew(RamUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedRamUsageGetter);
-		PowerMockito.whenNew(RamTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedRamTotalGetter);
-		PowerMockito.whenNew(DiskUsageDatastreamGetter.class).withAnyArguments().thenReturn(mockedDiskUsageGetter);
-		PowerMockito.whenNew(DiskTotalDatastreamGetter.class).withAnyArguments().thenReturn(mockedDiskTotalGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedSerialNumberGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDeviceIdGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedMakerGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedModelGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedImeiGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedImsiGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedIccGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRssiGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedApnGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedClockGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedUptimeGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureValueGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureStatusGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuStatusGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuUsageGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuTotalGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamUsageGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamTotalGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskUsageGetter);
+		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskTotalGetter);
 
 		testActivator.start(mockedContext);
 
@@ -164,27 +165,7 @@ public class ActivatorTest {
 				.withArguments(eq(mockedScriptsLoader), eq(mockedDeviceInfo));
 		PowerMockito.verifyNew(ConfigurableBundleImpl.class)
 				.withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
-		PowerMockito.verifyNew(SerialNumberDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(DeviceIdDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(MakerDatastreamGetter.class).withNoArguments();
-		PowerMockito.verifyNew(ModelDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(ImeiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(ImsiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(IccDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(RssiDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(SoftwareDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(ApnDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(ClockDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(UptimeDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(TemperatureValueDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(TemperatureStatusDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(CpuStatusDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(CpuUsageDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(CpuTotalDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(RamUsageDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(RamTotalDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(DiskUsageDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(DiskTotalDatastreamGetter.class).withArguments(eq(mockedDeviceInfo));
+		PowerMockito.verifyNew(DatastreamGetterTemplate.class, times(21)).withArguments(anyString(), any());
 	}
 
 	@Test
