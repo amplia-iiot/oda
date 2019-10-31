@@ -16,14 +16,14 @@ public interface AdcEvent {
 	/**
 	 * Get the range of the event. Used to give the ScaledValue
 	 * @return float of the scale that represents the range
-	 * @see #getScaledValue();
+	 * @see #getScaledValue
 	 */
 	float getRange();
 
 	/**
 	 * Set the range of the event. Used to give the ScaledValue
 	 * @param range float of the scale that represents the range
-	 * @see #getScaledValue()
+	 * @see #getScaledValue
 	 */
 	void setRange(float range);
 

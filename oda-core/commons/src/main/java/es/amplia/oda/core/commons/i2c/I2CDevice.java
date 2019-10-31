@@ -25,6 +25,7 @@ public interface I2CDevice {
 	/**
 	 * Read an unsigned integer from the device (on the file of the controller, in the address and register specified).
 	 * @return double representing the actual value read from the device.
+	 * @throws InterruptedException if there is an error during the wait of bus are ready
 	 */
 	double readRawData() throws InterruptedException;
 
