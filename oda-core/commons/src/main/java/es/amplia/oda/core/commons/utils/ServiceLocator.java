@@ -3,8 +3,8 @@ package es.amplia.oda.core.commons.utils;
 import java.util.List;
 
 /**
- * Interface to locate services available in the sytem
- * @param <T>
+ * Interface to locate services available in the system
+ * @param <T> Type of the service to locate
  */
 public interface ServiceLocator<T> extends AutoCloseable {
     /**
