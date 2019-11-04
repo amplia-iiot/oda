@@ -14,7 +14,6 @@ import java.util.List;
  * <li>Waiting Response</li>
  * </ul>
  * process(String line) function is used to received input data. Should be invoke with complete lines without \n.<p>
- * <p>
  * It processes the following line types:
  * <ul>
  * <li>"" -&gt; Empty line. It return EMPTY. Spaces are not meaningful, so "   " is considered EMPTY also.</li>
@@ -27,7 +26,6 @@ import java.util.List;
  * <li>"+...." (e.g. "+WIND: 11,,,2") -&gt; Response type</li>
  * </ul>
  * Any other line format results in type==LineType.ERROR and is discarded.<p>
- * <p>
  * In the "waiting response" state the same line types are processed but, instead of discarding the lines with other formats,
  * it waits to read the next keywords: OK, ERROR, CONNECT, RING, NO CARRIER, NO DIALTONE, BUSY, NO ANSWER ó CONNECT.
  * This key words can be optionally preceded with "+CME" and followed by ": free format text".<p>
@@ -100,7 +98,7 @@ import java.util.List;
  * Third scenario shows any text different from an AT command or response is buffered until an end line keywords is
  * received (OK, ERROR, ...)<p>
  * Forth scenario shows a programming error: it is not allowed to transit to "Wait Response" state when we are already
- * in this state.<p>
+ * in this state.
  */
 public interface ATParser {
 

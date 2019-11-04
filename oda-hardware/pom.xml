@@ -16,11 +16,12 @@
         <module>modbus</module>
         <module>diozero</module>
         <module>i2c</module>
+        <module>comms</module>
     </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>3.28.4-SNAPSHOT</version>
+        <version>3.30.1-SNAPSHOT</version>
     </parent>
 </project>

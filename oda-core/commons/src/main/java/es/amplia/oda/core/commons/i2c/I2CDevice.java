@@ -33,7 +33,7 @@ public interface I2CDevice {
 	 * Read an unsigned integer like readRawData() but converts the value into a decimal value 0-1 depending of the scale
 	 * specified by configuration.
 	 * @return double representing actual value between 0 and 1.
-	 * @throws InterruptedException if there is an error during the wait of bus are ready
+	 * @throws InterruptedException if there is an error while the bus is waiting to be ready
 	 */
 	double readScaledData() throws InterruptedException;
 
