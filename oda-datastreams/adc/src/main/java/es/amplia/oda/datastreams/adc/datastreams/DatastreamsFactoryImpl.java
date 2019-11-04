@@ -20,7 +20,7 @@ public class DatastreamsFactoryImpl implements DatastreamsFactory {
 	}
 
 	@Override
-	public AdcDatastreamsEvent createAdcDatastreamsEvent(String datastreamId, int pinIndex) {
-		return new AdcDatastreamsEvent(datastreamId, pinIndex, adcService, eventDispatcher);
+	public AdcDatastreamsEvent createAdcDatastreamsEvent(String datastreamId, int pinIndex, double min, double max) {
+		return new AdcDatastreamsEvent(datastreamId, pinIndex, adcService, eventDispatcher, min, max);
 	}
 }

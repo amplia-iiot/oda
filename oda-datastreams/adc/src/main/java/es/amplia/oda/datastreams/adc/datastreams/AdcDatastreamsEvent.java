@@ -24,14 +24,16 @@ public class AdcDatastreamsEvent implements DatastreamsEvent {
 	private final AdcService adcService;
 	private final EventDispatcher eventDispatcher;
 	private AdcChannel channel;
+	private final double min;
+	private final double max;
 
-
-	public AdcDatastreamsEvent(String datastreamId, int pinIndex, AdcService adcService,
-							   EventDispatcher eventDispatcher) {
+	AdcDatastreamsEvent(String datastreamId, int pinIndex, AdcService adcService, EventDispatcher eventDispatcher, double min, double max) {
 		this.datastreamId = datastreamId;
 		this.eventDispatcher = eventDispatcher;
 		this.pinIndex = pinIndex;
 		this.adcService = adcService;
+		this.min = min;
+		this.max = max;
 	}
 
 	@Override
@@ -46,7 +48,8 @@ public class AdcDatastreamsEvent implements DatastreamsEvent {
 	}
 
 	private void publishEvent(AdcEvent event) {
-		publish("", datastreamId, Collections.emptyList(), event.getEpochTime(), event.getScaledValue());
+		float value = (float) (((max - min) * event.getScaledValue()) + min);
+		publish("", datastreamId, Collections.emptyList(), event.getEpochTime(), value);
 	}
 
 	@Override

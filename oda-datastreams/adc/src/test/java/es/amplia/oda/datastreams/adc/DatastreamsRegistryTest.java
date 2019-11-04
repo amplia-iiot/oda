@@ -55,11 +55,11 @@ public class DatastreamsRegistryTest {
 
 	@Test
 	public void testAddAdcDatastreamsEvent() {
-		when(mockedFactory.createAdcDatastreamsEvent(anyString(), anyInt())).thenReturn(mockedEvent);
+		when(mockedFactory.createAdcDatastreamsEvent(anyString(), anyInt(), anyDouble(), anyDouble())).thenReturn(mockedEvent);
 
-		testRegistry.addAdcDatastreamEvent(TEST_INDEX, TEST_DATASTREAM);
+		testRegistry.addAdcDatastreamEvent(TEST_INDEX, TEST_DATASTREAM, TEST_MINIMUM, TEST_MAXIMUM);
 
-		verify(mockedFactory).createAdcDatastreamsEvent(eq(TEST_DATASTREAM), eq(TEST_INDEX));
+		verify(mockedFactory).createAdcDatastreamsEvent(eq(TEST_DATASTREAM), eq(TEST_INDEX), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 		verify(mockedEvent).registerToEventSource();
 		Map<String, AdcDatastreamsEvent> datastreamsEvents = getDatastreamsEvents();
 		assertEquals(1, datastreamsEvents.size());
@@ -80,12 +80,12 @@ public class DatastreamsRegistryTest {
 
 		Whitebox.setInternalState(testRegistry, "datastreamsEvents", datastreamsEvents);
 
-		when(mockedFactory.createAdcDatastreamsEvent(anyString(), anyInt())).thenReturn(mockedEvent);
+		when(mockedFactory.createAdcDatastreamsEvent(anyString(), anyInt(), anyDouble(), anyDouble())).thenReturn(mockedEvent);
 
-		testRegistry.addAdcDatastreamEvent(TEST_INDEX, TEST_DATASTREAM);
+		testRegistry.addAdcDatastreamEvent(TEST_INDEX, TEST_DATASTREAM, TEST_MINIMUM, TEST_MAXIMUM);
 
 		verify(oldEvent).unregisterFromEventSource();
-		verify(mockedFactory).createAdcDatastreamsEvent(eq(TEST_DATASTREAM), eq(TEST_INDEX));
+		verify(mockedFactory).createAdcDatastreamsEvent(eq(TEST_DATASTREAM), eq(TEST_INDEX), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 		verify(mockedEvent).registerToEventSource();
 		assertEquals(1, datastreamsEvents.size());
 		assertTrue(datastreamsEvents.containsKey(TEST_DATASTREAM));

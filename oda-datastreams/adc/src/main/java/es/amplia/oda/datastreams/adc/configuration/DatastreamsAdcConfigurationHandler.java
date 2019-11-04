@@ -99,14 +99,14 @@ public class DatastreamsAdcConfigurationHandler implements ConfigurationUpdateHa
 		if (config.isGetter())
 			createAdcDatastreamGetter(config.getChannelPin(), datastreamId, config.getMin(), config.getMax());
 		if (config.isEvent())
-			createAdcDatastreamEvent(config.getChannelPin(), datastreamId);
+			createAdcDatastreamEvent(config.getChannelPin(), datastreamId, config.getMin(), config.getMax());
 	}
 
 	private void createAdcDatastreamGetter(int pinIndex, String datastreamId, double min, double max) {
 		adcDatastreamsRegistry.addAdcDatastreamGetter(pinIndex, datastreamId, min, max);
 	}
 
-	private void createAdcDatastreamEvent(int pinIndex, String datastreamId) {
-		adcDatastreamsRegistry.addAdcDatastreamEvent(pinIndex, datastreamId);
+	private void createAdcDatastreamEvent(int pinIndex, String datastreamId, double min, double max) {
+		adcDatastreamsRegistry.addAdcDatastreamEvent(pinIndex, datastreamId, min, max);
 	}
 }

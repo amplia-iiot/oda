@@ -128,6 +128,6 @@ public class DatastreamsAdcConfigurationHandlerTest {
 
 		verify(mockedRegistry).close();
 		verify(mockedRegistry).addAdcDatastreamGetter(eq(TEST_INDEX_1), eq(TEST_DATASTREAM_1), eq(0.), eq(1.));
-		verify(mockedRegistry).addAdcDatastreamEvent(eq(TEST_INDEX_2), eq(TEST_DATASTREAM_2));
+		verify(mockedRegistry).addAdcDatastreamEvent(eq(TEST_INDEX_2), eq(TEST_DATASTREAM_2), eq(0.), eq(1.));
 	}
 }

@@ -53,10 +53,10 @@ public class DatastreamsFactoryImplTest {
 	public void testCreateAdcDatastreamsEvent() throws Exception {
 		PowerMockito.whenNew(AdcDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
 
-		AdcDatastreamsEvent event = testFactory.createAdcDatastreamsEvent(TEST_DATASTREAM, TEST_PIN_INDEX);
+		AdcDatastreamsEvent event = testFactory.createAdcDatastreamsEvent(TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
 
 		assertNotNull(event);
 		PowerMockito.verifyNew(AdcDatastreamsEvent.class).withArguments(eq(TEST_DATASTREAM), eq(TEST_PIN_INDEX),
-				eq(mockedService), eq(mockedEventDispatcher));
+				eq(mockedService), eq(mockedEventDispatcher), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 	}
 }

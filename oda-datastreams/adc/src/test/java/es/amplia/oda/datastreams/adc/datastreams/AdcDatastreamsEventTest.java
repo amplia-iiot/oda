@@ -25,6 +25,8 @@ public class AdcDatastreamsEventTest {
 	private final static String TEST_DATASTREAM = "testDatastream";
 	private final static int TEST_INDEX = 1;
 	private final static float TEST_VALUE = 99.99f;
+	private final static float TEST_MIN = 0.0f;
+	private final static float TEST_MAX = 100.f;
 
 
 	@Mock
@@ -45,7 +47,7 @@ public class AdcDatastreamsEventTest {
 
 	@Before
 	public void prepareForTest() {
-		testEvent = new AdcDatastreamsEvent(TEST_DATASTREAM, TEST_INDEX, mockedService, mockedDispatcher);
+		testEvent = new AdcDatastreamsEvent(TEST_DATASTREAM, TEST_INDEX, mockedService, mockedDispatcher, TEST_MIN, TEST_MAX);
 	}
 
 	@Test
@@ -67,7 +69,7 @@ public class AdcDatastreamsEventTest {
 		assertEquals("", capturedEvent.getDeviceId());
 		assertEquals(TEST_DATASTREAM, capturedEvent.getDatastreamId());
 		assertArrayEquals(new String[]{}, capturedEvent.getPath());
-		assertEquals(TEST_VALUE, capturedEvent.getValue());
+		assertEquals((((TEST_MAX - TEST_MIN) * TEST_VALUE) - TEST_MIN), capturedEvent.getValue());
 	}
 
 	@Test

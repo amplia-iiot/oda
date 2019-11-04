@@ -26,7 +26,7 @@ public class DatastreamsRegistry {
 		datastreamsGetterRegistrationManager.register(datastreamsGetter);
 	}
 
-	public void addAdcDatastreamEvent(int pinIndex, String datastreamId) {
+	public void addAdcDatastreamEvent(int pinIndex, String datastreamId, double min, double max) {
 		DatastreamsEvent datastreamsEventSender;
 
 		if(datastreamsEvents.containsKey(datastreamId)) {
@@ -34,7 +34,7 @@ public class DatastreamsRegistry {
 			datastreamsEventSender.unregisterFromEventSource();
 		}
 
-		datastreamsEventSender = datastreamsFactory.createAdcDatastreamsEvent(datastreamId, pinIndex);
+		datastreamsEventSender = datastreamsFactory.createAdcDatastreamsEvent(datastreamId, pinIndex, min, max);
 		datastreamsEventSender.registerToEventSource();
 		datastreamsEvents.put(datastreamId, datastreamsEventSender);
 	}
