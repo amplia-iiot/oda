@@ -17,6 +17,7 @@ class CommsManagerImpl implements CommsManager {
     static final String INIT_SIM_SCRIPT = "/scripts/initSim.sh";
     static final String CONFIGURE_CONNECTION_SCRIPT = "/scripts/configureConnection.sh";
     static final String CONNECT_SCRIPT = "/scripts/connect.sh";
+    static final long COMMAND_TIMEOUT_MS = 60000;
 
 
     private final CommandProcessor commandProcessor;
@@ -51,7 +52,13 @@ class CommsManagerImpl implements CommsManager {
     }
 
     private void executeScript(String scriptName, String ... params) throws CommandExecutionException {
-        commandProcessor.execute(resourceManager.getResourcePath(scriptName) + " " + String.join(" ", params));
+        executeScript(scriptName, COMMAND_TIMEOUT_MS, params);
+    }
+
+    private void executeScript(String scriptName, long commandTimeout, String ... params)
+            throws CommandExecutionException {
+        commandProcessor.execute(resourceManager.getResourcePath(scriptName) + " " + String.join(" ", params),
+                commandTimeout);
     }
 
     private void configureConnection(String apn, String username, String password) throws CommandExecutionException {
@@ -61,7 +68,7 @@ class CommsManagerImpl implements CommsManager {
     private void connect(int connectionTimeout, long retryConnectionTimer) {
         connectionThread = new Thread(() -> {
             try {
-                executeScript(CONNECT_SCRIPT, Integer.toString(connectionTimeout));
+                executeScript(CONNECT_SCRIPT, COMMAND_TIMEOUT_MS + connectionTimeout * 1000, Integer.toString(connectionTimeout));
             } catch (CommandExecutionException e) {
                 LOGGER.error("Error establishing data connection", e);
                 scheduledConnection =

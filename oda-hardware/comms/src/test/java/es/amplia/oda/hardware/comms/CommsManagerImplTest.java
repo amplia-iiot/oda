@@ -57,30 +57,31 @@ public class CommsManagerImplTest {
         verify(mockedResourceManager).getResourcePath(eq(INIT_SIM_SCRIPT));
         verify(mockedResourceManager).getResourcePath(eq(CONFIGURE_CONNECTION_SCRIPT));
         verify(mockedResourceManager).getResourcePath(eq(CONNECT_SCRIPT));
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_PIN);
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_APN + " " + TEST_USERNAME +
-                " " + TEST_PASS);
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT);
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_PIN), eq(COMMAND_TIMEOUT_MS));
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_APN + " " + TEST_USERNAME + " " + TEST_PASS),
+                eq(COMMAND_TIMEOUT_MS));
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT),
+                eq(COMMAND_TIMEOUT_MS + TEST_CONNECTION_TIMEOUT * 1000));
     }
 
     @Test
     public void testConnectCommandExecutionExceptionIsCaught() throws CommandExecutionException {
         when(mockedResourceManager.getResourcePath(anyString())).thenReturn(TEST_PATH);
-        when(mockedCommandProcessor.execute(anyString()))
+        when(mockedCommandProcessor.execute(anyString(), anyLong()))
                 .thenThrow(new CommandExecutionException("", "", new RuntimeException()));
 
         testCommsManager.connect(TEST_PIN, TEST_APN, TEST_USERNAME, TEST_PASS, TEST_CONNECTION_TIMEOUT,
                 TEST_RETRY_CONNECTION_TIMER);
 
         verify(mockedResourceManager).getResourcePath(eq(INIT_SIM_SCRIPT));
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_PIN);
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_PIN), eq(COMMAND_TIMEOUT_MS));
         assertTrue("CommandExecutionException should be caught", true);
     }
 
     @Test
     public void testConnectCommandExecutionConnectingExceptionIsCaught() throws CommandExecutionException, InterruptedException, ExecutionException {
         when(mockedResourceManager.getResourcePath(anyString())).thenReturn(TEST_PATH);
-        when(mockedCommandProcessor.execute(anyString())).thenReturn("").thenReturn("")
+        when(mockedCommandProcessor.execute(anyString(), anyLong())).thenReturn("").thenReturn("")
                 .thenThrow(new CommandExecutionException("", "", new RuntimeException())).thenReturn("");
 
         testCommsManager.connect(TEST_PIN, TEST_APN, TEST_USERNAME, TEST_PASS, TEST_CONNECTION_TIMEOUT, TEST_RETRY_CONNECTION_TIMER);
@@ -89,15 +90,17 @@ public class CommsManagerImplTest {
         verify(mockedResourceManager).getResourcePath(eq(INIT_SIM_SCRIPT));
         verify(mockedResourceManager).getResourcePath(eq(CONFIGURE_CONNECTION_SCRIPT));
         verify(mockedResourceManager).getResourcePath(eq(CONNECT_SCRIPT));
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_PIN);
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_APN + " " + TEST_USERNAME +
-                " " + TEST_PASS);
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT);
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_PIN), eq(COMMAND_TIMEOUT_MS));
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_APN + " " + TEST_USERNAME + " " + TEST_PASS),
+                eq(COMMAND_TIMEOUT_MS));
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT),
+                eq(COMMAND_TIMEOUT_MS + TEST_CONNECTION_TIMEOUT * 1000));
         verify(mockedExecutor).schedule(runnableCaptor.capture(), eq(TEST_RETRY_CONNECTION_TIMER), eq(TimeUnit.SECONDS));
         Runnable runnableCaptured = runnableCaptor.getValue();
         runnableCaptured.run();
         verify(mockedResourceManager).getResourcePath(eq(CONNECT_SCRIPT));
-        verify(mockedCommandProcessor).execute(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT);
+        verify(mockedCommandProcessor).execute(eq(TEST_PATH + " " + TEST_CONNECTION_TIMEOUT),
+                eq(COMMAND_TIMEOUT_MS + TEST_CONNECTION_TIMEOUT * 1000));
         assertTrue("CommandExecutionException should be caught", true);
     }
 

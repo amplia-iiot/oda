@@ -10,15 +10,17 @@ fi
 
 pin=$1
 
-sim_status=$(/legato/systems/current/bin/cm sim) | grep -oEi 'LE_SIM_[A-Z]+'
+sim_status=$(/legato/systems/current/bin/cm sim | grep -oEi 'LE_SIM_[A-Z]+')
 
-if [ $sim_status -e LE_SIM_INSERTED ]
+if [ "$sim_status" = "LE_SIM_INSERTED" ]
 then
-  $(/legato/systems/current/bin/cm sim $pin)
-  sim_status=$(/legato/systems/current/bin/cm sim) | grep -oEi 'LE_SIM_[A-Z]+'
+  $(/legato/systems/current/bin/cm sim enterpin $pin)
+  # Wait SIM status to be updated
+  sleep 1
+  sim_status=$(/legato/systems/current/bin/cm sim | grep -oEi 'LE_SIM_[A-Z]+')
 fi
 
-if [ $sim_status -e LE_SIM_READY ]
+if [ "$sim_status" = "LE_SIM_READY" ]
 then
   echo "SIM is ready"
   exit 0
