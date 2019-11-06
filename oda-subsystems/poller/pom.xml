@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-subsystems</artifactId>
         <groupId>es.amplia.oda.subsystem</groupId>
-        <version>3.30.3-SNAPSHOT</version>
+        <version>3.30.4-SNAPSHOT</version>
     </parent>
 
     <properties>
