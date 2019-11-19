@@ -1,0 +1,79 @@
+version: "3.7"
+services:
+  elasticsearch:
+    image: elasticsearch:7.4.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms256M -Xmx256M"
+    volumes:
+      - type: volume
+        source: logs
+        target: /var/log
+      - type: volume
+        source: esdata
+        target: /usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - stack
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.4.2
+    user: root
+    container_name: filebeat
+    command: --strict.perms=false
+    depends_on:
+      - elasticsearch
+    volumes:
+      - type: bind
+        source: ~/docker/config/filebeat/filebeat.yml
+        target: /usr/share/filebeat/filebeat.yml
+      - type: volume
+        source: odalogs
+        target: /mnt/log/oda
+    ports:
+      - 9000:9000
+    networks:
+      - stack
+  kibana:
+    image: kibana:7.4.2
+    container_name: kibana
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200/
+    depends_on:
+      - elasticsearch
+    volumes:
+      - type: volume
+        source: logs
+        target: /var/log
+    ports:
+      - 5601:5601
+    networks:
+      - stack
+  oda:
+    image: oda:3.30.5-SNAPSHOT
+    container_name: oda
+    volumes:
+      - type: volume
+        source: odabundles
+        target: /opt/oda/deploy
+      - type: volume
+        source: odaconfiguration
+        target: /opt/oda/configuration
+      - type: volume
+        source: odalogs
+        target: /opt/oda/log
+    ports:
+      - 8000:8000
+      - 50000:50000
+    networks:
+      - stack
+volumes:
+  esdata:
+  logs:
+  odabundles:
+  odaconfiguration:
+  odalogs:
+networks:
+  stack:
