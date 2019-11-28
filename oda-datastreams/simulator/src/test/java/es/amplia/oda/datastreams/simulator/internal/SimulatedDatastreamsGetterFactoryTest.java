@@ -14,6 +14,7 @@ public class SimulatedDatastreamsGetterFactoryTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final Object TEST_VALUE = "Hello World!";
     private static final double TEST_MIN_VALUE = 100.0;
     private static final double TEST_MAX_VALUE = 1000.0;
     private static final double TEST_MAX_DIFF = 10.0;
@@ -21,15 +22,24 @@ public class SimulatedDatastreamsGetterFactoryTest {
 
     private final SimulatedDatastreamsGetterFactory testFactory = new SimulatedDatastreamsGetterFactory();
 
+    @Test
+    public void createConstantDatastreamsGetter() throws Exception {
+        PowerMockito.whenNew(ConstantDatastreamsGetter.class).withAnyArguments().thenReturn(null);
+
+        testFactory.createConstantDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_VALUE);
+
+        PowerMockito.verifyNew(ConstantDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
+                eq(TEST_DEVICE_ID), eq(TEST_VALUE));
+    }
 
     @Test
-    public void createSimulatedDatastreamsGetter() throws Exception {
-        PowerMockito.whenNew(SimulatedDatastreamsGetter.class).withAnyArguments().thenReturn(null);
+    public void createRandomDatastreamsGetter() throws Exception {
+        PowerMockito.whenNew(RandomDatastreamsGetter.class).withAnyArguments().thenReturn(null);
 
-        testFactory.createSimulatedDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_MIN_VALUE, TEST_MAX_VALUE,
+        testFactory.createRandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_MIN_VALUE, TEST_MAX_VALUE,
                 TEST_MAX_DIFF);
 
-        PowerMockito.verifyNew(SimulatedDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
+        PowerMockito.verifyNew(RandomDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
                 eq(TEST_DEVICE_ID), eq(TEST_MIN_VALUE), eq(TEST_MAX_VALUE), eq(TEST_MAX_DIFF));
     }
 }

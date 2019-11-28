@@ -8,7 +8,7 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
-class SimulatedDatastreamsGetter implements DatastreamsGetter {
+class RandomDatastreamsGetter implements DatastreamsGetter {
 
     private final String datastreamId;
     private final String deviceId;
@@ -18,8 +18,8 @@ class SimulatedDatastreamsGetter implements DatastreamsGetter {
 
     private double lastValue;
 
-    SimulatedDatastreamsGetter(String datastreamId, String deviceId, double minValue, double maxValue,
-                               double maxDifferenceBetweenMeasurements) {
+    RandomDatastreamsGetter(String datastreamId, String deviceId, double minValue, double maxValue,
+                            double maxDifferenceBetweenMeasurements) {
         this.datastreamId = datastreamId;
         this.deviceId = deviceId;
         this.minValue = minValue;

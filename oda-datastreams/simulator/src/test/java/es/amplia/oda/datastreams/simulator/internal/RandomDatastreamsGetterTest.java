@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 
-public class SimulatedDatastreamsGetterTest {
+public class RandomDatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -19,8 +19,8 @@ public class SimulatedDatastreamsGetterTest {
     private static final double TEST_MAX_VALUE = 1000;
     private static final double TEST_MAX_DIFFERENCE = 10;
 
-    private final SimulatedDatastreamsGetter testGetter =
-            new SimulatedDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_MIN_VALUE, TEST_MAX_VALUE,
+    private final RandomDatastreamsGetter testGetter =
+            new RandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_MIN_VALUE, TEST_MAX_VALUE,
                     TEST_MAX_DIFFERENCE);
 
     @Test
