@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-comms</artifactId>
         <groupId>es.amplia.oda.comms</groupId>
-        <version>3.30.5-SNAPSHOT</version>
+        <version>3.31.0</version>
     </parent>
 
     <properties>
