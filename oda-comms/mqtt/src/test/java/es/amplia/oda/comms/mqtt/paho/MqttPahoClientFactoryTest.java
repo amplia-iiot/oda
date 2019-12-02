@@ -1,18 +1,15 @@
 package es.amplia.oda.comms.mqtt.paho;
 
-import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 
@@ -27,17 +24,24 @@ public class MqttPahoClientFactoryTest {
 
     @Mock
     private org.eclipse.paho.client.mqttv3.MqttClient mockedInnerClient;
+    @Mock
+    private ResubscribeTopicsOnReconnectCallback mockedCallback;
+    @Mock
+    private MqttPahoClient mockedClient;
 
     @Test
     public void testCreateMqttClient() throws Exception {
         PowerMockito.whenNew(org.eclipse.paho.client.mqttv3.MqttClient.class).withAnyArguments().
                 thenReturn(mockedInnerClient);
+        PowerMockito.whenNew(ResubscribeTopicsOnReconnectCallback.class).withAnyArguments().thenReturn(mockedCallback);
+        PowerMockito.whenNew(MqttPahoClient.class).withAnyArguments().thenReturn(mockedClient);
 
-        MqttClient client = testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
+        testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
 
         PowerMockito.verifyNew(org.eclipse.paho.client.mqttv3.MqttClient.class)
                 .withArguments(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID), any(MemoryPersistence.class));
-        assertEquals(mockedInnerClient, Whitebox.getInternalState(client, "innerClient"));
+        PowerMockito.verifyNew(ResubscribeTopicsOnReconnectCallback.class).withNoArguments();
+        PowerMockito.verifyNew(MqttPahoClient.class).withArguments(eq(mockedInnerClient), eq(mockedCallback));
     }
 
     @Test(expected = MqttException.class)
