@@ -58,4 +58,13 @@ public class MqttMessage {
         result = 31 * result + Arrays.hashCode(payload);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "MqttMessage{" +
+                "payload=" + new String(payload) +
+                ", qos=" + qos +
+                ", retained=" + retained +
+                '}';
+    }
 }

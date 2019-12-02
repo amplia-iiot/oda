@@ -28,7 +28,6 @@ class EventDispatcherImpl implements EventDispatcher {
 
     @Override
     public void publish(Event event) {
-        LOGGER.info("Publish event {} of datastream {}", event, event.getDatastreamId());
         OutputDatastream outputEvent = parse(event);
         publish(outputEvent);
     }
@@ -39,10 +38,11 @@ class EventDispatcherImpl implements EventDispatcher {
 
     void publish(OutputDatastream outputEvent) {
         try {
+            LOGGER.info("Publishing events {}", outputEvent);
             byte[] payload = serializer.serialize(outputEvent);
             connector.uplink(payload);
         } catch (IOException e) {
-            LOGGER.error("Error serializing event. Event will not be published: ", e);
+            LOGGER.error("Error serializing events {}. Events will not be published: ", outputEvent, e);
         }
     }
 }
