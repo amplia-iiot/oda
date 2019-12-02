@@ -47,6 +47,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
         }
 
         try {
+            LOGGER.info("Operation processed: {}", output);
             byte[] resultAsBytes = serializer.serialize(output);
             responseFuture.complete(resultAsBytes);
             return responseFuture;

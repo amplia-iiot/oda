@@ -4,11 +4,16 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 class OpenGateOperationDispatcher implements Dispatcher {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
+
 
     private final Serializer serializer;
     private final DeviceInfoProvider deviceInfoProvider;
@@ -31,6 +36,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         Input openGateInput;
         try {
             openGateInput = serializer.deserialize(input, Input.class);
+            LOGGER.info("Operation received: {}", openGateInput);
         } catch (IOException e) {
             throw new IllegalArgumentException("Could not deserialize input");
         }
