@@ -34,11 +34,11 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
         LOGGER.info("OpenGate Dispatcher updated with {} properties", props.size());
+        currentConfiguration.clear();
 
-        String reducedOutputProperty = (String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME);
-        if (reducedOutputProperty != null) {
-            reducedOutput = Boolean.parseBoolean(reducedOutputProperty);
-        }
+        reducedOutput = Optional.ofNullable((String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME))
+                .map(Boolean::parseBoolean)
+                .orElse(false);
 
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {

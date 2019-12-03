@@ -32,21 +32,25 @@ public class MqttPahoClientTest {
 
     @Mock
     private org.eclipse.paho.client.mqttv3.MqttClient mockedInnerClient;
+    @Mock
+    private ResubscribeTopicsOnReconnectCallback mockedResubscribeTopicsCallback;
     @InjectMocks
     private MqttPahoClient testClient;
 
     @Mock
     private MqttMessageListener mockedListener;
 
+
     @Test
     public void testConnect() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         testClient.connect();
 
+        verify(mockedResubscribeTopicsCallback).listenTo(eq(mockedInnerClient));
         verify(mockedInnerClient).connect();
     }
 
     @Test(expected = MqttException.class)
-    public void testConnectException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
+    public void testConnectThrowException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).connect();
 
         testClient.connect();
@@ -66,6 +70,7 @@ public class MqttPahoClientTest {
 
         PowerMockito.verifyStatic(MqttPahoConnectOptionsMapper.class);
         MqttPahoConnectOptionsMapper.from(eq(options));
+        verify(mockedResubscribeTopicsCallback).listenTo(eq(mockedInnerClient));
         verify(mockedInnerClient).connect(eq(mockedInnerOptions));
     }
 
@@ -122,6 +127,7 @@ public class MqttPahoClientTest {
 
         verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), innerListenerCaptor.capture());
         IMqttMessageListener innerListener = innerListenerCaptor.getValue();
+        verify(mockedResubscribeTopicsCallback).addSubscribedTopic(eq(TEST_TOPIC), eq(innerListener));
         assertEquals(mockedListener, Whitebox.getInternalState(innerListener, "mqttMessageListener"));
     }
 

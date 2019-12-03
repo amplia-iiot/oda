@@ -18,7 +18,7 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
     private final ScheduledExecutorService executor;
     private final Poller poller;
     private final Map<PollConfiguration, Set<String>> currentConfiguration = new HashMap<>();
-    private final List<ScheduledFuture> configuredTasks = new ArrayList<>();
+    private final List<ScheduledFuture<?>> configuredTasks = new ArrayList<>();
 
     PollerConfigurationUpdateHandler(ScheduledExecutorService executor, Poller poller) {
         this.executor = executor;
@@ -28,6 +28,8 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
         LOGGER.info("Collection subsystem updated with {} properties", props.size());
+        currentConfiguration.clear();
+
         Enumeration<String> keysEnumeration = props.keys();
         while(keysEnumeration.hasMoreElements()) {
             String key = keysEnumeration.nextElement();
@@ -76,7 +78,7 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
         configuredTasks.forEach(task -> task.cancel(false));
         configuredTasks.clear();
         currentConfiguration.forEach((poll, ids) ->{
-            ScheduledFuture pollTask;
+            ScheduledFuture<?> pollTask;
             if(poll.getSecondsBetweenPolls() == 0) {
                 LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' only one time in {} seconds",
                         ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll());
