@@ -1,160 +1,82 @@
 package es.amplia.oda.operation.get;
 
-import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
-import es.amplia.oda.operation.api.OperationGetDeviceParameters.Result;
-import es.amplia.oda.operation.api.OperationGetDeviceParameters.Status;
+import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.statemanager.api.StateManager;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OperationGetDeviceParametersImplTest {
-    private static final String DEVICE_ID = "aDeviceId";
-    private static final String ID1 = "id1";
-    private static final String ID2 = "id2";
-    private static final String ID3 = "id3";
-    private static final String ID4 = "id4";
-    private static final String[] FOUND_IDS = {ID1, ID2};
-    private static final String[] NOT_FOUND_IDS = {ID3, ID4};
-    private static final Set<String> DATASTREAMS_IDENTIFIERS = asSet(unionOf(FOUND_IDS, NOT_FOUND_IDS));
-    private static final long AT = 10000;
-    private static final Integer VAL_FOR_ID_1 = 42;
-    private static final String VAL_FOR_ID_2 = "maria";
-    private static final CollectedValue VALUE_FOR_ID_1 = new CollectedValue(AT, VAL_FOR_ID_1);
-    private static final CollectedValue VALUE_FOR_ID_2 = new CollectedValue(AT, VAL_FOR_ID_2);
 
-    private OperationGetDeviceParametersImpl get;
-    private CompletableFuture<CollectedValue> futureForId1;
-    private CompletableFuture<CollectedValue> futureForId2;
-    
+    private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_DATASTREAM_ID_1 = "d1";
+    private static final String TEST_VALUE_1 = "Hello";
+    private static final String TEST_DATASTREAM_ID_2 = "d2";
+    private static final double TEST_VALUE_2 = 12.34;
+    private static final String TEST_DATASTREAM_ID_3 = "d3";
+    private static final String TEST_DATASTREAM_ID_4 = "d4";
+    private static final Set<String> TEST_DATASTREAMS = new HashSet<>(
+            Arrays.asList(TEST_DATASTREAM_ID_1, TEST_DATASTREAM_ID_2, TEST_DATASTREAM_ID_3, TEST_DATASTREAM_ID_4)
+    );
+    private static final long TEST_AT = System.currentTimeMillis();
+    private static final String TEST_ERROR = "Error!";
+    private static final Set<DatastreamValue> TEST_DATASTREAM_VALUES = new HashSet<>(
+            Arrays.asList(
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT, TEST_VALUE_1, DatastreamValue.Status.OK, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT, TEST_VALUE_2, DatastreamValue.Status.OK, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT, null, DatastreamValue.Status.NOT_FOUND, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR)
+            )
+    );
+
+
     @Mock
-    private DatastreamsGetterFinder datastreamsGetterFinder;
-    @Mock
-    private DatastreamsGetter datastreamsGetterForId1;
-    @Mock
-    private DatastreamsGetter datastreamsGetterForId2;
-
-    @SafeVarargs
-    private static <T> Set<T> asSet(T... ts) {
-        return new HashSet<>(Arrays.asList(ts));
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static String[] unionOf(String[] a, String[] b) {
-        return Stream.concat(Stream.of(a), Stream.of(b)).toArray(String[]::new);
-    }
-    
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        get = new OperationGetDeviceParametersImpl(datastreamsGetterFinder);
-        List<DatastreamsGetter> getters = Arrays.asList(datastreamsGetterForId1, datastreamsGetterForId2);
-        when(datastreamsGetterFinder.getGettersSatisfying(DEVICE_ID, DATASTREAMS_IDENTIFIERS)).thenReturn(new DatastreamsGetterFinder.Return(getters, asSet(NOT_FOUND_IDS)));
-        futureForId1 = new CompletableFuture<>();
-        futureForId2 = new CompletableFuture<>();
-        when(datastreamsGetterForId1.get(DEVICE_ID)).thenReturn(futureForId1);
-        when(datastreamsGetterForId2.get(DEVICE_ID)).thenReturn(futureForId2);
-        when(datastreamsGetterForId1.getDatastreamIdSatisfied()).thenReturn(ID1);
-        when(datastreamsGetterForId2.getDatastreamIdSatisfied()).thenReturn(ID2);
-    }
+    private StateManager mockedStateManager;
+    @InjectMocks
+    private OperationGetDeviceParametersImpl testGetDeviceParametersImpl;
 
     @Test
-    public void datastreamsGetterFinderIsUsedToGetAllGetters() {
-        
-        get.getDeviceParameters(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-        
-        verify(datastreamsGetterFinder).getGettersSatisfying(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-    }
-    
-    @Test
-    public void forEveryGetterFoundItGetFunctionIsCalled() {
-        
-        get.getDeviceParameters(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-        
-        verify(datastreamsGetterForId1).get(DEVICE_ID);
-        verify(datastreamsGetterForId2).get(DEVICE_ID);
-    }
-    
-    @Test
-    public void theFutureReturnedCompletesWhenAllDatastreamsGettersFoundAreCompleted() {
-        CompletableFuture<OperationGetDeviceParameters.Result> future = get.getDeviceParameters(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-        
-        assertFalse(future.isDone());
-        
-        futureForId1.complete(VALUE_FOR_ID_1);
-        futureForId2.complete(VALUE_FOR_ID_2);
-        
-        assertTrue(future.isDone());
-    }
-    
-    private OperationGetDeviceParameters.Result executeGetCompletingFutures() throws InterruptedException, ExecutionException {
-        CompletableFuture<OperationGetDeviceParameters.Result> future = get.getDeviceParameters(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-        futureForId1.complete(VALUE_FOR_ID_1);
-        futureForId2.complete(VALUE_FOR_ID_2);
-        return future.get();
-    }
-    
-    @Test
-    public void ifAGetterThrowsAnExceptionInGetMethodTheExceptionMessageIsStoredAsError() throws InterruptedException, ExecutionException {
-        List<DatastreamsGetter> listOfGetterForId1 = Collections.singletonList(datastreamsGetterForId1);
-        when(datastreamsGetterFinder.getGettersSatisfying(DEVICE_ID, asSet(ID1))).thenReturn(
-            new DatastreamsGetterFinder.Return(listOfGetterForId1 , asSet())
-        );
-        String exceptionMessage = "whatever";
-        when(datastreamsGetterForId1.get(DEVICE_ID)).thenThrow(new RuntimeException(exceptionMessage));
-        
-        OperationGetDeviceParameters.Result actual = get.getDeviceParameters(DEVICE_ID, asSet(ID1)).get();
-        
-        OperationGetDeviceParameters.Result expected = new OperationGetDeviceParameters.Result(
-                Collections.singletonList(
-                        new OperationGetDeviceParameters.GetValue(ID1, Status.PROCESSING_ERROR, null, exceptionMessage)
-                )
-        );
-        assertEquals(expected, actual);
-    }
-    
-    @Test
-    public void notFoundIdsAreCopiedToResponse() throws InterruptedException, ExecutionException {
-        OperationGetDeviceParameters.Result actual = executeGetCompletingFutures();
-        
-        OperationGetDeviceParameters.GetValue notFoundId3 = new OperationGetDeviceParameters.GetValue(ID3, OperationGetDeviceParameters.Status.NOT_FOUND, null, null);
-        OperationGetDeviceParameters.GetValue notFoundId4 = new OperationGetDeviceParameters.GetValue(ID4, OperationGetDeviceParameters.Status.NOT_FOUND, null, null);
-        assertThat(actual.getValues(), hasItems(notFoundId3, notFoundId4));
-    }
+    public void testGetDeviceParameters() throws ExecutionException, InterruptedException {
+        OperationGetDeviceParameters.GetValue expectedValue1 =
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_1, OperationGetDeviceParameters.Status.OK, TEST_VALUE_1, null);
+        OperationGetDeviceParameters.GetValue expectedValue2 =
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_2, OperationGetDeviceParameters.Status.OK, TEST_VALUE_2, null);
+        OperationGetDeviceParameters.GetValue expectedValue3 =
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_3, OperationGetDeviceParameters.Status.NOT_FOUND, null, null);
+        OperationGetDeviceParameters.GetValue expectedValue4 =
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_4, OperationGetDeviceParameters.Status.PROCESSING_ERROR, null, TEST_ERROR);
 
-    @Test
-    public void recollectedValuesAreCopiedToResponse() throws InterruptedException, ExecutionException {
-        OperationGetDeviceParameters.Result actual = executeGetCompletingFutures();
-        
-        OperationGetDeviceParameters.GetValue valueForId1 = new OperationGetDeviceParameters.GetValue(ID1, OperationGetDeviceParameters.Status.OK, VAL_FOR_ID_1, null);
-        OperationGetDeviceParameters.GetValue valueForId2 = new OperationGetDeviceParameters.GetValue(ID2, OperationGetDeviceParameters.Status.OK, VAL_FOR_ID_2, null);
-        assertThat(actual.getValues(), hasItems(valueForId1, valueForId2));
-    }
+        when(mockedStateManager.getDatastreamsInformation(anyString(), any()))
+                .thenReturn(CompletableFuture.completedFuture(TEST_DATASTREAM_VALUES));
 
-    @Test
-    public void ifAGetFutureCompletesWithExceptionTheErrorIsCopiedToResponse() throws InterruptedException, ExecutionException {
-        CompletableFuture<OperationGetDeviceParameters.Result> future = get.getDeviceParameters(DEVICE_ID, DATASTREAMS_IDENTIFIERS);
-        String exceptionMessage = "whatever";
-        futureForId1.completeExceptionally(new RuntimeException(exceptionMessage));
-        futureForId2.complete(VALUE_FOR_ID_2);
-        Result actual = future.get();
-        
-        OperationGetDeviceParameters.GetValue valueForId1 = new OperationGetDeviceParameters.GetValue(ID1, OperationGetDeviceParameters.Status.PROCESSING_ERROR, null, exceptionMessage);
-        assertThat(actual.getValues(), hasItem(valueForId1));
-    }
+        CompletableFuture<OperationGetDeviceParameters.Result> future =
+                testGetDeviceParametersImpl.getDeviceParameters(TEST_DEVICE_ID, TEST_DATASTREAMS);
+        OperationGetDeviceParameters.Result result = future.get();
 
+        assertNotNull(result);
+        List<OperationGetDeviceParameters.GetValue> actualValues = result.getValues();
+        assertEquals(4, actualValues.size());
+        assertTrue(actualValues.contains(expectedValue1));
+        assertTrue(actualValues.contains(expectedValue2));
+        assertTrue(actualValues.contains(expectedValue3));
+        assertTrue(actualValues.contains(expectedValue4));
+        verify(mockedStateManager).getDatastreamsInformation(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAMS));
+    }
 }

@@ -1,10 +1,7 @@
 package es.amplia.oda.operation.synchronizeclock;
 
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocator;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
+import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -16,17 +13,18 @@ public class Activator implements BundleActivator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-	private ServiceRegistration<OperationSynchronizeClock> registration;
+	private StateManagerProxy stateManager;
+	private ServiceRegistration<OperationSynchronizeClock> synchronizeClockRegistration;
 
 	@Override
-	public void start(BundleContext context) throws Exception {
+	public void start(BundleContext context) {
 		LOGGER.info("Starting Synchronize Clock Operation");
 
-		DatastreamsSettersLocator datastreamsSettersLocator = new DatastreamsSettersLocatorOsgi(context);
-		DatastreamsSettersFinder datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
+		stateManager = new StateManagerProxy(context);
 		OperationSynchronizeClockImpl synchronizeClockOperation =
-				new OperationSynchronizeClockImpl(datastreamsSettersFinder);
-		registration = context.registerService(OperationSynchronizeClock.class, synchronizeClockOperation, null);
+				new OperationSynchronizeClockImpl(stateManager);
+		synchronizeClockRegistration =
+				context.registerService(OperationSynchronizeClock.class, synchronizeClockOperation, null);
 
 		LOGGER.info("Synchronize Clock Operation started");
 	}
@@ -35,7 +33,8 @@ public class Activator implements BundleActivator {
 	public void stop(BundleContext context) {
 		LOGGER.info("Stopping Synchronize Clock Operation");
 
-		registration.unregister();
+		synchronizeClockRegistration.unregister();
+		stateManager.close();
 
 		LOGGER.info("Synchronize Clock Operation stopped");
 	}

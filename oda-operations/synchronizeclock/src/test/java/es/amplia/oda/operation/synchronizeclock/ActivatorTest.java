@@ -1,8 +1,7 @@
 package es.amplia.oda.operation.synchronizeclock;
 
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
+import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,9 +26,7 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private DatastreamsSettersLocatorOsgi mockedLocator;
-    @Mock
-    private DatastreamsSettersFinderImpl mockedFinder;
+    private StateManagerProxy mockedStateManager;
     @Mock
     private OperationSynchronizeClockImpl mockedSynchronizeClock;
     @Mock
@@ -37,24 +34,24 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(DatastreamsSettersLocatorOsgi.class).withAnyArguments().thenReturn(mockedLocator);
-        PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockedFinder);
+        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(OperationSynchronizeClockImpl.class).withAnyArguments().thenReturn(mockedSynchronizeClock);
 
         testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(DatastreamsSettersLocatorOsgi.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedLocator));
-        PowerMockito.verifyNew(OperationSynchronizeClockImpl.class).withArguments(eq(mockedFinder));
+        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(OperationSynchronizeClockImpl.class).withArguments(eq(mockedStateManager));
         verify(mockedContext).registerService(eq(OperationSynchronizeClock.class), eq(mockedSynchronizeClock), any());
     }
 
     @Test
     public void testStop() {
-        Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "stateManager", mockedStateManager);
+        Whitebox.setInternalState(testActivator, "synchronizeClockRegistration", mockedRegistration);
 
         testActivator.stop(mockedContext);
 
         verify(mockedRegistration).unregister();
+        verify(mockedStateManager).close();
     }
 }

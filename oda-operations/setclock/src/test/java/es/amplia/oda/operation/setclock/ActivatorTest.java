@@ -1,8 +1,7 @@
 package es.amplia.oda.operation.setclock;
 
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSetClock;
+import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,9 +26,7 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private DatastreamsSettersLocatorOsgi mockedLocator;
-    @Mock
-    private DatastreamsSettersFinderImpl mockedFinder;
+    private StateManagerProxy mockedStateManager;
     @Mock
     private OperationSetClockImpl mockedSetClock;
     @Mock
@@ -37,21 +34,21 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(DatastreamsSettersLocatorOsgi.class).withAnyArguments().thenReturn(mockedLocator);
-        PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockedFinder);
+        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(OperationSetClockImpl.class).withAnyArguments().thenReturn(mockedSetClock);
 
         testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(DatastreamsSettersLocatorOsgi.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedLocator));
-        PowerMockito.verifyNew(OperationSetClockImpl.class).withArguments(eq(mockedFinder));
+        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(OperationSetClockImpl.class).withArguments(eq(mockedStateManager));
         verify(mockedContext).registerService(eq(OperationSetClock.class), eq(mockedSetClock), any());
     }
 
     @Test
     public void testStop() {
-        Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "setClockRegistration", mockedRegistration);
+
+        Whitebox.setInternalState(testActivator, "stateManager", mockedStateManager);
 
         testActivator.stop(mockedContext);
 

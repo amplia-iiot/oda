@@ -7,13 +7,12 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface OperationGetDeviceParameters {
-    
     enum Status {
         OK,
         NOT_FOUND,
         PROCESSING_ERROR
     }
-    
+
     @Value
     class GetValue {
         String datastreamId;

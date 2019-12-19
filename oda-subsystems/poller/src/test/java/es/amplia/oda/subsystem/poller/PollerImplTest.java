@@ -1,9 +1,11 @@
 package es.amplia.oda.subsystem.poller;
 
+import es.amplia.oda.core.commons.interfaces.DatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,19 +46,19 @@ public class PollerImplTest {
     private PollerImpl collector;
 
     @Mock
-    private DatastreamsGetterFinderImpl datastreamsGettersFinder;
+    private DatastreamsGettersFinderImpl datastreamsGettersFinder;
     @Mock
     private DatastreamsGetter getterForId1;
     @Mock
     private DatastreamsGetter getterForId2;
     @Mock
-    private EventDispatcherProxy eventDispatcher;
+    private DatastreamsEvent datastreamsEvent;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        DatastreamsGetterFinder.Return gettersForId1AndId2 = new DatastreamsGetterFinder.Return(Arrays.asList(getterForId1, getterForId2), asSet());
-        collector = new PollerImpl(datastreamsGettersFinder, eventDispatcher);
+        DatastreamsGettersFinder.Return gettersForId1AndId2 = new DatastreamsGettersFinder.Return(Arrays.asList(getterForId1, getterForId2), asSet());
+        collector = new PollerImpl(datastreamsGettersFinder, datastreamsEvent);
         futureForId1 = new CompletableFuture<>();
         futureForId2 = new CompletableFuture<>();
         
@@ -71,14 +73,14 @@ public class PollerImplTest {
 
     @Test
     public void runForGetsDatastreamsGettersFromDatastreamsGettersFinder() {
-        collector.runFor(DEVICE_ID_PATTERN, ID1_AND_ID2);
+        collector.poll(DEVICE_ID_PATTERN, ID1_AND_ID2);
         
         verify(datastreamsGettersFinder).getGettersSatisfying(DEVICE_ID_PATTERN, ID1_AND_ID2);
     }
 
     @Test
     public void afterDatastreamsGettersRunsCollectorStoresTheResults() {
-        collector.runFor(DEVICE_ID_PATTERN, ID1_AND_ID2);
+        collector.poll(DEVICE_ID_PATTERN, ID1_AND_ID2);
         futureForId1.complete(COLLECTED_VALUE_OF_ID1);
         futureForId2.complete(COLLECTED_VALUE_OF_ID2);
         
@@ -91,9 +93,9 @@ public class PollerImplTest {
         when(getterForId1.getDatastreamIdSatisfied()).thenReturn(ID1);
         Set<String> listWithId1Only = asSet(ID1);
         when(datastreamsGettersFinder.getGettersSatisfying(DEVICE_ID_PATTERN, listWithId1Only))
-                .thenReturn(new DatastreamsGetterFinder.Return(Collections.singletonList(getterForId1), asSet()));
+                .thenReturn(new DatastreamsGettersFinder.Return(Collections.singletonList(getterForId1), asSet()));
         
-        collector.runFor(DEVICE_ID_PATTERN, listWithId1Only);
+        collector.poll(DEVICE_ID_PATTERN, listWithId1Only);
         futureForId1.complete(
                 new CollectedValue(AT_FOR_ID1, VALUE_FOR_ID1));
     }
@@ -101,9 +103,9 @@ public class PollerImplTest {
     @Test
     public void ifThereAreNoGetterSatisfyingAnIdListRunForDoesntDoAnything() {
         when(datastreamsGettersFinder.getGettersSatisfying(DEVICE_ID_PATTERN, ID1_AND_ID2))
-                .thenReturn(new DatastreamsGetterFinder.Return(Collections.emptyList(), ID1_AND_ID2));
+                .thenReturn(new DatastreamsGettersFinder.Return(Collections.emptyList(), ID1_AND_ID2));
         
-        collector.runFor(DEVICE_ID_PATTERN, ID1_AND_ID2);
+        collector.poll(DEVICE_ID_PATTERN, ID1_AND_ID2);
         
         verify(getterForId1, never()).get(isA(String.class));
         verify(getterForId2, never()).get(isA(String.class));

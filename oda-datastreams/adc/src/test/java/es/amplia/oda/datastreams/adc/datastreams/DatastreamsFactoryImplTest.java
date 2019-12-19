@@ -1,7 +1,9 @@
 package es.amplia.oda.datastreams.adc.datastreams;
 
 import es.amplia.oda.core.commons.adc.AdcService;
-import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.core.commons.interfaces.DatastreamsEvent;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +29,7 @@ public class DatastreamsFactoryImplTest {
 	@Mock
 	private AdcService mockedService;
 	@Mock
-	private EventDispatcher mockedEventDispatcher;
+	private EventPublisher mockedEventPublisher;
 	@InjectMocks
 	private DatastreamsFactoryImpl testFactory;
 
@@ -41,8 +43,8 @@ public class DatastreamsFactoryImplTest {
 	public void testCreateAdcDatastreamsGetter() throws Exception {
 		PowerMockito.whenNew(AdcDatastreamsGetter.class).withAnyArguments().thenReturn(mockedGetter);
 
-		AdcDatastreamsGetter getter = testFactory.createAdcDatastreamsGetter(
-				TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
+		DatastreamsGetter getter =
+				testFactory.createAdcDatastreamsGetter(TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
 
 		assertNotNull(getter);
 		PowerMockito.verifyNew(AdcDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM), eq(TEST_PIN_INDEX),
@@ -53,10 +55,11 @@ public class DatastreamsFactoryImplTest {
 	public void testCreateAdcDatastreamsEvent() throws Exception {
 		PowerMockito.whenNew(AdcDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
 
-		AdcDatastreamsEvent event = testFactory.createAdcDatastreamsEvent(TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
+		DatastreamsEvent event =
+				testFactory.createAdcDatastreamsEvent(TEST_DATASTREAM, TEST_PIN_INDEX, TEST_MINIMUM, TEST_MAXIMUM);
 
 		assertNotNull(event);
 		PowerMockito.verifyNew(AdcDatastreamsEvent.class).withArguments(eq(TEST_DATASTREAM), eq(TEST_PIN_INDEX),
-				eq(mockedService), eq(mockedEventDispatcher), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
+				eq(mockedService), eq(mockedEventPublisher), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 	}
 }

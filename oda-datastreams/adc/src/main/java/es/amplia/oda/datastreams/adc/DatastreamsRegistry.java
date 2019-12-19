@@ -27,16 +27,16 @@ public class DatastreamsRegistry {
 	}
 
 	public void addAdcDatastreamEvent(int pinIndex, String datastreamId, double min, double max) {
-		DatastreamsEvent datastreamsEventSender;
+		DatastreamsEvent datastreamsEvent;
 
 		if(datastreamsEvents.containsKey(datastreamId)) {
-			datastreamsEventSender = datastreamsEvents.get(datastreamId);
-			datastreamsEventSender.unregisterFromEventSource();
+			datastreamsEvent = datastreamsEvents.get(datastreamId);
+			datastreamsEvent.unregisterFromEventSource();
 		}
 
-		datastreamsEventSender = datastreamsFactory.createAdcDatastreamsEvent(datastreamId, pinIndex, min, max);
-		datastreamsEventSender.registerToEventSource();
-		datastreamsEvents.put(datastreamId, datastreamsEventSender);
+		datastreamsEvent = datastreamsFactory.createAdcDatastreamsEvent(datastreamId, pinIndex, min, max);
+		datastreamsEvent.registerToEventSource();
+		datastreamsEvents.put(datastreamId, datastreamsEvent);
 	}
 
 	public void close() {

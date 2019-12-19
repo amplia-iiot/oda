@@ -2,27 +2,26 @@ package es.amplia.oda.subsystem.poller;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.utils.DevicePattern;
+import es.amplia.oda.core.commons.utils.Scheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PollerConfigurationUpdateHandler.class);
 
-    private final ScheduledExecutorService executor;
     private final Poller poller;
+    private final Scheduler scheduler;
     private final Map<PollConfiguration, Set<String>> currentConfiguration = new HashMap<>();
-    private final List<ScheduledFuture<?>> configuredTasks = new ArrayList<>();
 
-    PollerConfigurationUpdateHandler(ScheduledExecutorService executor, Poller poller) {
-        this.executor = executor;
+
+    PollerConfigurationUpdateHandler(Poller poller, Scheduler scheduler) {
         this.poller = poller;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -56,7 +55,7 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                     firstPoll = Long.parseLong(valueFields[0]);
                     secondsBetweenPolls = Long.parseLong(valueFields[1]);
                 }
-                add(new PollConfiguration(firstPoll, secondsBetweenPolls, deviceIdInKey), idInKey);
+                add(new PollConfiguration(deviceIdInKey, firstPoll, secondsBetweenPolls), idInKey);
             } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
                 LOGGER.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
             }
@@ -75,26 +74,12 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     @Override
     public void applyConfiguration() {
-        configuredTasks.forEach(task -> task.cancel(false));
-        configuredTasks.clear();
-        currentConfiguration.forEach((poll, ids) ->{
-            ScheduledFuture<?> pollTask;
-            if(poll.getSecondsBetweenPolls() == 0) {
-                LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' only one time in {} seconds",
-                        ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll());
-                pollTask =
-                        executor.schedule(() ->
-                                        poller.runFor(poll.getDeviceIdPattern(), ids), poll.getSecondsFirstPoll(),
-                                TimeUnit.SECONDS);
-            } else {
-                LOGGER.debug("Poll of '{}' for deviceIdPattern '{}' starting in {} seconds and every {} seconds",
-                        ids, poll.getDeviceIdPattern(), poll.getSecondsFirstPoll(), poll.getSecondsBetweenPolls());
-                pollTask =
-                        executor.scheduleWithFixedDelay(() ->
-                                        poller.runFor(poll.getDeviceIdPattern(), ids), poll.getSecondsFirstPoll(),
-                                poll.getSecondsBetweenPolls(), TimeUnit.SECONDS);
-            }
-            configuredTasks.add(pollTask);
-        });
+        scheduler.clear();
+        currentConfiguration.forEach(this::schedulePoll);
+    }
+
+    private void schedulePoll(PollConfiguration pollConfiguration, Set<String> datastreamIds) {
+        scheduler.schedule(() -> poller.poll(pollConfiguration.getDeviceIdPattern(), datastreamIds),
+                pollConfiguration.getSecondsFirstPoll(), pollConfiguration.getSecondsBetweenPolls(), TimeUnit.SECONDS);
     }
 }

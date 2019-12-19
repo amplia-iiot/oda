@@ -1,27 +1,11 @@
 package es.amplia.oda.datastreams.gpio;
 
-import es.amplia.oda.core.commons.gpio.GpioService;
-import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.core.commons.interfaces.DatastreamsEvent;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 
-import java.util.concurrent.Executor;
-
-class GpioDatastreamsFactory {
-
-    // Hide public constructor to avoid instantiation of this class
-    private GpioDatastreamsFactory() {}
-
-    static GpioDatastreamsGetter createGpioDatastreamsGetter(String datastreamId, int pinIndex, GpioService gpioService,
-                                                             Executor executor) {
-        return new GpioDatastreamsGetter(datastreamId, pinIndex, gpioService, executor);
-    }
-
-    static GpioDatastreamsSetter createGpioDatastreamsSetter(String datastreamId, int pinIndex, GpioService gpioService,
-                                                             Executor executor) {
-        return new GpioDatastreamsSetter(datastreamId, pinIndex, gpioService, executor);
-    }
-
-    static GpioDatastreamsEvent createGpioDatastreamsEvent(String datastreamId, int pinIndex, GpioService gpioService,
-                                                           EventDispatcher eventDispatcher) {
-        return new GpioDatastreamsEvent(datastreamId, pinIndex, gpioService, eventDispatcher);
-    }
+interface GpioDatastreamsFactory {
+    DatastreamsGetter createGpioDatastreamsGetter(String datastreamId, int pinIndex);
+    DatastreamsSetter createGpioDatastreamsSetter(String datastreamId, int pinIndex);
+    DatastreamsEvent createGpioDatastreamsEvent(String datastreamId, int pinIndex);
 }

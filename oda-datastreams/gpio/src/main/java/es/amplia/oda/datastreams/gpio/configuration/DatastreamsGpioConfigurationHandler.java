@@ -7,7 +7,7 @@ import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.gpio.GpioTrigger;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.datastreams.gpio.GpioDatastreamsRegistry;
+import es.amplia.oda.datastreams.gpio.GpioDatastreamsManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,14 +25,14 @@ public class DatastreamsGpioConfigurationHandler implements ConfigurationUpdateH
     private static final String SETTER_PROPERTY_NAME = "setter";
     private static final String EVENT_PROPERTY_NAME = "event";
 
-    private final GpioDatastreamsRegistry gpioDatastreamsRegistry;
+    private final GpioDatastreamsManager gpioDatastreamsManager;
     private final GpioService gpioService;
     private final Map<Integer, GpioPinDatastreamConfiguration> currentConfiguration = new HashMap<>();
 
 
-    public DatastreamsGpioConfigurationHandler(GpioDatastreamsRegistry gpioDatastreamsRegistry,
+    public DatastreamsGpioConfigurationHandler(GpioDatastreamsManager gpioDatastreamsManager,
                                                GpioService gpioService) {
-        this.gpioDatastreamsRegistry = gpioDatastreamsRegistry;
+        this.gpioDatastreamsManager = gpioDatastreamsManager;
         this.gpioService = gpioService;
     }
 
@@ -109,7 +109,7 @@ public class DatastreamsGpioConfigurationHandler implements ConfigurationUpdateH
 
     @Override
     public void applyConfiguration() {
-        gpioDatastreamsRegistry.close();
+        gpioDatastreamsManager.close();
 
         for (Map.Entry<Integer, GpioPinDatastreamConfiguration> entry: currentConfiguration.entrySet()) {
             int pinIndex = entry.getKey();
@@ -127,14 +127,14 @@ public class DatastreamsGpioConfigurationHandler implements ConfigurationUpdateH
     }
 
     private void createDatastreamGetter(int pinIndex, String datastreamId) {
-        gpioDatastreamsRegistry.addDatastreamGetter(pinIndex, datastreamId);
+        gpioDatastreamsManager.addDatastreamGetter(pinIndex, datastreamId);
     }
 
     private void createDatastreamSetter(int pinIndex, String datastreamId) {
-        gpioDatastreamsRegistry.addDatastreamSetter(pinIndex, datastreamId);
+        gpioDatastreamsManager.addDatastreamSetter(pinIndex, datastreamId);
     }
 
     private void createDatastreamEvent(int pinIndex, String datastreamId) {
-        gpioDatastreamsRegistry.addDatastreamEvent(pinIndex, datastreamId);
+        gpioDatastreamsManager.addDatastreamEvent(pinIndex, datastreamId);
     }
 }

@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.event.api.EventDispatcher;
 
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
@@ -108,7 +110,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
             LOGGER.debug("Scheduling dispatch of datastreams '{}' with initial delay {} and every {} seconds",
                     datastreams, conf.getInitialDelay(), conf.getPeriod());
             scheduler.schedule(() -> eventCollector.publishCollectedEvents(datastreams), conf.getInitialDelay(),
-                    conf.getPeriod());
+                    conf.getPeriod(), TimeUnit.SECONDS);
         });
 
         eventDispatcherRegistrationManager.register(eventCollector);

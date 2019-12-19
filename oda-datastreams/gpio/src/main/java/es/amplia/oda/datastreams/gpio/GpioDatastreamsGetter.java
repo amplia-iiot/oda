@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 class GpioDatastreamsGetter implements DatastreamsGetter {
 
@@ -21,14 +20,12 @@ class GpioDatastreamsGetter implements DatastreamsGetter {
     private final String datastreamId;
     private final int pinIndex;
     private final GpioService gpioService;
-    private final Executor executor;
 
 
-    GpioDatastreamsGetter(String datastreamId, int pinIndex, GpioService gpioService, Executor executor) {
+    GpioDatastreamsGetter(String datastreamId, int pinIndex, GpioService gpioService) {
         this.datastreamId = datastreamId;
         this.pinIndex = pinIndex;
         this.gpioService = gpioService;
-        this.executor = executor;
     }
 
 	@Override
@@ -43,7 +40,7 @@ class GpioDatastreamsGetter implements DatastreamsGetter {
 
     @Override
 	public CompletableFuture<CollectedValue> get(String device) {
-        return CompletableFuture.supplyAsync(() -> getDatastreamIdValuesForDevicePattern(device), executor);
+        return CompletableFuture.supplyAsync(() -> getDatastreamIdValuesForDevicePattern(device));
     }
 
     private CollectedValue getDatastreamIdValuesForDevicePattern(String device) {

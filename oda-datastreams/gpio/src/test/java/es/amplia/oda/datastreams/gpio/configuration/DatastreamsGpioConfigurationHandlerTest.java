@@ -5,7 +5,7 @@ import es.amplia.oda.core.commons.gpio.GpioDirection;
 import es.amplia.oda.core.commons.gpio.GpioPin;
 import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.gpio.GpioTrigger;
-import es.amplia.oda.datastreams.gpio.GpioDatastreamsRegistry;
+import es.amplia.oda.datastreams.gpio.GpioDatastreamsManager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +31,7 @@ public class DatastreamsGpioConfigurationHandlerTest {
 
 
     @Mock
-    private GpioDatastreamsRegistry mockedRegistry;
+    private GpioDatastreamsManager mockedManager;
     @Mock
     private ServiceTracker<GpioService, GpioService> mockedGpioServiceTracker;
     @InjectMocks
@@ -192,16 +192,16 @@ public class DatastreamsGpioConfigurationHandlerTest {
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedRegistry).close();
-        verify(mockedRegistry, times(4)).addDatastreamGetter(anyInt(), anyString());
-        verify(mockedRegistry, times(2)).addDatastreamSetter(anyInt(), anyString());
-        verify(mockedRegistry, times(1)).addDatastreamEvent(anyInt(), anyString());
+        verify(mockedManager).close();
+        verify(mockedManager, times(4)).addDatastreamGetter(anyInt(), anyString());
+        verify(mockedManager, times(2)).addDatastreamSetter(anyInt(), anyString());
+        verify(mockedManager, times(1)).addDatastreamEvent(anyInt(), anyString());
     }
 
     @Test
     public void testApplyConfigurationEmpty() {
         testConfigHandler.applyConfiguration();
 
-        verify(mockedRegistry).close();
+        verify(mockedManager).close();
     }
 }

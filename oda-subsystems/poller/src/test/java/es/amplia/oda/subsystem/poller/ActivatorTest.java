@@ -1,23 +1,20 @@
 package es.amplia.oda.subsystem.poller;
 
-import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsGettersLocatorOsgi;
-import es.amplia.oda.event.api.EventDispatcherProxy;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
+import es.amplia.oda.core.commons.utils.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.slf4j.Logger;
-
-import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
@@ -25,45 +22,43 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @PrepareForTest(Activator.class)
 public class ActivatorTest {
 
-	private Activator activator = new Activator();
+	private final Activator activator = new Activator();
 
 	@Mock
-	BundleContext mockedContext;
+	private BundleContext mockedContext;
 	@Mock
-	DatastreamsGettersLocatorOsgi mockedLocator;
+	private ServiceLocatorOsgi<DatastreamsGetter> mockedGettersLocator;
 	@Mock
-	DatastreamsGetterFinderImpl mockedFinder;
+	private DatastreamsGettersFinderImpl mockedGettersFinder;
 	@Mock
-	EventDispatcherProxy mockedDispatcher;
+	private EventPublisherProxy mockedEventPublisher;
 	@Mock
-	PollerImpl mockedPoller;
+	private PollerDatastreamsEvent mockedDatastreamsEvent;
 	@Mock
-	PollerConfigurationUpdateHandler mockedHandler;
+	private PollerImpl mockedPoller;
 	@Mock
-	ConfigurableBundleImpl mockedConfigurableBundle;
+	private SchedulerImpl mockedScheduler;
 	@Mock
-	Bundle mockedBundle;
+	private PollerConfigurationUpdateHandler mockedHandler;
 	@Mock
-	ScheduledExecutorService mockedExecutor;
-	@Mock
-	Logger mockedLogger;
+	private ConfigurableBundleImpl mockedConfigurableBundle;
 
 	@Test
 	public void testStart() throws Exception {
-		whenNew(DatastreamsGettersLocatorOsgi.class).withAnyArguments().thenReturn(mockedLocator);
-		whenNew(DatastreamsGetterFinderImpl.class).withAnyArguments().thenReturn(mockedFinder);
-		whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
+		whenNew(ServiceLocatorOsgi.class).withAnyArguments().thenReturn(mockedGettersLocator);
+		whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedGettersFinder);
+		whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
+		whenNew(PollerDatastreamsEvent.class).withAnyArguments().thenReturn(mockedDatastreamsEvent);
 		whenNew(PollerImpl.class).withAnyArguments().thenReturn(mockedPoller);
+		whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
 		whenNew(PollerConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedHandler);
 		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		when(mockedContext.getBundle()).thenReturn(mockedBundle);
-		when(mockedBundle.getSymbolicName()).thenReturn("name");
 
 		activator.start(mockedContext);
 
-		verifyNew(DatastreamsGettersLocatorOsgi.class).withArguments(any());
-		verifyNew(DatastreamsGetterFinderImpl.class).withArguments(any());
-		verifyNew(EventDispatcherProxy.class).withArguments(any());
+		verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext),eq(DatastreamsGetter.class));
+		verifyNew(DatastreamsGettersFinderImpl.class).withArguments(eq(mockedGettersLocator));
+		verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
 		verifyNew(PollerImpl.class).withArguments(any(), any());
 		verifyNew(PollerConfigurationUpdateHandler.class).withArguments(any(), any());
 		verifyNew(ConfigurableBundleImpl.class).withArguments(any(), any());
@@ -71,23 +66,16 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
+		Whitebox.setInternalState(activator, "datastreamsGettersFinder", mockedGettersFinder);
+		Whitebox.setInternalState(activator, "eventPublisher", mockedEventPublisher);
+		Whitebox.setInternalState(activator, "scheduler", mockedScheduler);
 		Whitebox.setInternalState(activator, "configurableBundle", mockedConfigurableBundle);
-		Whitebox.setInternalState(activator, "eventDispatcher", mockedDispatcher);
 
 		activator.stop(mockedContext);
 
 		verify(mockedConfigurableBundle).close();
-		verify(mockedDispatcher).close();
-	}
-
-	@Test
-	public void testStopPendingOperations() {
-		Whitebox.setInternalState(activator, "configurableBundle", mockedConfigurableBundle);
-		Whitebox.setInternalState(activator, "eventDispatcher", mockedDispatcher);
-		Whitebox.setInternalState(activator, "executor", mockedExecutor);
-
-		activator.stop(mockedContext);
-
-		verify(mockedExecutor).shutdown();
+		verify(mockedScheduler).close();
+		verify(mockedGettersFinder).close();
+		verify(mockedEventPublisher).close();
 	}
 }

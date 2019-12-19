@@ -13,7 +13,6 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 class GpioDatastreamsSetter implements DatastreamsSetter {
 
@@ -22,14 +21,12 @@ class GpioDatastreamsSetter implements DatastreamsSetter {
     private final String datastreamId;
     private final int pinIndex;
     private final GpioService gpioService;
-    private final Executor executor;
 
 
-    GpioDatastreamsSetter(String datastreamId, int pinIndex, GpioService gpioService, Executor executor) {
+    GpioDatastreamsSetter(String datastreamId, int pinIndex, GpioService gpioService) {
         this.datastreamId = datastreamId;
         this.pinIndex = pinIndex;
         this.gpioService = gpioService;
-        this.executor = executor;
     }
 
 	@Override
@@ -51,7 +48,7 @@ class GpioDatastreamsSetter implements DatastreamsSetter {
     public CompletableFuture<Void> set(String deviceId, Object value) {
         try {
             Boolean pinValue = (Boolean) value;
-            return CompletableFuture.supplyAsync(() -> setDatastreamValue(deviceId, pinIndex, pinValue), executor);
+            return CompletableFuture.supplyAsync(() -> setDatastreamValue(deviceId, pinIndex, pinValue));
         } catch (ClassCastException e) {
             String errorMessage = createErrorMessage(deviceId, "Data stream value is not valid");
             throw new DataNotFoundException(errorMessage);

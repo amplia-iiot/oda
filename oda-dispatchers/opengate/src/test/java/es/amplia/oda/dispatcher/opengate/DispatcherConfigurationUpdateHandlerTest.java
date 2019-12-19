@@ -1,8 +1,10 @@
 package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.event.api.EventDispatcher;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -12,6 +14,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.EVENT_CONTENT_TYPE_PROPERTY_NAME;
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.REDUCED_OUTPUT_PROPERTY_NAME;
@@ -167,10 +170,10 @@ public class DispatcherConfigurationUpdateHandlerTest {
         verify(mockedFactory).createEventCollector(eq(false), eq(ContentType.JSON));
         verify(mockedEventCollector).loadDatastreamIdsToCollect(eq(allDatastreams));
 
-        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(30L), eq(30L));
+        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(30L), eq(30L), eq(TimeUnit.SECONDS));
         runnableCaptor.getValue().run();
         verify(mockedEventCollector).publishCollectedEvents(eq(set1));
-        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(60L), eq(10L));
+        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(60L), eq(10L), eq(TimeUnit.SECONDS));
         runnableCaptor.getValue().run();
         verify(mockedEventCollector).publishCollectedEvents(eq(set2));
         verify(mockedRegistrationManager).register(eq(mockedEventCollector));
