@@ -16,7 +16,6 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 import static es.amplia.oda.operation.api.OperationSynchronizeClock.*;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.*;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 

@@ -17,7 +17,7 @@ class SchedulerImpl implements Scheduler {
 
 
     private final ScheduledExecutorService executor;
-    private final List<ScheduledFuture> tasks = new ArrayList<>();
+    private final List<ScheduledFuture<?>> tasks = new ArrayList<>();
 
 
     SchedulerImpl(ScheduledExecutorService executor) {

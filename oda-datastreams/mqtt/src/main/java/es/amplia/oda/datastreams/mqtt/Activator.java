@@ -2,6 +2,7 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -29,7 +30,7 @@ public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) {
         mqttClientFactory = new MqttClientFactoryProxy(bundleContext);
-        serializer = new SerializerProxy(bundleContext, Serializers.SerializerType.CBOR);
+        serializer = new SerializerProxy(bundleContext, ContentType.CBOR);
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         ServiceRegistrationManagerWithKey<String, DatastreamsGetter> mqttDatastreamsGetterRegistrationManager =
                 new ServiceRegistrationManagerWithKeyOsgi<>(bundleContext, DatastreamsGetter.class);

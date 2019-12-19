@@ -7,7 +7,6 @@ import es.amplia.oda.connector.coap.at.ATUDPConnector;
 import es.amplia.oda.connector.coap.configuration.ConnectorConfiguration;
 
 import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
@@ -232,7 +231,6 @@ public class COAPClientFactoryTest {
         OptionSet optionSet = testCoapClientFactory.createOptions(TEST_UDP_CONFIGURATION);
 
         assertNotNull(optionSet);
-        assertEquals(MediaTypeRegistry.APPLICATION_JSON, optionSet.getContentFormat());
         assertTrue(optionSet.asSortedList().stream()
                 .anyMatch(option -> option.getNumber() == API_KEY_OPTION_NUMBER
                         && option.getStringValue().equals(TEST_API_KEY)));

@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 
 import static es.amplia.oda.connector.http.HttpConnector.*;
 
+import static es.amplia.oda.core.commons.entities.ContentType.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -109,6 +110,78 @@ public class HttpConnectorTest {
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(ContentType.APPLICATION_JSON.toString(), httpEntity.getContentType().getValue());
+        assertNull(httpEntity.getContentEncoding());
+        byte[] buffer = new byte[TEST_PAYLOAD.length];
+        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+        assertArrayEquals(TEST_PAYLOAD, buffer);
+    }
+
+    @Test
+    public void testUplinkHttpRequestWithCborContentType() throws Exception {
+        URL testHostUrl = new URL(HTTP_PROTOCOL, TEST_HOST, TEST_PORT, TEST_GENERAL_PATH);
+        HttpClientBuilder mockedClientBuilder = mock(HttpClientBuilder.class);
+        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
+        CloseableHttpResponse mockedHttpResponse = mock(CloseableHttpResponse.class);
+        StatusLine mockedStatusLine = mock(StatusLine.class);
+        ArgumentCaptor<HttpPost> httpPostCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        Whitebox.setInternalState(testConnector, "hostUrl", testHostUrl);
+        Whitebox.setInternalState(testConnector, "generalPath", TEST_GENERAL_PATH);
+        Whitebox.setInternalState(testConnector, "collectionPath", TEST_COLLECTION_PATH);
+
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
+        PowerMockito.mockStatic(HttpClientBuilder.class);
+        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
+        when(mockedClientBuilder.build()).thenReturn(mockedClient);
+        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+        when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+
+        testConnector.uplink(TEST_PAYLOAD, CBOR);
+
+        verify(mockedClient).execute(httpPostCaptor.capture());
+        HttpPost httpPost = httpPostCaptor.getValue();
+        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+        HttpEntity httpEntity = httpPost.getEntity();
+        assertEquals(CBOR_MEDIA_TYPE, httpEntity.getContentType().getValue());
+        assertNull(httpEntity.getContentEncoding());
+        byte[] buffer = new byte[TEST_PAYLOAD.length];
+        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+        assertArrayEquals(TEST_PAYLOAD, buffer);
+    }
+
+    @Test
+    public void testUplinkHttpRequestWithMessagePackContentType() throws Exception {
+        URL testHostUrl = new URL(HTTP_PROTOCOL, TEST_HOST, TEST_PORT, TEST_GENERAL_PATH);
+        HttpClientBuilder mockedClientBuilder = mock(HttpClientBuilder.class);
+        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
+        CloseableHttpResponse mockedHttpResponse = mock(CloseableHttpResponse.class);
+        StatusLine mockedStatusLine = mock(StatusLine.class);
+        ArgumentCaptor<HttpPost> httpPostCaptor = ArgumentCaptor.forClass(HttpPost.class);
+
+        Whitebox.setInternalState(testConnector, "hostUrl", testHostUrl);
+        Whitebox.setInternalState(testConnector, "generalPath", TEST_GENERAL_PATH);
+        Whitebox.setInternalState(testConnector, "collectionPath", TEST_COLLECTION_PATH);
+
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
+        PowerMockito.mockStatic(HttpClientBuilder.class);
+        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
+        when(mockedClientBuilder.build()).thenReturn(mockedClient);
+        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+        when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+
+        testConnector.uplink(TEST_PAYLOAD, MESSAGE_PACK);
+
+        verify(mockedClient).execute(httpPostCaptor.capture());
+        HttpPost httpPost = httpPostCaptor.getValue();
+        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+        HttpEntity httpEntity = httpPost.getEntity();
+        assertEquals(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE, httpEntity.getContentType().getValue());
         assertNull(httpEntity.getContentEncoding());
         byte[] buffer = new byte[TEST_PAYLOAD.length];
         assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));

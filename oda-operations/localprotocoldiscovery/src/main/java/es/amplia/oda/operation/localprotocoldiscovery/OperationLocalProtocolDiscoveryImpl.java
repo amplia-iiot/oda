@@ -4,9 +4,9 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.operation.api.OperationDiscover;
-import es.amplia.oda.operation.localprotocoldiscovery.configuration.LocalProtocolDiscoveryConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,14 +14,18 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
-public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover {
-    private static final Logger logger = LoggerFactory.getLogger(OperationLocalProtocolDiscoveryImpl.class);
+public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, AutoCloseable {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OperationLocalProtocolDiscoveryImpl.class);
+
+    static final String EMPTY_MESSAGE = "{}";
+
 
     private final MqttClientFactory mqttClientFactory;
     private final Serializer serializer;
-
     private MqttClient mqttClient;
     private String topic;
+
 
     OperationLocalProtocolDiscoveryImpl(MqttClientFactory mqttClientFactoryProxy, Serializer serializer) {
         this.mqttClientFactory = mqttClientFactoryProxy;
@@ -30,30 +34,31 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover {
     
     @Override
     public CompletableFuture<Result> discover() {
-        logger.info("Discovering ODA");
-        CompletableFuture<Result> future = new CompletableFuture<>();
+        LOGGER.info("Processing discover operation in ODA");
         try {
-            byte[] mess = serializer.serialize("{}");
-            mqttClient.publish(topic, MqttMessage.newInstance(mess));
-            new Result(ResultCode.ERROR_PROCESSING, "");
-            future.complete(new Result(ResultCode.ERROR_PROCESSING, ""));
+            byte[] msg = serializer.serialize(EMPTY_MESSAGE);
+            mqttClient.publish(topic, MqttMessage.newInstance(msg), ContentType.CBOR);
+            return CompletableFuture.completedFuture(new Result(ResultCode.SUCCESSFUL, ""));
         } catch (IOException | MqttException e) {
-            future.complete(new Result(ResultCode.ERROR_PROCESSING, e.getMessage()));
+            return CompletableFuture.completedFuture(new Result(ResultCode.ERROR_PROCESSING, e.getMessage()));
         }
-        return future;
     }
 
-    public void loadConfiguration(LocalProtocolDiscoveryConfiguration currentConfiguration) {
-        try {
-            if (mqttClient != null) {
-                mqttClient.disconnect();
-                mqttClient = null;
-            }
-        } catch (MqttException e) {
-            logger.warn("Error closing Discover resources");
-        }
-        mqttClient = mqttClientFactory.createMqttClient(currentConfiguration.getServerURI(), currentConfiguration.getClientId());
+    public void loadConfiguration(String serverUri, String clientId, String discoverTopic) {
+        close();
+        topic = discoverTopic;
+        mqttClient = mqttClientFactory.createMqttClient(serverUri, clientId);
         mqttClient.connect();
-        this.topic = currentConfiguration.getDiscoverTopic();
+    }
+
+    @Override
+    public void close() {
+        if (mqttClient != null) {
+            try {
+                mqttClient.disconnect();
+            } catch (MqttException e) {
+                LOGGER.warn("Error closing MQTT client");
+            }
+        }
     }
 }

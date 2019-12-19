@@ -3,9 +3,8 @@ package es.amplia.oda.dispatcher.opengate;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
-import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.Serializers;
+import es.amplia.oda.core.commons.utils.SerializerProviderOsgi;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
@@ -36,7 +35,7 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private SerializerProxy mockedSerializer;
+    private SerializerProviderOsgi mockedSerializerProvider;
     @Mock
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
     @Mock
@@ -63,7 +62,7 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
+        PowerMockito.whenNew(SerializerProviderOsgi.class).withAnyArguments().thenReturn(mockedSerializerProvider);
         PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
         PowerMockito.whenNew(OpenGateOperationProcessorFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
         PowerMockito.whenNew(OpenGateOperationDispatcher.class).withAnyArguments().thenReturn(mockedDispatcher);
@@ -80,16 +79,15 @@ public class ActivatorTest {
 
         testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(SerializerProxy.class)
-                .withArguments(eq(mockedContext), eq(Serializers.SerializerType.JSON));
+        PowerMockito.verifyNew(SerializerProviderOsgi.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OpenGateOperationProcessorFactoryImpl.class)
-                .withArguments(eq(mockedContext), eq(mockedSerializer));
+                .withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OpenGateOperationDispatcher.class)
-                .withArguments(eq(mockedSerializer), eq(mockedDeviceInfoProvider), eq(mockedProcessor));
+                .withArguments(eq(mockedSerializerProvider), eq(mockedDeviceInfoProvider), eq(mockedProcessor));
         PowerMockito.verifyNew(OpenGateConnectorProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
-                .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializer), eq(mockedConnector));
+                .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializerProvider), eq(mockedConnector));
         PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
         PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
                 .withArguments(eq(mockedContext), eq(EventDispatcher.class));
@@ -102,7 +100,7 @@ public class ActivatorTest {
 
     @Test
     public void testStop() {
-        Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
+        Whitebox.setInternalState(testActivator, "serializerProvider", mockedSerializerProvider);
         Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
         Whitebox.setInternalState(testActivator, "factory", mockedFactory);
         Whitebox.setInternalState(testActivator, "connector", mockedConnector);
@@ -119,7 +117,7 @@ public class ActivatorTest {
         verify(mockedScheduler).close();
         verify(mockedConnector).close();
         verify(mockedDispatcherRegistration).unregister();
-        verify(mockedSerializer).close();
+        verify(mockedSerializerProvider).close();
         verify(mockedDeviceInfoProvider).close();
         verify(mockedFactory).close();
     }

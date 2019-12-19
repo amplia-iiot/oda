@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 
@@ -22,8 +21,7 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
     private final OperationSetDeviceParameters operationSetDeviceParameters;
 
 
-    SetDeviceParametersProcessor(Serializer serializer, OperationSetDeviceParameters operationSetDeviceParameters) {
-        super(serializer);
+    SetDeviceParametersProcessor(OperationSetDeviceParameters operationSetDeviceParameters) {
         this.operationSetDeviceParameters = operationSetDeviceParameters;
     }
 

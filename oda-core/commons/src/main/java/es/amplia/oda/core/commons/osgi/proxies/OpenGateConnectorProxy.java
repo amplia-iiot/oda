@@ -1,5 +1,6 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 
 import org.osgi.framework.BundleContext;
@@ -15,8 +16,8 @@ public class OpenGateConnectorProxy implements OpenGateConnector, AutoCloseable 
     }
 
     @Override
-    public void uplink(byte[] payload) {
-        proxy.consumeFirst(connector -> connector.uplink(payload));
+    public void uplink(byte[] payload, ContentType contentType) {
+        proxy.consumeFirst(connector -> connector.uplink(payload, contentType));
     }
 
     @Override

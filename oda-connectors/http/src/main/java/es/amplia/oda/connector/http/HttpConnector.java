@@ -1,6 +1,7 @@
 package es.amplia.oda.connector.http;
 
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -9,7 +10,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -19,11 +19,23 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class HttpConnector implements OpenGateConnector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpConnector.class);
 
+    static final String UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE = "application/x-msgpack";
+    static final String CBOR_MEDIA_TYPE = "application/cbor";
+    private static final Map<ContentType, org.apache.http.entity.ContentType> CONTENT_TYPE_MAPPER =
+            new EnumMap<>(ContentType.class);
+    static {
+        CONTENT_TYPE_MAPPER.put(ContentType.CBOR, org.apache.http.entity.ContentType.create(CBOR_MEDIA_TYPE));
+        CONTENT_TYPE_MAPPER.put(ContentType.JSON, org.apache.http.entity.ContentType.APPLICATION_JSON);
+        CONTENT_TYPE_MAPPER.put(ContentType.MESSAGE_PACK,
+                org.apache.http.entity.ContentType.create(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE));
+    }
     static final String HTTP_PROTOCOL = "http";
     static final String API_KEY_HEADER_NAME = "X-ApiKey";
     static final String GZIP_ENCODING = "gzip";
@@ -35,7 +47,6 @@ public class HttpConnector implements OpenGateConnector {
 
 
     private final DeviceInfoProvider deviceInfoProvider;
-
     private URL hostUrl;
     private String generalPath;
     private String collectionPath;
@@ -62,7 +73,7 @@ public class HttpConnector implements OpenGateConnector {
     }
 
     @Override
-    public void uplink(byte[] payload) {
+    public void uplink(byte[] payload, ContentType contentType) {
         if (!isConfigured()) {
             LOGGER.error("HTTP connector is not configured");
             return;
@@ -85,7 +96,7 @@ public class HttpConnector implements OpenGateConnector {
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             EntityBuilder entityBuilder =
-                    EntityBuilder.create().setBinary(payload).setContentType(ContentType.APPLICATION_JSON);
+                    EntityBuilder.create().setBinary(payload).setContentType(getContentType(contentType));
 
             if (compressionEnabled && payload.length > compressionThreshold) {
                 LOGGER.debug("Compressing data");
@@ -120,6 +131,10 @@ public class HttpConnector implements OpenGateConnector {
 
     private URL getUrl() throws MalformedURLException {
         return new URL(hostUrl, generalPath + "/" + deviceInfoProvider.getDeviceId() + collectionPath);
+    }
+
+    private org.apache.http.entity.ContentType getContentType(ContentType contentType) {
+        return CONTENT_TYPE_MAPPER.get(contentType);
     }
 
     private boolean isSuccessCode(int statusCode) {

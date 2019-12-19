@@ -1,7 +1,8 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.core.commons.utils.Serializers;
+
 import org.osgi.framework.BundleContext;
 
 import java.io.IOException;
@@ -12,12 +13,14 @@ import java.util.Optional;
 public class SerializerProxy implements Serializer, AutoCloseable {
 
     private final OsgiServiceProxy<Serializer> proxy;
+    private final ContentType contentType;
     private String errorMessage;
 
-    public SerializerProxy(BundleContext bundleContext, Serializers.SerializerType type) {
+    public SerializerProxy(BundleContext bundleContext, ContentType contentType) {
         Map<String, String> filterProps = new HashMap<>();
-        filterProps.put(Serializers.TYPE_PROPERTY_NAME, type.toString());
+        filterProps.put(ContentType.PROPERTY_NAME, contentType.toString());
         proxy = new OsgiServiceProxy<>(Serializer.class, filterProps, bundleContext);
+        this.contentType = contentType;
     }
 
     @Override
@@ -48,6 +51,10 @@ public class SerializerProxy implements Serializer, AutoCloseable {
                 }));
         return serialValue.orElseThrow(() ->
                 new IOException(this.errorMessage));
+    }
+
+    public ContentType getContentType() {
+        return contentType;
     }
 
     @Override

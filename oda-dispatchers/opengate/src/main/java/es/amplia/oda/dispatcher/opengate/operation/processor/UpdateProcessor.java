@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationUpdate;
 
@@ -24,8 +23,7 @@ class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateP
     private final OperationUpdate operationUpdate;
 
 
-    UpdateProcessor(Serializer serializer, OperationUpdate operationUpdate) {
-        super(serializer);
+    UpdateProcessor(OperationUpdate operationUpdate) {
         this.operationUpdate = operationUpdate;
     }
 

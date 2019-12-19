@@ -6,6 +6,7 @@ import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import org.eclipse.paho.client.mqttv3.*;
 
 class MqttPahoClient implements MqttClient {
@@ -46,8 +47,9 @@ class MqttPahoClient implements MqttClient {
     }
 
     @Override
-    public void publish(String topic, MqttMessage message) {
+    public void publish(String topic, MqttMessage message, ContentType contentType) {
         try {
+            // Not supported in MQTT v3. Available through MqttProperties in MQTT v5
             innerClient.publish(topic, message.getPayload(), message.getQos(), message.isRetained());
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
             throw new MqttException(e.getMessage(), e);

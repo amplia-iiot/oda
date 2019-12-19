@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationDiscover;
 
@@ -18,8 +17,7 @@ class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscov
 	private final OperationDiscover operationDiscover;
 
 
-	DiscoverProcessor(Serializer serializer, OperationDiscover operationRefreshInfo) {
-		super(serializer);
+	DiscoverProcessor(OperationDiscover operationRefreshInfo) {
 		this.operationDiscover = operationRefreshInfo;
 	}
 

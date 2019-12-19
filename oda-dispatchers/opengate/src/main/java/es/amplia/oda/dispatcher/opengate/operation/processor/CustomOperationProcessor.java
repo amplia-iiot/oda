@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.Step;
@@ -19,8 +18,7 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
     private String customOperationName;
 
 
-    CustomOperationProcessor(Serializer serializer, ServiceLocator<CustomOperation> operationServiceLocator) {
-        super(serializer);
+    CustomOperationProcessor(ServiceLocator<CustomOperation> operationServiceLocator) {
         this.operationServiceLocator = operationServiceLocator;
     }
 

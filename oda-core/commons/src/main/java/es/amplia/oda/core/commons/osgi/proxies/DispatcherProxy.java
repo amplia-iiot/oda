@@ -1,5 +1,6 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 
 import org.osgi.framework.BundleContext;
@@ -15,8 +16,8 @@ public class DispatcherProxy implements Dispatcher, AutoCloseable {
     }
 
     @Override
-    public CompletableFuture<byte[]> process(byte[] input) {
-        return proxy.callFirst(dispatcher -> dispatcher.process(input));
+    public CompletableFuture<byte[]> process(byte[] input, ContentType contentType) {
+        return proxy.callFirst(dispatcher -> dispatcher.process(input,contentType));
     }
 
     @Override

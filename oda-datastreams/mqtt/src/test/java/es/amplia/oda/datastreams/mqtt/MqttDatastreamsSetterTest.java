@@ -4,6 +4,7 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
 import org.junit.Before;
@@ -138,7 +139,7 @@ public class MqttDatastreamsSetterTest {
         verify(mockedSerializer).serialize(writeRequestCaptor.capture());
         MqttDatastreamsSetter.WriteRequestOperation request = writeRequestCaptor.getValue();
         assertEquals(TEST_VALUE, request.getValue());
-        verify(mockedClient).publish(eq(testTopic), eq(MqttMessage.newInstance(TEST_PAYLOAD)));
+        verify(mockedClient).publish(eq(testTopic), eq(MqttMessage.newInstance(TEST_PAYLOAD)), eq(ContentType.CBOR));
         //noinspection unchecked
         verify(spiedFutures).put(anyInt(), any(CompletableFuture.class));
     }
@@ -168,7 +169,7 @@ public class MqttDatastreamsSetterTest {
 
         when(mockedPermissionManager.hasWritePermission(anyString(), anyString())).thenReturn(true);
         when(mockedSerializer.serialize(any(MqttDatastreamsSetter.WriteRequestOperation.class))).thenReturn(TEST_PAYLOAD);
-        doThrow(new MqttException("")).when(mockedClient).publish(anyString(), any(MqttMessage.class));
+        doThrow(new MqttException("")).when(mockedClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 
         CompletableFuture<Void> future = testSetter.set(TEST_DEVICE_ID, TEST_VALUE);
 

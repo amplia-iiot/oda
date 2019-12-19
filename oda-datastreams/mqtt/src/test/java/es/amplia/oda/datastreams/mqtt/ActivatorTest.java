@@ -3,6 +3,7 @@ package es.amplia.oda.datastreams.mqtt;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.comms.mqtt.api.MqttException;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -70,7 +71,7 @@ public class ActivatorTest {
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(Serializers.SerializerType.CBOR));
+        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
         PowerMockito.verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(ServiceRegistrationManagerWithKeyOsgi.class)
                 .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));

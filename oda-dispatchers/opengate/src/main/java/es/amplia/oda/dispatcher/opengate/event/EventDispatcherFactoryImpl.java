@@ -1,8 +1,10 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.interfaces.SerializerProvider;
 import es.amplia.oda.dispatcher.opengate.*;
 
 import java.util.HashMap;
@@ -12,15 +14,15 @@ import java.util.function.Function;
 public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
 
     private final DeviceInfoProvider deviceInfoProvider;
-    private final Serializer serializer;
+    private final SerializerProvider serializerProvider;
     private final OpenGateConnector connector;
     private final Map<Boolean, Function<DeviceInfoProvider, EventParser>> eventParserCreators = new HashMap<>();
 
 
-    public EventDispatcherFactoryImpl(DeviceInfoProvider deviceInfoProvider, Serializer serializer,
+    public EventDispatcherFactoryImpl(DeviceInfoProvider deviceInfoProvider, SerializerProvider serializerProvider,
                                       OpenGateConnector connector) {
         this.deviceInfoProvider = deviceInfoProvider;
-        this.serializer = serializer;
+        this.serializerProvider = serializerProvider;
         this.connector = connector;
         populateEventParserCreators();
     }
@@ -39,8 +41,9 @@ public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
     }
 
     @Override
-    public EventCollector createEventCollector(boolean reducedOutput) {
+    public EventCollector createEventCollector(boolean reducedOutput, ContentType contentType) {
         EventParser eventParser = eventParserCreators.get(reducedOutput).apply(deviceInfoProvider);
+        Serializer serializer = serializerProvider.getSerializer(contentType);
         EventDispatcherImpl internalEventDispatcher = new EventDispatcherImpl(eventParser, serializer, connector);
         return new EventCollectorImpl(internalEventDispatcher);
     }

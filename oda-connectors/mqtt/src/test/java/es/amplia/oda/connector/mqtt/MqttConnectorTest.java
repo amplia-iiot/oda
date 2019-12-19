@@ -2,6 +2,7 @@ package es.amplia.oda.connector.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.connector.mqtt.configuration.ConnectorConfiguration;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import org.junit.Before;
 import org.junit.Test;
@@ -184,33 +185,47 @@ public class MqttConnectorTest {
         byte[] testResponseBytes = new byte[] { 5, 6, 7, 8 };
         MqttMessage responseMessage = MqttMessage.newInstance(testResponseBytes, TEST_QOS, TEST_RETAINED);
 
-        when(mockedDispatcher.process(any(byte[].class))).thenReturn(mockedResponse);
+        when(mockedDispatcher.process(any(byte[].class), any(ContentType.class))).thenReturn(mockedResponse);
 
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
-        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD));
+        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
         verify(mockedResponse).thenAccept(byteArrayConsumerCaptor.capture());
         byteArrayConsumerCaptor.getValue().accept(testResponseBytes);
-        verify(mockedMqttClient).publish(eq(TEST_RESPONSE_TOPIC), eq(responseMessage));
+        verify(mockedMqttClient).publish(eq(TEST_RESPONSE_TOPIC), eq(responseMessage), eq(ContentType.JSON));
     }
 
     @Test
     public void testMessageArrivedRuntimeExceptionIsCaught() {
-        when(mockedDispatcher.process(any(byte[].class))).thenThrow(new RuntimeException());
+        when(mockedDispatcher.process(any(byte[].class), any(ContentType.class))).thenThrow(new RuntimeException());
 
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
-        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD));
+        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
         verifyZeroInteractions(mockedMqttClient);
     }
 
     @Test
     public void testMessageArrivedNullResponse() {
-        when(mockedDispatcher.process(any(byte[].class))).thenReturn(null);
+        when(mockedDispatcher.process(any(byte[].class), any(ContentType.class))).thenReturn(null);
 
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
-        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD));
+        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
+        verifyZeroInteractions(mockedMqttClient);
+    }
+
+    @Test
+    public void testMessageArrivedExceptionallyProcessedIsCaught() {
+        CompletableFuture<byte[]> exceptionallyCompletedFuture = new CompletableFuture<>();
+        exceptionallyCompletedFuture.completeExceptionally(new RuntimeException());
+
+        when(mockedDispatcher.process(any(byte[].class), any(ContentType.class)))
+                .thenReturn(exceptionallyCompletedFuture);
+
+        testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
+
+        verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
         verifyZeroInteractions(mockedMqttClient);
     }
 
@@ -221,7 +236,7 @@ public class MqttConnectorTest {
 
         testConnector.uplink(payload);
 
-        verify(mockedMqttClient).publish(eq(TEST_IOT_TOPIC), eq(expectedMessage));
+        verify(mockedMqttClient).publish(eq(TEST_IOT_TOPIC), eq(expectedMessage), eq(ContentType.JSON));
     }
 
     @Test
@@ -247,11 +262,11 @@ public class MqttConnectorTest {
         byte[] payload = new byte[]{1, 2, 3, 4};
         MqttMessage expectedMessage = MqttMessage.newInstance(payload, TEST_QOS, TEST_RETAINED);
 
-        doThrow(new MqttException("")).when(mockedMqttClient).publish(anyString(), any(MqttMessage.class));
+        doThrow(new MqttException("")).when(mockedMqttClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 
         testConnector.uplink(payload);
 
-        verify(mockedMqttClient).publish(eq(TEST_IOT_TOPIC), eq(expectedMessage));
+        verify(mockedMqttClient).publish(eq(TEST_IOT_TOPIC), eq(expectedMessage), eq(ContentType.JSON));
     }
 
     @Test
