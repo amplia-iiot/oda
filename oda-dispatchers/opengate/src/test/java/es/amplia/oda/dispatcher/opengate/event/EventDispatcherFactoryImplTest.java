@@ -62,7 +62,7 @@ public class EventDispatcherFactoryImplTest {
         PowerMockito.verifyNew(EventParserImpl.class).withArguments(eq(mockedDeviceInfoProvider));
         verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
         PowerMockito.verifyNew(EventDispatcherImpl.class)
-                .withArguments(eq(mockedEventParser), eq(mockedSerializer), eq(mockedConnector));
+                .withArguments(eq(mockedEventParser), eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector));
         PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
     }
 
@@ -78,8 +78,8 @@ public class EventDispatcherFactoryImplTest {
         assertEquals(mockedEventCollector, eventCollector);
         PowerMockito.verifyNew(EventParserReducedOutputImpl.class).withArguments(eq(mockedDeviceInfoProvider));
         verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
-        PowerMockito.verifyNew(EventDispatcherImpl.class)
-                .withArguments(eq(mockedReducedEventParser), eq(mockedSerializer), eq(mockedConnector));
+        PowerMockito.verifyNew(EventDispatcherImpl.class).withArguments(eq(mockedReducedEventParser),
+                eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector));
         PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
     }
 }

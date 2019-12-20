@@ -1,5 +1,6 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -17,12 +18,15 @@ class EventDispatcherImpl implements EventDispatcher {
 
     private final EventParser eventParser;
     private final Serializer serializer;
+    private final ContentType contentType;
     private final OpenGateConnector connector;
 
 
-    EventDispatcherImpl(EventParser eventParser, Serializer serializer, OpenGateConnector connector) {
+    EventDispatcherImpl(EventParser eventParser, Serializer serializer, ContentType contentType,
+                        OpenGateConnector connector) {
         this.eventParser = eventParser;
         this.serializer = serializer;
+        this.contentType = contentType;
         this.connector = connector;
     }
 
@@ -40,7 +44,7 @@ class EventDispatcherImpl implements EventDispatcher {
         try {
             LOGGER.info("Publishing events {}", outputEvent);
             byte[] payload = serializer.serialize(outputEvent);
-            connector.uplink(payload);
+            connector.uplink(payload, contentType);
         } catch (IOException e) {
             LOGGER.error("Error serializing events {}. Events will not be published: ", outputEvent, e);
         }

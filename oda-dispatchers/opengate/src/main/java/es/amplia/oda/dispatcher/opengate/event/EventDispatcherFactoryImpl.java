@@ -44,7 +44,8 @@ public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
     public EventCollector createEventCollector(boolean reducedOutput, ContentType contentType) {
         EventParser eventParser = eventParserCreators.get(reducedOutput).apply(deviceInfoProvider);
         Serializer serializer = serializerProvider.getSerializer(contentType);
-        EventDispatcherImpl internalEventDispatcher = new EventDispatcherImpl(eventParser, serializer, connector);
+        EventDispatcherImpl internalEventDispatcher =
+                new EventDispatcherImpl(eventParser, serializer, contentType, connector);
         return new EventCollectorImpl(internalEventDispatcher);
     }
 }
