@@ -1,5 +1,6 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
@@ -7,6 +8,7 @@ import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import es.amplia.oda.event.api.Event;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class EventDispatcherImplTest {
 
+    private static final ContentType TEST_CONTENT_TYPE = ContentType.MESSAGE_PACK;
     private static final long TEST_AT = System.currentTimeMillis();
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -42,9 +45,14 @@ public class EventDispatcherImplTest {
     private Serializer mockedSerializer;
     @Mock
     private OpenGateConnector mockedConnector;
-    @InjectMocks
     private EventDispatcherImpl testEventDispatcher;
 
+
+    @Before
+    public void setUp() {
+        testEventDispatcher =
+                new EventDispatcherImpl(mockedEventParser, mockedSerializer, TEST_CONTENT_TYPE, mockedConnector);
+    }
 
     @Test
     public void testPublish() throws IOException {
@@ -55,7 +63,7 @@ public class EventDispatcherImplTest {
 
         verify(mockedEventParser).parse(eq(TEST_EVENT));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
-        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM));
+        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
     }
 
     @Test
@@ -75,7 +83,7 @@ public class EventDispatcherImplTest {
         testEventDispatcher.publish(TEST_OUTPUT_DATASTREAM);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
-        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM));
+        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
     }
 
     @Test
