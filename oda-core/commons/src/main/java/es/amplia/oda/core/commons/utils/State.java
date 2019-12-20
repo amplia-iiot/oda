@@ -77,7 +77,7 @@ public class State {
                 return refreshedValues.get(dsInfo);
             }
         }
-        return true;
+        return false;
     }
 
     public DatastreamValue createValue(DatastreamInfo dsInfo, Object val) {
@@ -98,7 +98,6 @@ public class State {
                 DatastreamValue.Status.NOT_FOUND, "Datastream not found");
     }
 
-    @Deprecated
     public void clearRefreshed() {
         refreshedValues.keySet().forEach(value -> refreshedValues.put(value, false));
     }

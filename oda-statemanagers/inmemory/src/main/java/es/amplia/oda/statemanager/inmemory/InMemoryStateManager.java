@@ -128,7 +128,7 @@ class InMemoryStateManager implements StateManager {
 
     private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR);
+                Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR);
     }
 
     private Set<CompletableFuture<DatastreamValue>> setValues(String deviceId, Map<String, Object> datastreamValues,
@@ -150,17 +150,17 @@ class InMemoryStateManager implements StateManager {
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage());
+                            Status.PROCESSING_ERROR, error.getMessage());
                 } else {
                     state.put(new DatastreamInfo(deviceId, datastreamId),
                             new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value, Status.OK, null));
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
-                            DatastreamValue.Status.OK, null);
+                            Status.OK, null);
                 }
             });
         } catch (Exception e) {
             return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
-                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage()));
+                    System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage()));
         }
     }
 
@@ -182,12 +182,9 @@ class InMemoryStateManager implements StateManager {
     public void onReceivedEvent(Event event) {
         DatastreamValue dsValue = createDatastreamValueFromEvent(event);
         this.ruleEngine.engine(this.state, dsValue);
-        state.put(createDatastreamInfoFromEvent(event), dsValue);
+        // TODO: Add instant send event
+        this.state.clearRefreshed();
         LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
-    }
-
-    private DatastreamInfo createDatastreamInfoFromEvent(Event event) {
-        return new DatastreamInfo(event.getDeviceId(), event.getDatastreamId());
     }
 
     private DatastreamValue createDatastreamValueFromEvent(Event event) {

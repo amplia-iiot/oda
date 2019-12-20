@@ -68,7 +68,7 @@ public class InMemoryStateManagerTest {
     public void testConstructor() {
         verify(mockedEventHandler).registerStateManager(eq(testStateManager));
     }
-
+git
     @Test
     public void testGetDatastreamInformation() throws ExecutionException, InterruptedException {
         CompletableFuture<DatastreamValue> future =
@@ -329,6 +329,10 @@ public class InMemoryStateManagerTest {
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
         Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        State newState = Whitebox.getInternalState(testStateManager, "state");
+        newState.refreshValue(TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null));
+        when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvent(testEvent);
 
