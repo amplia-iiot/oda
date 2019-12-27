@@ -1,10 +1,7 @@
 package es.amplia.oda.operation.set;
 
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocator;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
+import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -13,24 +10,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
-    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
 
-    private ServiceRegistration<?> registration;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
+
+    private StateManagerProxy stateManager;
+    private ServiceRegistration<OperationSetDeviceParameters> registration;
 
     @Override
-    public void start(BundleContext context) throws Exception {
-        logger.info("Starting Operation Set Activator");
-        DatastreamsSettersLocator datastreamsSettersLocator = new DatastreamsSettersLocatorOsgi(context);
-        DatastreamsSettersFinder datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
-        OperationSetDeviceParametersImpl operationSetDeviceParameters = new OperationSetDeviceParametersImpl(datastreamsSettersFinder);
-        registration = context.registerService(OperationSetDeviceParameters.class.getName(), operationSetDeviceParameters, null);
-        logger.info("Operation Set Activator started");
+    public void start(BundleContext bundleContext) {
+        LOGGER.info("Starting Operation Set Activator");
+        stateManager = new StateManagerProxy(bundleContext);
+        OperationSetDeviceParametersImpl setDeviceParameters = new OperationSetDeviceParametersImpl(stateManager);
+        registration = bundleContext.registerService(OperationSetDeviceParameters.class, setDeviceParameters, null);
+        LOGGER.info("Operation Set Activator started");
     }
 
     @Override
-    public void stop(BundleContext context) {
-        logger.info("Stopping Operation Set Activator");
+    public void stop(BundleContext bundleContext) {
+        LOGGER.info("Stopping Operation Set Activator");
         registration.unregister();
-        logger.info("Operation Set Activator stopped");
+        stateManager.close();
+        LOGGER.info("Operation Set Activator stopped");
     }
 }

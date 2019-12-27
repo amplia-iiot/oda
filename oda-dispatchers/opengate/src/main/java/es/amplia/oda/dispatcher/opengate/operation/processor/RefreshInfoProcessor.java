@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
 
@@ -20,8 +19,7 @@ class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
     private final OperationRefreshInfo operationRefreshInfo;
 
 
-    RefreshInfoProcessor(Serializer serializer, OperationRefreshInfo operationRefreshInfo) {
-        super(serializer);
+    RefreshInfoProcessor(OperationRefreshInfo operationRefreshInfo) {
         this.operationRefreshInfo = operationRefreshInfo;
     }
 

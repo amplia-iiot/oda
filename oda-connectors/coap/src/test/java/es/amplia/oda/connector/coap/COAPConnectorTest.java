@@ -2,9 +2,11 @@ package es.amplia.oda.connector.coap;
 
 import es.amplia.oda.connector.coap.configuration.ConnectorConfiguration;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.Endpoint;
@@ -17,9 +19,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static es.amplia.oda.connector.coap.COAPConnector.UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,6 +105,7 @@ public class COAPConnectorTest {
 
         PowerMockito.mockStatic(Request.class);
         PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
+        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
         when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
         when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
         when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
@@ -110,12 +113,56 @@ public class COAPConnectorTest {
 
         testConnector.uplink(TEST_PAYLOAD);
 
+        verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_JSON);
         verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
         verify(mockedRequest).setOptions(eq(mockedOptionSet));
         verify(mockedClient).advanced(eq(mockedRequest));
         verify(mockedResponse).getCode();
     }
 
+    @Test
+    public void testUplinkCborMessage() {
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
+        Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
+
+        PowerMockito.mockStatic(Request.class);
+        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
+        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
+        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
+
+        testConnector.uplink(TEST_PAYLOAD, ContentType.CBOR);
+
+        verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_CBOR);
+        verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
+        verify(mockedRequest).setOptions(eq(mockedOptionSet));
+        verify(mockedClient).advanced(eq(mockedRequest));
+        verify(mockedResponse).getCode();
+    }
+
+    @Test
+    public void testUplinkMessagePackMessage() {
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
+        Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
+
+        PowerMockito.mockStatic(Request.class);
+        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
+        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
+        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
+
+        testConnector.uplink(TEST_PAYLOAD, ContentType.MESSAGE_PACK);
+
+        verify(mockedOptionSet).setContentFormat(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE);
+        verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
+        verify(mockedRequest).setOptions(eq(mockedOptionSet));
+        verify(mockedClient).advanced(eq(mockedRequest));
+        verify(mockedResponse).getCode();
+    }
 
     @Test
     public void testUplinkNoClient() {

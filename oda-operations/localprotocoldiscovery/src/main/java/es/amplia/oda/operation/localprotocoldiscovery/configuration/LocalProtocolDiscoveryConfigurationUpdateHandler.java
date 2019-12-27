@@ -9,13 +9,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class LocalProtocolDiscoveryConfigurationUpdateHandler implements ConfigurationUpdateHandler {
-	private static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
-	private static final String CLIENT_ID_PROPERTY_NAME = "clientId";
-	private static final String DISCOVERY_TOPIC_PROPERTY_NAME = "discoverTopic";
+
+	static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
+	static final String CLIENT_ID_PROPERTY_NAME = "clientId";
+	static final String DISCOVERY_TOPIC_PROPERTY_NAME = "discoverTopic";
+
 
 	private final OperationLocalProtocolDiscoveryImpl operationDiscover;
-
 	private LocalProtocolDiscoveryConfiguration currentConfiguration;
+
 
 	public LocalProtocolDiscoveryConfigurationUpdateHandler(OperationLocalProtocolDiscoveryImpl operationDiscover) {
 		this.operationDiscover = operationDiscover;
@@ -25,7 +27,8 @@ public class LocalProtocolDiscoveryConfigurationUpdateHandler implements Configu
 	public void loadConfiguration(Dictionary<String, ?> props) {
 		String brokerURI = Optional.ofNullable((String) props.get(SERVER_URI_PROPERTY_NAME)).orElseThrow(
 				() -> new ConfigurationException("Missing required parameter: " + SERVER_URI_PROPERTY_NAME));
-		String clientId = Optional.ofNullable((String) props.get(CLIENT_ID_PROPERTY_NAME)).orElse(UUID.randomUUID().toString());
+		String clientId = Optional.ofNullable((String) props.get(CLIENT_ID_PROPERTY_NAME))
+				.orElse(UUID.randomUUID().toString());
 		String discoverTopic = Optional.ofNullable((String) props.get(DISCOVERY_TOPIC_PROPERTY_NAME)).orElseThrow(
 				() -> new ConfigurationException("Missing required parameter: " + DISCOVERY_TOPIC_PROPERTY_NAME));
 
@@ -34,6 +37,7 @@ public class LocalProtocolDiscoveryConfigurationUpdateHandler implements Configu
 
 	@Override
 	public void applyConfiguration() {
-		operationDiscover.loadConfiguration(currentConfiguration);
+		operationDiscover.loadConfiguration(currentConfiguration.getServerURI(), currentConfiguration.getClientId(),
+				currentConfiguration.getDiscoverTopic());
 	}
 }

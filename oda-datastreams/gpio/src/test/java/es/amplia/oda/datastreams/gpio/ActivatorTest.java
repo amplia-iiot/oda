@@ -1,12 +1,15 @@
 package es.amplia.oda.datastreams.gpio;
 
 import es.amplia.oda.core.commons.gpio.GpioService;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.GpioServiceProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
+import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.gpio.configuration.DatastreamsGpioConfigurationHandler;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,9 +36,15 @@ public class ActivatorTest {
     @Mock
     private GpioServiceProxy mockedGpioService;
     @Mock
-    private EventDispatcherProxy mockedEventDispatcher;
+    private EventPublisherProxy mockedEventPublisher;
     @Mock
-    private GpioDatastreamsRegistry mockedRegistry;
+    private GpioDatastreamsFactoryImpl mockedFactory;
+    @Mock
+    private ServiceRegistrationManagerOsgi<DatastreamsGetter> mockedGetterRegistrationManager;
+    @Mock
+    private ServiceRegistrationManagerOsgi<DatastreamsSetter> mockedSetterRegistrationManager;
+    @Mock
+    private GpioDatastreamsManager mockedManager;
     @Mock
     private DatastreamsGpioConfigurationHandler mockedConfigHandler;
     @Mock
@@ -48,8 +57,15 @@ public class ActivatorTest {
     @Test
     public void testStart() throws Exception {
         PowerMockito.whenNew(GpioServiceProxy.class).withAnyArguments().thenReturn(mockedGpioService);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
-        PowerMockito.whenNew(GpioDatastreamsRegistry.class).withAnyArguments().thenReturn(mockedRegistry);
+        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
+        PowerMockito.whenNew(GpioDatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
+        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class)
+                .withArguments(any(BundleContext.class), eq(DatastreamsGetter.class))
+                .thenReturn(mockedGetterRegistrationManager);
+        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class)
+                .withArguments(any(BundleContext.class), eq(DatastreamsSetter.class))
+                .thenReturn(mockedSetterRegistrationManager);
+        PowerMockito.whenNew(GpioDatastreamsManager.class).withAnyArguments().thenReturn(mockedManager);
         PowerMockito.whenNew(DatastreamsGpioConfigurationHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
@@ -63,11 +79,17 @@ public class ActivatorTest {
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(GpioServiceProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(GpioDatastreamsRegistry.class)
-                .withArguments(eq(mockedContext), eq(mockedGpioService), eq(mockedEventDispatcher));
+        PowerMockito.verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(GpioDatastreamsFactoryImpl.class)
+                .withArguments(eq(mockedGpioService), eq(mockedEventPublisher));
+        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
+                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
+        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
+                .withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
+        PowerMockito.verifyNew(GpioDatastreamsManager.class)
+                .withArguments(eq(mockedFactory), eq(mockedGetterRegistrationManager), eq(mockedSetterRegistrationManager));
         PowerMockito.verifyNew(DatastreamsGpioConfigurationHandler.class)
-                .withArguments(eq(mockedRegistry), eq(mockedGpioService));
+                .withArguments(eq(mockedManager), eq(mockedGpioService));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         PowerMockito.verifyNew(ServiceListenerBundle.class)
                 .withArguments(eq(mockedContext), eq(GpioService.class), any(Runnable.class));
@@ -87,13 +109,15 @@ public class ActivatorTest {
         doThrow(new RuntimeException("")).when(mockedConfigHandler).applyConfiguration();
 
         testActivator.onServiceChanged(mockedConfigHandler);
+
+        verify(mockedConfigHandler).applyConfiguration();
     }
 
     @Test
     public void testStop() {
         Whitebox.setInternalState(testActivator, "gpioService", mockedGpioService);
-        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
-        Whitebox.setInternalState(testActivator, "registry", mockedRegistry);
+        Whitebox.setInternalState(testActivator, "eventPublisher", mockedEventPublisher);
+        Whitebox.setInternalState(testActivator, "manager", mockedManager);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "gpioServiceListener", mockedGpioServiceListener);
         Whitebox.setInternalState(testActivator, "deviceInfoProviderServiceListener",
@@ -102,8 +126,8 @@ public class ActivatorTest {
         testActivator.stop(mockedContext);
 
         verify(mockedConfigurableBundle).close();
-        verify(mockedRegistry).close();
-        verify(mockedEventDispatcher).close();
+        verify(mockedManager).close();
+        verify(mockedEventPublisher).close();
         verify(mockedGpioService).close();
         verify(mockedDeviceInfoProviderServiceListener).close();
     }

@@ -91,6 +91,19 @@ public class WebSocketClientImplTest {
     }
 
     @Test
+    public void testOnMessageFutureExceptionallyProcessed() {
+        CompletableFuture<byte[]> exceptionallyCompletedFuture = new CompletableFuture<>();
+        exceptionallyCompletedFuture.completeExceptionally(new RuntimeException());
+
+        when(mockedDispatcher.process(any(byte[].class))).thenReturn(exceptionallyCompletedFuture);
+
+        testClient.onMessage(TEST_MESSAGE);
+
+        verify(mockedDispatcher).process(aryEq(TEST_MESSAGE.getBytes(StandardCharsets.UTF_8)));
+        verify(mockedConnector, never()).uplink(any(byte[].class));
+    }
+
+    @Test
     public void testOnClose() {
         int closeCode = 1;
         String reason = "No reason";

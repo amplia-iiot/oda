@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.operation.api.CustomOperation;
@@ -28,8 +27,6 @@ public class OpenGateOperationProcessorFactoryImplTest {
 
     @Mock
     private BundleContext mockedContext;
-    @Mock
-    private Serializer mockedSerializer;
 
     private OpenGateOperationProcessorFactoryImpl testFactory;
 
@@ -78,7 +75,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
                 .withArguments(any(BundleContext.class), eq(CustomOperation.class))
                 .thenReturn(mockedOperationServiceLocator);
 
-        testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext, mockedSerializer);
+        testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext);
     }
 
     @Test
@@ -114,15 +111,12 @@ public class OpenGateOperationProcessorFactoryImplTest {
         OperationProcessor operationProcessor = testFactory.createOperationProcessor();
 
         assertEquals(mockedOpenGateOperationProcessor, operationProcessor);
-        PowerMockito.verifyNew(RefreshInfoProcessor.class).withArguments(eq(mockedSerializer), eq(mockedRefreshInfo));
-        PowerMockito.verifyNew(GetDeviceParametersProcessor.class)
-                .withArguments(eq(mockedSerializer), eq(mockedGetDeviceParameters));
-        PowerMockito.verifyNew(SetDeviceParametersProcessor.class)
-                .withArguments(eq(mockedSerializer), eq(mockedSetDeviceParameters));
-        PowerMockito.verifyNew(UpdateProcessor.class).withArguments(eq(mockedSerializer), eq(mockedUpdate));
-        PowerMockito.verifyNew(SetClockEquipmentProcessor.class).withArguments(eq(mockedSerializer), eq(mockedSetClockEquipment));
-        PowerMockito.verifyNew(CustomOperationProcessor.class)
-                .withArguments(eq(mockedSerializer), eq(mockedOperationServiceLocator));
+        PowerMockito.verifyNew(RefreshInfoProcessor.class).withArguments(eq(mockedRefreshInfo));
+        PowerMockito.verifyNew(GetDeviceParametersProcessor.class).withArguments(eq(mockedGetDeviceParameters));
+        PowerMockito.verifyNew(SetDeviceParametersProcessor.class).withArguments(eq(mockedSetDeviceParameters));
+        PowerMockito.verifyNew(UpdateProcessor.class).withArguments(eq(mockedUpdate));
+        PowerMockito.verifyNew(SetClockEquipmentProcessor.class).withArguments(eq(mockedSetClockEquipment));
+        PowerMockito.verifyNew(CustomOperationProcessor.class).withArguments(eq(mockedOperationServiceLocator));
         PowerMockito.verifyNew(OpenGateOperationProcessor.class)
                 .withArguments(any(Map.class), eq(mockedCustomOperationProcessor));
     }

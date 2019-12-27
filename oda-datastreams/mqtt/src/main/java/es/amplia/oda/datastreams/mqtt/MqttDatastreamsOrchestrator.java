@@ -5,9 +5,9 @@ import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerWithKey;
-import es.amplia.oda.event.api.EventDispatcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,23 +20,22 @@ class MqttDatastreamsOrchestrator implements AutoCloseable {
 
     private final MqttClientFactory mqttClientFactory;
     private final Serializer serializer;
-    private final EventDispatcher eventDispatcher;
+    private final EventPublisher eventPublisher;
     private final ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager;
     private final ServiceRegistrationManagerWithKey<String, DatastreamsSetter> datastreamsSetterRegistrationManager;
 
     private MqttClient mqttClient;
     private MqttDatastreamsManager mqttDatastreamsManager;
-    private MqttDatastreamsEventHandler mqttDatastreamsEventHandler;
+    private MqttDatastreamsEvent mqttDatastreamsEvent;
     private MqttDatastreamDiscoveryHandler mqttDatastreamDiscoveryHandler;
     private MqttDatastreamsLwtHandler mqttDatastreamsLwtHandler;
 
-    MqttDatastreamsOrchestrator(MqttClientFactory mqttClientFactory, Serializer serializer,
-                                EventDispatcher eventDispatcher,
+    MqttDatastreamsOrchestrator(MqttClientFactory mqttClientFactory, Serializer serializer, EventPublisher eventPublisher,
                                 ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager,
                                 ServiceRegistrationManagerWithKey<String, DatastreamsSetter> datastreamsSetterRegistrationManager) {
         this.mqttClientFactory = mqttClientFactory;
         this.serializer = serializer;
-        this.eventDispatcher = eventDispatcher;
+        this.eventPublisher = eventPublisher;
         this.datastreamsGetterRegistrationManager = datastreamsGetterRegistrationManager;
         this.datastreamsSetterRegistrationManager = datastreamsSetterRegistrationManager;
     }
@@ -48,11 +47,11 @@ class MqttDatastreamsOrchestrator implements AutoCloseable {
         mqttClient.connect();
         MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager = new MqttDatastreamsPermissionManager();
         MqttDatastreamsFactory mqttDatastreamsFactory =
-                new MqttDatastreamsFactory(mqttClient, mqttDatastreamsPermissionManager, serializer, eventDispatcher,
+                new MqttDatastreamsFactory(mqttClient, mqttDatastreamsPermissionManager, serializer, eventPublisher,
                         configuration.getReadRequestTopic(), configuration.getReadResponseTopic(),
                         configuration.getWriteRequestTopic(), configuration.getWriteResponseTopic(),
                         configuration.getEventTopic());
-        mqttDatastreamsEventHandler = mqttDatastreamsFactory.createDatastreamsEventHandler();
+        mqttDatastreamsEvent = mqttDatastreamsFactory.createDatastreamsEvent();
         mqttDatastreamsManager = new MqttDatastreamsManager(datastreamsGetterRegistrationManager,
                 datastreamsSetterRegistrationManager, mqttDatastreamsFactory);
         mqttDatastreamDiscoveryHandler = new MqttDatastreamDiscoveryHandler(mqttClient, serializer,
@@ -73,9 +72,9 @@ class MqttDatastreamsOrchestrator implements AutoCloseable {
                 mqttDatastreamDiscoveryHandler.close();
                 mqttDatastreamDiscoveryHandler = null;
             }
-            if (mqttDatastreamsEventHandler != null) {
-                mqttDatastreamsEventHandler.close();
-                mqttDatastreamsEventHandler = null;
+            if (mqttDatastreamsEvent != null) {
+                mqttDatastreamsEvent.unregisterFromEventSource();
+                mqttDatastreamsEvent = null;
             }
             if (mqttDatastreamsManager!= null) {
                 mqttDatastreamsManager.close();

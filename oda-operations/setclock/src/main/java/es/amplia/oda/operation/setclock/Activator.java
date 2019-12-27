@@ -1,10 +1,7 @@
 package es.amplia.oda.operation.setclock;
 
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocator;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersLocatorOsgi;
 import es.amplia.oda.operation.api.OperationSetClock;
+import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -16,16 +13,16 @@ public class Activator implements BundleActivator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-	private ServiceRegistration<OperationSetClock> registration;
+	private StateManagerProxy stateManager;
+	private ServiceRegistration<OperationSetClock> setClockRegistration;
 
 	@Override
-	public void start(BundleContext context) throws Exception {
+	public void start(BundleContext context) {
 		LOGGER.info("Starting Set Clock Operation");
 
-		DatastreamsSettersLocator datastreamsSettersLocator = new DatastreamsSettersLocatorOsgi(context);
-		DatastreamsSettersFinder datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
-		OperationSetClockImpl setClockOperation = new OperationSetClockImpl(datastreamsSettersFinder);
-		registration = context.registerService(OperationSetClock.class, setClockOperation, null);
+		stateManager = new StateManagerProxy(context);
+		OperationSetClockImpl setClockOperation = new OperationSetClockImpl(stateManager);
+		setClockRegistration = context.registerService(OperationSetClock.class, setClockOperation, null);
 
 		LOGGER.info("Set Clock Operation started");
 	}
@@ -34,7 +31,8 @@ public class Activator implements BundleActivator {
 	public void stop(BundleContext context) {
 		LOGGER.info("Stopping Set Clock Operation");
 
-		registration.unregister();
+		setClockRegistration.unregister();
+		stateManager.close();
 
 		LOGGER.info("Set Clock Operation stopped");
 	}

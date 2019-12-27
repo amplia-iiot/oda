@@ -4,6 +4,7 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
@@ -94,7 +95,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
                 String writeDatastreamTopic = getDatastreamTopic(deviceId);
                 byte[] payload = serializer.serialize(request);
                 MqttMessage message = MqttMessage.newInstance(payload);
-                mqttClient.publish(writeDatastreamTopic, message);
+                mqttClient.publish(writeDatastreamTopic, message, ContentType.CBOR);
                 futures.put(request.getId(), future);
             } catch (IOException|MqttException e) {
                 LOGGER.error("Error executing write operation request {}: {}", request, e);

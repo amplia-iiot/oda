@@ -1,24 +1,21 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
+
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,7 +31,6 @@ public class OperationProcessorTemplateTest {
     private static final TestParams TEST_PARAMS = new TestParams();
     private static final TestResult TEST_RESULT = new TestResult();
     private static final Output TEST_OUTPUT = new Output(OPENGATE_VERSION, null);
-    private static final byte[] TEST_PROCESSED_OPERATION = new byte[] { 1, 2, 3, 4 };
 
 
     private static class TestParams {}
@@ -42,19 +38,18 @@ public class OperationProcessorTemplateTest {
 
     @SuppressWarnings("unused")
     private static class InnerProcessor {
-        TestParams parseParameters(Request request) { return new TestParams(); }
+        TestParams parseParameters(Request request) { return TEST_PARAMS; }
         CompletableFuture<TestResult> processOperation(String deviceIdForOperation, TestParams testParams) {
-            return CompletableFuture.completedFuture(new TestResult()); }
+            return CompletableFuture.completedFuture(TEST_RESULT); }
         Output translateToOutput(TestResult result, String requestId, String deviceId, String[] path) {
-            return new Output(OPENGATE_VERSION, null);
+            return TEST_OUTPUT;
         }
     }
 
     private static class TestOperationProcessor extends OperationProcessorTemplate<TestParams, TestResult> {
         private final InnerProcessor innerProcessor;
 
-        TestOperationProcessor(Serializer serializer, InnerProcessor innerProcessor) {
-            super(serializer);
+        TestOperationProcessor(InnerProcessor innerProcessor) {
             this.innerProcessor = innerProcessor;
         }
 
@@ -74,55 +69,42 @@ public class OperationProcessorTemplateTest {
         }
     }
 
-    @Mock
-    private Serializer mockedSerializer;
-    @Mock
-    private InnerProcessor mockedInnerProcessor;
+    @Spy
+    private InnerProcessor spiedInnerProcessor = new InnerProcessor();
     @InjectMocks
     private TestOperationProcessor testProcessor;
 
-    @Captor
-    private ArgumentCaptor<Output> outputCaptor;
 
     @Test
-    public void testProcess() throws IOException, ExecutionException, InterruptedException {
-        when(mockedInnerProcessor.parseParameters(any(Request.class))).thenReturn(TEST_PARAMS);
-        when(mockedInnerProcessor.processOperation(anyString(), any(TestParams.class)))
-                .thenReturn(CompletableFuture.completedFuture(TEST_RESULT));
-        when(mockedInnerProcessor.translateToOutput(any(TestResult.class), anyString(), anyString(), any(String[].class)))
-                .thenReturn(TEST_OUTPUT);
-        when(mockedSerializer.serialize(any())).thenReturn(TEST_PROCESSED_OPERATION);
-
-        CompletableFuture<byte[]> future =
+    public void testProcess() throws ExecutionException, InterruptedException {
+        CompletableFuture<Output> future =
                 testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
-        byte[] processedOperation = future.get();
+        Output output = future.get();
 
-        assertArrayEquals(TEST_PROCESSED_OPERATION, processedOperation);
-        verify(mockedInnerProcessor).parseParameters(eq(TEST_REQUEST));
-        verify(mockedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
-        verify(mockedInnerProcessor).translateToOutput(eq(TEST_RESULT), eq(TEST_ID), eq(TEST_DEVICE_ID_FOR_RESPONSE), aryEq(TEST_PATH));
-        verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
+        assertEquals(TEST_OUTPUT, output);
+        verify(spiedInnerProcessor).parseParameters(eq(TEST_REQUEST));
+        verify(spiedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
+        verify(spiedInnerProcessor)
+                .translateToOutput(eq(TEST_RESULT), eq(TEST_ID), eq(TEST_DEVICE_ID_FOR_RESPONSE), aryEq(TEST_PATH));
+    }
+
+    private static class NoOperationInnerProcessor extends InnerProcessor {
+        @Override
+        CompletableFuture<TestResult> processOperation(String deviceIdForOperation, TestParams testParams) {
+            return null;
+        }
     }
 
     @Test
-    public void testProcessErrorProcessingOperation() throws IOException, ExecutionException, InterruptedException {
-        when(mockedInnerProcessor.parseParameters(any(Request.class))).thenReturn(TEST_PARAMS);
-        when(mockedInnerProcessor.processOperation(anyString(), any(TestParams.class))).thenReturn(null);
-        when(mockedSerializer.serialize(any())).thenReturn(TEST_PROCESSED_OPERATION);
+    public void testProcessNoOperation() throws ExecutionException, InterruptedException {
+        TestOperationProcessor noOperationProcessor = new TestOperationProcessor(new NoOperationInnerProcessor());
 
-        CompletableFuture<byte[]> future =
-                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
-        byte[] processedOperation = future.get();
+        CompletableFuture<Output> future =
+                noOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+        Output output = future.get();
 
-        assertArrayEquals(TEST_PROCESSED_OPERATION, processedOperation);
-        verify(mockedInnerProcessor).parseParameters(eq(TEST_REQUEST));
-        verify(mockedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
-        verify(mockedInnerProcessor, never())
-                .translateToOutput(any(TestResult.class),anyString(), anyString(), any(String[].class));
-        verify(mockedSerializer).serialize(outputCaptor.capture());
-        Output capturedOutput = outputCaptor.getValue();
-        assertEquals(OPENGATE_VERSION, capturedOutput.getVersion());
-        OutputOperation outputOperation = capturedOutput.getOperation();
+        assertEquals(OPENGATE_VERSION, output.getVersion());
+        OutputOperation outputOperation = output.getOperation();
         assertNotNull(outputOperation);
         Response response = outputOperation.getResponse();
         assertEquals(TEST_ID, response.getId());
@@ -134,27 +116,46 @@ public class OperationProcessorTemplateTest {
     }
 
     @Test
-    public void testProcessExceptionTranslatingToOutput() throws IOException, ExecutionException, InterruptedException {
-        when(mockedInnerProcessor.parseParameters(any(Request.class))).thenReturn(TEST_PARAMS);
-        when(mockedInnerProcessor.processOperation(anyString(), any(TestParams.class)))
-                .thenReturn(CompletableFuture.completedFuture(TEST_RESULT));
-        when(mockedInnerProcessor.translateToOutput(any(TestResult.class), anyString(), anyString(), any(String[].class)))
-                .thenThrow(new RuntimeException());
-        when(mockedSerializer.serialize(any())).thenReturn(TEST_PROCESSED_OPERATION);
+    public void testProcessErrorProcessingOperation() throws ExecutionException, InterruptedException {
+        when(spiedInnerProcessor.processOperation(anyString(), any(TestParams.class))).thenReturn(null);
 
-        CompletableFuture<byte[]> future =
+        CompletableFuture<Output> future =
                 testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
-        byte[] processedOperation = future.get();
+        Output output = future.get();
 
-        assertArrayEquals(TEST_PROCESSED_OPERATION, processedOperation);
-        verify(mockedInnerProcessor).parseParameters(eq(TEST_REQUEST));
-        verify(mockedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
-        verify(mockedInnerProcessor)
-                .translateToOutput(eq(TEST_RESULT), eq(TEST_ID), eq(TEST_DEVICE_ID_FOR_RESPONSE), aryEq(TEST_PATH));
-        verify(mockedSerializer).serialize(outputCaptor.capture());
-        Output capturedOutput = outputCaptor.getValue();
-        assertEquals(OPENGATE_VERSION, capturedOutput.getVersion());
-        OutputOperation outputOperation = capturedOutput.getOperation();
+        assertEquals(OPENGATE_VERSION, output.getVersion());
+        OutputOperation outputOperation = output.getOperation();
+        assertNotNull(outputOperation);
+        Response response = outputOperation.getResponse();
+        assertEquals(TEST_ID, response.getId());
+        assertEquals(TEST_DEVICE_ID_FOR_RESPONSE, response.getDeviceId());
+        assertEquals(TEST_OPERATION, response.getName());
+        assertArrayEquals(TEST_PATH, response.getPath());
+        assertEquals(OperationResultCode.NOT_SUPPORTED, response.getResultCode());
+        assertNotNull(response.getResultDescription());
+        verify(spiedInnerProcessor).parseParameters(eq(TEST_REQUEST));
+        verify(spiedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
+        verify(spiedInnerProcessor, never())
+                .translateToOutput(any(TestResult.class),anyString(), anyString(), any(String[].class));
+    }
+
+    private static class FailInnerProcessor extends InnerProcessor {
+        @Override
+        Output translateToOutput(TestResult result, String requestId, String deviceId, String[] path) {
+            throw new RuntimeException("Error");
+        }
+    }
+
+    @Test
+    public void testProcessExceptionTranslatingToOutput() throws ExecutionException, InterruptedException {
+        TestOperationProcessor failOperationProcessor = new TestOperationProcessor(new FailInnerProcessor());
+
+        CompletableFuture<Output> future =
+                failOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+        Output output = future.get();
+
+        assertEquals(OPENGATE_VERSION, output.getVersion());
+        OutputOperation outputOperation = output.getOperation();
         assertNotNull(outputOperation);
         Response response = outputOperation.getResponse();
         assertEquals(TEST_ID, response.getId());
@@ -170,24 +171,5 @@ public class OperationProcessorTemplateTest {
         assertEquals(TEST_OPERATION, errorStep.getName());
         assertEquals(StepResultCode.ERROR, errorStep.getResult());
         assertNotNull(errorStep.getDescription());
-    }
-
-    @Test
-    public void testProcessSerializerIOException() throws IOException {
-        when(mockedInnerProcessor.parseParameters(any(Request.class))).thenReturn(TEST_PARAMS);
-        when(mockedInnerProcessor.processOperation(anyString(), any(TestParams.class)))
-                .thenReturn(CompletableFuture.completedFuture(TEST_RESULT));
-        when(mockedInnerProcessor.translateToOutput(any(TestResult.class), anyString(), anyString(), any(String[].class)))
-                .thenReturn(TEST_OUTPUT);
-        when(mockedSerializer.serialize(any())).thenThrow(new IOException());
-
-        CompletableFuture<byte[]> future =
-                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
-
-        assertNull(future);
-        verify(mockedInnerProcessor).parseParameters(eq(TEST_REQUEST));
-        verify(mockedInnerProcessor).processOperation(eq(TEST_DEVICE_ID_FOR_OPERATION), eq(TEST_PARAMS));
-        verify(mockedInnerProcessor).translateToOutput(eq(TEST_RESULT), eq(TEST_ID), eq(TEST_DEVICE_ID_FOR_RESPONSE), aryEq(TEST_PATH));
-        verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 }

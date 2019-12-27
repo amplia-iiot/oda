@@ -3,7 +3,6 @@ package es.amplia.oda.datastreams.adc;
 import es.amplia.oda.core.commons.interfaces.DatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
-import es.amplia.oda.datastreams.adc.datastreams.AdcDatastreamsEvent;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +27,7 @@ public class DatastreamsRegistryTest {
 	private static final String TEST_DATASTREAM = "testDatastream";
 	private static final double TEST_MINIMUM = 0;
 	private static final double TEST_MAXIMUM = 1;
+	private static final String DATASTREAMS_EVENTS_FIELD_NAME = "datastreamsEvents";
 
 
 	@Mock
@@ -61,24 +61,24 @@ public class DatastreamsRegistryTest {
 
 		verify(mockedFactory).createAdcDatastreamsEvent(eq(TEST_DATASTREAM), eq(TEST_INDEX), eq(TEST_MINIMUM), eq(TEST_MAXIMUM));
 		verify(mockedEvent).registerToEventSource();
-		Map<String, AdcDatastreamsEvent> datastreamsEvents = getDatastreamsEvents();
+		Map<String, DatastreamsEvent> datastreamsEvents = getDatastreamsEvents();
 		assertEquals(1, datastreamsEvents.size());
 		assertTrue(datastreamsEvents.containsKey(TEST_DATASTREAM));
 		assertEquals(mockedEvent, datastreamsEvents.get(TEST_DATASTREAM));
 	}
 
 	@SuppressWarnings("unchecked")
-	private Map<String, AdcDatastreamsEvent> getDatastreamsEvents() {
-		return (Map<String, AdcDatastreamsEvent>) Whitebox.getInternalState(testRegistry, "datastreamsEvents");
+	private Map<String, DatastreamsEvent> getDatastreamsEvents() {
+		return (Map<String, DatastreamsEvent>) Whitebox.getInternalState(testRegistry, DATASTREAMS_EVENTS_FIELD_NAME);
 	}
 
 	@Test
 	public void testAddAdcDatastreamsEventUnregisteringFirst() {
-		AdcDatastreamsEvent oldEvent = mock(AdcDatastreamsEvent.class);
+		DatastreamsEvent oldEvent = mock(DatastreamsEvent.class);
 		Map<String, DatastreamsEvent> datastreamsEvents = new HashMap<>();
 		datastreamsEvents.put(TEST_DATASTREAM, oldEvent);
 
-		Whitebox.setInternalState(testRegistry, "datastreamsEvents", datastreamsEvents);
+		Whitebox.setInternalState(testRegistry, DATASTREAMS_EVENTS_FIELD_NAME, datastreamsEvents);
 
 		when(mockedFactory.createAdcDatastreamsEvent(anyString(), anyInt(), anyDouble(), anyDouble())).thenReturn(mockedEvent);
 
@@ -97,7 +97,7 @@ public class DatastreamsRegistryTest {
 		Map<String, DatastreamsEvent> datastreamsEvents = new HashMap<>();
 		datastreamsEvents.put(TEST_DATASTREAM, mockedEvent);
 
-		Whitebox.setInternalState(testRegistry, "datastreamsEvents", datastreamsEvents);
+		Whitebox.setInternalState(testRegistry, DATASTREAMS_EVENTS_FIELD_NAME, datastreamsEvents);
 
 		testRegistry.close();
 

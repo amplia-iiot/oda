@@ -50,6 +50,8 @@
                 <include>es.amplia.oda.connector:coap</include>
                 <include>es.amplia.oda.service:jsonserializer</include>
                 <include>es.amplia.oda.dispatcher:opengate</include>
+                <include>es.amplia.oda.statemanager:api</include>
+                <include>es.amplia.oda.statemanager:realtime</include>
                 <include>es.amplia.oda.event:api</include>
                 <include>es.amplia.oda.operation:api</include>
                 <include>es.amplia.oda.operation:refreshinfo</include>
@@ -59,6 +61,7 @@
                 <include>es.amplia.oda.operation:setclock</include>
                 <include>es.amplia.oda.operation:update</include>
                 <include>es.amplia.oda.subsystem:poller</include>
+                <include>es.amplia.oda.subsystem:collector</include>
                 <include>es.amplia.oda.subsystem:sshserver</include>
                 <include>es.amplia.oda.datastreams:deviceinfo</include>
                 <include>es.amplia.oda.datastreams:simulator</include>

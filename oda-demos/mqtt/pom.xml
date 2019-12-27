@@ -121,6 +121,24 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>es.amplia.oda.statemanager</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.statemanager</groupId>
+            <artifactId>inmemory</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.ruleengine</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.ruleengine</groupId>
+            <artifactId>nashorn</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>es.amplia.oda.event</groupId>
             <artifactId>api</artifactId>
         </dependency>
@@ -161,6 +179,11 @@
         <dependency>
             <groupId>es.amplia.oda.subsystem</groupId>
             <artifactId>poller</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.subsystem</groupId>
+            <artifactId>collector</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

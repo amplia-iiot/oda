@@ -2,11 +2,12 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -19,7 +20,7 @@ public class Activator implements BundleActivator {
 
     private MqttClientFactoryProxy mqttClientFactory;
     private SerializerProxy serializer;
-    private EventDispatcherProxy eventDispatcher;
+    private EventPublisherProxy eventPublisher;
     private MqttDatastreamsConfigurationUpdateHandler configHandler;
     private ConfigurableBundle configurableBundle;
     private ServiceListenerBundle<MqttClientFactory> mqttClientFactoryListener;
@@ -29,13 +30,13 @@ public class Activator implements BundleActivator {
     @Override
     public void start(BundleContext bundleContext) {
         mqttClientFactory = new MqttClientFactoryProxy(bundleContext);
-        serializer = new SerializerProxy(bundleContext, Serializers.SerializerType.CBOR);
-        eventDispatcher = new EventDispatcherProxy(bundleContext);
+        serializer = new SerializerProxy(bundleContext, ContentType.CBOR);
+        eventPublisher = new EventPublisherProxy(bundleContext);
         ServiceRegistrationManagerWithKey<String, DatastreamsGetter> mqttDatastreamsGetterRegistrationManager =
                 new ServiceRegistrationManagerWithKeyOsgi<>(bundleContext, DatastreamsGetter.class);
         ServiceRegistrationManagerWithKey<String, DatastreamsSetter> mqttDatastreamsSetterRegistrationManager =
                 new ServiceRegistrationManagerWithKeyOsgi<>(bundleContext, DatastreamsSetter.class);
-        mqttDatastreamsOrchestrator = new MqttDatastreamsOrchestrator(mqttClientFactory, serializer, eventDispatcher,
+        mqttDatastreamsOrchestrator = new MqttDatastreamsOrchestrator(mqttClientFactory, serializer, eventPublisher,
                 mqttDatastreamsGetterRegistrationManager, mqttDatastreamsSetterRegistrationManager);
         configHandler = new MqttDatastreamsConfigurationUpdateHandler(mqttDatastreamsOrchestrator);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
@@ -59,6 +60,6 @@ public class Activator implements BundleActivator {
         mqttDatastreamsOrchestrator.close();
         mqttClientFactory.close();
         serializer.close();
-        eventDispatcher.close();
+        eventPublisher.close();
     }
 }

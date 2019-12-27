@@ -3,7 +3,6 @@ package es.amplia.oda.dispatcher.opengate;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
-import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
@@ -26,7 +25,7 @@ public class Activator implements BundleActivator {
 
     private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
 
-    private SerializerProxy serializer;
+    private SerializerProviderOsgi serializerProvider;
     private DeviceInfoProviderProxy deviceInfoProvider;
     private OpenGateOperationProcessorFactory factory;
 
@@ -42,16 +41,16 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting OpenGate Dispatcher");
 
-        serializer = new SerializerProxy(bundleContext, Serializers.SerializerType.JSON);
+        serializerProvider = new SerializerProviderOsgi(bundleContext);
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
-        factory = new OpenGateOperationProcessorFactoryImpl(bundleContext, serializer);
-        Dispatcher dispatcher =
-                new OpenGateOperationDispatcher(serializer, deviceInfoProvider, factory.createOperationProcessor());
+        factory = new OpenGateOperationProcessorFactoryImpl(bundleContext);
+        Dispatcher dispatcher = new OpenGateOperationDispatcher(serializerProvider, deviceInfoProvider,
+                factory.createOperationProcessor());
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
         connector = new OpenGateConnectorProxy(bundleContext);
         EventDispatcherFactory eventDispatcherFactory =
-                new EventDispatcherFactoryImpl(deviceInfoProvider, serializer, connector);
+                new EventDispatcherFactoryImpl(deviceInfoProvider, serializerProvider, connector);
         scheduler = new SchedulerImpl(executor);
         eventDispatcherServiceRegistrationManager =
                 new ServiceRegistrationManagerOsgi<>(bundleContext, EventDispatcher.class);
@@ -73,7 +72,7 @@ public class Activator implements BundleActivator {
         connector.close();
 
         operationDispatcherRegistration.unregister();
-        serializer.close();
+        serializerProvider.close();
         deviceInfoProvider.close();
         factory.close();
 

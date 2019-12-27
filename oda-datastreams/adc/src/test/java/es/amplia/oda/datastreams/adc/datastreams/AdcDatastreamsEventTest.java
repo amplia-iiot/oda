@@ -1,8 +1,7 @@
 package es.amplia.oda.datastreams.adc.datastreams;
 
 import es.amplia.oda.core.commons.adc.*;
-import es.amplia.oda.event.api.Event;
-import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,25 +13,26 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AdcDatastreamsEventTest {
 
-	private final static String TEST_DATASTREAM = "testDatastream";
-	private final static int TEST_INDEX = 1;
-	private final static float TEST_VALUE = 99.99f;
-	private final static float TEST_MIN = 0.0f;
-	private final static float TEST_MAX = 100.f;
+	private static final String TEST_DATASTREAM = "testDatastream";
+	private static final int TEST_INDEX = 1;
+	private static final float TEST_VALUE = 99.99f;
+	private static final float TEST_MIN = 0.0f;
+	private static final float TEST_MAX = 100.f;
+	private static final String ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT = "ADC Device Exception should be caught";
+	private static final String CHANNEL_FIELD_NAME = "channel";
 
 
 	@Mock
 	private AdcService mockedService;
 	@Mock
-	private EventDispatcher mockedDispatcher;
+	private EventPublisher mockedEventPublisher;
 	private AdcDatastreamsEvent testEvent;
 
 	@Mock
@@ -41,13 +41,12 @@ public class AdcDatastreamsEventTest {
 	private AdcEvent mockedEvent;
 	@Captor
 	private ArgumentCaptor<AdcChannelListener> listenerCaptor;
-	@Captor
-	private ArgumentCaptor<Event> eventCaptor;
 
 
 	@Before
 	public void prepareForTest() {
-		testEvent = new AdcDatastreamsEvent(TEST_DATASTREAM, TEST_INDEX, mockedService, mockedDispatcher, TEST_MIN, TEST_MAX);
+		testEvent = new AdcDatastreamsEvent(TEST_DATASTREAM, TEST_INDEX, mockedService, mockedEventPublisher, TEST_MIN,
+				TEST_MAX);
 	}
 
 	@Test
@@ -64,12 +63,8 @@ public class AdcDatastreamsEventTest {
 
 		capturedListener.channelValueChanged(mockedEvent);
 
-		verify(mockedDispatcher).publish(eventCaptor.capture());
-		Event capturedEvent = eventCaptor.getValue();
-		assertEquals("", capturedEvent.getDeviceId());
-		assertEquals(TEST_DATASTREAM, capturedEvent.getDatastreamId());
-		assertArrayEquals(new String[]{}, capturedEvent.getPath());
-		assertEquals((((TEST_MAX - TEST_MIN) * TEST_VALUE) - TEST_MIN), capturedEvent.getValue());
+		verify(mockedEventPublisher).publishEvent(eq(""), eq(TEST_DATASTREAM), eq(new String[0]), anyLong(),
+				eq((TEST_MAX - TEST_MIN) * TEST_VALUE - TEST_MIN));
 	}
 
 	@Test
@@ -79,12 +74,12 @@ public class AdcDatastreamsEventTest {
 
 		testEvent.registerToEventSource();
 
-		assertTrue("ADC Device Exception should be caught", true);
+		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
 	}
 
 	@Test
 	public void testUnregisterFromEventSource() {
-		Whitebox.setInternalState(testEvent, "channel", mockedChannel);
+		Whitebox.setInternalState(testEvent, CHANNEL_FIELD_NAME, mockedChannel);
 
 		testEvent.unregisterFromEventSource();
 
@@ -93,23 +88,23 @@ public class AdcDatastreamsEventTest {
 
 	@Test
 	public void testUnregisterFromEventSourceWithAdcExceptionIsCaught() {
-		Whitebox.setInternalState(testEvent, "channel", mockedChannel);
+		Whitebox.setInternalState(testEvent, CHANNEL_FIELD_NAME, mockedChannel);
 
 		doThrow(new AdcDeviceException("")).when(mockedChannel).removeAllAdcPinListener();
 
 		testEvent.unregisterFromEventSource();
 
-		assertTrue("ADC Device Exception should be caught", true);
+		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
 	}
 
 	@Test
 	public void testUnregisterFromEventSourceWithException() {
-		Whitebox.setInternalState(testEvent, "channel", mockedChannel);
+		Whitebox.setInternalState(testEvent, CHANNEL_FIELD_NAME, mockedChannel);
 
 		doThrow(new ArrayIndexOutOfBoundsException("")).when(mockedChannel).removeAllAdcPinListener();
 
 		testEvent.unregisterFromEventSource();
 
-		assertTrue("ADC Device Exception should be caught", true);
+		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
 	}
 }

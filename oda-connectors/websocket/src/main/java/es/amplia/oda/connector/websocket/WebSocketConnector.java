@@ -1,6 +1,7 @@
 package es.amplia.oda.connector.websocket;
 
 import es.amplia.oda.connector.websocket.configuration.ConnectorConfiguration;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -71,9 +72,11 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
     }
 
     @Override
-    public void uplink(byte[] payload) {
+    public void uplink(byte[] payload, ContentType contentType) {
         if (client != null) {
             try {
+                LOGGER.debug("Content-Type is not supported in WebSocket (is application defined). Content-Type {} is ignored",
+                        contentType);
                 WebSocketMessage message = new WebSocketMessage(payload);
                 LOGGER.info("Sending message {}", message);
                 client.send(message.getPayload());

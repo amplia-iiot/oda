@@ -1,19 +1,23 @@
 package es.amplia.oda.dispatcher.opengate;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.event.api.EventDispatcher;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DispatcherConfigurationUpdateHandler.class);
 
     static final String REDUCED_OUTPUT_PROPERTY_NAME = "reducedOutput";
+    static final String EVENT_CONTENT_TYPE_PROPERTY_NAME = "eventContentType";
 
 
     private final EventDispatcherFactory eventDispatcherFactory;
@@ -22,6 +26,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
 
     private final Map<DispatcherConfiguration, Set<String>> currentConfiguration = new HashMap<>();
     private boolean reducedOutput = false;
+    private ContentType eventContentType = ContentType.JSON;
 
 
     DispatcherConfigurationUpdateHandler(EventDispatcherFactory eventDispatcherFactory, Scheduler scheduler,
@@ -39,6 +44,16 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
         reducedOutput = Optional.ofNullable((String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME))
                 .map(Boolean::parseBoolean)
                 .orElse(false);
+        String contentTypeAsString = (String) props.remove(EVENT_CONTENT_TYPE_PROPERTY_NAME);
+        try {
+            eventContentType = Optional.ofNullable(contentTypeAsString)
+                    .map(ContentType::getContentType)
+                    .orElse(ContentType.JSON);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Unknown event content type {}. Configuring event content type as {}", contentTypeAsString,
+                    ContentType.JSON, e);
+        }
+
 
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {
@@ -88,14 +103,14 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
         scheduler.clear();
         eventDispatcherRegistrationManager.unregister();
 
-        EventCollector eventCollector = eventDispatcherFactory.createEventCollector(reducedOutput);
+        EventCollector eventCollector = eventDispatcherFactory.createEventCollector(reducedOutput, eventContentType);
         eventCollector.loadDatastreamIdsToCollect(getDatastreamIds(currentConfiguration));
 
         currentConfiguration.forEach((conf, datastreams) -> {
             LOGGER.debug("Scheduling dispatch of datastreams '{}' with initial delay {} and every {} seconds",
                     datastreams, conf.getInitialDelay(), conf.getPeriod());
             scheduler.schedule(() -> eventCollector.publishCollectedEvents(datastreams), conf.getInitialDelay(),
-                    conf.getPeriod());
+                    conf.getPeriod(), TimeUnit.SECONDS);
         });
 
         eventDispatcherRegistrationManager.register(eventCollector);

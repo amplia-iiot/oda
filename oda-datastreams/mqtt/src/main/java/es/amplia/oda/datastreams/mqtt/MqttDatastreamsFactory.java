@@ -1,15 +1,15 @@
 package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.event.api.EventDispatcher;
 
 class MqttDatastreamsFactory {
 
     private final MqttClient mqttClient;
     private final MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager;
     private final Serializer serializer;
-    private final EventDispatcher eventDispatcher;
+    private final EventPublisher eventPublisher;
     private final String eventTopic;
     private final String readRequestOperationTopic;
     private final String readResponseOperationTopic;
@@ -17,13 +17,13 @@ class MqttDatastreamsFactory {
     private final String writeResponseOperationTopic;
 
     MqttDatastreamsFactory(MqttClient mqttClient, MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager,
-                           Serializer serializer, EventDispatcher eventDispatcher, String readRequestOperationTopic,
+                           Serializer serializer, EventPublisher eventPublisher, String readRequestOperationTopic,
                            String readResponseOperationTopic, String writeRequestOperationTopic,
                            String writeResponseOperationTopic, String eventTopic) {
         this.mqttClient = mqttClient;
         this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
         this.serializer = serializer;
-        this.eventDispatcher = eventDispatcher;
+        this.eventPublisher= eventPublisher;
         this.eventTopic = eventTopic;
         this.readRequestOperationTopic = readRequestOperationTopic;
         this.readResponseOperationTopic = readResponseOperationTopic;
@@ -31,9 +31,9 @@ class MqttDatastreamsFactory {
         this.writeResponseOperationTopic = writeResponseOperationTopic;
     }
 
-    MqttDatastreamsEventHandler createDatastreamsEventHandler() {
-        return new MqttDatastreamsEventHandler(mqttClient, mqttDatastreamsPermissionManager, serializer,
-                eventDispatcher, eventTopic);
+    MqttDatastreamsEvent createDatastreamsEvent() {
+        return new MqttDatastreamsEvent(eventPublisher, mqttClient, mqttDatastreamsPermissionManager, serializer,
+                eventTopic);
     }
 
     MqttDatastreamsGetter createDatastreamGetter(String datastreamId) {

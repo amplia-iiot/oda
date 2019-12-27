@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class AdcDatastreamsGetter implements DatastreamsGetter {
+class AdcDatastreamsGetter implements DatastreamsGetter {
 
 	private final String datastreamId;
 	private final int pinIndex;
@@ -19,7 +19,7 @@ public class AdcDatastreamsGetter implements DatastreamsGetter {
 	private final double max;
 
 
-	public AdcDatastreamsGetter(String datastreamId, int pinIndex, AdcService adcService, double min, double max) {
+	AdcDatastreamsGetter(String datastreamId, int pinIndex, AdcService adcService, double min, double max) {
 		this.datastreamId = datastreamId;
 		this.pinIndex = pinIndex;
 		this.adcService = adcService;

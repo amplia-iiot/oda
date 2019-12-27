@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface OperationRefreshInfo {
-    
     @Value
     class Result
     {
@@ -20,5 +19,4 @@ public interface OperationRefreshInfo {
      * @return A map with the result of (only) the successful get() of each datastreamsGetters found.
      */
     CompletableFuture<Result> refreshInfo(String deviceId);
-
 }

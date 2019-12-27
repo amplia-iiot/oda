@@ -16,7 +16,6 @@ import static es.amplia.oda.operation.api.OperationSetDeviceParameters.*;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.*;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 

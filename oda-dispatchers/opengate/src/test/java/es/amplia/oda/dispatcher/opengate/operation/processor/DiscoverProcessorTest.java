@@ -16,7 +16,6 @@ import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProc
 import static es.amplia.oda.operation.api.OperationDiscover.*;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)

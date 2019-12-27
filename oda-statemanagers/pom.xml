@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>es.amplia.oda.statemanager</groupId>
+    <artifactId>oda-statemanagers</artifactId>
+    <packaging>pom</packaging>
+
+    <name>OpenGate Device Agent State Managers</name>
+    <description>State Managers of the OpenGate Device Agent</description>
+
+    <parent>
+        <artifactId>oda-parent</artifactId>
+        <groupId>es.amplia.oda</groupId>
+        <version>3.31.3-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <module>api</module>
+        <module>realtime</module>
+        <module>inmemory</module>
+    </modules>
+</project>

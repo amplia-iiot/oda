@@ -5,6 +5,7 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 
 import org.junit.Test;
@@ -102,7 +103,7 @@ public class MqttPahoClientTest {
         int testQos = 1;
         MqttMessage testMessage = MqttMessage.newInstance(testPayload, testQos, true);
 
-        testClient.publish(TEST_TOPIC, testMessage);
+        testClient.publish(TEST_TOPIC, testMessage, ContentType.JSON);
 
         verify(mockedInnerClient).publish(eq(TEST_TOPIC), eq(testPayload), eq(testQos), eq(true));
     }
@@ -116,7 +117,7 @@ public class MqttPahoClientTest {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient)
                 .publish(anyString(), any(byte[].class), anyInt(), anyBoolean());
 
-        testClient.publish(TEST_TOPIC, testMessage);
+        testClient.publish(TEST_TOPIC, testMessage, ContentType.JSON);
     }
 
     @Test

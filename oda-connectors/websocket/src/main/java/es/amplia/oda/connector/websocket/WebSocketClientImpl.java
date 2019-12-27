@@ -41,7 +41,11 @@ class WebSocketClientImpl extends WebSocketClient {
                 LOGGER.warn("Cannot process message as Dispatcher is not present");
                 return;
             }
-            response.thenAccept(connector::uplink);
+            response.thenAccept(connector::uplink)
+                    .exceptionally(e -> {
+                        LOGGER.error("Error processing message {}", message, e);
+                        return null;
+                    });
         } catch (RuntimeException e) {
             LOGGER.error("Error processing message {}", message, e);
         }

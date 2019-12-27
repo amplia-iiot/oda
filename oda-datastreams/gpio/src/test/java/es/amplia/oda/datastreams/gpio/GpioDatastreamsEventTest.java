@@ -4,13 +4,11 @@ import es.amplia.oda.core.commons.gpio.GpioDeviceException;
 import es.amplia.oda.core.commons.gpio.GpioPin;
 import es.amplia.oda.core.commons.gpio.GpioPinListener;
 import es.amplia.oda.core.commons.gpio.GpioService;
-import es.amplia.oda.event.api.Event;
-import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
@@ -26,24 +24,40 @@ public class GpioDatastreamsEventTest {
 
     private static final String PIN_FIELD_NAME = "pin";
 
+
     @Mock
     private GpioService mockedGpioService;
     @Mock
-    private EventDispatcher mockedEventDispatcher;
+    private EventPublisher mockedEventPublisher;
 
     private GpioDatastreamsEvent testGpioDatastreamsEvent;
 
     @Mock
     private GpioPin mockedPin;
 
+
     @Before
     public void setUp() {
-        testGpioDatastreamsEvent =
-                new GpioDatastreamsEvent(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService, mockedEventDispatcher);
+        when(mockedGpioService.getPinByIndex(anyInt())).thenReturn(mockedPin);
+        when(mockedPin.isOpen()).thenReturn(false);
+
+        testGpioDatastreamsEvent = new GpioDatastreamsEvent(mockedEventPublisher, TEST_DATASTREAM_ID,
+                TEST_PIN_INDEX, mockedGpioService);
+    }
+
+    @Test
+    public void testConstructor() {
+        verify(mockedGpioService).getPinByIndex(eq(TEST_PIN_INDEX));
+        verify(mockedPin).isOpen();
+        verify(mockedPin).open();
+        verify(mockedPin).addGpioPinListener(any(GpioPinListener.class));
+        assertEquals(mockedPin, Whitebox.getInternalState(testGpioDatastreamsEvent, PIN_FIELD_NAME));
     }
 
     @Test
     public void testRegisterToEventSource() {
+        reset(mockedGpioService, mockedPin);
+
         when(mockedGpioService.getPinByIndex(anyInt())).thenReturn(mockedPin);
         when(mockedPin.isOpen()).thenReturn(false);
 
@@ -58,6 +72,8 @@ public class GpioDatastreamsEventTest {
 
     @Test
     public void testRegisterToEventSourceAlreadyOpenPin()  {
+        reset(mockedGpioService, mockedPin);
+
         when(mockedGpioService.getPinByIndex(anyInt())).thenReturn(mockedPin);
         when(mockedPin.isOpen()).thenReturn(true);
 
@@ -72,6 +88,8 @@ public class GpioDatastreamsEventTest {
 
     @Test
     public void testRegisterToEventSourceGpioDeviceExceptionCaught() {
+        reset(mockedGpioService, mockedPin);
+
         when(mockedGpioService.getPinByIndex(anyInt())).thenReturn(mockedPin);
         when(mockedPin.isOpen()).thenReturn(false);
         doThrow(GpioDeviceException.class).when(mockedPin).addGpioPinListener(any(GpioPinListener.class));
@@ -86,15 +104,10 @@ public class GpioDatastreamsEventTest {
     @SuppressWarnings("ConstantConditions")
     public void testPublishEvent() {
         boolean testValue = true;
-        ArgumentCaptor<Event> eventCaptor = ArgumentCaptor.forClass(Event.class);
 
-        testGpioDatastreamsEvent.publishEvent(testValue);
+        testGpioDatastreamsEvent.publishValue(testValue);
 
-        verify(mockedEventDispatcher).publish(eventCaptor.capture());
-        Event generatedEvent = eventCaptor.getValue();
-        assertEquals(TEST_DATASTREAM_ID, generatedEvent.getDatastreamId());
-        assertEquals("", generatedEvent.getDeviceId());
-        assertEquals(testValue, generatedEvent.getValue());
+        verify(mockedEventPublisher).publishEvent(eq(""), eq(TEST_DATASTREAM_ID), eq(null), anyLong(), eq(testValue));
     }
 
     @Test

@@ -4,6 +4,7 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
@@ -86,7 +87,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
                 String readDatastreamTopic = getDatastreamTopic(deviceId);
                 byte[] payload = serializer.serialize(request);
                 MqttMessage message = MqttMessage.newInstance(payload);
-                mqttClient.publish(readDatastreamTopic, message);
+                mqttClient.publish(readDatastreamTopic, message, ContentType.CBOR);
                 futures.put(request.getId(), future);
             } catch (IOException | MqttException e) {
                 LOGGER.error("Error executing request {}: {}", request, e);

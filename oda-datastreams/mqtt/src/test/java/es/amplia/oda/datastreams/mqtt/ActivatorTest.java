@@ -3,11 +3,12 @@ package es.amplia.oda.datastreams.mqtt;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.comms.mqtt.api.MqttException;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,7 @@ public class ActivatorTest {
     @Mock
     private SerializerProxy mockedSerializer;
     @Mock
-    private EventDispatcherProxy mockedEventDispatcher;
+    private EventPublisherProxy mockedEventPublisher;
     @Mock
     private ServiceRegistrationManagerWithKeyOsgi<String, DatastreamsGetter> mockedGetterRegistrationManager;
     @Mock
@@ -54,7 +55,7 @@ public class ActivatorTest {
     public void testStart() throws Exception {
         PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedMqttClientFactory);
         PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
         PowerMockito.whenNew(ServiceRegistrationManagerWithKeyOsgi.class)
                 .withArguments(any(BundleContext.class), eq(DatastreamsGetter.class))
                 .thenReturn(mockedGetterRegistrationManager);
@@ -70,14 +71,14 @@ public class ActivatorTest {
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(Serializers.SerializerType.CBOR));
-        PowerMockito.verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
+        PowerMockito.verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(ServiceRegistrationManagerWithKeyOsgi.class)
                 .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
         PowerMockito.verifyNew(ServiceRegistrationManagerWithKeyOsgi.class)
                 .withArguments(eq(mockedContext),eq(DatastreamsSetter.class));
         PowerMockito.verifyNew(MqttDatastreamsOrchestrator.class).withArguments(eq(mockedMqttClientFactory),
-                eq(mockedSerializer), eq(mockedEventDispatcher), eq(mockedGetterRegistrationManager),
+                eq(mockedSerializer), eq(mockedEventPublisher), eq(mockedGetterRegistrationManager),
                 eq(mockedSetterRegistrationManager));
         PowerMockito.verifyNew(MqttDatastreamsConfigurationUpdateHandler.class).withArguments(eq(mockedOrchestrator));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
@@ -109,7 +110,7 @@ public class ActivatorTest {
     public void testStop() {
         Whitebox.setInternalState(testActivator, "mqttClientFactory", mockedMqttClientFactory);
         Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
-        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
+        Whitebox.setInternalState(testActivator, "eventPublisher", mockedEventPublisher);
         Whitebox.setInternalState(testActivator, "mqttDatastreamsOrchestrator", mockedOrchestrator);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
         Whitebox.setInternalState(testActivator, "mqttClientFactoryListener", mockedListener);
@@ -119,8 +120,8 @@ public class ActivatorTest {
         verify(mockedListener).close();
         verify(mockedConfigBundle).close();
         verify(mockedOrchestrator).close();
-        verify(mockedSerializer).close();
-        verify(mockedEventDispatcher).close();
         verify(mockedMqttClientFactory).close();
+        verify(mockedSerializer).close();
+        verify(mockedEventPublisher).close();
     }
 }

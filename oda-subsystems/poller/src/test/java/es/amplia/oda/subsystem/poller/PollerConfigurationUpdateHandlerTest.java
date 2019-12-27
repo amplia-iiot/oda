@@ -1,6 +1,7 @@
 package es.amplia.oda.subsystem.poller;
 
 import es.amplia.oda.core.commons.utils.DevicePattern;
+import es.amplia.oda.core.commons.utils.Scheduler;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,15 +12,10 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import static es.amplia.oda.core.commons.utils.DevicePattern.NullDevicePattern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -31,9 +27,9 @@ public class PollerConfigurationUpdateHandlerTest {
     }
 
     @Mock
-    private ScheduledExecutorService mockedExecutor;
-    @Mock
     private Poller mockedPoller;
+    @Mock
+    private Scheduler mockedScheduler;
     @InjectMocks
     private PollerConfigurationUpdateHandler testConfigHandler;
 
@@ -62,7 +58,7 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(1, currentConfiguration.size());
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L,3L,NullDevicePattern)));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 3L)));
     }
 
     @Test
@@ -74,7 +70,7 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(1, currentConfiguration.size());
-        assertEquals(asSet("id1","id2"), currentConfiguration.get(new PollConfiguration(3L,3L,NullDevicePattern)));
+        assertEquals(asSet("id1","id2"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 3L)));
     }
 
     @Test
@@ -86,8 +82,8 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L,3L,NullDevicePattern)));
-        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(4L,4L,NullDevicePattern)));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 3L)));
+        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 4L, 4L)));
     }
 
     @Test
@@ -99,8 +95,8 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L,3L,NullDevicePattern)));
-        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(4L,3L,NullDevicePattern)));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 3L)));
+        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 4L, 3L)));
     }
 
     @Test
@@ -112,8 +108,8 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L,3L,NullDevicePattern)));
-        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(3L,4L,NullDevicePattern)));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 3L)));
+        assertEquals(asSet("id2"), currentConfiguration.get(new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 4L)));
     }
 
     @Test
@@ -125,8 +121,8 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(2, currentConfiguration.size());
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L, 3L, new DevicePattern("dev*"))));
-        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(3L, 3L, new DevicePattern("sect*"))));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(new DevicePattern("dev*"), 3L, 3L)));
+        assertEquals(asSet("id1"), currentConfiguration.get(new PollConfiguration(new DevicePattern("sect*"), 3L, 3L)));
     }
 
     @Test
@@ -138,15 +134,15 @@ public class PollerConfigurationUpdateHandlerTest {
 
         currentConfiguration = getCurrentConfiguration();
         assertEquals(1, currentConfiguration.size());
-        assertEquals(asSet("id1","id2"), currentConfiguration.get(new PollConfiguration(3L, 3L,new DevicePattern("dev*"))));
+        assertEquals(asSet("id1","id2"), currentConfiguration.get(new PollConfiguration(new DevicePattern("dev*"), 3L, 3L)));
     }
 
     @Test
     public void testLoadDefaultConfiguration() {
         currentConfiguration = getCurrentConfiguration();
-        currentConfiguration.put(new PollConfiguration(30, 30, DevicePattern.AllDevicePattern), Collections.singleton("test1"));
-        currentConfiguration.put(new PollConfiguration(60, 10, DevicePattern.AllDevicePattern), Collections.singleton("test2"));
-        currentConfiguration.put(new PollConfiguration(100, 100, DevicePattern.AllDevicePattern), Collections.singleton("test3"));
+        currentConfiguration.put(new PollConfiguration(DevicePattern.AllDevicePattern, 30, 30), Collections.singleton("test1"));
+        currentConfiguration.put(new PollConfiguration(DevicePattern.AllDevicePattern, 60, 10), Collections.singleton("test2"));
+        currentConfiguration.put(new PollConfiguration(DevicePattern.AllDevicePattern, 100, 100), Collections.singleton("test3"));
 
         testConfigHandler.loadDefaultConfiguration();
 
@@ -154,48 +150,20 @@ public class PollerConfigurationUpdateHandlerTest {
     }
 
     @Test
-    public void applyConfigurationWithRepetition() {
-        ScheduledFuture mockedFuture = mock(ScheduledFuture.class);
-        List<ScheduledFuture> configuredTasks = new ArrayList<>();
-        configuredTasks.add(mockedFuture);
-        PollConfiguration pollConfiguration = new PollConfiguration(3L, 4L, DevicePattern.NullDevicePattern);
+    public void applyConfiguration() {
+        PollConfiguration pollConfiguration = new PollConfiguration(DevicePattern.NullDevicePattern, 3L, 4L);
         Set<String> ids = Collections.singleton("id1");
         currentConfiguration = Collections.singletonMap(pollConfiguration, ids);
         ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
 
-        Whitebox.setInternalState(testConfigHandler, "configuredTasks", configuredTasks);
         Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedFuture).cancel(eq(false));
-        verify(mockedExecutor).scheduleWithFixedDelay(runnableCaptor.capture(), eq(3L), eq(4L), eq(TimeUnit.SECONDS));
+        verify(mockedScheduler).clear();
+        verify(mockedScheduler).schedule(runnableCaptor.capture(), eq(3L), eq(4L), eq(TimeUnit.SECONDS));
         Runnable poll = runnableCaptor.getValue();
         poll.run();
-        verify(mockedPoller).runFor(eq(DevicePattern.NullDevicePattern), eq(ids));
-        assertEquals(1, configuredTasks.size());
-    }
-
-    @Test
-    public void applyConfigurationWithoutRepetition() {
-        ScheduledFuture mockedFuture = mock(ScheduledFuture.class);
-        List<ScheduledFuture> configuredTasks = new ArrayList<>();
-        configuredTasks.add(mockedFuture);
-        PollConfiguration pollConfiguration = new PollConfiguration(3L, 0L, DevicePattern.NullDevicePattern);
-        Set<String> ids = Collections.singleton("id1");
-        currentConfiguration = Collections.singletonMap(pollConfiguration, ids);
-        ArgumentCaptor<Runnable> runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
-
-        Whitebox.setInternalState(testConfigHandler, "configuredTasks", configuredTasks);
-        Whitebox.setInternalState(testConfigHandler, "currentConfiguration", currentConfiguration);
-
-        testConfigHandler.applyConfiguration();
-
-        verify(mockedFuture).cancel(eq(false));
-        verify(mockedExecutor).schedule(runnableCaptor.capture(), eq(3L), eq(TimeUnit.SECONDS));
-        Runnable poll = runnableCaptor.getValue();
-        poll.run();
-        verify(mockedPoller).runFor(eq(DevicePattern.NullDevicePattern), eq(ids));
-        assertEquals(1, configuredTasks.size());
+        verify(mockedPoller).poll(eq(DevicePattern.NullDevicePattern), eq(ids));
     }
 }

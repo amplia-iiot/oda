@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationSetClock;
 
@@ -21,8 +20,7 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
     private final OperationSetClock operationSetClock;
 
 
-    SetClockEquipmentProcessor(Serializer serializer, OperationSetClock operationSetClock) {
-        super(serializer);
+    SetClockEquipmentProcessor(OperationSetClock operationSetClock) {
         this.operationSetClock = operationSetClock;
     }
 

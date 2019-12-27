@@ -4,6 +4,7 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
@@ -130,7 +131,7 @@ public class MqttDatastreamsGetterTest {
         assertFalse(future.isDone());
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedSerializer).serialize(any(MqttDatastreamsGetter.ReadRequest.class));
-        verify(mockedClient).publish(eq(testTopic), eq(MqttMessage.newInstance(testPayload)));
+        verify(mockedClient).publish(eq(testTopic), eq(MqttMessage.newInstance(testPayload)), eq(ContentType.CBOR));
         //noinspection unchecked
         verify(spiedFutures).put(anyInt(), any(CompletableFuture.class));
     }
@@ -162,7 +163,7 @@ public class MqttDatastreamsGetterTest {
 
         when(mockedPermissionManager.hasReadPermission(anyString(), anyString())).thenReturn(true);
         when(mockedSerializer.serialize(any(MqttDatastreamsGetter.ReadRequest.class))).thenReturn(testPayload);
-        doThrow(new MqttException("")).when(mockedClient).publish(anyString(), any(MqttMessage.class));
+        doThrow(new MqttException("")).when(mockedClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 
         CompletableFuture<DatastreamsGetter.CollectedValue> future = testGetter.get(TEST_DEVICE_ID);
 

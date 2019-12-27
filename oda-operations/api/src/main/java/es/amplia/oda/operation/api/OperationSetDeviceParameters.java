@@ -28,7 +28,7 @@ public interface OperationSetDeviceParameters {
     class Result {
         ResultCode resultCode;
         String resultDescription; //null if resulCode == SUCCESSFUL
-        List<VariableResult> variables; //null if resultCode == ERROR_IN_PARAM
+        List<VariableResult> variables; //null if resulCode == ERROR_IN_PARAM
     }
     
     /**
@@ -41,8 +41,8 @@ public interface OperationSetDeviceParameters {
      * the datastreamsSetters must be for the device specified in this parameter. Not null.
      * @param values The list of datastreamsSetters to look for and the value to set. Not null. 
      * @return If any of the identifiers in param values is not found, a {@link Result} with
-     * {@literal resultCode == ERROR_IN_PARAM} and a sensible value in {@literal resultDescription};
-     * otherwise, a {@link Result} with {@literal resultCode == SUCCESSFUL} and a list of
+     * {@literal resulCode == ERROR_IN_PARAM} and a sensible value in {@literal resultDescription};
+     * otherwise, a {@link Result} with {@literal resulCode == SUCCESSFUL} and a list of
      * individual results for each variable.
      */
     CompletableFuture<Result> setDeviceParameters(String deviceId, List<VariableValue> values);

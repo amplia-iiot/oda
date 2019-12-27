@@ -1,170 +1,91 @@
 package es.amplia.oda.operation.set;
 
-import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
-import es.amplia.oda.operation.api.OperationSetDeviceParameters.Result;
-import es.amplia.oda.operation.api.OperationSetDeviceParameters.ResultCode;
-import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableResult;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableValue;
+import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.statemanager.api.StateManager;
 
-import org.junit.Before;
+import lombok.Value;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OperationSetDeviceParametersImplTest {
 
-    private static final String DEVICE_ID = "aDeviceId";
-    private static final String ID1 = "id1";
-    private static final String ID2 = "id2";
-    private static final String ID3 = "id3";
-    private static final Object VALUE_1_FOR_ID_1 = 40;
-    private static final Object VALUE_2_FOR_ID_1 = 42;
-    private static final Object VALUE_1_FOR_ID_2 = "hi";
-    private static final Object VALUE_1_FOR_ID_3 = true;
-    private static final List<VariableValue> operationSetParameters = Arrays.asList(
-            new VariableValue(ID1, VALUE_1_FOR_ID_1),
-            new VariableValue(ID2, VALUE_1_FOR_ID_2),
-            new VariableValue(ID1, VALUE_2_FOR_ID_1)
-        );
-    private static final Set<String> SETTERS_IN_SET_PARAMETERS = asSet(ID1,ID2);
-    
-    private OperationSetDeviceParameters operationSetDeviceParameters;
-    
-    @Mock
-    private DatastreamsSettersFinder datastreamsSettersFinder;
-    @Mock
-    private DatastreamsSetter datastreamsSetterId1;
-    @Mock
-    private DatastreamsSetter datastreamsSetterId2;
-    
-    private final CompletableFuture<Void> future1ForID1 = new CompletableFuture<>();
-    private final CompletableFuture<Void> future2ForID1 = new CompletableFuture<>();
-    private final CompletableFuture<Void> futureForID2 = new CompletableFuture<>();
-    
-    @SafeVarargs
-    private static <T> Set<T> asSet(T... ts) {
-        return new HashSet<>(Arrays.asList(ts));
-    }
-
-
-    @SuppressWarnings("SameParameterValue")
-    private static <K,V> Map<K, V> mapOf(K key1, V value1, K key2, V value2) {
-        Map<K, V> ret = new HashMap<>();
-        ret.put(key1, value1);
-        ret.put(key2, value2);
-        return ret;
-    }
-    
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        operationSetDeviceParameters = new OperationSetDeviceParametersImpl(datastreamsSettersFinder);
-        
-        Map<String, DatastreamsSetter> setters = mapOf(ID1, datastreamsSetterId1, ID2, datastreamsSetterId2);
-        DatastreamsSettersFinder.Return value = new DatastreamsSettersFinder.Return(setters, asSet());
-        
-        when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, SETTERS_IN_SET_PARAMETERS)).thenReturn(value);
-        
-        when(datastreamsSetterId1.getDatastreamIdSatisfied()).thenReturn(ID1);
-        when(datastreamsSetterId1.getDatastreamType()).thenReturn(Integer.class);
-        when(datastreamsSetterId1.getDevicesIdManaged()).thenReturn(Collections.singletonList(DEVICE_ID));
-        when(datastreamsSetterId1.set(eq(DEVICE_ID), any(Integer.class))).thenReturn(future1ForID1).thenReturn(future2ForID1);
-
-        when(datastreamsSetterId2.getDatastreamIdSatisfied()).thenReturn(ID2);
-        when(datastreamsSetterId2.getDatastreamType()).thenReturn(String.class);
-        when(datastreamsSetterId2.getDevicesIdManaged()).thenReturn(Collections.singletonList(DEVICE_ID));
-        when(datastreamsSetterId2.set(eq(DEVICE_ID), any(String.class))).thenReturn(futureForID2);
-}
-
-    @Test
-    public void finderIsUsedToGetTheListOfSetters() {
-        operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, operationSetParameters);
-        
-        verify(datastreamsSettersFinder).getSettersSatisfying(DEVICE_ID, SETTERS_IN_SET_PARAMETERS);
-    }
-    
-    @Test
-    public void ifUnknownIdsAreUsedAnAlreadyCompletedCompletableFutureIsReturnedWithErrorDescription() throws InterruptedException, ExecutionException {
-        List<VariableValue> aSetOfID3 = Collections.singletonList(new VariableValue(ID3, VALUE_1_FOR_ID_3));
-        when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, asSet(ID3))).thenReturn(new DatastreamsSettersFinder.Return(new HashMap<>(), asSet(ID3)));
-        
-        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID3);
-        
-        assertTrue(future.isDone());
-        Result result = future.get();
-        assertEquals(ResultCode.SUCCESSFUL, result.getResultCode());
-        List<VariableResult> variables = result.getVariables();
-        assertNotNull(variables);
-        assertEquals(1, variables.size());
-        VariableResult variableResult = variables.get(0);
-        assertEquals(ID3, variableResult.getIdentifier());
-        assertNotNull(variableResult.getError());
-    }
-
-    @Test
-    public void ifNullValuesAreUsedAnAlreadyCompletedCompletableFutureIsReturnedWithErrorDescription() throws InterruptedException, ExecutionException {
-        List<VariableValue> aSetOfID1 = Collections.singletonList(new VariableValue(ID1, null));
-        Map<String, DatastreamsSetter> foundSetters = new HashMap<>();
-        foundSetters.put(ID1, datastreamsSetterId1);
-        when(datastreamsSettersFinder.getSettersSatisfying(DEVICE_ID, asSet(ID1)))
-                .thenReturn(new DatastreamsSettersFinder.Return(foundSetters, Collections.emptySet()));
-
-        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, aSetOfID1);
-
-        assertTrue(future.isDone());
-        Result result = future.get();
-        assertEquals(ResultCode.SUCCESSFUL, result.getResultCode());
-        List<VariableResult> variables = result.getVariables();
-        assertNotNull(variables);
-        assertEquals(1, variables.size());
-        VariableResult variableResult = variables.get(0);
-        assertEquals(ID1, variableResult.getIdentifier());
-        assertNotNull(variableResult.getError());
-    }
-    
-    @Test
-    public void theReturnedCompletableFutureCompletesWhenAllFuturesCompletes() {
-        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, operationSetParameters);
-        
-        assertNotNull(future);
-        assertFalse(future.isDone());
-        future1ForID1.complete(null);
-        futureForID2.complete(null);
-        future2ForID1.complete(null);
-        assertTrue(future.isDone());
-    }
-    
-    @Test
-    public void theCompleteResultAccumulatesPartialResults() throws InterruptedException, ExecutionException {
-        CompletableFuture<Result> future = operationSetDeviceParameters.setDeviceParameters(DEVICE_ID, operationSetParameters);
-        String errorMsg = "whatever";
-        
-        future1ForID1.complete(null);
-        futureForID2.completeExceptionally(new Throwable(errorMsg));
-        future2ForID1.completeExceptionally(new Throwable(errorMsg));
-        Result actual = future.get();
-        
-        Result expected = new Result(
-            ResultCode.SUCCESSFUL,
-            "SUCCESSFUL",
+    private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_DATASTREAM_ID_1 = "d1";
+    private static final String TEST_VALUE_1 = "Hello";
+    private static final String TEST_DATASTREAM_ID_2 = "d2";
+    private static final double TEST_VALUE_2 = 12.34;
+    private static final String TEST_DATASTREAM_ID_3 = "d3";
+    private static final int TEST_VALUE_3 = 5;
+    private static final String TEST_DATASTREAM_ID_4 = "d4";
+    private static final Object TEST_VALUE_4 = new TestObject("Bye", 99.99, 9);
+    private static final List<VariableValue> TEST_SET_VALUES = Arrays.asList(
+            new VariableValue(TEST_DATASTREAM_ID_1, TEST_VALUE_1),
+            new VariableValue(TEST_DATASTREAM_ID_2, TEST_VALUE_2),
+            new VariableValue(TEST_DATASTREAM_ID_3, TEST_VALUE_3),
+            new VariableValue(TEST_DATASTREAM_ID_4, TEST_VALUE_4)
+    );
+    private static final long TEST_AT = System.currentTimeMillis();
+    private static final String TEST_ERROR = "Error!";
+    private static final Set<DatastreamValue> TEST_DATASTREAM_VALUES = new HashSet<>(
             Arrays.asList(
-                new VariableResult(ID1, null),
-                new VariableResult(ID2, errorMsg),
-                new VariableResult(ID1, errorMsg)
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT, TEST_VALUE_1, DatastreamValue.Status.OK, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT, TEST_VALUE_2, DatastreamValue.Status.OK, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT, null, DatastreamValue.Status.NOT_FOUND, null),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR)
             )
-        );
-        assertEquals(expected, actual);
+    );
+
+    @Value
+    private static class TestObject {
+        private String v1;
+        private double v2;
+        private int v3;
+    }
+
+    @Mock
+    private StateManager mockedStateManager;
+    @InjectMocks
+    private OperationSetDeviceParametersImpl testSetDeviceParameters;
+
+    @Test
+
+    public void testSetDeviceParameters() throws ExecutionException, InterruptedException {
+        Map<String, Object> expectedDatastreamValues = new HashMap<>();
+        expectedDatastreamValues.put(TEST_DATASTREAM_ID_1, TEST_VALUE_1);
+        expectedDatastreamValues.put(TEST_DATASTREAM_ID_2, TEST_VALUE_2);
+        expectedDatastreamValues.put(TEST_DATASTREAM_ID_3, TEST_VALUE_3);
+        expectedDatastreamValues.put(TEST_DATASTREAM_ID_4, TEST_VALUE_4);
+
+        when(mockedStateManager.setDatastreamValues(anyString(), any())).thenReturn(
+                CompletableFuture.completedFuture(TEST_DATASTREAM_VALUES));
+
+        CompletableFuture<OperationSetDeviceParameters.Result> future =
+                testSetDeviceParameters.setDeviceParameters(TEST_DEVICE_ID, TEST_SET_VALUES);
+        OperationSetDeviceParameters.Result result = future.get();
+
+        assertNotNull(result);
+        assertEquals(OperationSetDeviceParameters.ResultCode.SUCCESSFUL, result.getResultCode());
+        List<OperationSetDeviceParameters.VariableResult> variableResults = result.getVariables();
+        assertEquals(4, variableResults.size());
+        assertTrue(variableResults.contains(new OperationSetDeviceParameters.VariableResult(TEST_DATASTREAM_ID_1, null)));
+        assertTrue(variableResults.contains(new OperationSetDeviceParameters.VariableResult(TEST_DATASTREAM_ID_2, null)));
+        assertTrue(variableResults.contains(new OperationSetDeviceParameters.VariableResult(TEST_DATASTREAM_ID_3, "Not found")));
+        assertTrue(variableResults.contains(new OperationSetDeviceParameters.VariableResult(TEST_DATASTREAM_ID_4, "Error processing: " + TEST_ERROR)));
+        verify(mockedStateManager).setDatastreamValues(eq(TEST_DEVICE_ID), eq(expectedDatastreamValues));
     }
 }

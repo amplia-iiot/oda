@@ -1,7 +1,8 @@
 package es.amplia.oda.service.cborserializer;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.core.commons.utils.Serializers;
+import es.amplia.oda.core.commons.utils.MapBasedDictionary;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -10,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
-import java.util.Hashtable;
 
 public class Activator implements BundleActivator {
 
@@ -23,8 +23,8 @@ public class Activator implements BundleActivator {
         LOGGER.info("Starting Service CBOR Serializer");
         CborSerializer cborSerializer = new CborSerializer();
 
-        Dictionary<String, String> serializerProps = new Hashtable<>();
-        serializerProps.put(Serializers.TYPE_PROPERTY_NAME, Serializers.SerializerType.CBOR.toString());
+        Dictionary<String, String> serializerProps = new MapBasedDictionary<>(String.class);
+        serializerProps.put(ContentType.PROPERTY_NAME, ContentType.CBOR.toString());
         registration = bundleContext.registerService(Serializer.class, cborSerializer, serializerProps);
 
         LOGGER.info("CBOR Serializer Activator started");

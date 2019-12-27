@@ -14,8 +14,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -25,7 +23,6 @@ public class GpioDatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final int TEST_PIN_INDEX = 1;
-    private static final Executor executor = Executors.newSingleThreadExecutor();
 
     @Mock
     private GpioService mockedGpioService;
@@ -35,7 +32,7 @@ public class GpioDatastreamsGetterTest {
     @Before
     public void setUp() {
         testDatastreamsGetter =
-                new GpioDatastreamsGetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService, executor);
+                new GpioDatastreamsGetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService);
     }
 
     @Test

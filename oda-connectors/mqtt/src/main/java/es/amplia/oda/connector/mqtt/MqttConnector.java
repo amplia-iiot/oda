@@ -2,6 +2,7 @@ package es.amplia.oda.connector.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.connector.mqtt.configuration.ConnectorConfiguration;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 
@@ -60,18 +61,24 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     public void messageArrived(String topic, MqttMessage message) {
         LOGGER.info("Messaged arrived: {},{}", topic, message);
         try {
-            CompletableFuture<byte[]> response = dispatcher.process(message.getPayload());
+            // In MQTT v5 contentType should come from MqttProperties Content-Format
+            ContentType contentType = ContentType.JSON;
+            CompletableFuture<byte[]> response = dispatcher.process(message.getPayload(), contentType);
             if (response == null) {
                 LOGGER.warn("Cannot process message as Dispatcher is not present");
                 return;
             }
-            response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes));
+            response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes, contentType))
+                    .exceptionally(e -> {
+                        LOGGER.error("Error processing operation {} with content type {}", message, contentType, e);
+                        return null;
+                    });
         } catch (RuntimeException e) {
             LOGGER.error("Error processing message {}", message, e);
         }
     }
 
-    private void sendMessage(String topic, byte[] payload) {
+    private void sendMessage(String topic, byte[] payload, ContentType contentType) {
         if (client == null) {
             LOGGER.warn("Cannot send message as we are disconnected from Mqtt");
         } else if (payload == null) {
@@ -79,10 +86,11 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         } else if (iotTopic == null || responseTopic == null) {
             LOGGER.warn("Cannot send message as topics null from a bad connection");
         } else {
+            // In MQTT v5 contentType should be injected in MqttProperties Content-Format
             MqttMessage message = MqttMessage.newInstance(payload, qos, retained);
             LOGGER.info("Sending message: {}, {}", topic, message);
             try {
-                client.publish(topic, message);
+                client.publish(topic, message, contentType);
             } catch (MqttException e) {
                 LOGGER.warn("Error sending response: ", e);
             }
@@ -90,8 +98,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     }
 
     @Override
-    public void uplink(byte[] payload) {
-        sendMessage(iotTopic, payload);
+    public void uplink(byte[] payload, ContentType contentType) {
+        sendMessage(iotTopic, payload, contentType);
     }
 
     @Override

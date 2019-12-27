@@ -4,10 +4,10 @@ import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.osgi.proxies.AdcServiceProxy;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.adc.configuration.DatastreamsAdcConfigurationHandler;
 import es.amplia.oda.datastreams.adc.datastreams.DatastreamsFactoryImpl;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +31,7 @@ public class ActivatorTest {
 	@Mock
 	private AdcServiceProxy mockedService;
 	@Mock
-	private EventDispatcherProxy mockedEventDispatcher;
+	private EventPublisherProxy mockedEventPublisher;
 	@Mock
 	private DatastreamsFactoryImpl mockedDatastreamsFactory;
 	@Mock
@@ -52,7 +52,7 @@ public class ActivatorTest {
 	@Test
 	public void testStart() throws Exception {
 		whenNew(AdcServiceProxy.class).withAnyArguments().thenReturn(mockedService);
-		whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+		whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
 		whenNew(DatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedDatastreamsFactory);
 		whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
 				.thenReturn(mockedDatastreamsGetterRegistrationManager);
@@ -64,8 +64,8 @@ public class ActivatorTest {
 		activator.start(mockedContext);
 		
 		verifyNew(AdcServiceProxy.class).withArguments(eq(mockedContext));
-		verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
-		verifyNew(DatastreamsFactoryImpl.class).withArguments(eq(mockedService), eq(mockedEventDispatcher));
+		verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
+		verifyNew(DatastreamsFactoryImpl.class).withArguments(eq(mockedService), eq(mockedEventPublisher));
 		verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
 		verifyNew(DatastreamsRegistry.class)
 				.withArguments(eq(mockedDatastreamsFactory), eq(mockedDatastreamsGetterRegistrationManager));
@@ -99,13 +99,13 @@ public class ActivatorTest {
 		Whitebox.setInternalState(activator, "adcServiceListener", mockedListener);
 		Whitebox.setInternalState(activator, "configurableBundle", mockedConfigurableBundle);
 		Whitebox.setInternalState(activator, "adcService", mockedService);
-		Whitebox.setInternalState(activator, "eventDispatcher", mockedEventDispatcher);
+		Whitebox.setInternalState(activator, "eventPublisher", mockedEventPublisher);
 
 		activator.stop(mockedContext);
 
 		verify(mockedListener, times(2)).close();
 		verify(mockedConfigurableBundle).close();
 		verify(mockedService).close();
-		verify(mockedEventDispatcher).close();
+		verify(mockedEventPublisher).close();
 	}
 }

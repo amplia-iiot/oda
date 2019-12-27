@@ -4,10 +4,10 @@ import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.osgi.proxies.AdcServiceProxy;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.adc.configuration.DatastreamsAdcConfigurationHandler;
 import es.amplia.oda.datastreams.adc.datastreams.DatastreamsFactoryImpl;
-import es.amplia.oda.event.api.EventDispatcherProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -20,7 +20,7 @@ public class Activator implements BundleActivator {
 
 
 	private AdcServiceProxy adcService;
-	private EventDispatcherProxy eventDispatcher;
+	private EventPublisherProxy eventPublisher;
 	private ConfigurationUpdateHandler configurationUpdateHandler;
 	private ConfigurableBundle configurableBundle;
 	private ServiceListenerBundle<AdcService> adcServiceListener;
@@ -32,8 +32,8 @@ public class Activator implements BundleActivator {
 		LOGGER.info("Starting ADC datastreams bundle");
 
 		adcService = new AdcServiceProxy(bundleContext);
-		eventDispatcher = new EventDispatcherProxy(bundleContext);
-		DatastreamsFactory datastreamsFactory = new DatastreamsFactoryImpl(adcService, eventDispatcher);
+		eventPublisher = new EventPublisherProxy(bundleContext);
+		DatastreamsFactory datastreamsFactory = new DatastreamsFactoryImpl(adcService, eventPublisher);
 		ServiceRegistrationManager<DatastreamsGetter> datastreamsGetterRegistrationManager =
 				new ServiceRegistrationManagerOsgi<>(bundleContext, DatastreamsGetter.class);
 		DatastreamsRegistry registry = new DatastreamsRegistry(datastreamsFactory, datastreamsGetterRegistrationManager);
@@ -63,7 +63,7 @@ public class Activator implements BundleActivator {
 		configurableBundle.close();
 		configurationUpdateHandler = null;
 		adcService.close();
-		eventDispatcher.close();
+		eventPublisher.close();
 
 		LOGGER.info("Stopped datastreams bundle stopped");
 	}

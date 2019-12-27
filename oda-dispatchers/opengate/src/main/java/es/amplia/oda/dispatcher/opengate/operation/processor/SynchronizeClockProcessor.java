@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
 
@@ -19,8 +18,7 @@ class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Resul
     private final OperationSynchronizeClock operationSynchronizeClock;
 
 
-    SynchronizeClockProcessor(Serializer serializer, OperationSynchronizeClock operationSynchronizeClock) {
-        super(serializer);
+    SynchronizeClockProcessor(OperationSynchronizeClock operationSynchronizeClock) {
         this.operationSynchronizeClock = operationSynchronizeClock;
     }
 

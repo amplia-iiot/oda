@@ -1,6 +1,7 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
+import es.amplia.oda.dispatcher.opengate.domain.Output;
 import es.amplia.oda.dispatcher.opengate.domain.Request;
 
 import java.util.Map;
@@ -19,7 +20,7 @@ class OpenGateOperationProcessor implements OperationProcessor {
     }
 
     @Override
-    public CompletableFuture<byte[]> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
+    public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
         return catalogueOperationProcessors.getOrDefault(request.getName(), customOperationProcessor)
                 .process(deviceIdForOperations, deviceIdForResponse, request);
     }

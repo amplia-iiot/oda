@@ -1,6 +1,5 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
-import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OpenGateOperationProcessorFactory;
@@ -31,10 +30,9 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationSynchronizeClockProxy operationSynchronizeClock;
     private final OperationDiscoverProxy operationDiscover;
     private final ServiceLocator<CustomOperation> operationServiceLocator;
-    private final Serializer serializer;
 
 
-    public OpenGateOperationProcessorFactoryImpl(BundleContext bundleContext, Serializer serializer) {
+    public OpenGateOperationProcessorFactoryImpl(BundleContext bundleContext) {
         this.operationRefreshInfo = new OperationRefreshInfoProxy(bundleContext);
         this.operationGetDeviceParameters = new OperationGetDeviceParametersProxy(bundleContext);
         this.operationSetDeviceParameters = new OperationSetDeviceParametersProxy(bundleContext);
@@ -43,7 +41,6 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
         this.operationDiscover = new OperationDiscoverProxy(bundleContext);
         this.operationServiceLocator = new ServiceLocatorOsgi<>(bundleContext, CustomOperation.class);
-        this.serializer = serializer;
     }
 
     @Override
@@ -55,23 +52,23 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private Map<String, OperationProcessor> createCatalogueOperationProcessors() {
         Map<String, OperationProcessor> catalogueOperationProcessors = new HashMap<>();
         catalogueOperationProcessors.put(REFRESH_INFO_OPERATION_NAME,
-                new RefreshInfoProcessor(serializer, operationRefreshInfo));
+                new RefreshInfoProcessor(operationRefreshInfo));
         catalogueOperationProcessors.put(GET_DEVICE_PARAMETERS_OPERATION_NAME,
-                new GetDeviceParametersProcessor(serializer, operationGetDeviceParameters));
+                new GetDeviceParametersProcessor(operationGetDeviceParameters));
         catalogueOperationProcessors.put(SET_DEVICE_PARAMETERS_OPERATION_NAME,
-                new SetDeviceParametersProcessor(serializer, operationSetDeviceParameters));
-        catalogueOperationProcessors.put(UPDATE_OPERATION_NAME, new UpdateProcessor(serializer, operationUpdate));
+                new SetDeviceParametersProcessor(operationSetDeviceParameters));
+        catalogueOperationProcessors.put(UPDATE_OPERATION_NAME, new UpdateProcessor(operationUpdate));
         catalogueOperationProcessors.put(SET_CLOCK_EQUIPMENT_OPERATION_NAME,
-                new SetClockEquipmentProcessor(serializer, operationSetClockEquipment));
+                new SetClockEquipmentProcessor(operationSetClockEquipment));
         catalogueOperationProcessors.put(SYNCHRONIZE_CLOCK_OPERATION_NAME,
-                new SynchronizeClockProcessor(serializer, operationSynchronizeClock));
+                new SynchronizeClockProcessor(operationSynchronizeClock));
         catalogueOperationProcessors.put(DISCOVER_OPERATION_NAME,
-                new DiscoverProcessor(serializer, operationDiscover));
+                new DiscoverProcessor(operationDiscover));
         return catalogueOperationProcessors;
     }
 
     private OperationProcessor createCustomOperationProcessor() {
-        return new CustomOperationProcessor(serializer, operationServiceLocator);
+        return new CustomOperationProcessor(operationServiceLocator);
     }
 
     @Override

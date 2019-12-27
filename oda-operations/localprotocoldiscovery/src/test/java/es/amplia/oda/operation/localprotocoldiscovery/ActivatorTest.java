@@ -1,10 +1,14 @@
 package es.amplia.oda.operation.localprotocoldiscovery;
 
+import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
+import es.amplia.oda.operation.api.OperationDiscover;
 import es.amplia.oda.operation.localprotocoldiscovery.configuration.LocalProtocolDiscoveryConfigurationUpdateHandler;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -19,6 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
@@ -27,54 +32,59 @@ public class ActivatorTest {
 	private final Activator testActivator = new Activator();
 
 	@Mock
-	private BundleContext mockedBundleContext;
+	private BundleContext mockedContext;
 	@Mock
-	private MqttClientFactoryProxy mockedMqttClientFactoryProxy;
+	private MqttClientFactoryProxy mockedFactory;
 	@Mock
-	private SerializerProxy mockedSerializerProxy;
+	private SerializerProxy mockedSerializer;
 	@Mock
-	private OperationLocalProtocolDiscoveryImpl mockedOperationLocalProtocolDiscoveryImpl;
+	private OperationLocalProtocolDiscoveryImpl mockedOperation;
 	@Mock
-	private LocalProtocolDiscoveryConfigurationUpdateHandler mockedLocalProtocolDiscoveryConfigurationUpdateHandler;
+	private LocalProtocolDiscoveryConfigurationUpdateHandler mockedConfigHandler;
 	@Mock
-	private ConfigurableBundleImpl mockedConfigurableBundleImpl;
+	private ConfigurableBundleImpl mockedConfigBundle;
 	@Mock
-	private ServiceListenerBundle mockedServiceListenerBundle;
+	private ServiceListenerBundle<MqttClientFactory> mockedListener;
 	@Mock
-	private ServiceRegistration mockedServiceRegistration;
+	private ServiceRegistration<OperationDiscover> mockedRegistration;
 
 	@Test
 	public void testStart() throws Exception {
-		PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedMqttClientFactoryProxy);
-		PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializerProxy);
-		PowerMockito.whenNew(OperationLocalProtocolDiscoveryImpl.class).withAnyArguments().thenReturn(mockedOperationLocalProtocolDiscoveryImpl);
-		PowerMockito.whenNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedLocalProtocolDiscoveryConfigurationUpdateHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundleImpl);
-		PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedServiceListenerBundle);
+		PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedFactory);
+		PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
+		PowerMockito.whenNew(OperationLocalProtocolDiscoveryImpl.class).withAnyArguments().thenReturn(mockedOperation);
+		PowerMockito.whenNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class).withAnyArguments()
+				.thenReturn(mockedConfigHandler);
+		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
+		PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
 
-		testActivator.start(mockedBundleContext);
+		testActivator.start(mockedContext);
 
-		PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedBundleContext));
-		PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedBundleContext), any());
-		PowerMockito.verifyNew(OperationLocalProtocolDiscoveryImpl.class).withArguments(eq(mockedMqttClientFactoryProxy), eq(mockedSerializerProxy));
-		PowerMockito.verifyNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class).withArguments(eq(mockedOperationLocalProtocolDiscoveryImpl));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedBundleContext), eq(mockedLocalProtocolDiscoveryConfigurationUpdateHandler));
-		PowerMockito.verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedBundleContext), any(), any());
+		PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
+		PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
+		PowerMockito.verifyNew(OperationLocalProtocolDiscoveryImpl.class)
+				.withArguments(eq(mockedFactory), eq(mockedSerializer));
+		PowerMockito.verifyNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class)
+				.withArguments(eq(mockedOperation));
+		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+		verify(mockedContext).registerService(eq(OperationDiscover.class), eq(mockedOperation), any());
+		PowerMockito.verifyNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any(Runnable.class));
 	}
 
 	@Test
 	public void testOnServiceChanged() {
-		Whitebox.setInternalState(testActivator, "configHandler", mockedLocalProtocolDiscoveryConfigurationUpdateHandler);
+		Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
 
 		testActivator.onServiceChanged();
 
-		Mockito.verify(mockedLocalProtocolDiscoveryConfigurationUpdateHandler).applyConfiguration();
+		verify(mockedConfigHandler).applyConfiguration();
 	}
 
 	@Test
 	public void testOnServiceChangedWithExceptionIsCaught() {
-		Whitebox.setInternalState(testActivator, "configHandler", mockedLocalProtocolDiscoveryConfigurationUpdateHandler);
-		Mockito.doThrow(Exception.class).when(mockedLocalProtocolDiscoveryConfigurationUpdateHandler).applyConfiguration();
+		Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
+		Mockito.doThrow(Exception.class).when(mockedConfigHandler).applyConfiguration();
 
 		testActivator.onServiceChanged();
 
@@ -83,18 +93,18 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(testActivator, "mqttClientFactoryListener", mockedServiceListenerBundle);
-		Whitebox.setInternalState(testActivator, "registration", mockedServiceRegistration);
-		Whitebox.setInternalState(testActivator, "mqttClientFactory", mockedMqttClientFactoryProxy);
-		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundleImpl);
-		Whitebox.setInternalState(testActivator, "serializer", mockedSerializerProxy);
+		Whitebox.setInternalState(testActivator, "mqttClientFactoryListener", mockedListener);
+		Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
+		Whitebox.setInternalState(testActivator, "mqttClientFactory", mockedFactory);
+		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
+		Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
 
-		testActivator.stop(mockedBundleContext);
+		testActivator.stop(mockedContext);
 
-		Mockito.verify(mockedServiceListenerBundle).close();
-		Mockito.verify(mockedServiceRegistration).unregister();
-		Mockito.verify(mockedMqttClientFactoryProxy).close();
-		Mockito.verify(mockedConfigurableBundleImpl).close();
-		Mockito.verify(mockedSerializerProxy).close();
+		verify(mockedListener).close();
+		verify(mockedRegistration).unregister();
+		verify(mockedFactory).close();
+		verify(mockedConfigBundle).close();
+		verify(mockedSerializer).close();
 	}
 }
