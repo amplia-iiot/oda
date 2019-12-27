@@ -50,6 +50,8 @@
                 <include>es.amplia.oda.connector:mqtt</include>
                 <include>es.amplia.oda.service:jsonserializer</include>
                 <include>es.amplia.oda.dispatcher:opengate</include>
+                <include>es.amplia.oda.statemanager:api</include>
+                <include>es.amplia.oda.statemanager:realtime</include>
                 <include>es.amplia.oda.event:api</include>
                 <include>es.amplia.oda.operation:api</include>
                 <include>es.amplia.oda.operation:refreshinfo</include>

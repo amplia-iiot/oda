@@ -68,7 +68,7 @@ public class InMemoryStateManagerTest {
     public void testConstructor() {
         verify(mockedEventHandler).registerStateManager(eq(testStateManager));
     }
-git
+
     @Test
     public void testGetDatastreamInformation() throws ExecutionException, InterruptedException {
         CompletableFuture<DatastreamValue> future =
