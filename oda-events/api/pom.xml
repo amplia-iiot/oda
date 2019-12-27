@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-events</artifactId>
         <groupId>es.amplia.oda.event</groupId>
-        <version>3.31.3-SNAPSHOT</version>
+        <version>4.0.2-SNAPSHOT</version>
     </parent>
 
     <properties>

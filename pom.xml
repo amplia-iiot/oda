@@ -4,7 +4,7 @@
 
     <groupId>es.amplia.oda</groupId>
     <artifactId>oda-parent</artifactId>
-    <version>3.31.3-SNAPSHOT</version>
+    <version>4.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
@@ -180,7 +180,7 @@
             <dependency>
                 <groupId>es.amplia.oda.ruleengine</groupId>
                 <artifactId>api</artifactId>
-                <version>3.31.3-SNAPSHOT</version>
+                <version>4.0.2-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>es.amplia.oda.operation</groupId>
