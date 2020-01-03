@@ -17,7 +17,14 @@
         <module>setclock</module>
         <module>synchronizeclock</module>
         <module>localprotocoldiscovery</module>
+        <module>createrule</module>
     </modules>
+    <dependencies>
+        <dependency>
+            <groupId>es.amplia.oda.core</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+    </dependencies>
 
     <parent>
         <artifactId>oda-parent</artifactId>
