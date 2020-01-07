@@ -12,14 +12,14 @@ import java.util.function.Supplier;
 
 public class RuleCreatorConfigurationHandler implements ConfigurationUpdateHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RuleCreatorConfiguration.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RuleCreatorConfigurationHandler.class);
 
-	private static final String PATH_PROPERTY_NAME = "path";
+	static final String PATH_PROPERTY_NAME = "path";
 
 	private RuleCreatorConfiguration config;
 	OperationCreateRuleImpl createRule;
 
-	public void RuleCreatorConfiguration(OperationCreateRuleImpl createRule) {
+	public RuleCreatorConfigurationHandler(OperationCreateRuleImpl createRule) {
 		this.createRule = createRule;
 	}
 
@@ -42,7 +42,7 @@ public class RuleCreatorConfigurationHandler implements ConfigurationUpdateHandl
 		this.createRule.loadConfiguration(this.config);
 	}
 
-	private Supplier<ConfigurationException> missingPathExceptionSupplier() {
+	Supplier<ConfigurationException> missingPathExceptionSupplier() {
 		return () -> new ConfigurationException("Missing require path for Rule Engine");
 	}
 }

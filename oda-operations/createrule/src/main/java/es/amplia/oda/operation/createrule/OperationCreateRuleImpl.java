@@ -26,25 +26,44 @@ public class OperationCreateRuleImpl implements OperationCreateRule {
 	@Override
 	public CompletableFuture<Result> createRule(String deviceId, Map<String, String> ruleInfo) {
 		LOGGER.info("Creating rule '{}' from Opengate", ruleInfo.get(NAMERULE));
+		boolean createdNow = false;
 
+		File dir = new File (path + ruleInfo.get(DATASTREAM_ID));
+		if(!dir.exists()) {
+			dir.mkdir();
+			createdNow = true;
+		}
 
 		File file = new File (path + ruleInfo.get(DATASTREAM_ID) + FileSystems.getDefault().getSeparator() + ruleInfo.get(NAMERULE) + ".js");
 		if(!file.exists()) {
 			try (FileOutputStream rule = new FileOutputStream(path + ruleInfo.get(DATASTREAM_ID) + "/" + ruleInfo.get(NAMERULE) + ".js")) {
+				String oldchar = ";";
+				String newchar = ";\n\t";
 				rule.write(("load(\"" + path + "utils.js\");\n\n").getBytes());
 
-				rule.write(("function when (state, value) {\n").getBytes());
-				rule.write(ruleInfo.get(WHEN).getBytes());
+				rule.write(("function when (state, value) {\n\t").getBytes());
+				rule.write(ruleInfo.get(WHEN)
+						.substring(0, ruleInfo.get(WHEN).lastIndexOf(oldchar))
+						.replaceAll(oldchar , newchar)
+						.concat(ruleInfo.get(WHEN).substring(ruleInfo.get(WHEN).lastIndexOf(oldchar)))
+						.getBytes());
 				rule.write(("\n}\n\n").getBytes());
 
-				rule.write(("function then (state, value) {").getBytes());
-				rule.write(ruleInfo.get(THEN).getBytes());
+				rule.write(("function then (state, value) {\n\t").getBytes());
+				rule.write(ruleInfo.get(THEN)
+						.substring(0, ruleInfo.get(THEN).lastIndexOf(oldchar))
+						.replaceAll(oldchar , newchar)
+						.concat(ruleInfo.get(THEN).substring(ruleInfo.get(THEN).lastIndexOf(oldchar)))
+						.getBytes());
 				rule.write(("\n}").getBytes());
 			} catch (IOException e) {
 				LOGGER.error("Something went wrong while rule {} was being created. " +
 						"The temp file that was be created until now will be deleted", ruleInfo.get(NAMERULE));
 				file = new File(path + ruleInfo.get(DATASTREAM_ID) + FileSystems.getDefault().getSeparator() + ruleInfo.get(NAMERULE) + ".js");
 				file.delete();
+				if(createdNow) {
+					dir.delete();
+				}
 				return CompletableFuture.completedFuture(new Result(Status.ERROR_CREATING,
 						"Error trying to create the rule."));
 			}
