@@ -2,6 +2,7 @@ package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.*;
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.api.OsgiEventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
@@ -18,6 +19,7 @@ public class Activator implements BundleActivator {
 
     private DatastreamsSettersFinder datastreamsSettersFinder;
     private RuleEngineProxy ruleEngine;
+    private EventDispatcherProxy eventDispatcher;
     private OsgiEventHandler eventHandler;
     private ServiceRegistration<StateManager> stateManagerRegistration;
 
@@ -28,10 +30,11 @@ public class Activator implements BundleActivator {
         ServiceLocator<DatastreamsSetter> datastreamsSettersLocator =
                 new ServiceLocatorOsgi<>(bundleContext, DatastreamsSetter.class);
         datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
+        eventDispatcher = new EventDispatcherProxy(bundleContext);
         eventHandler = new OsgiEventHandler(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
         StateManager inMemoryStateManager =
-                new InMemoryStateManager(datastreamsSettersFinder, eventHandler, ruleEngine);
+                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);
 
         LOGGER.info("In Memory State Manager started");
@@ -45,6 +48,7 @@ public class Activator implements BundleActivator {
         datastreamsSettersFinder.close();
         ruleEngine.close();
         eventHandler.close();
+        eventDispatcher.close();
 
         LOGGER.info("In Memory State Manager is stopped");
     }

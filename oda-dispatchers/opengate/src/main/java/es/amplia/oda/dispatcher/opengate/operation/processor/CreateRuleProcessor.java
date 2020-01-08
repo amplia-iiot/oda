@@ -15,7 +15,7 @@ public class CreateRuleProcessor extends OperationProcessorTemplate<Map<String, 
 
 	private final OperationCreateRule operationCreateRule;
 
-	public CreateRuleProcessor(OperationCreateRule operationCreateRule) {
+	CreateRuleProcessor(OperationCreateRule operationCreateRule) {
 		this.operationCreateRule = operationCreateRule;
 	}
 
@@ -31,14 +31,31 @@ public class CreateRuleProcessor extends OperationProcessorTemplate<Map<String, 
 				.filter(p -> p.getValue() != null)
 				.collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
 
-		if(params.size() != 4) {
-			throw new IllegalArgumentException("Expected four parameters in " + CREATE_RULE_OPERATION_NAME);
+		if(params.size() != 1) {
+			throw new IllegalArgumentException("Expected one parameter in " + CREATE_RULE_OPERATION_NAME);
 		}
 
-		ValueObject datastreamId = params.get("datastreamId");
-		ValueObject namerule = params.get("namerule");
-		ValueObject when = params.get("when");
-		ValueObject then = params.get("then");
+		ValueObject variablesObject = params.get("variableList");
+		if (variablesObject == null) {
+			throw new IllegalArgumentException("Parameter variableList not found");
+		}
+		if (variablesObject.getArray() == null) {
+			throw new IllegalArgumentException("Parameter variableList of incorrect type");
+		}
+
+		Map<String,String> variables = new HashMap<>();
+		if(variablesObject.getArray().get(0) instanceof Map) {
+			variables = (Map<String, String>) variablesObject.getArray().get(0);
+		}
+
+		if(variables.isEmpty()) {
+			throw new IllegalArgumentException("Parameter variableList must have at least one not null element");
+		}
+
+		String datastreamId = variables.get("datastreamId");
+		String namerule = variables.get("namerule");
+		String when = variables.get("when");
+		String then = variables.get("then");
 		if (null == datastreamId) {
 			throw new IllegalArgumentException("Parameter datastreamId not found");
 		}
@@ -51,24 +68,12 @@ public class CreateRuleProcessor extends OperationProcessorTemplate<Map<String, 
 		if (null == then) {
 			throw new IllegalArgumentException("Parameter then not found");
 		}
-		if (null == datastreamId.getString()) {
-			throw new IllegalArgumentException("Parameter datastreamId of incorrect type");
-		}
-		if (null == namerule.getString()) {
-			throw new IllegalArgumentException("Parameter namerule of incorrect type");
-		}
-		if (null == when.getString()) {
-			throw new IllegalArgumentException("Parameter when of incorrect type");
-		}
-		if (null == then.getString()) {
-			throw new IllegalArgumentException("Parameter then of incorrect type");
-		}
 
 		Map<String, String> data = new HashMap<>();
-		data.put("datastreamId", datastreamId.getString());
-		data.put("namerule", namerule.getString());
-		data.put("when", when.getString());
-		data.put("then", then.getString());
+		data.put("datastreamId", datastreamId);
+		data.put("namerule", namerule);
+		data.put("when", when);
+		data.put("then", then);
 
 		return data;
 	}

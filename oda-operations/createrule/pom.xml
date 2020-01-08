@@ -13,7 +13,7 @@
     <parent>
         <artifactId>oda-operations</artifactId>
         <groupId>es.amplia.oda.operation</groupId>
-        <version>3.31.3-SNAPSHOT</version>
+        <version>4.0.2-SNAPSHOT</version>
     </parent>
 
     <properties>

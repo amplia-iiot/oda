@@ -3,6 +3,7 @@ package es.amplia.oda.statemanager.inmemory;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.api.OsgiEventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
@@ -36,6 +37,8 @@ public class ActivatorTest {
     @Mock
     private OsgiEventHandler mockedEventHandler;
     @Mock
+    private EventDispatcherProxy mockedEventDispatcherProxy;
+    @Mock
     private InMemoryStateManager mockedStateManager;
     @Mock
     private ServiceRegistration<StateManager> mockedRegistration;
@@ -50,13 +53,14 @@ public class ActivatorTest {
         PowerMockito.whenNew(OsgiEventHandler.class).withAnyArguments().thenReturn(mockedEventHandler);
         PowerMockito.whenNew(InMemoryStateManager.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(RuleEngineProxy.class).withAnyArguments().thenReturn(mockedRuleEngine);
+        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcherProxy);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
         PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSetterLocator));
         PowerMockito.verifyNew(OsgiEventHandler.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder), eq(mockedEventHandler), eq(mockedRuleEngine));
+        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder), eq(mockedEventDispatcherProxy), eq(mockedEventHandler), eq(mockedRuleEngine));
         verify(mockedContext).registerService(eq(StateManager.class), eq(mockedStateManager), any());
     }
 
@@ -66,9 +70,11 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "eventHandler", mockedEventHandler);
         Whitebox.setInternalState(testActivator, "stateManagerRegistration", mockedRegistration);
         Whitebox.setInternalState(testActivator, "ruleEngine", mockedRuleEngine);
+        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcherProxy);
 
         testActivator.stop(mockedContext);
 
+        verify(mockedEventDispatcherProxy).close();
         verify(mockedRegistration).unregister();
         verify(mockedSettersFinder).close();
         verify(mockedRuleEngine).close();

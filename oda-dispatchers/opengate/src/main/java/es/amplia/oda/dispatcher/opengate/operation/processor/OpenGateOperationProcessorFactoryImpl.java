@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OpenGateOperationProcessorFactory;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.operation.api.CustomOperation;
+import es.amplia.oda.operation.api.OperationCreateRule;
 import es.amplia.oda.operation.api.osgi.proxies.*;
 
 import org.osgi.framework.BundleContext;
@@ -12,6 +13,7 @@ import org.osgi.framework.BundleContext;
 import java.util.HashMap;
 import java.util.Map;
 
+import static es.amplia.oda.dispatcher.opengate.operation.processor.CreateRuleProcessor.CREATE_RULE_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.DISCOVER_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.GET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
@@ -29,6 +31,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationSetClockProxy operationSetClockEquipment;
     private final OperationSynchronizeClockProxy operationSynchronizeClock;
     private final OperationDiscoverProxy operationDiscover;
+    private final OperationCreateRuleProxy operationCreateRule;
     private final ServiceLocator<CustomOperation> operationServiceLocator;
 
 
@@ -40,6 +43,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationSetClockEquipment = new OperationSetClockProxy(bundleContext);
         this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
         this.operationDiscover = new OperationDiscoverProxy(bundleContext);
+        this.operationCreateRule = new OperationCreateRuleProxy(bundleContext);
         this.operationServiceLocator = new ServiceLocatorOsgi<>(bundleContext, CustomOperation.class);
     }
 
@@ -64,6 +68,8 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
                 new SynchronizeClockProcessor(operationSynchronizeClock));
         catalogueOperationProcessors.put(DISCOVER_OPERATION_NAME,
                 new DiscoverProcessor(operationDiscover));
+        catalogueOperationProcessors.put(CREATE_RULE_OPERATION_NAME,
+                new CreateRuleProcessor(operationCreateRule));
         return catalogueOperationProcessors;
     }
 
@@ -80,6 +86,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         operationSetClockEquipment.close();
         operationSynchronizeClock.close();
         operationDiscover.close();
+        operationCreateRule.close();
         operationServiceLocator.close();
     }
 }

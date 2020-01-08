@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.event.api.Event;
+import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.statemanager.api.EventHandler;
 
@@ -43,6 +44,8 @@ public class InMemoryStateManagerTest {
     private DatastreamsSettersFinder mockedSettersFinder;
     @Mock
     private EventHandler mockedEventHandler;
+    @Mock
+    private EventDispatcher mockedEventDispatcher;
     private InMemoryStateManager testStateManager;
 
     @Mock
@@ -53,7 +56,7 @@ public class InMemoryStateManagerTest {
 
     @Before
     public void setUp() {
-        testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventHandler, mockedEngine);
+        testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEventHandler, mockedEngine);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
                 new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE, Status.OK, null));

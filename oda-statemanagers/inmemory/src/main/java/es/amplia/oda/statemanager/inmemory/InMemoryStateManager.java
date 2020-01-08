@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.core.commons.utils.DevicePattern;
 import es.amplia.oda.event.api.Event;
+import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
@@ -26,12 +27,15 @@ class InMemoryStateManager implements StateManager {
     private static final String VALUE_NOT_FOUND_ERROR = "Datastream has no value to set";
 
     private final DatastreamsSettersFinder datastreamsSettersFinder;
+    private final EventDispatcher eventDispatcher;
     private final EventHandler eventHandler;
     private final RuleEngine ruleEngine;
     private final State state = new State();
 
-    InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventHandler eventHandler, RuleEngine ruleEngine) {
+    InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
+                         EventHandler eventHandler, RuleEngine ruleEngine) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
+        this.eventDispatcher = eventDispatcher;
         this.eventHandler = eventHandler;
         this.ruleEngine = ruleEngine;
         registerToEvents(eventHandler);
