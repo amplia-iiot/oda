@@ -84,3 +84,7 @@ function conditionalValue(condition, deviceId, datastreamId, valueTrue, valueFal
 function exists(state, datastreamIdRequired) {
     return state.exists(datastreamIdRequired);
 }
+
+function sendImmediately(datastreamId) {
+    state.sendImmediately(datastreamId);
+}

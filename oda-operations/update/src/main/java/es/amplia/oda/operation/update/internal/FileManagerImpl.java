@@ -2,9 +2,7 @@ package es.amplia.oda.operation.update.internal;
 
 import es.amplia.oda.operation.update.FileManager;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 
 public class FileManagerImpl implements FileManager {
@@ -70,5 +68,34 @@ public class FileManagerImpl implements FileManager {
             return null;
 
         return oldFilenameVersions[0].getPath();
+    }
+
+    @Override
+    public String insertInFile(String insertedText, int position, String path) throws IOException {
+        File insertedFile = new File(path);
+        FileReader fr = new FileReader(insertedFile);
+        BufferedReader br = new BufferedReader(fr);
+        StringBuilder result = new StringBuilder();
+        String line = "";
+
+        while ((line = br.readLine()) != null) {
+            result.append(line + "\n");
+        }
+        result.deleteCharAt(result.length() - 1);
+
+        result.insert(position, insertedText);
+
+        FileWriter fw = new FileWriter(insertedFile);
+        BufferedWriter bw = new BufferedWriter(fw);
+
+        bw.write(result.toString());
+        bw.flush();
+
+        bw.close();
+        br.close();
+        fw.close();
+        fr.close();
+
+        return insertedFile.getPath();
     }
 }

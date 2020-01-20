@@ -1,4 +1,4 @@
-package es.amplia.oda.operation.api.osgi.proxies;
+/*package es.amplia.oda.operation.api.osgi.proxies;
 
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 import es.amplia.oda.operation.api.OperationCreateRule;
@@ -24,4 +24,4 @@ public class OperationCreateRuleProxy implements OperationCreateRule, AutoClosea
 	public void close() {
 		proxy.close();
 	}
-}
+}*/

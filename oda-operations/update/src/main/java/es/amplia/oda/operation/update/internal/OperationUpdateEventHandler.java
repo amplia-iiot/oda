@@ -27,6 +27,10 @@ public class OperationUpdateEventHandler implements EventHandler, OperationConfi
     static final String UPDATE_CONFIGURATION_EVENT = "org/osgi/service/cm/ConfigurationEvent/CM_UPDATED";
     static final String DELETE_CONFIGURATION_EVENT = "org/osgi/service/cm/ConfigurationEvent/CM_DELETED";
 
+    static final String INSTALL_RULE_EVENT = "org/osgi/service/cm/ConfigurationEvent/CM_DELETED";
+    static final String UPDATE_RULE_EVENT = "org/osgi/service/cm/ConfigurationEvent/CM_DELETED";
+    static final String DELETE_RULE_EVENT = "org/osgi/service/cm/ConfigurationEvent/CM_DELETED";
+
     private static final Logger logger = LoggerFactory.getLogger(OperationUpdateEventHandler.class);
 
     private final BundleContext bundleContext;
@@ -80,7 +84,7 @@ public class OperationUpdateEventHandler implements EventHandler, OperationConfi
     private boolean isAlreadyProcessed(String name, String version, DeploymentElementType type, DeploymentElementOperationType operation) {
         boolean installed = isAlreadyInstalledBundle(name, version);
 
-        return isOrphanConfiguration(type, installed) || isSoftwareOperationAlreadyProcess(type, operation, installed);
+        return isOrphanConfiguration(type, installed) || isSoftwareOperationAlreadyProcess(type, operation, installed) || isARule(type);
     }
 
     private boolean isOrphanConfiguration(DeploymentElementType type, boolean installed) {
@@ -95,6 +99,10 @@ public class OperationUpdateEventHandler implements EventHandler, OperationConfi
 
         return type == DeploymentElementType.SOFTWARE &&
                 ((requireInstallation && installed) || (!requireInstallation && !installed));
+    }
+
+    private boolean isARule(DeploymentElementType type) {
+        return type.equals(DeploymentElementType.RULE);
     }
 
 

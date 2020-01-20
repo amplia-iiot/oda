@@ -41,15 +41,15 @@ public class DownloadManagerImplTest {
     private static final String VERSION_1 = "1.0.0";
     private static final String URL_1 = "http://www.platform.com/url/to/deploymentelement.jar";
     private static final DeploymentElement deploymentElement1 =
-            new DeploymentElement(NAME_1, VERSION_1, DeploymentElementType.SOFTWARE, URL_1, "",
+            new DeploymentElement(NAME_1, VERSION_1, DeploymentElementType.SOFTWARE, URL_1, "deploy/",
                     DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
     private static final String DOWNLOADED_FILE_2 = "/path/to/downloaded/file2.jar";
     private static final DeploymentElement deploymentElement2 =
-            new DeploymentElement("test2", "2.2.2", DeploymentElementType.CONFIGURATION, "", "",
+            new DeploymentElement("test2", "2.2.2", DeploymentElementType.CONFIGURATION, "", "configuration/",
                     DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
     private static final String DOWNLOADED_FILE_3 = "/path/to/downloaded/file3.jar";
     private static final DeploymentElement deploymentElement3 =
-            new DeploymentElement("test3", "3.0.0", DeploymentElementType.SOFTWARE, "", "",
+            new DeploymentElement("test3", "3.0.0", DeploymentElementType.SOFTWARE, "", "deploy/",
                     DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
     private static final String TEST_API_KEY = "testApiKey";
     private static final String DOWNLOADED_FILES_FIELD_NAME = "downloadedFiles";
@@ -71,6 +71,8 @@ public class DownloadManagerImplTest {
         downloadedFiles.put(deploymentElement2, DOWNLOADED_FILE_2);
         downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
         spiedDownloadedFiles = spy(downloadedFiles);
+
+        testDownloadManager.loadConfig("rules/");
     }
 
     @Test
@@ -156,7 +158,7 @@ public class DownloadManagerImplTest {
         String configurationDeploymentElementName = "configurationBundle";
         DeploymentElement configurationDeploymentElement =
                 new DeploymentElement(configurationDeploymentElementName, TEST_VERSION, DeploymentElementType.CONFIGURATION,
-                        URL_1, "", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+                        URL_1, "configuration/", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
         HttpGet mockedHttpGet = mock(HttpGet.class);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);

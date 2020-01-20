@@ -1,5 +1,7 @@
 package es.amplia.oda.operation.update;
 
+import java.io.IOException;
+
 public interface FileManager {
     class FileException extends Exception {
         public FileException(String message) {
@@ -16,4 +18,6 @@ public interface FileManager {
     void delete(String filePath) throws FileException;
 
     String find(String path, String name);
+
+    String insertInFile(String insertedText, int position, String path) throws IOException;
 }

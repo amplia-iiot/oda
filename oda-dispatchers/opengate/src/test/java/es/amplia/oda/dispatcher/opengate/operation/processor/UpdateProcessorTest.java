@@ -86,7 +86,7 @@ public class UpdateProcessorTest {
         DeploymentElement deploymentElement = deploymentElements.get(0);
         assertEquals(TEST_DEPLOYMENT_ELEMENT_NAME, deploymentElement.getName());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_VERSION, deploymentElement.getVersion());
-        assertEquals(DeploymentElementType.valueOf(TEST_DEPLOYMENT_ELEMENT_TYPE), deploymentElement.getType());
+        assertNull(deploymentElement.getType());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL, deploymentElement.getDownloadUrl());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_PATH, deploymentElement.getPath());
         assertEquals(DeploymentElementOperationType.valueOf(TEST_DEPLOYMENT_ELEMENT_OPERATION),
@@ -200,6 +200,7 @@ public class UpdateProcessorTest {
                 TEST_DEPLOYMENT_ELEMENT_VERSION, DeploymentElementType.SOFTWARE, TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL,
                 TEST_DEPLOYMENT_ELEMENT_PATH, DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY,
                 1L);
+
         List<DeploymentElement> deploymentElements = Collections.singletonList(deploymentElement);
         UpdateParameters updateParameters =
                 new UpdateParameters(TEST_BUNDLE_NAME, TEST_BUNDLE_VERSION, deploymentElements);

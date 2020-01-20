@@ -90,9 +90,7 @@ class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateP
     private OperationUpdate.DeploymentElement createDeploymentElement(Map map) {
         String name = (String) map.get("name");
         String version = (String) map.get("version");
-        OperationUpdate.DeploymentElementType type =
-                Optional.ofNullable((String) map.get("type"))
-                        .map(OperationUpdate.DeploymentElementType::valueOf).orElse(null);
+        OperationUpdate.DeploymentElementType type = null;
         String downloadUrl = (String) map.get("downloadUrl");
         String path = (String) map.get("path");
         OperationUpdate.DeploymentElementOperationType operation =

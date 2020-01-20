@@ -18,7 +18,6 @@ public class InstallManagerImpl implements InstallManager {
 
     static final String SOFTWARE_INSTALL_FOLDER = "deploy/";
     static final String CONFIGURATION_INSTALL_FOLDER = "configuration/";
-    static final String DEFAULT_INSTALL_FOLDER = "install/";
 
     private static final Logger logger = LoggerFactory.getLogger(InstallManagerImpl.class);
 
@@ -26,18 +25,27 @@ public class InstallManagerImpl implements InstallManager {
 
     private final Map<DeploymentElement, DeploymentElementOperation> installedDeploymentElements = new HashMap<>();
 
+    private String rulesPath;
+
     public InstallManagerImpl(DeploymentElementOperationFactory deploymentElementOperationFactory) {
         this.deploymentElementOperationFactory = deploymentElementOperationFactory;
     }
 
-    public String getInstallDirectory(OperationUpdate.DeploymentElementType type) {
-        switch (type) {
-            case SOFTWARE:
-                return SOFTWARE_INSTALL_FOLDER;
-            case CONFIGURATION:
-                return CONFIGURATION_INSTALL_FOLDER;
+    public DeploymentElement assignDeployElementType(DeploymentElement deploymentElement) {
+        switch (deploymentElement.getPath()) {
+            case SOFTWARE_INSTALL_FOLDER:
+                deploymentElement.setType(OperationUpdate.DeploymentElementType.SOFTWARE);
+                return deploymentElement;
+            case CONFIGURATION_INSTALL_FOLDER:
+                deploymentElement.setType(OperationUpdate.DeploymentElementType.CONFIGURATION);
+                return deploymentElement;
             default:
-                return DEFAULT_INSTALL_FOLDER;
+                if (deploymentElement.getPath().startsWith(rulesPath)) {
+                    deploymentElement.setType(OperationUpdate.DeploymentElementType.RULE);
+                } else {
+                    deploymentElement.setType(OperationUpdate.DeploymentElementType.DEFAULT);
+                }
+                return deploymentElement;
         }
     }
 
@@ -49,9 +57,10 @@ public class InstallManagerImpl implements InstallManager {
                 throw  new InstallException("Deployment element file has not been downloaded");
             }
 
+            deploymentElement = assignDeployElementType(deploymentElement);
             operation =
                     deploymentElementOperationFactory.createDeploymentElementOperation(deploymentElement, localFile,
-                            getInstallDirectory(deploymentElement.getType()));
+                            deploymentElement.getPath(), rulesPath);
             operation.execute();
         } catch (DeploymentElementOperationException exception) {
             throw new InstallException(exception.getMessage());
@@ -85,5 +94,10 @@ public class InstallManagerImpl implements InstallManager {
     @Override
     public void clearInstalledDeploymentElements() {
         installedDeploymentElements.clear();
+    }
+
+    @Override
+    public void loadConfig(String rulesPath) {
+        this.rulesPath = rulesPath;
     }
 }

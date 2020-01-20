@@ -13,6 +13,7 @@ import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.statemanager.api.EventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,9 +188,18 @@ class InMemoryStateManager implements StateManager {
         DatastreamValue dsValue = createDatastreamValueFromEvent(event);
         this.ruleEngine.engine(this.state, dsValue);
         // TODO: Add instant send event
-        this.state.clearRefreshed();
+        Set<DatastreamInfo> datastreams = this.state.getStoredValues().keySet();
+        for (DatastreamInfo dsInfo : datastreams) {
+            if(state.isToSendImmediately(dsInfo)) {
+                event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), dsValue.getValue());
+                eventDispatcher.publish(event);
+            }
+        }
+        this.state.clearRefreshedAndImmediately();
         LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
     }
+
+
 
     private DatastreamValue createDatastreamValueFromEvent(Event event) {
         return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getAt(), event.getValue(),

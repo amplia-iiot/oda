@@ -22,6 +22,9 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public class DownloadManagerImpl implements DownloadManager {
 
+    static final String SOFTWARE_INSTALL_FOLDER = "deploy/";
+    static final String CONFIGURATION_INSTALL_FOLDER = "configuration/";
+
     static final String API_KEY_HEADER = "X-ApiKey";
     static final String DOWNLOAD_FOLDER = "downloads/";
 
@@ -32,6 +35,8 @@ public class DownloadManagerImpl implements DownloadManager {
     private final FileManager fileManager;
 
     private final Map<DeploymentElement, String> downloadedFiles = new HashMap<>();
+
+    private String rulesPath;
 
     public DownloadManagerImpl(DeviceInfoProvider deviceInfoProvider, FileManager fileManager) {
         this.deviceInfoProvider = deviceInfoProvider;
@@ -83,12 +88,15 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     private String getDeploymentElementLocalFilePath(DeploymentElement deploymentElement) {
-        switch (deploymentElement.getType()) {
-            case SOFTWARE:
+        switch (deploymentElement.getPath()) {
+            case SOFTWARE_INSTALL_FOLDER:
                 return DOWNLOAD_FOLDER + deploymentElement.getName() + "-" + deploymentElement.getVersion() + ".jar";
-            case CONFIGURATION:
+            case CONFIGURATION_INSTALL_FOLDER:
                 return DOWNLOAD_FOLDER + deploymentElement.getName() + ".cfg";
             default:
+                if (deploymentElement.getPath().startsWith(rulesPath)) {
+                    return DOWNLOAD_FOLDER + deploymentElement.getName() + ".js";
+                }
                 return DOWNLOAD_FOLDER + deploymentElement.getName();
         }
     }
@@ -113,5 +121,10 @@ public class DownloadManagerImpl implements DownloadManager {
                     }
                 });
         downloadedFiles.clear();
+    }
+
+    @Override
+    public void loadConfig(String rulesPath) {
+        this.rulesPath = rulesPath;
     }
 }

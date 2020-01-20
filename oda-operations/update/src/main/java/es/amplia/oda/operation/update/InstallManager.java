@@ -1,6 +1,5 @@
 package es.amplia.oda.operation.update;
 
-import es.amplia.oda.operation.api.OperationUpdate;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 
@@ -12,11 +11,13 @@ public interface InstallManager {
         }
     }
 
-    String getInstallDirectory(OperationUpdate.DeploymentElementType type);
+    DeploymentElement assignDeployElementType(DeploymentElement deploymentElement);
 
     void install(DeploymentElement deploymentElement, String localFile) throws InstallException;
 
     void rollback(DeploymentElement deploymentElement, String backupFile);
 
     void clearInstalledDeploymentElements();
+
+    void loadConfig(String rulesPath);
 }

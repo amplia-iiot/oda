@@ -1,6 +1,7 @@
 package es.amplia.oda.operation.update;
 
 import es.amplia.oda.operation.api.OperationUpdate;
+import es.amplia.oda.operation.update.configuration.UpdateConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,10 +15,11 @@ import static es.amplia.oda.operation.update.BackupManager.BackupException;
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.InstallManager.InstallException;
 
-class OperationUpdateImpl implements OperationUpdate {
+public class OperationUpdateImpl implements OperationUpdate {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OperationUpdateImpl.class);
 
+    private String rulesPath = "";
 
     static class UpdateOperationException extends Exception {
         UpdateOperationException(String message) {
@@ -75,7 +77,7 @@ class OperationUpdateImpl implements OperationUpdate {
             backupManager.createBackupDirectory();
             for (DeploymentElement deploymentElement : toBackup) {
                 backupManager.backup(deploymentElement,
-                        installManager.getInstallDirectory(deploymentElement.getType()));
+                        deploymentElement.getPath());
             }
 
             downloadManager.createDownloadDirectory();
@@ -174,5 +176,11 @@ class OperationUpdateImpl implements OperationUpdate {
     private Result rollback(List<DeploymentElement> deploymentElements, String cause, Result result) {
         deploymentElements.forEach(element -> installManager.rollback(element, backupManager.getBackupFile(element)));
         return new Result(OperationResultCodes.ERROR_PROCESSING, cause, result.getSteps());
+    }
+
+    public void loadConfiguration(UpdateConfiguration config) {
+        rulesPath = config.getRulesPath();
+        installManager.loadConfig(rulesPath);
+        downloadManager.loadConfig(rulesPath);
     }
 }

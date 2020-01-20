@@ -19,15 +19,23 @@ public class DeploymentElementOperationFactory {
         this.operationConfirmationProcessor = operationConfirmationProcessor;
     }
 
-    public DeploymentElementOperation createDeploymentElementOperation(DeploymentElement deploymentElement,
-                                                                       String localFile, String installFolder) {
+    public DeploymentElementOperation createDeploymentElementOperation (DeploymentElement deploymentElement,
+                                                                        String localFile, String installFolder,
+                                                                        String rulesPath) {
         OperationUpdate.DeploymentElementOperationType operation = deploymentElement.getOperation();
-
         switch (operation) {
             case INSTALL:
+                if (deploymentElement.getPath().startsWith(rulesPath)) {
+                    return new InstallRuleDeploymentElementOperation(deploymentElement, localFile , installFolder, fileManager,
+                            operationConfirmationProcessor, rulesPath);
+                }
                 return new InstallDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                         operationConfirmationProcessor);
             case UPGRADE:
+                if (deploymentElement.getPath().startsWith(rulesPath)) {
+                    return new UpgradeRuleDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
+                            operationConfirmationProcessor, rulesPath);
+                }
                 return new UpgradeDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                         operationConfirmationProcessor);
             case UNINSTALL:

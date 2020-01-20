@@ -16,4 +16,6 @@ public interface DownloadManager {
     String getDownloadedFile(DeploymentElement deploymentElement);
 
     void deleteDownloadedFiles();
+
+    void loadConfig(String rulesPath);
 }

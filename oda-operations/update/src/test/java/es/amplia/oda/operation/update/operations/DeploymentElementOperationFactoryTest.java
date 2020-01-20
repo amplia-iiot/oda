@@ -20,8 +20,9 @@ import static org.mockito.Mockito.mock;
 @PrepareForTest(DeploymentElementOperationFactory.class)
 public class DeploymentElementOperationFactoryTest {
 
-    private static final String localFile = "path/to/local/file.jar";
-    private static final String installFolder = "path/to/install/folder";
+    private static final String LOCAL_FILE_JAR = "path/to/local/file.jar";
+    private static final String INSTALL_FOLDER = "path/to/install/folder";
+    private static final String PATH_TO_RULES = "path/to/rules/files";
 
     @Mock
     private FileManager mockedFileManager;
@@ -39,10 +40,10 @@ public class DeploymentElementOperationFactoryTest {
 
         PowerMockito.whenNew(InstallDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedInstallOp);
 
-        testFactory.createDeploymentElementOperation(installDeploymentElement, localFile, installFolder);
+        testFactory.createDeploymentElementOperation(installDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
 
         PowerMockito.verifyNew(InstallDeploymentElementOperation.class)
-                .withArguments(eq(installDeploymentElement), eq(localFile), eq(installFolder), eq(mockedFileManager),
+                .withArguments(eq(installDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
                         eq(mockedOperationConfirmationProcessor));
     }
 
@@ -55,10 +56,10 @@ public class DeploymentElementOperationFactoryTest {
 
         PowerMockito.whenNew(UpgradeDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedUpgradeOp);
 
-        testFactory.createDeploymentElementOperation(upgradeDeploymentElement, localFile, installFolder);
+        testFactory.createDeploymentElementOperation(upgradeDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
 
         PowerMockito.verifyNew(UpgradeDeploymentElementOperation.class)
-                .withArguments(eq(upgradeDeploymentElement), eq(localFile), eq(installFolder), eq(mockedFileManager),
+                .withArguments(eq(upgradeDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
                         eq(mockedOperationConfirmationProcessor));
     }
 
@@ -72,10 +73,10 @@ public class DeploymentElementOperationFactoryTest {
         PowerMockito.whenNew(UninstallDeploymentElementOperation.class).withAnyArguments()
                 .thenReturn(mockedUninstallOp);
 
-        testFactory.createDeploymentElementOperation(uninstallDeploymentElement, localFile, installFolder);
+        testFactory.createDeploymentElementOperation(uninstallDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
 
         PowerMockito.verifyNew(UninstallDeploymentElementOperation.class)
-                .withArguments(eq(uninstallDeploymentElement), eq(installFolder), eq(mockedFileManager),
+                .withArguments(eq(uninstallDeploymentElement), eq(INSTALL_FOLDER), eq(mockedFileManager),
                         eq(mockedOperationConfirmationProcessor));
     }
 }

@@ -9,9 +9,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -210,5 +208,30 @@ public class FileManagerImplTest {
         String searchedFile = testFileManager.find(DIRECTORY_TO_SEARCH, searchedName);
 
         assertNull(searchedFile);
+    }
+
+    @Test
+    public void testInsertInFile() throws IOException {
+        File fileTest = new File("test.txt");
+        fileTest.createNewFile();
+        FileWriter fileWriterTest = new FileWriter(fileTest);
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriterTest);
+        bufferedWriter.write("Above this there should be something");
+        bufferedWriter.flush();
+        bufferedWriter.close();
+
+        testFileManager.insertInFile("Correctly tested\n", 0, fileTest.getPath());
+
+        FileReader fileReader = new FileReader(fileTest);
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        StringBuilder builder = new StringBuilder();
+        String line = "";
+
+        while ((line = bufferedReader.readLine()) != null) {
+            builder.append(line + "\n");
+        }
+        builder.deleteCharAt(builder.length() - 1);
+        fileTest.delete();
+        assertEquals("Correctly tested\n" + "Above this there should be something", builder.toString());
     }
 }

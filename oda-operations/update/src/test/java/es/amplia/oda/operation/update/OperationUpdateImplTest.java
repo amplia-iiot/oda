@@ -2,11 +2,13 @@ package es.amplia.oda.operation.update;
 
 import es.amplia.oda.operation.api.OperationUpdate;
 
+import es.amplia.oda.operation.update.configuration.UpdateConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
@@ -217,5 +219,14 @@ public class OperationUpdateImplTest {
 
         assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
         assertNotNull(result.getSteps());
+    }
+
+    @Test
+    public void testLoadConfiguration() {
+        UpdateConfiguration config = UpdateConfiguration.builder().rulesPath("the/correct/path").build();
+
+        operationUpdate.loadConfiguration(config);
+
+        assertEquals("the/correct/path", Whitebox.getInternalState(operationUpdate, "rulesPath"));
     }
 }
