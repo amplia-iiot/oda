@@ -5,7 +5,7 @@ import es.amplia.oda.dispatcher.opengate.domain.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
@@ -13,6 +13,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
     static final String SUCCESS_RESULT = "SUCCESS";
     static final String ERROR_RESULT = "ERROR";
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
 
     @Override
@@ -30,9 +31,17 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
                     translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse,
                             request.getPath()));
         } else {
-            return future.thenApply(result ->
-                    translateToOutput(result, request.getId(), deviceIdForResponse, request.getPath()));
+            return future.applyToEither(timeout(3), r -> translateToOutput(r, request.getId(), deviceIdForResponse, request.getPath()));
         }
+    }
+
+    public static <T> CompletableFuture<T> timeout(int seconds) {
+        final CompletableFuture<T> future = new CompletableFuture<>();
+        scheduler.schedule(() -> {
+            final TimeoutException ex = new TimeoutException("Timeout during the request processing");
+            return future.completeExceptionally(ex);
+        }, seconds, TimeUnit.SECONDS);
+        return future;
     }
 
     private Output translateNoOperationToOutput(String operationId, String operationName, String deviceId, String[] path) {
