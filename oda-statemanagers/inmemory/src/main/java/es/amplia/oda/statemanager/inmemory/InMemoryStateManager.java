@@ -13,7 +13,6 @@ import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.statemanager.api.EventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,7 +186,6 @@ class InMemoryStateManager implements StateManager {
     public void onReceivedEvent(Event event) {
         DatastreamValue dsValue = createDatastreamValueFromEvent(event);
         this.ruleEngine.engine(this.state, dsValue);
-        // TODO: Add instant send event
         Set<DatastreamInfo> datastreams = this.state.getStoredValues().keySet();
         for (DatastreamInfo dsInfo : datastreams) {
             if(state.isToSendImmediately(dsInfo)) {

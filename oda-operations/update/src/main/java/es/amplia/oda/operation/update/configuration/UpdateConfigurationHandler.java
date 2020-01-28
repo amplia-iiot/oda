@@ -2,7 +2,6 @@ package es.amplia.oda.operation.update.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.update.OperationUpdateImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

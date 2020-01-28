@@ -10,7 +10,7 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public class UpgradeRuleDeploymentElementOperation extends DeploymentElementOperationBase {
 
-    private static final String libFile = "utils.js";
+    private static final String LIB_FILE = "utils.js";
 
     private final String localFile;
     private final String installFolder;
@@ -25,7 +25,7 @@ public class UpgradeRuleDeploymentElementOperation extends DeploymentElementOper
         super(deploymentElement, fileManager, operationConfirmationProcessor);
         this.localFile = localFile;
         this.installFolder = installFolder;
-        this.toInsert = "load(\"" + System.getProperty("user.dir") + "/" + rulesPath + libFile + "\");\n\n";
+        this.toInsert = "load(\"" + System.getProperty("user.dir") + "/" + rulesPath + LIB_FILE + "\");\n\n";
     }
 
     @Override
