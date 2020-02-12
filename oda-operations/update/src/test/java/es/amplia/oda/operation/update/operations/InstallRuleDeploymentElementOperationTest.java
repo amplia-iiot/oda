@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.File;
+
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
@@ -42,9 +44,14 @@ public class InstallRuleDeploymentElementOperationTest {
 
     @Test
     public void testExecuteSpecificOperation() throws FileException {
+        File rulesDir = new File(PATH_TO_RULES);
+        rulesDir.mkdirs();
+
         testRulesInstallOperation.executeSpecificOperation(mockedFileManager);
 
         verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
+        File mainDir = new File(PATH_TO_RULES.split("/")[0]);
+        mainDir.delete();
     }
 
     @Test(expected = FileException.class)
