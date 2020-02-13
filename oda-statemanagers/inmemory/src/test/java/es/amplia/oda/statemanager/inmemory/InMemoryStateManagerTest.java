@@ -203,7 +203,7 @@ public class InMemoryStateManagerTest {
         when(mockedSetter.set(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
         CompletableFuture<DatastreamValue> future =
-                testStateManager.setDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
+                testStateManager.refreshDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
         DatastreamValue value = future.get();
 
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -214,7 +214,7 @@ public class InMemoryStateManagerTest {
         assertNull(value.getError());
         verify(mockedSettersFinder).getSettersSatisfying(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verify(mockedSetter).set(eq(TEST_DEVICE_ID), eq(newValue));
-        assertEquals(value, testState.getValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
+        assertEquals(value, testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class InMemoryStateManagerTest {
         when(mockedSetter.set(anyString(), any())).thenThrow(new RuntimeException(errorDescription));
 
         CompletableFuture<DatastreamValue> future =
-                testStateManager.setDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
+                testStateManager.refreshDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
         DatastreamValue value = future.get();
 
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -239,7 +239,7 @@ public class InMemoryStateManagerTest {
         assertNotNull(value.getError());
         verify(mockedSettersFinder).getSettersSatisfying(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verify(mockedSetter).set(eq(TEST_DEVICE_ID), eq(newValue));
-        assertNotEquals(value, testState.getValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
+        assertNotEquals(value, testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
     }
 
     @Test
@@ -255,7 +255,7 @@ public class InMemoryStateManagerTest {
         when(mockedSetter.set(anyString(), any())).thenReturn(futureWithException);
 
         CompletableFuture<DatastreamValue> future =
-                testStateManager.setDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
+                testStateManager.refreshDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, newValue);
         DatastreamValue value = future.get();
 
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -266,7 +266,7 @@ public class InMemoryStateManagerTest {
         assertNotNull(value.getError());
         verify(mockedSettersFinder).getSettersSatisfying(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verify(mockedSetter).set(eq(TEST_DEVICE_ID), eq(newValue));
-        assertNotEquals(value, testState.getValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
+        assertNotEquals(value, testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
     }
 
     @Test
@@ -288,7 +288,7 @@ public class InMemoryStateManagerTest {
         when(mockedSetter.set(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
         CompletableFuture<Set<DatastreamValue>> future =
-                testStateManager.setDatastreamValues(TEST_DEVICE_ID, valuesToSet);
+                testStateManager.refreshDatastreamValues(TEST_DEVICE_ID, valuesToSet);
         Set<DatastreamValue> values = future.get();
         checkDatastreamValueOK(TEST_DEVICE_ID, TEST_DATASTREAM_ID, beforeTest, newValue, values);
         checkDatastreamValueErrorProcessing(TEST_DEVICE_ID, newDatastream, beforeTest, values);
@@ -339,7 +339,7 @@ public class InMemoryStateManagerTest {
 
         testStateManager.onReceivedEvent(testEvent);
 
-        DatastreamValue value = testState.getValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
         assertEquals(newAt, value.getAt());

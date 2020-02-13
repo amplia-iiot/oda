@@ -130,13 +130,13 @@ public class StateManagerProxyTest {
 
     @Test
     public void testSetDatastreamValue() {
-        testProxy.setDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_VALUE);
+        testProxy.refreshDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_VALUE);
 
         verify(mockedProxy).callFirst(datastreamValueFutureFunctionCaptor.capture());
         Function<StateManager, CompletableFuture<DatastreamValue>> capturedFunction =
                 datastreamValueFutureFunctionCaptor.getValue();
         capturedFunction.apply(mockedStateManager);
-        verify(mockedStateManager).setDatastreamValue(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), eq(TEST_VALUE));
+        verify(mockedStateManager).refreshDatastreamValue(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), eq(TEST_VALUE));
     }
 
     @Test
@@ -145,13 +145,13 @@ public class StateManagerProxyTest {
         datastreamValues.put(TEST_DATASTREAM_ID, TEST_VALUE);
         datastreamValues.put(TEST_DATASTREAM_ID_2, TEST_VALUE_2);
 
-        testProxy.setDatastreamValues(TEST_DEVICE_ID, datastreamValues);
+        testProxy.refreshDatastreamValues(TEST_DEVICE_ID, datastreamValues);
 
         verify(mockedProxy).callFirst(datastreamsValueFutureFunctionCaptor.capture());
         Function<StateManager, CompletableFuture<Set<DatastreamValue>>> capturedFunction =
                 datastreamsValueFutureFunctionCaptor.getValue();
         capturedFunction.apply(mockedStateManager);
-        verify(mockedStateManager).setDatastreamValues(eq(TEST_DEVICE_ID), eq(datastreamValues));
+        verify(mockedStateManager).refreshDatastreamValues(eq(TEST_DEVICE_ID), eq(datastreamValues));
     }
 
     @Test
