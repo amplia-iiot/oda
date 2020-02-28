@@ -2,10 +2,11 @@ package es.amplia.oda.hardware.diozero.configuration;
 
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.DeviceType;
-import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDeviceFactory;
+import es.amplia.oda.hardware.diozero.analog.devices.fx30.Fx30AnalogInputDeviceFactory;
 
 import com.diozero.api.AnalogInputDevice;
 import com.diozero.internal.provider.AnalogInputDeviceFactoryInterface;
+import es.amplia.oda.hardware.diozero.analog.devices.owasys.OwasysAnalogInputDeviceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,9 +55,13 @@ class AnalogInputDeviceBuilder {
 		checkCompatibleParameters();
 
 		LOGGER.info("Build new ADC Channel({},{},{},{},{})", channelIndex, name, path, lowMode, deviceType);
+		AnalogInputDeviceFactoryInterface factory;
 		switch (deviceType) {
+			case OWASYS:
+				factory = new OwasysAnalogInputDeviceFactory(name, path, lowMode, deviceType);
+				return new AnalogInputDevice(factory, channelIndex, 1);
 			case FX30:
-				AnalogInputDeviceFactoryInterface factory = new Fx30AnalogInputDeviceFactory(name, path, lowMode, deviceType);
+				factory = new Fx30AnalogInputDeviceFactory(name, path, lowMode, deviceType);
 				return new AnalogInputDevice(factory, channelIndex, 1);
 			case DEFAULT:
 				return new AnalogInputDevice(channelIndex, 1);
@@ -76,5 +81,10 @@ class AnalogInputDeviceBuilder {
 				throw new AdcDeviceException("Invalid parameters to build ADC Channel: Only Channel 0 and Channel 1 of FX30" +
 						"are ADC inputs. Change the channel index");
 		}
+		if (deviceType.equals(DeviceType.OWASYS) && (channelIndex < 1 || channelIndex > 4)) {
+				throw new AdcDeviceException("Invalid parameters to build ADC Channel: Only Channel 1-4 of Owasys" +
+						"are ADC inputs. Change the channel index");
+		}
+
 	}
 }

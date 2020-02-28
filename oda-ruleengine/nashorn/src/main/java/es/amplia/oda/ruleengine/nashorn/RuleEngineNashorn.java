@@ -42,7 +42,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     @Override
-    public State engine(State state, DatastreamValue value) {
+    public synchronized State engine(State state, DatastreamValue value) {
         if (started && this.watcher.get(this.path + value.getDatastreamId()) != null) {
             List<String> rulesOfDatastream = rules.keySet().stream()
                     .filter(rulename -> rulename.contains(this.path + value.getDatastreamId()))

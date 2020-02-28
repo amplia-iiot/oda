@@ -1,4 +1,4 @@
-package es.amplia.oda.hardware.diozero.analog;
+package es.amplia.oda.hardware.diozero.analog.devices.fx30;
 
 import com.diozero.util.RuntimeIOException;
 import org.junit.Before;

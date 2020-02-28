@@ -4,7 +4,8 @@ import com.diozero.api.AnalogInputDevice;
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.DeviceType;
 
-import es.amplia.oda.hardware.diozero.analog.Fx30AnalogInputDeviceFactory;
+import es.amplia.oda.hardware.diozero.analog.devices.fx30.Fx30AnalogInputDeviceFactory;
+import es.amplia.oda.hardware.diozero.analog.devices.owasys.OwasysAnalogInputDeviceFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -18,7 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AnalogInputDeviceBuilder.class, Fx30AnalogInputDeviceFactory.class})
+@PrepareForTest({ AnalogInputDeviceBuilder.class, Fx30AnalogInputDeviceFactory.class, OwasysAnalogInputDeviceFactory.class})
 public class AnalogInputDeviceBuilderTest {
 
 	private static final int TEST_CHANNEL_INDEX = 1;
@@ -32,7 +33,9 @@ public class AnalogInputDeviceBuilderTest {
 	private final AnalogInputDeviceBuilder builder = AnalogInputDeviceBuilder.newBuilder();
 
 	@Mock
-	private Fx30AnalogInputDeviceFactory mockedFactory;
+	private Fx30AnalogInputDeviceFactory mockedFX30Factory;
+	@Mock
+	private OwasysAnalogInputDeviceFactory mockedOwasysFactory;
 	@Mock
 	private AnalogInputDevice mockedAnalogInputDevice;
 
@@ -93,7 +96,7 @@ public class AnalogInputDeviceBuilderTest {
 		builder.setLowMode(TEST_LOW_MODE);
 		builder.setDeviceType(DeviceType.FX30);
 
-		PowerMockito.whenNew(Fx30AnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedFactory);
+		PowerMockito.whenNew(Fx30AnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedFX30Factory);
 		PowerMockito.whenNew(AnalogInputDevice.class).withAnyArguments().thenReturn(mockedAnalogInputDevice);
 
 		AnalogInputDevice device = builder.build();
@@ -101,7 +104,7 @@ public class AnalogInputDeviceBuilderTest {
 		assertEquals(mockedAnalogInputDevice, device);
 		PowerMockito.verifyNew(Fx30AnalogInputDeviceFactory.class)
 				.withArguments(eq(TEST_NAME), eq(TEST_PATH), eq(TEST_LOW_MODE), eq(DeviceType.FX30));
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFX30Factory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test
@@ -110,7 +113,7 @@ public class AnalogInputDeviceBuilderTest {
 		builder.setPath(TEST_PATH);
 		builder.setDeviceType(DeviceType.FX30);
 
-		PowerMockito.whenNew(Fx30AnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedFactory);
+		PowerMockito.whenNew(Fx30AnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedFX30Factory);
 		PowerMockito.whenNew(AnalogInputDevice.class).withAnyArguments().thenReturn(mockedAnalogInputDevice);
 
 		AnalogInputDevice device = builder.build();
@@ -118,7 +121,43 @@ public class AnalogInputDeviceBuilderTest {
 		assertEquals(mockedAnalogInputDevice, device);
 		PowerMockito.verifyNew(Fx30AnalogInputDeviceFactory.class)
 				.withArguments(eq(null), eq(TEST_PATH), eq(DEFAULT_LOW_MODE), eq(DeviceType.FX30));
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFX30Factory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
+	}
+
+	@Test
+	public void testBuildOwa() throws Exception {
+		builder.setChannelIndex(TEST_CHANNEL_INDEX);
+		builder.setName(TEST_NAME);
+		builder.setPath(TEST_PATH);
+		builder.setLowMode(TEST_LOW_MODE);
+		builder.setDeviceType(DeviceType.OWASYS);
+
+		PowerMockito.whenNew(OwasysAnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedOwasysFactory);
+		PowerMockito.whenNew(AnalogInputDevice.class).withAnyArguments().thenReturn(mockedAnalogInputDevice);
+
+		AnalogInputDevice device = builder.build();
+
+		assertEquals(mockedAnalogInputDevice, device);
+		PowerMockito.verifyNew(OwasysAnalogInputDeviceFactory.class)
+				.withArguments(eq(TEST_NAME), eq(TEST_PATH), eq(TEST_LOW_MODE), eq(DeviceType.OWASYS));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedOwasysFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
+	}
+
+	@Test
+	public void testBuildOwasysDefault() throws Exception {
+		builder.setChannelIndex(TEST_CHANNEL_INDEX);
+		builder.setPath(TEST_PATH);
+		builder.setDeviceType(DeviceType.OWASYS);
+
+		PowerMockito.whenNew(OwasysAnalogInputDeviceFactory.class).withAnyArguments().thenReturn(mockedOwasysFactory);
+		PowerMockito.whenNew(AnalogInputDevice.class).withAnyArguments().thenReturn(mockedAnalogInputDevice);
+
+		AnalogInputDevice device = builder.build();
+
+		assertEquals(mockedAnalogInputDevice, device);
+		PowerMockito.verifyNew(OwasysAnalogInputDeviceFactory.class)
+				.withArguments(eq(null), eq(TEST_PATH), eq(DEFAULT_LOW_MODE), eq(DeviceType.OWASYS));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFX30Factory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test(expected = AdcDeviceException.class)

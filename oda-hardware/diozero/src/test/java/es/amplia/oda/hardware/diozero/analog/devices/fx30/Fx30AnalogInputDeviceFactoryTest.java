@@ -1,4 +1,4 @@
-package es.amplia.oda.hardware.diozero.analog;
+package es.amplia.oda.hardware.diozero.analog.devices.fx30;
 
 import com.diozero.api.PinInfo;
 import es.amplia.oda.core.commons.adc.DeviceType;

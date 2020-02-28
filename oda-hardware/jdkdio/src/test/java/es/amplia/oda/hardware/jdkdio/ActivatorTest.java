@@ -9,13 +9,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Collections;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
@@ -37,7 +43,7 @@ public class ActivatorTest {
 
     @Test
     public void start() throws Exception {
-        /*PowerMockito.whenNew(JdkDioGpioService.class).withAnyArguments().thenReturn(mockedGpioService);
+        PowerMockito.whenNew(JdkDioGpioService.class).withAnyArguments().thenReturn(mockedGpioService);
         PowerMockito.whenNew(JdkDioConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
         when(mockedContext.registerService(eq(GpioService.class), any(), any())).thenReturn(mockedRegistration);
@@ -48,12 +54,12 @@ public class ActivatorTest {
         PowerMockito.verifyNew(JdkDioConfigurationHandler.class).withArguments(eq(mockedGpioService));
         verify(mockedContext).registerService(eq(GpioService.class), eq(mockedGpioService), any());
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler),
-                        eq(Collections.singletonList(mockedRegistration)));*/
+                        eq(Collections.singletonList(mockedRegistration)));
     }
 
     @Test
     public void stop() {
-        /*Whitebox.setInternalState(testActivator, "gpioService", mockedGpioService);
+        Whitebox.setInternalState(testActivator, "gpioService", mockedGpioService);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
         Whitebox.setInternalState(testActivator, "gpioServiceRegistration", mockedRegistration);
 
@@ -61,6 +67,6 @@ public class ActivatorTest {
 
         verify(mockedRegistration).unregister();
         verify(mockedConfigBundle).close();
-        verify(mockedGpioService).release();*/
+        verify(mockedGpioService).release();
     }
 }

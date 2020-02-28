@@ -1,6 +1,7 @@
 package es.amplia.oda.hardware.diozero.analog;
 
 import es.amplia.oda.core.commons.adc.BadAdcChannelException;
+import es.amplia.oda.hardware.diozero.analog.devices.fx30.DioZeroAdcPinMapper;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

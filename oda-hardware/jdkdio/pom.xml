@@ -71,6 +71,55 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>owa</id>
+            <activation>
+                <file>
+                    <exists>/opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>bundle-owa</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>owa</classifier>
+                                    <instructions>
+                                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                        <Bundle-Version>${project.version}</Bundle-Version>
+                                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                        <Bundle-NativeCode>lib/libdio.so;processor=ARM_le;osname=Linux</Bundle-NativeCode>
+                                        <Export-Package>!*</Export-Package>
+                                        <Import-Package>*</Import-Package>
+                                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                                        <Embed-Dependency>dio, libdio;classifier=owa;type=so</Embed-Dependency>
+                                        <Embed-Directory>lib</Embed-Directory>
+                                        <Embed-StripVersion>true</Embed-StripVersion>
+                                    </instructions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>net.java.openjdk</groupId>
+                    <artifactId>libdio</artifactId>
+                    <classifier>owa</classifier>
+                    <type>so</type>
+                    <version>${openjdk.dio.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <build>

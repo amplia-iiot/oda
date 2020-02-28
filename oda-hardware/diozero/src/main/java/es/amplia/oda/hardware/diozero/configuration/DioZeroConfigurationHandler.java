@@ -62,7 +62,7 @@ public class DioZeroConfigurationHandler implements ConfigurationUpdateHandler {
 					getValueByToken(PATH_PROPERTY_NAME, tokens)
 							.ifPresent(builder::setPath);
 					getValueByToken(DEVICE_PROPERTY_NAME, tokens)
-							.ifPresent(value -> builder.setDeviceType(DeviceType.valueOf(value)));
+							.ifPresent(value -> builder.setDeviceType(DeviceType.typeOf(value)));
 					AnalogInputDevice aid = builder.build();
 					configuredChannels.add(new DioZeroAdcChannel(aid.getGpio(), aid));
 				}

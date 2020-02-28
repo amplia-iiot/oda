@@ -1,12 +1,12 @@
-package es.amplia.oda.hardware.diozero.analog;
+package es.amplia.oda.hardware.diozero.analog.devices.fx30;
 
 import es.amplia.oda.core.commons.adc.BadAdcChannelException;
 
-class DioZeroAdcPinMapper {
+public class DioZeroAdcPinMapper {
 
 	private DioZeroAdcPinMapper() {}
 
-	static int mapChannelIndexToDevicePin(int channelIndex) {
+	public static int mapChannelIndexToDevicePin(int channelIndex) {
 		switch (channelIndex) {
 			case 0:
 				return 1;
