@@ -23,25 +23,158 @@
         <tinylog.version>1.3.6</tinylog.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>fx30</id>
+            <activation>
+                <file>
+                    <exists>${user.home}/legato</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>bundle-arm</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>arm</classifier>
+                                    <instructions>
+                                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                        <Bundle-Version>${project.version}</Bundle-Version>
+                                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                        <Bundle-NativeCode>lib/libdiozero-system-utils.so;processor=ARM_le;osname=Linux</Bundle-NativeCode>
+                                        <Export-Package>!*</Export-Package>
+                                        <Import-Package>!com.diozero.devices, !android.os, !android.util, !dalvik.system, !sun.reflect, *</Import-Package>
+                                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                                        <Embed-Dependency>libdiozero-system-utils;classifier=arm;type=so, diozero-core, commons-math3, tinylog</Embed-Dependency>
+                                        <Embed-Directory>lib</Embed-Directory>
+                                        <Embed-StripVersion>true</Embed-StripVersion>
+                                    </instructions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.diozero</groupId>
+                    <artifactId>libdiozero-system-utils</artifactId>
+                    <classifier>arm</classifier>
+                    <type>so</type>
+                    <version>${diozero.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>owa</id>
+            <activation>
+                <file>
+                    <exists>/opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.felix</groupId>
+                        <artifactId>maven-bundle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>bundle-owa</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>owa</classifier>
+                                    <instructions>
+                                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                        <Bundle-Version>${project.version}</Bundle-Version>
+                                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                        <Bundle-NativeCode>lib/libdiozero-system-utils.so;processor=ARM_le;osname=Linux</Bundle-NativeCode>
+                                        <Export-Package>!*</Export-Package>
+                                        <Import-Package>!com.diozero.devices, !android.os, !android.util, !dalvik.system, !sun.reflect, *</Import-Package>
+                                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                                        <Embed-Dependency>libdiozero-system-utils;classifier=owa;type=so, diozero-core, commons-math3, tinylog</Embed-Dependency>
+                                        <Embed-Directory>lib</Embed-Directory>
+                                        <Embed-StripVersion>true</Embed-StripVersion>
+                                    </instructions>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <dependencies>
+                <dependency>
+                    <groupId>com.diozero</groupId>
+                    <artifactId>libdiozero-system-utils</artifactId>
+                    <classifier>owa</classifier>
+                    <type>so</type>
+                    <version>${diozero.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
-                        <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>!*</Export-Package>
-                        <Import-Package>!com.diozero.devices, !android.os, !android.util, !dalvik.system, !sun.reflect, *</Import-Package>
-                        <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>diozero-core, commons-math3, tinylog</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
-                        <Embed-StripVersion>true</Embed-StripVersion>
-                    </instructions>
-                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>default-bundle</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>bundle-linux</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>x86_64</classifier>
+                            <instructions>
+                                <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                                <Bundle-Version>${project.version}</Bundle-Version>
+                                <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                                <Bundle-NativeCode>lib/libdiozero-system-utils.so;processor=x86-64;osname=Linux</Bundle-NativeCode>
+                                <Export-Package>!*</Export-Package>
+                                <Import-Package>!com.diozero.devices, !android.os, !android.util, !dalvik.system, !sun.reflect, *</Import-Package>
+                                <Private-Package>${bundle.namespace}.*</Private-Package>
+                                <Embed-Dependency>libdiozero-system-utils;classifier=x86_64;type=so, diozero-core, commons-math3, tinylog</Embed-Dependency>
+                                <Embed-Directory>lib</Embed-Directory>
+                                <Embed-StripVersion>true</Embed-StripVersion>
+                            </instructions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-install</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>none</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -81,6 +214,19 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.diozero</groupId>
+            <artifactId>diozero-core</artifactId>
+            <version>${diozero.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.diozero</groupId>
+            <artifactId>libdiozero-system-utils</artifactId>
+            <classifier>x86_64</classifier>
+            <type>so</type>
+            <version>${diozero.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
@@ -88,11 +234,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.diozero</groupId>
-            <artifactId>diozero-core</artifactId>
-            <version>${diozero.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
