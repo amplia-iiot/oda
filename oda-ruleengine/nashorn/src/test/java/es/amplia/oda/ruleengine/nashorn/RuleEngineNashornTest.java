@@ -98,23 +98,23 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineNotStartedNotRefreshed() {
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(false);
+		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(false);
 
 		State state = testRuleEngine.engine(mockedState, value);
 
 		assertEquals(mockedState, state);
-		verify(mockedState).refreshValue("testDatastream", value);
+		verify(mockedState).refreshValue("testDevice","testDatastream", value);
 	}
 
 	@Test
 	public void testEngineNotStartedRefreshed() {
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 
 		State state = testRuleEngine.engine(mockedState, value);
 
 		assertEquals(mockedState, state);
-		verify(mockedState, never()).refreshValue("testDatastream", value);
+		verify(mockedState, never()).refreshValue("testDevice","testDatastream", value);
 	}
 
 	@Test
@@ -128,7 +128,7 @@ public class RuleEngineNashornTest {
 		watchers.put(path + "testDatastream", mockedRuleWatcher);
 		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenReturn(true);
 		when(mockedScriptTranslator.runMethod("nameRule", "then", mockedState, value)).thenReturn(mockedState);
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
@@ -150,7 +150,7 @@ public class RuleEngineNashornTest {
 		rules.put(path + "testDatastream", rule);
 		watchers.put("testDatastream", mockedRuleWatcher);
 		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenThrow(new ClassCastException());
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);

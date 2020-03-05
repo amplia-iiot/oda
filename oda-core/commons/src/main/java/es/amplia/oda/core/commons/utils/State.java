@@ -6,10 +6,58 @@ import java.util.List;
 import java.util.Map;
 
 public class State {
-    //TODO: Change this to use only one Map (less maps -> less paths to do -> better time and use of resources) and combine this info on a class
-    private Map<DatastreamInfo, List<DatastreamValue>> storedValues;
-    private Map<DatastreamInfo, Boolean> refreshedValues;
-    private Map<DatastreamInfo, Boolean> sendImmediately;
+    private Map<DatastreamInfo, DatastreamState> datastreams;
+
+    private static class DatastreamState {
+        private List<DatastreamValue> storedValues;
+        private boolean refreshed;
+        private boolean sendInmediately;
+
+        public DatastreamState() {
+            this.storedValues = new ArrayList<>();
+            this.refreshed = false;
+            this.sendInmediately = false;
+        }
+
+        public DatastreamState(List<DatastreamValue> storedValues) {
+            this.storedValues = storedValues;
+            this.refreshed = false;
+            this.sendInmediately = false;
+        }
+
+        public List<DatastreamValue> getStoredValues() {
+            return storedValues;
+        }
+
+        public void refreshValue(DatastreamValue value) {
+            this.storedValues.add(value);
+            this.refreshed = true;
+        }
+
+        public DatastreamValue getLastValue() {
+            if (!this.storedValues.isEmpty()) {
+                return this.storedValues.get(this.storedValues.size() - 1);
+            }
+            return null;
+        }
+
+        public boolean getRefreshed() {
+            return this.refreshed;
+        }
+
+        public boolean getSendInmediately() {
+            return this.sendInmediately;
+        }
+
+        public void sendInmediately() {
+            this.sendInmediately = true;
+        }
+
+        public void clearRefreshedAndImmediately() {
+            this.sendInmediately = false;
+            this.refreshed = false;
+        }
+    }
 
     /**
      * Default constructor.
@@ -18,9 +66,7 @@ public class State {
      * With this constructor, State is initialized without datastreams
      */
     public State() {
-        storedValues = new HashMap<>();
-        refreshedValues = new HashMap<>();
-        sendImmediately = new HashMap<>();
+        this.datastreams = new HashMap<>();
     }
 
     /**
@@ -32,30 +78,8 @@ public class State {
      * @param storedValues Map with datastreams to add and their values.
      */
     public State(Map<DatastreamInfo, List<DatastreamValue>> storedValues) {
-        this.storedValues = storedValues;
-        this.refreshedValues = new HashMap<>();
-        this.sendImmediately = new HashMap<>();
-        for (DatastreamInfo dsInfo: storedValues.keySet()) {
-            this.refreshedValues.put(dsInfo, false);
-            this.sendImmediately.put(dsInfo, false);
-        }
-    }
-
-    /**
-     * Constructor with all info of each datastreams.
-     *
-     * Initialize all Maps of this class, inserting all datastreams with their values and setting the refreshed and
-     * sendImmediately to their respective values on maps.
-     *
-     * @param storedValues Map with datastreams to add and their values.
-     * @param refreshedValues Map that contains if a datastream was refreshed during the use of this State object.
-     * @param sendImmediately Map that contains if a datastream has to be send immediately when this State object come
-     *                        back to the StateManager.
-     */
-    public State(Map<DatastreamInfo, List<DatastreamValue>> storedValues, Map<DatastreamInfo, Boolean> refreshedValues, Map<DatastreamInfo, Boolean> sendImmediately) {
-        this.storedValues = storedValues;
-        this.refreshedValues = refreshedValues;
-        this.sendImmediately = sendImmediately;
+        this.datastreams = new HashMap<>();
+        storedValues.forEach((info, values) -> this.datastreams.put(info, new DatastreamState(values)));
     }
 
     /**
@@ -72,9 +96,7 @@ public class State {
         List<DatastreamValue> values = new ArrayList<>();
         values.add(dsValue);
 
-        this.storedValues.put(dsInfo, values);
-        this.refreshedValues.put(dsInfo, false);
-        this.sendImmediately.put(dsInfo, false);
+        this.datastreams.put(dsInfo, new DatastreamState(values));
     }
 
     /**
@@ -86,12 +108,7 @@ public class State {
      * @param value Object with the new value and its metadata that we want to use to refresh datastream.
      */
     public void refreshValue(String deviceId, String datastreamId, DatastreamValue value) {
-        List<DatastreamValue> values = this.storedValues.get(getKey(deviceId, datastreamId));
-        values.add(value);
-
-        this.storedValues.put(getKey(deviceId, datastreamId), values);
-        this.refreshedValues.put(getKey(deviceId, datastreamId), true);
-        this.sendImmediately.putIfAbsent(getKey(deviceId, datastreamId), false);
+        this.datastreams.get(getKey(deviceId, datastreamId)).refreshValue(value);
     }
 
     /**
@@ -102,11 +119,6 @@ public class State {
      * @return Object with the information of wanted datastream.
      */
     private DatastreamInfo getKey(String deviceId, String datastreamId) {
-        for (DatastreamInfo dsInfo : storedValues.keySet()) {
-            if (dsInfo.getDeviceId().equals(deviceId) && dsInfo.getDatastreamId().equals(datastreamId)) {
-                return dsInfo;
-            }
-        }
         return new DatastreamInfo(deviceId, datastreamId);
     }
 
@@ -118,7 +130,7 @@ public class State {
      * @return true if datastream it exists, false otherwise
      */
     public boolean exists(String deviceId, String datastreamId) {
-        for (DatastreamInfo dsInfo : storedValues.keySet()) {
+        for (DatastreamInfo dsInfo : datastreams.keySet()) {
             if (dsInfo.getDeviceId().equals(deviceId) && dsInfo.getDatastreamId().equals(datastreamId)) {
                 return true;
             }
@@ -137,15 +149,7 @@ public class State {
      */
     @SuppressWarnings("unused")
     public DatastreamValue getLastValue(String deviceId, String datastreamId) {
-        for (DatastreamInfo dsInfo : storedValues.keySet()) {
-            if(dsInfo.getDeviceId().equals(deviceId) && dsInfo.getDatastreamId().equals(datastreamId)) {
-                List<DatastreamValue> values = storedValues.get(dsInfo);
-                if (!values.isEmpty()) {
-                    return values.get(values.size() - 1);
-                }
-            }
-        }
-        return createNotFoundValue(deviceId, datastreamId);
+        return getLastValue(getKey(deviceId, datastreamId));
     }
 
     /**
@@ -155,8 +159,14 @@ public class State {
      * @return Object with the last value and its metadata of the datastream.
      */
     public DatastreamValue getLastValue(DatastreamInfo datastreamInfo) {
-        List<DatastreamValue> values = this.storedValues.getOrDefault(datastreamInfo, createNotFoundValueArray(datastreamInfo));
-        return values.get(values.size() - 1);
+        DatastreamState dsState = this.datastreams.get(datastreamInfo);
+        if (dsState != null) {
+            DatastreamValue dsValue = dsState.getLastValue();
+            if (dsValue != null) {
+                return dsValue;
+            }
+        }
+        return createNotFoundValue(datastreamInfo);
     }
 
     /**
@@ -168,12 +178,7 @@ public class State {
      */
     @SuppressWarnings("unused")
     public List<DatastreamValue> getAllValues(String deviceId, String datastreamId) {
-        for (DatastreamInfo dsInfo : storedValues.keySet()) {
-            if(dsInfo.getDeviceId().equals(deviceId) && dsInfo.getDatastreamId().equals(datastreamId)) {
-                return storedValues.get(dsInfo);
-            }
-        }
-        return createNotFoundValueArray(deviceId, datastreamId);
+        return getAllValues(getKey(deviceId, datastreamId));
     }
 
     /**
@@ -184,16 +189,25 @@ public class State {
      */
     @SuppressWarnings("unused")
     public List<DatastreamValue> getAllValues(DatastreamInfo datastreamInfo) {
-        return this.storedValues.getOrDefault(datastreamInfo, createNotFoundValueArray(datastreamInfo));
+        DatastreamState dsState = this.datastreams.get(datastreamInfo);
+        if (dsState != null) {
+            List<DatastreamValue> values = dsState.getStoredValues();
+            if (!values.isEmpty()) {
+                return values;
+            }
+        }
+        return createNotFoundValueArray(datastreamInfo);
     }
 
     /**
-     * Method to get all datastreams with their historic of values.
+     * Method to get all datastreams identifiers.
      *
-     * @return Map with the identifiers of the datastreams with their values.
+     * @return List with the identifiers of the datastreams.
      */
-    public Map<DatastreamInfo, List<DatastreamValue>> getStoredValues() {
-        return this.storedValues;
+    public List<DatastreamInfo> getStoredValues() {
+        List<DatastreamInfo> storedValues = new ArrayList<>();
+        this.datastreams.forEach((info, state) -> storedValues.add(info));
+        return storedValues;
     }
 
     /**
@@ -204,12 +218,7 @@ public class State {
      * @return true if datastream was refreshed, false otherwise
      */
     public boolean isRefreshed(String deviceId, String datastreamId) {
-        for (DatastreamInfo dsInfo : storedValues.keySet()) {
-            if (dsInfo.getDeviceId().equals(deviceId) && dsInfo.getDatastreamId().equals(datastreamId)) {
-                return refreshedValues.get(dsInfo);
-            }
-        }
-        return false;
+        return this.datastreams.get(getKey(deviceId, datastreamId)).getRefreshed();
     }
 
     /**
@@ -223,7 +232,7 @@ public class State {
      */
     @SuppressWarnings("unused")
     public void sendImmediately(String deviceId, String datastreamId) {
-        sendImmediately.put(getKey(deviceId, datastreamId), true);
+        this.datastreams.get(getKey(deviceId, datastreamId)).sendInmediately();
     }
 
 
@@ -234,15 +243,14 @@ public class State {
      * @return true if datastream was marked to send immediately, false otherwise
      */
     public boolean isToSendImmediately(DatastreamInfo datastreamInfo) {
-        return this.sendImmediately.get(datastreamInfo);
+        return this.datastreams.get(datastreamInfo).getSendInmediately();
     }
 
     /**
      * Method that reset both refreshed and sendImmediately maps
      */
     public void clearRefreshedAndImmediately() {
-        refreshedValues.keySet().forEach(value -> refreshedValues.put(value, false));
-        sendImmediately.keySet().forEach(value -> sendImmediately.put(value, false));
+        this.datastreams.forEach((info, state) -> state.clearRefreshedAndImmediately());
     }
 
     /**

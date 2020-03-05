@@ -278,7 +278,7 @@ public class RealTimeStateManagerTest {
         when(mockedSetter1.set(anyString(), any())).thenReturn(CompletableFuture.completedFuture(null));
 
         CompletableFuture<DatastreamValue> future =
-                testStateManager.refreshDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_VALUE_1);
+                testStateManager.setDatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_VALUE_1);
         DatastreamValue result = future.get();
 
         assertEquals(TEST_DEVICE_ID, result.getDeviceId());
@@ -316,7 +316,7 @@ public class RealTimeStateManagerTest {
         when(mockedSetter3.set(anyString(), any())).thenThrow(new RuntimeException(TEST_ERROR_3));
 
         CompletableFuture<Set<DatastreamValue>> future =
-                testStateManager.refreshDatastreamValues(TEST_DEVICE_ID, testDatastreamsWithValues);
+                testStateManager.setDatastreamValues(TEST_DEVICE_ID, testDatastreamsWithValues);
         Set<DatastreamValue> result = future.get();
 
         assertEquals(5, result.size());

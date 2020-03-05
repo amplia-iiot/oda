@@ -7,7 +7,6 @@ import es.amplia.oda.event.api.Event;
 
 import org.osgi.framework.BundleContext;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -21,38 +20,38 @@ public class StateManagerProxy implements StateManager, AutoCloseable {
     }
 
     @Override
-    public CompletableFuture<List<DatastreamValue>> getDatastreamInformation(String deviceId, String datastreamId) {
+    public CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId) {
         return proxy.callFirst(stateManager -> stateManager.getDatastreamInformation(deviceId, datastreamId));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
         return proxy.callFirst(stateManager -> stateManager.getDatastreamsInformation(deviceId, datastreamIds));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
         return proxy.callFirst(stateManager -> stateManager.getDatastreamsInformation(devicePattern, datastreamId));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
         return proxy.callFirst(stateManager -> stateManager.getDatastreamsInformation(devicePattern, datastreamIds));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDeviceInformation(String deviceId) {
+    public CompletableFuture<Set<DatastreamValue>> getDeviceInformation(String deviceId) {
         return proxy.callFirst(stateManager -> stateManager.getDeviceInformation(deviceId));
     }
 
     @Override
-    public CompletableFuture<List<DatastreamValue>> refreshDatastreamValue(String deviceId, String datastreamId, Object value) {
-        return proxy.callFirst(stateManager -> stateManager.refreshDatastreamValue(deviceId, datastreamId, value));
+    public CompletableFuture<DatastreamValue> setDatastreamValue(String deviceId, String datastreamId, Object value) {
+        return proxy.callFirst(stateManager -> stateManager.setDatastreamValue(deviceId, datastreamId, value));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> refreshDatastreamValues(String deviceId, Map<String, Object> datastreamValues) {
-        return proxy.callFirst(stateManager -> stateManager.refreshDatastreamValues(deviceId, datastreamValues));
+    public CompletableFuture<Set<DatastreamValue>> setDatastreamValues(String deviceId, Map<String, Object> datastreamValues) {
+        return proxy.callFirst(stateManager -> stateManager.setDatastreamValues(deviceId, datastreamValues));
     }
 
     @Override

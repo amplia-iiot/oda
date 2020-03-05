@@ -7,11 +7,11 @@ function getDeviceIdFromValue(value) {
 }
 
 function getValue(state, datastreamId) {
-    return state.getValue(datastreamId);
+    return state.getLastValue(datastreamId);
 }
 
 function getData(state, datastreamId) {
-    return state.getValue(datastreamId).getValue();
+    return state.getLastValue(datastreamId).getValue();
 }
 
 function getDataFromValueObject(value) {

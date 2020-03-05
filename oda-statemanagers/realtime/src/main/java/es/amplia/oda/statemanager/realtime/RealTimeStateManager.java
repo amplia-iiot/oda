@@ -40,55 +40,62 @@ class RealTimeStateManager implements StateManager {
         registerToEvents(eventHandler);
     }
 
-    //TODO: Check the validity of this
     @Override
-    public CompletableFuture<List<DatastreamValue>> getDatastreamInformation(String deviceId, String datastreamId) {
+    public CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId) {
         return getDatastreamsInformation(deviceId, Collections.singleton(datastreamId))
-                .thenApply(set -> set.iterator().next());
+                .thenApply(set -> set.toArray(new DatastreamValue[0])[0]);
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
         LOGGER.debug("Getting values for device '{}': {}", deviceId, datastreamIds);
 
         DatastreamsGettersFinder.Return finderReturn =
                 datastreamsGettersFinder.getGettersSatisfying(new DevicePattern(deviceId), datastreamIds);
 
-        Set<CompletableFuture<List<DatastreamValue>>> values =
+        Set<CompletableFuture<DatastreamValue>> values =
                 getNotFoundIdsAsFutures(deviceId, finderReturn.getNotFoundIds());
         values.addAll(getValues(deviceId, finderReturn.getGetters()));
 
         return allOf(values);
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> getNotFoundIdsAsFutures(String deviceId,
+    private Set<CompletableFuture<DatastreamValue>> getNotFoundIdsAsFutures(String deviceId,
                                                                             Set<String> notFoundDatastreamIds) {
         return notFoundDatastreamIds.stream()
-                .map(datastreamId -> createDatastreamListNotFound(deviceId, datastreamId))
+                .map(datastreamId -> createDatastreamNotFound(deviceId, datastreamId))
                 .map(CompletableFuture::completedFuture)
                 .collect(Collectors.toSet());
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> getValues(String deviceId, List<DatastreamsGetter> getters) {
+    private DatastreamValue createDatastreamNotFound(String deviceId, String datastreamId) {
+        return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+                DatastreamValue.Status.NOT_FOUND, null);
+    }
+
+    private Set<CompletableFuture<DatastreamValue>> getValues(String deviceId, List<DatastreamsGetter> getters) {
         return getters.stream()
                 .map(datastreamsGetter -> getValueFromGetFutureHandlingExceptions(deviceId, datastreamsGetter))
                 .collect(Collectors.toSet());
     }
 
-    private CompletableFuture<List<DatastreamValue>> getValueFromGetFutureHandlingExceptions(String deviceId,
+    private CompletableFuture<DatastreamValue> getValueFromGetFutureHandlingExceptions(String deviceId,
                                                                                        DatastreamsGetter datastreamsGetter) {
         String datastreamId = datastreamsGetter.getDatastreamIdSatisfied();
         try {
             CompletableFuture<DatastreamsGetter.CollectedValue> getFuture = datastreamsGetter.get(deviceId);
             return getFuture.handle((ok,error)-> {
                 if (ok != null) {
-                    return createDatastreamList(deviceId, datastreamId, ok);
+                    return new DatastreamValue(deviceId, datastreamId, ok.getAt(), ok.getValue(),
+                            DatastreamValue.Status.OK, null);
                 } else {
-                    return createDatastreamProcessingErrorList(deviceId, datastreamId, error);
+                    return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage());
                 }
             });
         } catch (Exception e) {
-            return CompletableFuture.completedFuture(createDatastreamProcessingErrorList(deviceId, datastreamId, e));
+            return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
+                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage()));
         }
     }
 
@@ -102,25 +109,25 @@ class RealTimeStateManager implements StateManager {
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
         return getDatastreamsInformation(devicePattern, Collections.singleton(datastreamId));
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
+    public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
         DatastreamsGettersFinder.Return finderReturn =
                 datastreamsGettersFinder.getGettersSatisfying(devicePattern, datastreamIds);
-        Set<CompletableFuture<List<DatastreamValue>>> values = getValues(devicePattern, finderReturn.getGetters());
+        Set<CompletableFuture<DatastreamValue>> values = getValues(devicePattern, finderReturn.getGetters());
         return allOf(values);
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> getValues(DevicePattern devicePattern, List<DatastreamsGetter> getters) {
+    private Set<CompletableFuture<DatastreamValue>> getValues(DevicePattern devicePattern, List<DatastreamsGetter> getters) {
         return getters.stream()
                 .flatMap(datastreamsGetter -> getAllValuesFromGetFutureHandlingExceptions(devicePattern, datastreamsGetter).stream())
                 .collect(Collectors.toSet());
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> getAllValuesFromGetFutureHandlingExceptions(DevicePattern devicePattern, DatastreamsGetter datastreamsGetter) {
+    private Set<CompletableFuture<DatastreamValue>> getAllValuesFromGetFutureHandlingExceptions(DevicePattern devicePattern, DatastreamsGetter datastreamsGetter) {
         return datastreamsGetter.getDevicesIdManaged().stream()
                 .filter(devicePattern::match)
                 .map(deviceId -> getValueFromGetFutureHandlingExceptions(deviceId, datastreamsGetter))
@@ -128,10 +135,10 @@ class RealTimeStateManager implements StateManager {
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> getDeviceInformation(String deviceId) {
+    public CompletableFuture<Set<DatastreamValue>> getDeviceInformation(String deviceId) {
         LOGGER.debug("Getting all values for device '{}'", deviceId);
 
-        Set<CompletableFuture<List<DatastreamValue>>> values =
+        Set<CompletableFuture<DatastreamValue>> values =
                 datastreamsGettersFinder.getGettersOfDevice(deviceId).stream()
                         .map(datastreamsGetter -> getValueFromGetFutureHandlingExceptions(deviceId, datastreamsGetter))
                         .collect(Collectors.toSet());
@@ -139,22 +146,22 @@ class RealTimeStateManager implements StateManager {
         return allOf(values);
     }
 
-    //TODO: Check the validity of this
+
     @Override
-    public CompletableFuture<List<DatastreamValue>> refreshDatastreamValue(String deviceId, String datastreamId, Object value) {
-        return refreshDatastreamValues(deviceId, Collections.singletonMap(datastreamId, value))
-                .thenApply(set -> set.iterator().next());
+    public CompletableFuture<DatastreamValue> setDatastreamValue(String deviceId, String datastreamId, Object value) {
+        return setDatastreamValues(deviceId, Collections.singletonMap(datastreamId, value))
+                .thenApply(set -> set.toArray(new DatastreamValue[0])[0]);
     }
 
     @Override
-    public CompletableFuture<Set<List<DatastreamValue>>> refreshDatastreamValues(String deviceId, Map<String, Object> datastreamValues) {
+    public CompletableFuture<Set<DatastreamValue>> setDatastreamValues(String deviceId, Map<String, Object> datastreamValues) {
         LOGGER.info("Setting for the device '{}' the values: {}", deviceId, datastreamValues);
 
         DatastreamsSettersFinder.Return satisfyingSetters =
                 datastreamsSettersFinder.getSettersSatisfying(deviceId, datastreamValues.keySet());
 
         HashMap<String, Object> valuesToSet = new HashMap<>(datastreamValues);
-        Set<CompletableFuture<List<DatastreamValue>>> values =
+        Set<CompletableFuture<DatastreamValue>> values =
                 getNotFoundIdsAsFutures(deviceId, satisfyingSetters.getNotFoundIds());
         valuesToSet.entrySet().removeIf(entry -> satisfyingSetters.getNotFoundIds().contains(entry.getKey()));
         values.addAll(getNotFoundValues(deviceId, valuesToSet));
@@ -163,7 +170,7 @@ class RealTimeStateManager implements StateManager {
         return allOf(values);
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> getNotFoundValues(String deviceId, Map<String, Object> values) {
+    private Set<CompletableFuture<DatastreamValue>> getNotFoundValues(String deviceId, Map<String, Object> values) {
         return values.entrySet().stream()
                 .filter(entry -> Objects.isNull(entry.getValue()))
                 .map(entry -> createValueNotFound(deviceId, entry.getKey()))
@@ -171,7 +178,12 @@ class RealTimeStateManager implements StateManager {
                 .collect(Collectors.toSet());
     }
 
-    private Set<CompletableFuture<List<DatastreamValue>>> setValues(String deviceId, Map<String, Object> datastreamValues,
+    private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
+        return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+                DatastreamValue.Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR);
+    }
+
+    private Set<CompletableFuture<DatastreamValue>> setValues(String deviceId, Map<String, Object> datastreamValues,
                                                               Map<String, DatastreamsSetter> setters) {
         return datastreamValues.entrySet().stream()
                 .filter(entry -> Objects.nonNull(entry.getValue()))
@@ -181,57 +193,25 @@ class RealTimeStateManager implements StateManager {
                 .collect(Collectors.toSet());
     }
 
-    private CompletableFuture<List<DatastreamValue>> getValueFromSetFutureHandlingExceptions(String deviceId,
-                                                                                             String datastreamId,
-                                                                                             DatastreamsSetter datastreamsSetter,
-                                                                                             Object value) {
+    private CompletableFuture<DatastreamValue> getValueFromSetFutureHandlingExceptions(String deviceId,
+                                                                                       String datastreamId,
+                                                                                       DatastreamsSetter datastreamsSetter,
+                                                                                       Object value) {
         try {
             CompletableFuture<Void> setFuture = datastreamsSetter.set(deviceId, value);
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
-                    return createDatastreamProcessingErrorList(deviceId, datastreamId, error);
+                    return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage());
                 } else {
-                    return createDatastreamList(deviceId, datastreamId, value);
+                    return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
+                            DatastreamValue.Status.OK, null);
                 }
             });
         } catch (Exception e) {
-            return CompletableFuture.completedFuture(createDatastreamProcessingErrorList(deviceId, datastreamId, e));
+            return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
+                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage()));
         }
-    }
-
-    private List<DatastreamValue> createDatastreamListNotFound(String deviceId, String datastreamId) {
-        List<DatastreamValue> listOfValues = new ArrayList<>();
-        listOfValues.add(new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.NOT_FOUND, null));
-        return listOfValues;
-    }
-
-    private List<DatastreamValue> createDatastreamList(String deviceId, String datastreamId, DatastreamsGetter.CollectedValue value) {
-        List<DatastreamValue> listOfValues = new ArrayList<>();
-        listOfValues.add(new DatastreamValue(deviceId, datastreamId, value.getAt(), value.getValue(),
-                DatastreamValue.Status.OK, null));
-        return listOfValues;
-    }
-
-    private List<DatastreamValue> createDatastreamList(String deviceId, String datastreamId, Object value) {
-        List<DatastreamValue> listOfValues = new ArrayList<>();
-        listOfValues.add(new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
-                DatastreamValue.Status.OK, null));
-        return listOfValues;
-    }
-
-    private List<DatastreamValue> createDatastreamProcessingErrorList(String deviceId, String datastreamId, Throwable error) {
-        List<DatastreamValue> listOfValues = new ArrayList<>();
-        listOfValues.add(new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.PROCESSING_ERROR, error.getMessage()));
-        return listOfValues;
-    }
-
-    private List<DatastreamValue> createValueNotFound(String deviceId, String datastreamId) {
-        List<DatastreamValue> listOfValues = new ArrayList<>();
-        listOfValues.add(new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR));
-        return listOfValues;
     }
 
     @Override

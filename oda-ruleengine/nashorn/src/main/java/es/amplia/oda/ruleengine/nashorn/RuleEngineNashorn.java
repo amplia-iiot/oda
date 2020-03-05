@@ -151,14 +151,14 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     private State checkRefreshedDatastream(State state, DatastreamValue newValue) {
-        if(!state.isRefreshed(newValue.getDatastreamId())) {
+        if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
             return baseCase(state, newValue);
         }
         return state;
     }
 
     private State baseCase(State state, DatastreamValue newValue) {
-        state.refreshValue(newValue.getDatastreamId(), newValue);
+        state.refreshValue(newValue.getDeviceId(), newValue.getDatastreamId(), newValue);
         return state;
     }
 

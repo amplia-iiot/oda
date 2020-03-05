@@ -157,7 +157,7 @@ public class AnalogInputDeviceBuilderTest {
 		assertEquals(mockedAnalogInputDevice, device);
 		PowerMockito.verifyNew(OwasysAnalogInputDeviceFactory.class)
 				.withArguments(eq(null), eq(TEST_PATH), eq(DEFAULT_LOW_MODE), eq(DeviceType.OWASYS));
-		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedFX30Factory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
+		PowerMockito.verifyNew(AnalogInputDevice.class).withArguments(eq(mockedOwasysFactory), eq(TEST_CHANNEL_INDEX), eq(TEST_SCALE));
 	}
 
 	@Test(expected = AdcDeviceException.class)
