@@ -11,18 +11,18 @@ public class State {
     private static class DatastreamState {
         private List<DatastreamValue> storedValues;
         private boolean refreshed;
-        private boolean sendInmediately;
+        private boolean sendImmediately;
 
         public DatastreamState() {
             this.storedValues = new ArrayList<>();
             this.refreshed = false;
-            this.sendInmediately = false;
+            this.sendImmediately = false;
         }
 
         public DatastreamState(List<DatastreamValue> storedValues) {
             this.storedValues = storedValues;
             this.refreshed = false;
-            this.sendInmediately = false;
+            this.sendImmediately = false;
         }
 
         public List<DatastreamValue> getStoredValues() {
@@ -45,16 +45,16 @@ public class State {
             return this.refreshed;
         }
 
-        public boolean getSendInmediately() {
-            return this.sendInmediately;
+        public boolean getSendImmediately() {
+            return this.sendImmediately;
         }
 
-        public void sendInmediately() {
-            this.sendInmediately = true;
+        public void sendImmediately() {
+            this.sendImmediately = true;
         }
 
         public void clearRefreshedAndImmediately() {
-            this.sendInmediately = false;
+            this.sendImmediately = false;
             this.refreshed = false;
         }
     }
@@ -232,7 +232,7 @@ public class State {
      */
     @SuppressWarnings("unused")
     public void sendImmediately(String deviceId, String datastreamId) {
-        this.datastreams.get(getKey(deviceId, datastreamId)).sendInmediately();
+        this.datastreams.get(getKey(deviceId, datastreamId)).sendImmediately();
     }
 
 
@@ -243,7 +243,7 @@ public class State {
      * @return true if datastream was marked to send immediately, false otherwise
      */
     public boolean isToSendImmediately(DatastreamInfo datastreamInfo) {
-        return this.datastreams.get(datastreamInfo).getSendInmediately();
+        return this.datastreams.get(datastreamInfo).getSendImmediately();
     }
 
     /**

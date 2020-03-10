@@ -1,33 +1,41 @@
-function getDatastreamIdFromValue(value) {
-    return value.getDatastreamId();
+// GETTING VALUE
+
+function getDatastreamValue(state, deviceId, datastreamId) {
+    return state.getLastValue(deviceId, datastreamId);
 }
 
-function getDeviceIdFromValue(value) {
-    return value.getDeviceId();
+function getValue(state, deviceId, datastreamId) {
+    return state.getLastValue(deviceId, datastreamId).getValue();
 }
 
-function getValue(state, datastreamId) {
-    return state.getLastValue(datastreamId);
+// HANDLING DATASTREAM VALUE OBJECT
+
+function getDatastreamIdFromDatastreamValue(datastreamvalue) {
+    return datastreamvalue.getDatastreamId();
 }
 
-function getData(state, datastreamId) {
-    return state.getLastValue(datastreamId).getValue();
+function getDeviceIdFromDatastreamValue(datastreamvalue) {
+    return datastreamvalue.getDeviceId();
 }
 
-function getDataFromValueObject(value) {
-    return value.getValue();
+function getValueFromDatastreamValue(datastreamvalue) {
+    return datastreamvalue.getValue();
 }
 
-function setValue(state, datastreamId, value) {
-    state.refreshValue(datastreamId, value);
+// ADDING VALUES
+
+function setValueFromDatastreamValue(state, deviceId, datastreamId, value) {
+    state.refreshValue(deviceId, datastreamId, value);
     return state;
 }
 
-function setValueFromObject(state, deviceId, datastreamId, value) {
+function setValue(state, deviceId, datastreamId, value) {
     var newValue = state.createValue(deviceId, datastreamId, value);
     state.refreshValue(datastreamId, newValue);
     return state;
 }
+
+// FILTERING VALUES
 
 function filterBetween(value, min, max) {
     return value.getValue() >= min && value.getValue() <= max;
@@ -53,9 +61,11 @@ function filterMoreThan(state, value, min) {
     return value.getValue() > min
 }
 
-function filterExpectedValues(state, value, expected) {
-    return expected.includes(value.getValue());
+function filterExpectedValues(state, datastreamValue, expected) {
+    return expected.includes(datastreamValue.getValue());
 }
+
+// OPERATING VALUES
 
 function sum(state, value, quantity) {
     return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() + quantity);
@@ -73,6 +83,8 @@ function div(state, value, quantity) {
     return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() / quantity);
 }
 
+// CONDITIONAL
+
 function conditionalValue(condition, deviceId, datastreamId, valueTrue, valueFalse, state) {
     if(condition) {
         return state.createValue(deviceId, datastreamId, valueTrue);
@@ -81,10 +93,12 @@ function conditionalValue(condition, deviceId, datastreamId, valueTrue, valueFal
     }
 }
 
-function exists(state, datastreamIdRequired) {
-    return state.exists(datastreamIdRequired);
+function exists(state, deviceId, datastream) {
+    return state.exists(deviceId, datastream);
 }
 
-function sendImmediately(datastreamId) {
-    state.sendImmediately(datastreamId);
+// SEND IMMEDIATELY
+
+function sendImmediately(state, deviceId, datastreamId) {
+    state.sendImmediately(deviceId, datastreamId);
 }

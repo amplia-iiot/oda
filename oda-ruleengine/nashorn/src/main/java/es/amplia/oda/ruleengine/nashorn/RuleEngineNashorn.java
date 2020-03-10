@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
@@ -151,7 +152,10 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     private State checkRefreshedDatastream(State state, DatastreamValue newValue) {
-        if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
+        if(!state.exists(newValue.getDeviceId(), newValue.getDatastreamId())) {
+            state.put(new DatastreamInfo(newValue.getDeviceId(), newValue.getDatastreamId()), newValue);
+        }
+        else if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
             return baseCase(state, newValue);
         }
         return state;

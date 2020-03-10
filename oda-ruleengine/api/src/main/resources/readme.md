@@ -1,49 +1,63 @@
-#Functions of Utils.js
+# Functions of Utils.js
 
 Here they are collected all the functions that **utils.js** provide to use in the rules.
 
 
-##Control
+## Control
 
-**getDatastreamIdFromValue**  
-*Function*: Get the datastreamId (String) from a Value object.  
-*Input*: Value object we want to know the datastream id of.  
-*Output*: Datastream id of input value.  
+### Getting values
 
-**getDeviceIdFromValue**  
-*Function*: Get the deviceId (String) from a Value object.  
-*Input*: Value object we want to know the device id of.  
-*Output*: Device id of input value.
+**getDatastreamValue**  
+*Function*: Get the last value from the historic of a datastream in DatastreamValue object format.  
+*Input*: Actual State of data (state) to use its operations and the metadata (deviceId and datastreamId) of the 
+datastream that function have to get last value.  
+*Output*: The last value of the specified datastream in DatastreamValue format. 
 
 **getValue**  
 *Function*: Obtain from the State the Object Value associated with the datastream id that is passed by parameter.  
-*Input*: Actual State of data (state) and datastream id of data we want to take (datastreamId).  
-*Output*: Object value with the actual value of required datastream id.
+*Input*: Actual State of data (state) to use its operations and the metadata (deviceId and datastreamId) of the 
+datastream that function have to get last value.  
+*Output*: The last value of the specified datastream in Object format with the class of the value.  
 
-**getData**  
-*Function*: Obtain from the State the real value associated with the datastream id that is passed by parameter.  
-*Input*: Actual State of data (state) and datastream id of data we want to take (datastreamId).  
-*Output*: Real value of required datastream id.  
+### Handling datastream value object
 
-**getDataFromValueObject**  
-*Function*: Obtain the real value of passed Value Object.  
-*Input*: Object Value we want to get the real value.  
-*Output*: Real value of value.  
+**getDatastreamIdFromDatastreamValue**  
+*Function*: Get the datastreamId (String) from a DatastreamValue object.  
+*Input*: DatastreamValue object that the function have to get its datastreamId.  
+*Output*: Datastream id of input DatastreamValue.  
+
+**getDeviceIdFromDatastreamValue**  
+*Function*: Get the deviceId (String) from a DatastreamValue object.  
+*Input*: DatastreamValue object that the function have to get its deviceId.  
+*Output*: Device id of input DatastreamValue.
+
+**getValueFromDatastreamValue**  
+*Function*: Obtain the real value of passed DatastreamValue Object.  
+*Input*: DatastreamValue object that the function have to get its value.  
+*Output*: Real value of the DatastreamValue.  
+
+### Adding values
+
+**setValueFromDatastreamValue**  
+*Function*: Change the last value of a existing datastream, using a DatastreamValue object as input to change the value. 
+*Input*: Actual state of the stateManager (state), a String that specified the device id (deviceId), a String that 
+specifies the datastream id (datastreamId) and new DatastreamValue for that datastream (value).  
+*Output*: Refreshed state with the new value set as last value of the datastream.  
 
 **setValue**  
-*Function*: Set in the State a value (object Value) for the specified datastream id.  
-*Input*: Actual state of the stateManager (state), a String that specified the datastream id (datastreamId) and new value for that datastream (value).  
-*Output*: Refreshed state with the new value set for the datastream.  
+*Function*: Change the last value of a existing datastream, using a real value in simply format 
+(boolean, string, integer, etc.) as input.
+*Input*: Actual state of the stateManager (state), a String that specified the device id (deviceId), a String that 
+specifies the datastream id (datastreamId) and new value for that datastream (value).  
+*Output*: Refreshed state with the new value set as last value of the datastream.  
 
-**setValueFromObject**  
-*Function*: Set in the State a real value that will have to be created during the function as Value object to be refreshed like in setValue.  
-*Input*: Actual state of the stateManager (state), a String that specified the device id (deviceId), a String that specified the datastream id (datastreamId) and new value for that datastream (value).  
-*Output*: Refreshed state with the new value set for the datastream.  
+___
 
-##Filter
+## Filter
 
 **filterBetween**  
-*Function*: Filter the value between a minimum and a maximum (both included) and return a true if and only if value is between.  
+*Function*: Filter the value between a minimum and a maximum (both included) and return a true if and only if value is 
+between.  
 *Input*:  
 * value: Object Value that we are filtering.  
 * min: Minimum value that we are expecting from value.  
@@ -99,7 +113,7 @@ Here they are collected all the functions that **utils.js** provide to use in th
 
 *Output*: True if and only if value is in expected, false in another case.  
 
-##Derived
+## Derived
 
 **sum**  
 *Function*: Add a quantity to the actual value. To create a new Object Value, we need the state, that is the Java object that handle that creation.  
@@ -147,7 +161,7 @@ Here they are collected all the functions that **utils.js** provide to use in th
 * datastreamId: String with the datastreamId of the Object Value.
 * valueTrue: value what be set in the created Object Value if condition is true.
 * valueFalse: value what be set in the created Object Value if condition is false.
-* state: 
+* state: actual state to use its functions to refresh its data.  
 
 *Output*: New Object Value with the new value, valueTrue if condition is true and valueFalse if condition is false.  
 
@@ -158,3 +172,8 @@ Here they are collected all the functions that **utils.js** provide to use in th
 * datastreamIdRequired: Id of the datastream that we are looking for.
 
 *Output*: Return true if the datastream is in the state and false if not.
+
+**sendImmediately**  
+*Function*: Mark the datastream to send immediately when all rules are resolved.  
+*Input*:  The device id (String) and the datastream id (String) of the datastream that function have to mark.  
+*Output*:  Nothing, only refresh the state data.

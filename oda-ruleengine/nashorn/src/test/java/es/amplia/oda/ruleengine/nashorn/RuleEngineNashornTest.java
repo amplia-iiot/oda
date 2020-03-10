@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
@@ -103,7 +104,7 @@ public class RuleEngineNashornTest {
 		State state = testRuleEngine.engine(mockedState, value);
 
 		assertEquals(mockedState, state);
-		verify(mockedState).refreshValue("testDevice","testDatastream", value);
+		verify(mockedState).put(new DatastreamInfo("testDevice","testDatastream"), value);
 	}
 
 	@Test

@@ -184,7 +184,7 @@ class InMemoryStateManager implements StateManager {
         this.ruleEngine.engine(this.state, dsValue);
         List<DatastreamInfo> datastreams = this.state.getStoredValues();
         for (DatastreamInfo dsInfo : datastreams) {
-            if(state.isToSendImmediately(dsInfo)) {
+            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
                 event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), state.getLastValue(dsInfo).getValue());
                 eventDispatcher.publish(event);
             }
