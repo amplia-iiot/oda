@@ -9,12 +9,13 @@ import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerWithKey;
 
+import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-class MqttDatastreamsOrchestrator implements AutoCloseable {
+public class MqttDatastreamsOrchestrator implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MqttDatastreamsOrchestrator.class);
 
@@ -40,8 +41,8 @@ class MqttDatastreamsOrchestrator implements AutoCloseable {
         this.datastreamsSetterRegistrationManager = datastreamsSetterRegistrationManager;
     }
 
-    void loadConfiguration(MqttDatastreamsConfiguration configuration,
-                           List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
+    public void loadConfiguration(MqttDatastreamsConfiguration configuration,
+						   List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
         closeResources();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
         mqttClient.connect();

@@ -2,6 +2,10 @@ package es.amplia.oda.datastreams.simulator;
 
 import es.amplia.oda.core.commons.utils.MapBasedDictionary;
 
+import es.amplia.oda.datastreams.simulator.configuration.ConstantDatastreamConfiguration;
+import es.amplia.oda.datastreams.simulator.configuration.RandomDatastreamConfiguration;
+import es.amplia.oda.datastreams.simulator.configuration.SimulatedDatastreamsConfiguration;
+import es.amplia.oda.datastreams.simulator.configuration.SimulatedDatastreamsConfigurationHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -6,6 +6,7 @@ import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 
+import es.amplia.oda.datastreams.simulator.configuration.SimulatedDatastreamsConfigurationHandler;
 import es.amplia.oda.datastreams.simulator.internal.SimulatedDatastreamsGetterFactory;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
