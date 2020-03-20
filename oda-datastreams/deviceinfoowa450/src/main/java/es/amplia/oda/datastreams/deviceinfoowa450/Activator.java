@@ -33,6 +33,8 @@ public class Activator implements BundleActivator {
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskTotal;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForDiskUsage;
 	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForSoftware;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureStatus;
+	private ServiceRegistration<DatastreamsGetter> datastreamsGetterRegistrationForTemperatureValue;
 
 	@Override
 	public void start(BundleContext bundleContext) {
@@ -95,6 +97,14 @@ public class Activator implements BundleActivator {
 				bundleContext.registerService(DatastreamsGetter.class,
 						new DatastreamGetterTemplate(DeviceInfoOwa450DatastreamsGetter.SOFTWARE_DATASTREAM_ID,
 								deviceInfoDatastreamsGetter::getSoftware), null);
+		datastreamsGetterRegistrationForTemperatureStatus =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new DatastreamGetterTemplate(DeviceInfoOwa450DatastreamsGetter.TEMPERATURE_STATUS_DATASTREAM_ID,
+								deviceInfoDatastreamsGetter::getTemperatureStatus), null);
+		datastreamsGetterRegistrationForTemperatureValue =
+				bundleContext.registerService(DatastreamsGetter.class,
+						new DatastreamGetterTemplate(DeviceInfoOwa450DatastreamsGetter.TEMPERATURE_VALUE_DATASTREAM_ID,
+								deviceInfoDatastreamsGetter::getTemperatureValue), null);
 
 		LOGGER.info("Datastreams Getter Device Info started");
 	}
@@ -103,6 +113,8 @@ public class Activator implements BundleActivator {
 	public void stop(BundleContext bundleContext) {
 		LOGGER.info("Stopping Datastreams Getter Device");
 
+		datastreamsGetterRegistrationForTemperatureValue.unregister();
+		datastreamsGetterRegistrationForTemperatureStatus.unregister();
 		datastreamsGetterRegistrationForSoftware.unregister();
 		datastreamsGetterRegistrationForDiskUsage.unregister();
 		datastreamsGetterRegistrationForDiskTotal.unregister();

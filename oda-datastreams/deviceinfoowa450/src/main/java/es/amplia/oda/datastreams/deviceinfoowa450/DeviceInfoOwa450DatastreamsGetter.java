@@ -35,6 +35,8 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
     public static final String DISK_TOTAL_DATASTREAM_ID = "device.storage.disk.total";
     public static final String DISK_USAGE_DATASTREAM_ID = "device.storage.disk.usage";
     public static final String SOFTWARE_DATASTREAM_ID = "device.software";
+    public static final String TEMPERATURE_STATUS_DATASTREAM_ID = "device.temperature.status";
+    public static final String TEMPERATURE_VALUE_DATASTREAM_ID = "device.temperature.value";
 
     static final String CLOCK_SCRIPT = "obtainClock.sh";
     static final String UPTIME_SCRIPT = "obtainUptime.sh";
