@@ -11,6 +11,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -41,27 +42,36 @@ public class OperationUpdateImplTest {
                     OperationUpdate.DeploymentElementType.SOFTWARE,
                     "testUrl1",
                     "testPath1",
+                    1L,
                     OperationUpdate.DeploymentElementOperationType.INSTALL,
-                    OperationUpdate.DeploymentElementOption.MANDATORY,
-                    1L);
+                    Collections.EMPTY_LIST,
+                    0L,
+                    "0.0.9",
+                    OperationUpdate.DeploymentElementOption.MANDATORY);
     private final OperationUpdate.DeploymentElement upgradeDeploymentElement =
             new OperationUpdate.DeploymentElement("testDeploymentElement",
                     "2.0.0",
                     OperationUpdate.DeploymentElementType.CONFIGURATION,
                     "testUrl2",
                     "testPath2",
+                    1L,
                     OperationUpdate.DeploymentElementOperationType.UPGRADE,
-                    OperationUpdate.DeploymentElementOption.OPTIONAL,
-                    2L);
+                    Collections.EMPTY_LIST,
+                    0L,
+                    "0.0.9",
+                    OperationUpdate.DeploymentElementOption.OPTIONAL);
     private final OperationUpdate.DeploymentElement uninstallDeploymentElement =
             new OperationUpdate.DeploymentElement("testDeploymentElement3",
                     "3.3.3",
                     OperationUpdate.DeploymentElementType.FIRMWARE,
                     "testUrl3",
                     "testPath3",
+                    1L,
                     OperationUpdate.DeploymentElementOperationType.UNINSTALL,
-                    OperationUpdate.DeploymentElementOption.OPTIONAL,
-                    3L);
+                    Collections.EMPTY_LIST,
+                    0L,
+                    "0.0.9",
+                    OperationUpdate.DeploymentElementOption.OPTIONAL);
     private final List<OperationUpdate.DeploymentElement> testDeploymentElements =
             Arrays.asList(installDeploymentElement, upgradeDeploymentElement, uninstallDeploymentElement);
 

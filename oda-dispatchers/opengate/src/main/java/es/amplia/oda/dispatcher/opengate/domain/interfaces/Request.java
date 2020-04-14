@@ -1,19 +1,16 @@
-package es.amplia.oda.dispatcher.opengate.domain;
+package es.amplia.oda.dispatcher.opengate.domain.interfaces;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Request {
+public abstract class Request {
     private String id;
     private Long timestamp;
     private String deviceId;
     private String[] path;
     private String name;
-    private List<Parameter> parameters;
 }

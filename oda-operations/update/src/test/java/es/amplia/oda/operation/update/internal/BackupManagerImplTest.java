@@ -28,32 +28,36 @@ public class BackupManagerImplTest {
     private static final String DEPLOYMENT_ELEMENT_NAME = "testBundle";
     private static final DeploymentElement DEPLOYMENT_ELEMENT =
             new DeploymentElement(DEPLOYMENT_ELEMENT_NAME, "",
-                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "",
+                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "", 1L,
                     OperationUpdate.DeploymentElementOperationType.INSTALL,
-                    OperationUpdate.DeploymentElementOption.MANDATORY, 1L);
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    OperationUpdate.DeploymentElementOption.MANDATORY);
     private static final String BASE_PATH = "path/to/bundles/";
     private static final String FILE_TO_BACKUP = "path/to/bundles/test-1.1.1.jar";
 
     private static final String DEPLOYMENT_ELEMENT_NAME_1 = "testBundle1";
     private static final DeploymentElement DEPLOYMENT_ELEMENT_1 =
             new DeploymentElement(DEPLOYMENT_ELEMENT_NAME_1, "",
-                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "",
+                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "", 1L,
                     OperationUpdate.DeploymentElementOperationType.INSTALL,
-                    OperationUpdate.DeploymentElementOption.MANDATORY, 1L);
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    OperationUpdate.DeploymentElementOption.MANDATORY);
     private static final String BACKUP_FILE_1 = BACKUP_FOLDER + DEPLOYMENT_ELEMENT_NAME_1;
     private static final String DEPLOYMENT_ELEMENT_NAME_2 = "testBundle2";
     private static final DeploymentElement DEPLOYMENT_ELEMENT_2 =
             new DeploymentElement(DEPLOYMENT_ELEMENT_NAME_2, "",
-                    OperationUpdate.DeploymentElementType.CONFIGURATION, "", "",
+                    OperationUpdate.DeploymentElementType.CONFIGURATION, "", "", 1L,
                     OperationUpdate.DeploymentElementOperationType.UPGRADE,
-                    OperationUpdate.DeploymentElementOption.OPTIONAL, 2L);
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    OperationUpdate.DeploymentElementOption.OPTIONAL);
     private static final String BACKUP_FILE_2 = BACKUP_FOLDER + DEPLOYMENT_ELEMENT_NAME_2;
     private static final String DEPLOYMENT_ELEMENT_NAME_3 = "testBundle3";
     private static final DeploymentElement DEPLOYMENT_ELEMENT_3 =
             new DeploymentElement(DEPLOYMENT_ELEMENT_NAME_3, "",
-                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "",
+                    OperationUpdate.DeploymentElementType.SOFTWARE, "", "", 1L,
                     OperationUpdate.DeploymentElementOperationType.UNINSTALL,
-                    OperationUpdate.DeploymentElementOption.OPTIONAL, 3L);
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    OperationUpdate.DeploymentElementOption.OPTIONAL);
     private static final String BACKUP_FILE_3 = BACKUP_FOLDER + DEPLOYMENT_ELEMENT_NAME_3;
     private static final String BACKUP_FILES_FIELD_NAME = "backupFiles";
 
@@ -149,8 +153,10 @@ public class BackupManagerImplTest {
     @Test
     public void testGetBackupFileNoDeploymentElementFound() {
         DeploymentElement nonExistentDeploymentElement =
-                new DeploymentElement("","",DeploymentElementType.SOFTWARE, "", "",
-                        DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L);
+                new DeploymentElement("","",DeploymentElementType.SOFTWARE, "", "", 1L,
+                        DeploymentElementOperationType.INSTALL,
+                        Collections.EMPTY_LIST, 0L, "0.0.9",
+                        DeploymentElementOption.MANDATORY);
 
         assertNull(testBackupManager.getBackupFile(nonExistentDeploymentElement));
     }

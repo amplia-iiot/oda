@@ -1,21 +1,19 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.update.ParameterUpdateOperation;
+import es.amplia.oda.dispatcher.opengate.domain.update.RequestUpdateOperation;
 import es.amplia.oda.operation.api.OperationUpdate;
 
-import lombok.Value;
-
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
-class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateParameters, Result> {
+class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateOperation, Result> {
 
     static final String UPDATE_OPERATION_NAME = "UPDATE";
 
@@ -27,84 +25,41 @@ class UpdateProcessor extends OperationProcessorTemplate<UpdateProcessor.UpdateP
         this.operationUpdate = operationUpdate;
     }
 
-    @Value
-    static class UpdateParameters {
-        String bundleName;
-        String bundleVersion;
-        List<OperationUpdate.DeploymentElement> deploymentElements;
-    }
-
     @Override
-    UpdateParameters parseParameters(Request request) {
-        if (request.getParameters() == null) {
+    ParameterUpdateOperation parseParameters(Request request) {
+        RequestUpdateOperation specificRequest = (RequestUpdateOperation) request;
+        if (specificRequest.getParameters() == null) {
             throw new IllegalArgumentException("No parameters in UPDATE");
         }
-        Map<String, ValueObject> params = request.getParameters().stream()
-                .filter(Objects::nonNull)
-                .filter(p -> p.getName() != null)
-                .filter(p -> p.getValue() != null)
-                .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
 
-        if (params.size() != 3) {
-            throw new IllegalArgumentException("Expected three parameters in UPDATE");
+        ParameterUpdateOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
         }
+        ParameterUpdateOperation params =
+                new ParameterUpdateOperation(parameters.getBundleName(), parameters.getBundleVersion(), parameters.getDeploymentElements());
 
-        ValueObject bundleNameObject = params.get("bundleName");
-        ValueObject bundleVersionObject = params.get("bundleVersion");
-        ValueObject deploymentElementsObject = params.get("deploymentElements");
-
-        if (bundleNameObject == null) {
+        if (params.getBundleName() == null) {
             throw new IllegalArgumentException("Parameter bundleName not found");
         }
-        if (bundleVersionObject == null) {
+        if (params.getBundleVersion() == null) {
             throw new IllegalArgumentException("Parameter bundleVersion not found");
         }
-        if (deploymentElementsObject == null){
+        if (params.getDeploymentElements() == null){
             throw new IllegalArgumentException("Parameter deploymentElements not found");
         }
 
-        String bundleName = bundleNameObject.getString();
-        String bundleVersion = bundleVersionObject.getString();
-        if (bundleName == null) {
-            throw new IllegalArgumentException("Parameter bundleName of incorrect type");
-        }
-        if (bundleVersion == null) {
-            throw new IllegalArgumentException("Parameter bundleVersion of incorrect type");
-        }
-        if (deploymentElementsObject.getArray() == null) {
-            throw new IllegalArgumentException("Parameter deploymentElements of incorrect type");
-        }
-        List<OperationUpdate.DeploymentElement> deploymentElements = deploymentElementsObject.getArray().stream()
-                .filter(Map.class::isInstance)
-                .map(Map.class::cast)
-                .map(this::createDeploymentElement)
-                .collect(Collectors.toList());
-
-        if (deploymentElements.isEmpty()){
+        if (params.getDeploymentElements().isEmpty()){
             throw new IllegalArgumentException("Parameter deploymentElements must have at least one not null element");
         }
 
-        return new UpdateParameters(bundleName, bundleVersion, deploymentElements);
-    }
-
-    private OperationUpdate.DeploymentElement createDeploymentElement(Map map) {
-        String name = (String) map.get("name");
-        String version = (String) map.get("version");
-        OperationUpdate.DeploymentElementType type = null;
-        String downloadUrl = (String) map.get("downloadUrl");
-        String path = (String) map.get("path");
-        OperationUpdate.DeploymentElementOperationType operation =
-                Optional.ofNullable((String) map.get("operation"))
-                        .map(OperationUpdate.DeploymentElementOperationType::valueOf).orElse(null);
-        OperationUpdate.DeploymentElementOption option =
-                Optional.ofNullable((String) map.get("option"))
-                        .map(OperationUpdate.DeploymentElementOption::valueOf).orElse(null);
-        Long order = Optional.ofNullable((Integer) map.get("order")).map(Long::valueOf).orElse(1L);
-        return new OperationUpdate.DeploymentElement(name, version, type, downloadUrl, path, operation, option, order);
+        return params;
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, UpdateParameters params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, ParameterUpdateOperation params) {
         return operationUpdate.update(params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
     }
 

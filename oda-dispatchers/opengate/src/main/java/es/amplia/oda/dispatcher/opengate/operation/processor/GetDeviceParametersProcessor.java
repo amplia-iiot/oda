@@ -1,6 +1,9 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.get.ParameterGetOperation;
+import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 
 import java.util.*;
@@ -24,39 +27,30 @@ class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String
 
     @Override
     Set<String> parseParameters(Request request) {
-        if (request.getParameters() == null) {
+        RequestGetOperation specificRequest = (RequestGetOperation) request;
+        if (specificRequest.getParameters() == null) {
             throw new IllegalArgumentException("No parameters in GET_DEVICE_PARAMETERS");
         }
 
-        Map<String, ValueObject> params = request.getParameters().stream()
-                .filter(Objects::nonNull)
-                .filter(p -> p.getName() != null)
-                .filter(p -> p.getValue() != null)
-                .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
-
-        if (params.size() != 1) {
-            throw new IllegalArgumentException("Expected one parameter in GET_DEVICE_PARAMETERS");
+        ParameterGetOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
         }
+        List<String> params = parameters.getVariableList();
 
-        ValueObject variablesObject = params.get("variableList");
-        if (variablesObject == null){
-            throw new IllegalArgumentException("Parameter variableList not found");
-        }
-        if (variablesObject.getArray() == null) {
-            throw new IllegalArgumentException("Parameter variableList of incorrect type");
-        }
-        Set<String> variables = variablesObject.getArray().stream()
-                .filter(Map.class::isInstance)
-                .map(Map.class::cast)
-                .map(map -> (String) map.get("variableName"))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        if (variables.isEmpty()){
+        if (params == null){
             throw new IllegalArgumentException("Parameter variableList must have at least one not null element");
         }
 
-        return variables;
+        Set<String> set = new HashSet<>(params);
+
+        if (set.isEmpty() || set.contains(null)){
+            throw new IllegalArgumentException("Parameter variableList must have at least one not null element");
+        }
+
+        return set;
     }
 
     @Override

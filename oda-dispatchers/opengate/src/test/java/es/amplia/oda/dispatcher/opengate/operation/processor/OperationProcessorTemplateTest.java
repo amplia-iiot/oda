@@ -2,6 +2,8 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
 
+import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -26,8 +28,7 @@ public class OperationProcessorTemplateTest {
     private static final String TEST_ID = "testOperationId";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_OPERATION = "testOperation";
-    private static final Request TEST_REQUEST =
-            new Request(TEST_ID, 0L, TEST_DEVICE_ID_FOR_OPERATION, TEST_PATH, TEST_OPERATION, null);
+    private static final Request TEST_REQUEST = new RequestGeneralOperation();
     private static final TestParams TEST_PARAMS = new TestParams();
     private static final TestResult TEST_RESULT = new TestResult();
     private static final Output TEST_OUTPUT = new Output(OPENGATE_VERSION, null);
@@ -74,9 +75,11 @@ public class OperationProcessorTemplateTest {
     @InjectMocks
     private TestOperationProcessor testProcessor;
 
-
     @Test
     public void testProcess() throws ExecutionException, InterruptedException {
+        TEST_REQUEST.setPath(TEST_PATH);
+        TEST_REQUEST.setId(TEST_ID);
+
         CompletableFuture<Output> future =
                 testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
         Output output = future.get();
@@ -97,6 +100,10 @@ public class OperationProcessorTemplateTest {
 
     @Test
     public void testProcessNoOperation() throws ExecutionException, InterruptedException {
+        TEST_REQUEST.setId(TEST_ID);
+        TEST_REQUEST.setName(TEST_OPERATION);
+        TEST_REQUEST.setPath(TEST_PATH);
+
         TestOperationProcessor noOperationProcessor = new TestOperationProcessor(new NoOperationInnerProcessor());
 
         CompletableFuture<Output> future =
@@ -117,6 +124,10 @@ public class OperationProcessorTemplateTest {
 
     @Test
     public void testProcessErrorProcessingOperation() throws ExecutionException, InterruptedException {
+        TEST_REQUEST.setId(TEST_ID);
+        TEST_REQUEST.setName(TEST_OPERATION);
+        TEST_REQUEST.setPath(TEST_PATH);
+
         when(spiedInnerProcessor.processOperation(anyString(), any(TestParams.class))).thenReturn(null);
 
         CompletableFuture<Output> future =
@@ -148,6 +159,10 @@ public class OperationProcessorTemplateTest {
 
     @Test
     public void testProcessExceptionTranslatingToOutput() throws ExecutionException, InterruptedException {
+        TEST_REQUEST.setId(TEST_ID);
+        TEST_REQUEST.setName(TEST_OPERATION);
+        TEST_REQUEST.setPath(TEST_PATH);
+
         TestOperationProcessor failOperationProcessor = new TestOperationProcessor(new FailInnerProcessor());
 
         CompletableFuture<Output> future =

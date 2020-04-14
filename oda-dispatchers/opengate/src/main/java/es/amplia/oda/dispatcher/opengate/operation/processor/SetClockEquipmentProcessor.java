@@ -1,13 +1,16 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetClock;
 
 import java.time.*;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationSetClock.*;
@@ -26,36 +29,41 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
 
     @Override
     Long parseParameters(Request request) {
+        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
         LocalDate date = LocalDate.now();
         LocalTime time = LocalTime.now();
         int offset = 0;
 
-        if (request.getParameters() != null) {
-            Map<String, ValueObject> params = request.getParameters().stream()
-                    .filter(Objects::nonNull)
-                    .filter(p -> p.getName() != null)
-                    .filter(p -> p.getValue() != null)
-                    .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
-
-            date = getParamAsString("date", params).map(this::parseLocalDate).orElse(date);
-            time = getParamAsString("time", params).map(this::parseLocalTime).orElse(time);
-            offset = getParamAsNumber("timezone", params).map(Number::intValue).orElse(0);
-            offset += getParamAsNumber("dst", params).map(Number::intValue).orElse(0);
+        ParameterSetOrConfigureOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
         }
+
+        if(parameters == null) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        List<ValueSetting> params = parameters.getVariableList();
+
+        date = getParamAsString("date", params).map(this::parseLocalDate).orElse(date);
+        time = getParamAsString("time", params).map(this::parseLocalTime).orElse(time);
+        offset = getParamAsNumber("timezone", params).map(Number::intValue).orElse(0);
+        offset += getParamAsNumber("dst", params).map(Number::intValue).orElse(0);
 
         return ZonedDateTime.of(date, time, ZoneId.ofOffset("GMT", ZoneOffset.ofHours(offset))).toInstant()
                 .toEpochMilli();
     }
 
-    private Optional<String> getParamAsString(String name, Map<String, ValueObject> params) {
-        ValueObject object = params.get(name);
-        if (object != null) {
-            String paramAsString = object.getString();
-            if (paramAsString == null) {
-                throw new IllegalArgumentException("Parameter \"" + name + "\" of incorrect type");
+    private Optional<String> getParamAsString(String name, List<ValueSetting> params) {
+        String value = null;
+        for (ValueSetting setting: params) {
+            if (setting.getName().equals(name)) {
+                value = setting.getValue();
             }
-
-            return Optional.of(paramAsString);
+        }
+        if (value != null) {
+            return Optional.of(value);
         }
 
         return Optional.empty();
@@ -77,15 +85,15 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
         }
     }
 
-    private Optional<Double> getParamAsNumber(String name, Map<String, ValueObject> params) {
-        ValueObject object = params.get(name);
-        if (object != null) {
-            Double paramAsNumber = object.getNumber();
-            if (paramAsNumber == null) {
-                throw new IllegalArgumentException("Parameter \"" + name + "\" of incorrect type");
+    private Optional<Double> getParamAsNumber(String name, List<ValueSetting> params) {
+        Double value = null;
+        for (ValueSetting setting: params) {
+            if (setting.getName().equals(name)) {
+                value = Double.valueOf(setting.getValue());
             }
-
-            return Optional.of(paramAsNumber);
+        }
+        if (value != null) {
+            return Optional.of(value);
         }
 
         return Optional.empty();

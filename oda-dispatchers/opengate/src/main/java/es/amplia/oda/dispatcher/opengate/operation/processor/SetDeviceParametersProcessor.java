@@ -1,12 +1,14 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -27,45 +29,32 @@ class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<Vari
 
     @Override
     List<VariableValue> parseParameters(Request request) {
-        if (request.getParameters() == null) {
+        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
+        if (specificRequest.getParameters() == null) {
             throw new IllegalArgumentException("No parameters in SET_DEVICE_PARAMETERS");
         }
 
-        Map<String, ValueObject> params = request.getParameters().stream()
-                .filter(Objects::nonNull)
-                .filter(p -> p.getName() != null)
-                .filter(p -> p.getValue() != null)
-                .collect(Collectors.toMap(Parameter::getName, Parameter::getValue));
+        ParameterSetOrConfigureOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        List<ValueSetting> params = parameters.getVariableList();
+        if (params == null) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        List<VariableValue> variables = new ArrayList<>();
 
-        if (params.size() != 1) {
-            throw new IllegalArgumentException("Expected only one parameter in SET_DEVICE_PARAMETERS");
+        for (ValueSetting setting: params) {
+            variables.add(new VariableValue(setting.getName(), setting.getValue()));
         }
-
-        ValueObject variablesObject = params.get("variableList");
-        if (variablesObject == null){
-            throw new IllegalArgumentException("Parameter variableList not found");
-        }
-        if (variablesObject.getArray() == null) {
-            throw new IllegalArgumentException("Parameter variableList of incorrect type");
-        }
-        List<VariableValue>  variables = variablesObject.getArray().stream()
-                .filter(Map.class::isInstance)
-                .map(Map.class::cast)
-                .map(this::extractNameAndValue)
-                .filter(variable -> Objects.nonNull(variable.getIdentifier()))
-                .collect(Collectors.toList());
 
         if (variables.isEmpty()){
             throw new IllegalArgumentException("Parameter variableList must have at least one not null element");
         }
 
         return variables;
-    }
-
-    private VariableValue extractNameAndValue(Map map) {
-        String variableName = (String) map.get("variableName");
-        Object value = map.get("variableValue");
-        return new OperationSetDeviceParameters.VariableValue(variableName, value);
     }
 
     @Override

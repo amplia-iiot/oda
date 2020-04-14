@@ -9,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
+
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -24,7 +26,8 @@ public class DeploymentElementOperationBaseTest {
     private static final String TEST_VERSION = "1.0.0";
     private static final DeploymentElement DEPLOYMENT_ELEMENT =
             new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE,
-                    "", "", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L);
+                    "", "", 1L, DeploymentElementOperationType.INSTALL, Collections.EMPTY_LIST,
+                    0L, "0.0.9", DeploymentElementOption.MANDATORY);
     private static final String DEPLOYMENT_ELEMENT_OPERATION_EXCEPTION_MESSAGE = "Deployment element operation exception must be thrown";
     private static final String PATH_TO_BACKUP = "path/to/backup";
     @Mock

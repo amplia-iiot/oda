@@ -9,6 +9,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
+
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -22,8 +24,9 @@ public class UninstallDeploymentElementOperationTest {
     private static final String TEST_NAME = "testBundle";
     private static final String TEST_VERSION = "1.0.0";
     private static final DeploymentElement uninstallDeploymentElement =
-            new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "",
-                    DeploymentElementOperationType.UNINSTALL, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "", 1L,
+                    DeploymentElementOperationType.UNINSTALL, Collections.EMPTY_LIST,
+                    0L, "0.0.9", DeploymentElementOption.MANDATORY);
     private static final String PATH_TO_INSTALL_FOLDER = "path/to/install/folder";
 
     @Mock

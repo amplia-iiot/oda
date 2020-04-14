@@ -1,6 +1,7 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
 
 import org.junit.Test;
@@ -26,8 +27,7 @@ public class RefreshInfoProcessorTest {
     private static final String TEST_ID = "testOperationId";
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
-    private static final Request TEST_REQUEST =
-            new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, REFRESH_INFO_OPERATION_NAME, null);
+    private static final RequestGeneralOperation TEST_REQUEST = new RequestGeneralOperation();
     private static final String TEST_DATASTREAM = "testDatastream";
     private static final String TEST_VALUE = "test";
     private static final Map<String, Object> TEST_OBTAINED = new HashMap<>();

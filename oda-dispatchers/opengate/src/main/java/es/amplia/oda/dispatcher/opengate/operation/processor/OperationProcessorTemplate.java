@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 
 import java.util.Collections;
 import java.util.List;
