@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>predicter</artifactId>
@@ -19,9 +17,20 @@
     <properties>
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mkl.version>2019.6</mkl.version>
+        <nd4j.backend>nd4j-native</nd4j.backend>
+        <javacpp-presets.version>1.5.3-SNAPSHOT</javacpp-presets.version>
+        <dl4j.version>1.0.0-beta7</dl4j.version>
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -32,9 +41,39 @@
                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
+                        <Bundle-NativeCode>
+                            lib/nd4j-native.jar;lib/nd4j-native-platform.jar;processor=ARM_le;osname=Linux
+                        </Bundle-NativeCode>
                         <Export-Package>!*</Export-Package>
-                        <Import-Package>*</Import-Package>
+                        <Import-Package>!org.apache.commons.io,!org.apache.commons.io.output,
+                            !org.apache.commons.lang3,!org.apache.commons.lang3.exception,!org.apache.commons.math3,!org.apache.commons.math3.util,
+                            !org.apache.commons.math3.exception,!org.apache.commons.math3.exception.util,!com.google.gson,!com.google.gson.reflect,
+                            !org.bytedeco.hdf5,!org.bytedeco.hdf5.global,!org.datavec.api.io,!org.datavec.api.records.reader,
+                            !zstd-jni,!dec,!xz,!joda-convert,!checker-qual,!animal-sniffer-annotations,!jsr305,
+                            !error_prone_annotations,!j2objc-annotations,!checker-copmat-qual,!animal-sniffer-annotations,
+                            !maven-plugin-api,!maven-core,!maven-plugin-annotations,!org.apache.maven.plugin,!slf4j-simple,!android,
+                            !gluegen-rt-main,!jocl-main,!jogl-all-main,!com.google.code.gson,!commons-io,!commons-lang3,!commons-math3,
+                            !commons-compress,!org.bytedeco.hdf5,!org.bytedeco.hdf5.global,!org.brotli.dec,
+                            !org.datavec.api.io,!com.github.luben.zstd,!org.datavec.api.records.reader,!org.datavec.api.records.reader.impl.filebatch,
+                            !org.deeplearning4j.datasets.*,!EDU.oswego.cs.dl.util.concurrent,!com.google.gson,!com.google.gson.reflect,
+                            !org.deeplearning4j.optimize.*,!org.deeplearning4j.ui.*,!org.nd4j.*,!org.deeplearning4j.nn.api,
+                            !org.deeplearning4j.nn.api.*,!com.jakewharton.byteunits,!it.unimi.dsi.fastutil.*,!oshi,!oshi.*,
+                            !org.deeplearning4j.nn.conf,!org.deeplearning4j.nn.conf.constraint,!org.deeplearning4j.nn.conf.distribution,
+                            !org.deeplearning4j.nn.conf.dropout,!org.deeplearning4j.nn.conf.graph,!org.deeplearning4j.nn.conf.inputs,
+                            !org.deeplearning4j.nn.conf.layers,!org.deeplearning4j.nn.conf.layers,!org.deeplearning4j.nn.conf.layers.convolutional,
+                            !org.deeplearning4j.nn.conf.layers.misc,!org.deeplearning4j.nn.conf.layers.recurrent,
+                            !org.deeplearning4j.nn.conf.layers.samediff,!org.deeplearning4j.nn.conf.layers.util,
+                            !org.deeplearning4j.nn.conf.layers.wrapper,!org.deeplearning4j.nn.conf.preprocessor,!org.deeplearning4j.nn.graph,
+                            !org.deeplearning4j.nn.layers.util,!org.deeplearning4j.nn.multilayer,!org.deeplearning4j.nn.weights,
+                            !org.deeplearning4j.nn.workspace,!org.tukaani.xz,!javax.xml.bind,
+                            !org.apache.maven.plugin.logging,!org.apache.maven.project, *</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Embed-Dependency>deeplearning4j-core, deeplearning4j-modelimport, deeplearning4j-nn,
+                            commons-io, commons-lang3, commons-math3, commons-compress, javacpp,
+                            nd4j-native-platform;classifier=linux-armhf;type=jar, nd4j-native;classifier=linux-armhf;type=jar
+                        </Embed-Dependency>
+                        <Embed-Directory>lib</Embed-Directory>
+                        <Embed-StripVersion>true</Embed-StripVersion>
                     </instructions>
                 </configuration>
             </plugin>
@@ -125,21 +164,114 @@
             <scope>test</scope>
         </dependency>
         <!-- ODA dependencies -->
+        <!-- nd4j start -->
         <dependency>
-            <groupId>org.deeplearning4j</groupId>
-            <artifactId>deeplearning4j-core</artifactId>
-            <version>1.0.0-beta6</version>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>${javacpp-presets.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.deeplearning4j</groupId>
-            <artifactId>deeplearning4j-modelimport</artifactId>
-            <version>1.0.0-beta6</version>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-api</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/nd4j-api-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-jackson</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/original-jackson-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>jackson</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/jackson-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.datavec</groupId>
+            <artifactId>datavec-data-image</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/datavec-data-image-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-common</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/nd4j-common-1.0.0-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>org.nd4j</groupId>
             <artifactId>nd4j-native-platform</artifactId>
-            <version>1.0.0-beta6</version>
-        </dependency>
-    </dependencies>
+            <version>${dl4j.version}</version>
+            <classifier>linux-armhf</classifier>
 
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/nd4j-native-platform-1.0.0-SNAPSHOT-linux-armhf.jar</systemPath>
+        </dependency>
+        <!-- nd4j end -->
+        <!-- dl4j start -->
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-core-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-nn</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-nn-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-ui</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-ui-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-ui-model</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-ui-model-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-zoo</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-zoo-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.29</version>
+        </dependency>
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-native</artifactId>
+            <version>${dl4j.version}</version>
+            <classifier>linux-armhf</classifier>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/nd4j-native-1.0.0-SNAPSHOT-linux-armhf.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-modelimport</artifactId>
+            <version>${dl4j.version}</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/deeplearning4j-modelimport-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+        <!-- dl4j end -->
+    </dependencies>
 </project>

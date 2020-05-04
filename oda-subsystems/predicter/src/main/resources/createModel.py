@@ -1,34 +1,30 @@
-# import panda, keras and tensorflow
-import pandas as pd
-import tensorflow as tf
-import keras
-from keras import models, layers
+# imports
+from numpy import loadtxt
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.models import model_from_json
 
-# Load the sample data set and split into x and y data frames
-df = pd.read_csv("~/Documentos/git/externaldependencies/oda/oda-subsystems/predicter/src/main/resources/demo.csv")
-x = df.drop(['yep'], axis=1)
-y = df['yep']
-
-# Define the keras model
-model = models.Sequential()
-model.add(layers.Dense(64, activation='relu', input_shape=(10,)))
-model.add(layers.Dropout(0.1))
-model.add(layers.Dense(64, activation='relu'))
-model.add(layers.Dropout(0.1))
-model.add(layers.Dense(64, activation='relu'))
-model.add(layers.Dense(1, activation='sigmoid'))
-
-# Use a custom metricfunction
-def auc(y_true, y_pred):
-    auc = tf.metrics.auc(y_true, y_pred)[1]
-   keras.backend.get_session().run(tf.local_variables_initializer())
-    return auc
-
-# Compile and fit the model
-model.compile(optimizer='rmsprop',loss='binary_crossentropy',
-              metrics=[auc])
-history = model.fit(x, y, epochs=100, batch_size=100,
-                    validation_split = .2, verbose=0)
-
-# Save the model in h5 format
-model.save("demo.h5")
+# load the dataset
+dataset = loadtxt('demo.csv', delimiter=',')
+# split into input (X) and output (y) variables
+X = dataset[:,0:8]
+y = dataset[:,8]
+# define the keras model
+model = Sequential()
+model.add(Dense(12, input_dim=8, activation='relu'))
+model.add(Dense(8, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+# compile the keras model
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+# fit the keras model on the dataset
+model.fit(X, y, epochs=150, batch_size=10)
+# evaluate the keras model
+_, accuracy = model.evaluate(X, y)
+print('Accuracy: %.2f' % (accuracy*100))
+while accuracy < 0.8 :
+    model.fit(X, y, epochs=150, batch_size=10)
+    _, accuracy = model.evaluate(X, y)
+    print('Accuracy: %.2f' % (accuracy*100))
+else:
+    model.save("model.h5")
+    print("Saved model to disk")
