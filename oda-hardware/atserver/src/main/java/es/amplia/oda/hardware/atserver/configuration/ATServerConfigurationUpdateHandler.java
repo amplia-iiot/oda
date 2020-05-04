@@ -1,14 +1,15 @@
-package es.amplia.oda.hardware.atserver;
+package es.amplia.oda.hardware.atserver.configuration;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 
+import es.amplia.oda.hardware.atserver.ATServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import purejavacomm.SerialPort;
 
 import java.util.Dictionary;
 
-class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+public class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ATServerConfigurationUpdateHandler.class);
 
@@ -16,7 +17,7 @@ class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     private ATServerConfiguration currentConfiguration;
 
-    ATServerConfigurationUpdateHandler(ATServer atServer) {
+    public ATServerConfigurationUpdateHandler(ATServer atServer) {
         this.atServer = atServer;
     }
 

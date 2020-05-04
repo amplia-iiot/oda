@@ -83,6 +83,38 @@ function div(state, value, quantity) {
     return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() / quantity);
 }
 
+// OPERATIONS WITH HISTORIC DATA
+
+function average(state, deviceId, datastreamId, alpha) {
+    var allValues = state.getAllValues(state.getKey(deviceId, datastreamId));
+    var i;
+    var sum = 0;
+    for(i = allValues.length-alpha; i < allValues.length; i++) {
+        sum += allValues[i];
+    }
+    return sum/alpha;
+}
+
+function summation(state, deviceId, datastreamId, alpha) {
+    var allValues = state.getAllValues(state.getKey(deviceId, datastreamId));
+    var i;
+    var sum = 0;
+    for(i = allValues.length-alpha; i < allValues.length; i++) {
+        sum += allValues[i];
+    }
+    return sum;
+}
+
+function productOfSequence(state, deviceId, datastreamId, alpha) {
+    var allValues = state.getAllValues(state.getKey(deviceId, datastreamId));
+    var i;
+    var mult = 1;
+    for(i = allValues.length-alpha; i < allValues.length; i++) {
+        mult *= allValues[i];
+    }
+    return mult;
+}
+
 // CONDITIONAL
 
 function conditionalValue(condition, deviceId, datastreamId, valueTrue, valueFalse, state) {

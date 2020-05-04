@@ -1,9 +1,9 @@
-package es.amplia.oda.datastreams.mqtt;
+package es.amplia.oda.datastreams.mqtt.configuration;
 
 import lombok.Value;
 
 @Value
-class MqttDatastreamsConfiguration {
+public class MqttDatastreamsConfiguration {
     private String serverURI;
     private String clientId;
     private String enableDatastreamTopic;

@@ -1,9 +1,9 @@
-package es.amplia.oda.hardware.atserver;
+package es.amplia.oda.hardware.atserver.configuration;
 
 import lombok.Value;
 
 @Value
-class ATServerConfiguration {
+public class ATServerConfiguration {
     private String appName;
     private int timeToGetPort;
     private String portName;
