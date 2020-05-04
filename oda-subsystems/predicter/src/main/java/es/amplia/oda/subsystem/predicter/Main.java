@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-<<<<<<< Updated upstream
 	public Main() {
 	}
 
