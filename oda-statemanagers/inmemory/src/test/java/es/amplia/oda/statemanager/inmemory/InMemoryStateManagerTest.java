@@ -58,7 +58,7 @@ public class InMemoryStateManagerTest {
 
     @Before
     public void setUp() {
-        testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEventHandler, mockedEngine);
+        /*testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEventHandler, mockedEngine);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
                 new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null));
@@ -74,7 +74,7 @@ public class InMemoryStateManagerTest {
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID,
                 new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null));
 
-        Whitebox.setInternalState(testStateManager, "state", testState);
+        Whitebox.setInternalState(testStateManager, "state", testState);*/
     }
 
     @Test

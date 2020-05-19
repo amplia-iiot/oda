@@ -1,6 +1,7 @@
 package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.core.commons.utils.DevicePattern;
@@ -13,14 +14,18 @@ import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.statemanager.api.EventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
+import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
+import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-class InMemoryStateManager implements StateManager {
+public class InMemoryStateManager implements StateManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryStateManager.class);
 
@@ -30,14 +35,17 @@ class InMemoryStateManager implements StateManager {
     private final EventDispatcher eventDispatcher;
     private final EventHandler eventHandler;
     private final RuleEngine ruleEngine;
+    private final Serializer serializer;
     private final State state = new State();
+    private DatabaseHandler database;
 
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
-                         EventHandler eventHandler, RuleEngine ruleEngine) {
+                         EventHandler eventHandler, RuleEngine ruleEngine, Serializer serializer) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
         this.eventHandler = eventHandler;
         this.ruleEngine = ruleEngine;
+        this.serializer = serializer;
         registerToEvents(eventHandler);
     }
 
@@ -188,6 +196,14 @@ class InMemoryStateManager implements StateManager {
                 event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), state.getLastValue(dsInfo).getValue());
                 eventDispatcher.publish(event);
             }
+            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
+                && this.database != null && this.database.exists()) {
+                try {
+                    this.database.insertNewRow(state.getLastValue(dsInfo));
+                } catch (IOException e) {
+                    LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
+                }
+            }
         }
         this.state.clearRefreshedAndImmediately();
         LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
@@ -208,5 +224,15 @@ class InMemoryStateManager implements StateManager {
     @Override
     public void close() {
         unregisterToEvents(eventHandler);
+    }
+
+    public void loadConfiguration(StateManagerInMemoryConfiguration config) {
+        this.database = new DatabaseHandler(config.getDatabasePath(), serializer);
+        try {
+            Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
+            this.state.loadData(collectData);
+        } catch (SQLException | IOException e) {
+            LOGGER.error("Error trying to recollect the data from the local database: {}", e.getMessage());
+        }
     }
 }

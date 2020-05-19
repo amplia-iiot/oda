@@ -70,14 +70,14 @@ public class State {
     }
 
     /**
-     * Constructor with datastreams and their values.
+     * Method to load the data of a map into the state. This will overwrite all previous data.
      *
      * Initialize all Maps of this class, inserting all datastreams with their values and putting to false their
      * refreshed and sendImmediately attribute.
      *
      * @param storedValues Map with datastreams to add and their values.
      */
-    public State(Map<DatastreamInfo, List<DatastreamValue>> storedValues) {
+    public void loadData(Map<DatastreamInfo, List<DatastreamValue>> storedValues) {
         this.datastreams = new HashMap<>();
         storedValues.forEach((info, values) -> this.datastreams.put(info, new DatastreamState(values)));
     }

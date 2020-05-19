@@ -1,6 +1,8 @@
 package es.amplia.oda.statemanager.inmemory;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
@@ -22,6 +24,7 @@ public class Activator implements BundleActivator {
     private EventDispatcherProxy eventDispatcher;
     private OsgiEventHandler eventHandler;
     private ServiceRegistration<StateManager> stateManagerRegistration;
+    private SerializerProxy serializer;
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -33,8 +36,9 @@ public class Activator implements BundleActivator {
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         eventHandler = new OsgiEventHandler(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
+        serializer = new SerializerProxy(bundleContext, ContentType.JSON);
         StateManager inMemoryStateManager =
-                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine);
+                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine, serializer);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);
 
         LOGGER.info("In Memory State Manager started");
