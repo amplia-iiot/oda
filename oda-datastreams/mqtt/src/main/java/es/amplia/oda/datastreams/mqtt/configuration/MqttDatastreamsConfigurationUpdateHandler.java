@@ -1,15 +1,18 @@
-package es.amplia.oda.datastreams.mqtt;
+package es.amplia.oda.datastreams.mqtt.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import es.amplia.oda.datastreams.mqtt.DatastreamInfoWithPermission;
+import es.amplia.oda.datastreams.mqtt.MqttDatastreamPermission;
+import es.amplia.oda.datastreams.mqtt.MqttDatastreamsOrchestrator;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
     static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
     static final String CLIENT_ID_PROPERTY_NAME = "clientId";
@@ -30,7 +33,7 @@ class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHa
     private MqttDatastreamsConfiguration currentConfiguration;
     private List<DatastreamInfoWithPermission> initialDatastreamsConfiguration = new ArrayList<>();
 
-    MqttDatastreamsConfigurationUpdateHandler(MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator) {
+    public MqttDatastreamsConfigurationUpdateHandler(MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator) {
         this.mqttDatastreamsOrchestrator = mqttDatastreamsOrchestrator;
     }
 

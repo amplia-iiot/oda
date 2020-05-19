@@ -2,6 +2,9 @@ package es.amplia.oda.datastreams.simulator;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
+import es.amplia.oda.datastreams.simulator.configuration.ConstantDatastreamConfiguration;
+import es.amplia.oda.datastreams.simulator.configuration.RandomDatastreamConfiguration;
+import es.amplia.oda.datastreams.simulator.configuration.SimulatedDatastreamsConfiguration;
 import es.amplia.oda.datastreams.simulator.internal.SimulatedDatastreamsGetterFactory;
 
 import org.junit.Test;

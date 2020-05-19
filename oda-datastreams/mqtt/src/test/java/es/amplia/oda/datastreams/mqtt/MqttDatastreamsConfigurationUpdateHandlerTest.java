@@ -2,6 +2,8 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttException;
 
+import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
+import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,7 +13,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
-import static es.amplia.oda.datastreams.mqtt.MqttDatastreamsConfigurationUpdateHandler.*;
+import static es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
