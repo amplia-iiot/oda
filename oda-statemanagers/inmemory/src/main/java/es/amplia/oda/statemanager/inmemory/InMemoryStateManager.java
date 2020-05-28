@@ -187,7 +187,7 @@ public class InMemoryStateManager implements StateManager {
     }
 
     @Override
-    public void onReceivedEvent(Event event) {
+    public synchronized void onReceivedEvent(Event event) {
         DatastreamValue dsValue = createDatastreamValueFromEvent(event);
         this.ruleEngine.engine(this.state, dsValue);
         List<DatastreamInfo> datastreams = this.state.getStoredValues();
@@ -199,7 +199,10 @@ public class InMemoryStateManager implements StateManager {
             if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
                 && this.database != null && this.database.exists()) {
                 try {
-                    this.database.insertNewRow(state.getLastValue(dsInfo));
+                    DatastreamValue value = state.getLastValue(dsInfo);
+                    if(!this.database.insertNewRow(value)) {
+                        LOGGER.info("The value {}} couldn't be stored into the database.", value);
+                    }
                 } catch (IOException e) {
                     LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
                 }
@@ -227,11 +230,11 @@ public class InMemoryStateManager implements StateManager {
     }
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
-        this.database = new DatabaseHandler(config.getDatabasePath(), serializer);
+        this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
         try {
             Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
             this.state.loadData(collectData);
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             LOGGER.error("Error trying to recollect the data from the local database: {}", e.getMessage());
         }
     }

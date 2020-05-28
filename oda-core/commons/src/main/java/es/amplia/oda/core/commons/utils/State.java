@@ -96,7 +96,9 @@ public class State {
         List<DatastreamValue> values = new ArrayList<>();
         values.add(dsValue);
 
-        this.datastreams.put(dsInfo, new DatastreamState(values));
+        DatastreamState state = new DatastreamState(values);
+        state.refreshed = true;
+        this.datastreams.put(dsInfo, state);
     }
 
     /**

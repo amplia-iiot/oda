@@ -13,9 +13,11 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 	private static final Logger LOGGER = LoggerFactory.getLogger(StateManagerInMemoryConfigurationHandler.class);
 
 	private static final String DATABASE_PATH_PROPERTY_NAME = "databasePath";
+	private static final String MAX_DATA_PROPERTY_NAME = "maxData";
+	private static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME = "forgetTime";
 
 	private StateManagerInMemoryConfiguration config;
-	private InMemoryStateManager stateManager;
+	private final InMemoryStateManager stateManager;
 
 	public StateManagerInMemoryConfigurationHandler(InMemoryStateManager stateManager) {
 		this.stateManager = stateManager;
@@ -30,6 +32,10 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 
 		builder.databasePath(Optional.ofNullable((String) props.get(DATABASE_PATH_PROPERTY_NAME))
 				.orElseThrow(() ->  new ConfigurationException("Builder Path is a required Parameter")));
+		builder.maxData(Optional.of(Integer.parseInt((String) props.get(MAX_DATA_PROPERTY_NAME)))
+				.orElseThrow(() ->  new ConfigurationException("Max Data is a required Parameter")));
+		builder.forgetTime(Optional.of(Long.parseLong((String) props.get(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME)))
+				.orElseThrow(() ->  new ConfigurationException("Forget Time is a required Parameter")));
 
 		config = builder.build();
 

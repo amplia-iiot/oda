@@ -26,9 +26,9 @@ public class OdaBlob implements Blob {
 	@Override
 	public byte[] getBytes(long pos, int length) throws SQLException {
 		byte[] specificBytes = new byte[length];
-		if(pos + length <= this.length()) {
+		if(pos + length -1 <= this.length()) {
 			for (long i = 0; i < length; i++) {
-				specificBytes[(int) i] = databytes[(int) (pos + i)];
+				specificBytes[(int) i] = databytes[(int) (pos + i - 1)];
 			}
 		}
 		return specificBytes;
@@ -36,7 +36,7 @@ public class OdaBlob implements Blob {
 
 	@Override
 	public InputStream getBinaryStream() throws SQLException {
-		return this.getBinaryStream(0, this.databytes.length);
+		return this.getBinaryStream(1, this.databytes.length);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package es.amplia.oda.core.commons.statemanager;
 
+import java.sql.ResultSet;
 import java.util.List;
 
 public interface StateManagerDatabase {
@@ -7,8 +8,8 @@ public interface StateManagerDatabase {
 	void disconnect();
 	boolean exists();
 	void create();
-	Object query(String sql);
-	Object preparedQuery(String sql, List<Object> parameters);
+	ResultSet query(String sql);
+	ResultSet preparedQuery(String sql, List<Object> parameters);
 	int update(String sql);
 	int preparedUpdate(String sql, List<Object> parameters);
 	Object execute(String sql);
