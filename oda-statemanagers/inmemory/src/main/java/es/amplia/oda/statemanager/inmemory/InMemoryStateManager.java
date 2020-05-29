@@ -231,11 +231,7 @@ public class InMemoryStateManager implements StateManager {
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
         this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
-        try {
-            Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
-            this.state.loadData(collectData);
-        } catch (SQLException e) {
-            LOGGER.error("Error trying to recollect the data from the local database: {}", e.getMessage());
-        }
+        Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
+        this.state.loadData(collectData);
     }
 }
