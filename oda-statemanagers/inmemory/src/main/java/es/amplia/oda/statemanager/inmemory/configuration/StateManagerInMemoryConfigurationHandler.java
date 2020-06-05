@@ -12,9 +12,9 @@ import java.util.Optional;
 public class StateManagerInMemoryConfigurationHandler implements ConfigurationUpdateHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StateManagerInMemoryConfigurationHandler.class);
 
-	private static final String DATABASE_PATH_PROPERTY_NAME = "databasePath";
-	private static final String MAX_DATA_PROPERTY_NAME = "maxData";
-	private static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME = "forgetTime";
+	static final String DATABASE_PATH_PROPERTY_NAME = "databasePath";
+	static final String MAX_DATA_PROPERTY_NAME = "maxData";
+	static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME = "forgetTime";
 
 	private StateManagerInMemoryConfiguration config;
 	private final InMemoryStateManager stateManager;
@@ -26,7 +26,7 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 
 	@Override
 	public void loadConfiguration(Dictionary<String, ?> props) {
-		LOGGER.info("Loading new configuration");
+		LOGGER.info("Loading new state manager configuration");
 
 		StateManagerInMemoryConfiguration.StateManagerInMemoryConfigurationBuilder builder = StateManagerInMemoryConfiguration.builder();
 
@@ -39,7 +39,7 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 
 		config = builder.build();
 
-		LOGGER.info("New configuration loaded");
+		LOGGER.info("New configuration of state manager loaded");
 	}
 
 	@Override

@@ -1,6 +1,5 @@
 package es.amplia.oda.statemanager.inmemory;
 
-import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -26,7 +25,6 @@ public class Activator implements BundleActivator {
     private EventDispatcherProxy eventDispatcher;
     private OsgiEventHandler eventHandler;
     private ServiceRegistration<StateManager> stateManagerRegistration;
-    private SerializerProxy serializer;
     private ConfigurableBundle configurableBundle;
 
     @Override
@@ -39,7 +37,7 @@ public class Activator implements BundleActivator {
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         eventHandler = new OsgiEventHandler(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
-        serializer = new SerializerProxy(bundleContext, ContentType.JSON);
+        SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
         InMemoryStateManager inMemoryStateManager =
                 new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine, serializer);
         ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);

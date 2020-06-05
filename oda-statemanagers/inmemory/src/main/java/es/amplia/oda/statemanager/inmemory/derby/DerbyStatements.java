@@ -24,10 +24,11 @@ public class DerbyStatements implements SQLStatements {
 				"\"deviceId\" varchar(255), " +
 				"\"datastreamId\" varchar(255), " +
 				"\"at\" bigint, " +
-				"\"value\" varchar(5000)," +
-				"\"type\" varchar(255)," +
-				"\"status\" varchar(255)," +
-				"\"error\" varchar(255)" +
+				"\"value\" varchar(5000), " +
+				"\"type\" varchar(255), " +
+				"\"status\" varchar(255), " +
+				"\"error\" varchar(255), " +
+				"\"sent\" boolean" +
 				")";
 	}
 
@@ -48,7 +49,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getInsertNewDataRowStatement() {
-		return "INSERT INTO state (\"deviceId\", \"datastreamId\", \"at\", \"value\", \"type\", \"status\", \"error\") VALUES (?,?,?,?,?,?,?)";
+		return "INSERT INTO state (\"deviceId\", \"datastreamId\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?)";
 	}
 
 	@Override
@@ -69,5 +70,15 @@ public class DerbyStatements implements SQLStatements {
 	@Override
 	public String getDeleteOlderDataFromDatabaseStatement() {
 		return "DELETE FROM state WHERE \"at\"<?";
+	}
+
+	@Override
+	public String getUpdateSentData() {
+		return "UPDATE state SET \"sent\"=true WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\"=?";
+	}
+
+	@Override
+	public String getUpdateIsDataSent() {
+		return "SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?";
 	}
 }

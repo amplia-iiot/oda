@@ -1,6 +1,7 @@
 package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.event.api.Event;
@@ -8,13 +9,17 @@ import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.statemanager.api.EventHandler;
 
+import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
+import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -22,8 +27,11 @@ import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.powermock.api.mockito.PowerMockito.verifyNew;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({InMemoryStateManager.class, DatabaseHandler.class})
 public class InMemoryStateManagerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -48,41 +56,46 @@ public class InMemoryStateManagerTest {
     private EventHandler mockedEventHandler;
     @Mock
     private EventDispatcher mockedEventDispatcher;
+    @Mock
+    private DatabaseHandler mockedDatabase;
     private InMemoryStateManager testStateManager;
 
     @Mock
     private DatastreamsSetter mockedSetter;
     @Mock
     private RuleEngine mockedEngine;
+    @Mock
+    private Serializer mockedSerializer;
 
 
     @Before
     public void setUp() {
-        /*testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEventHandler, mockedEngine);
+        testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEventHandler, mockedEngine, mockedSerializer);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2),
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_OLD, TEST_VALUE_2_OLD, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_OLD, TEST_VALUE_2_OLD, Status.OK, null, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID),
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true));
 
         testState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_NEW, TEST_VALUE_2_NEW, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_NEW, TEST_VALUE_2_NEW, Status.OK, null, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false));
 
-        Whitebox.setInternalState(testStateManager, "state", testState);*/
+        Whitebox.setInternalState(testStateManager, "state", testState);
+        Whitebox.setInternalState(testStateManager, "database", mockedDatabase);
     }
 
     @Test
     public void testConstructor() {
-        //verify(mockedEventHandler).registerStateManager(eq(testStateManager));
+        verify(mockedEventHandler).registerStateManager(eq(testStateManager));
     }
 
-    /*@Test
+    @Test
     public void testGetDatastreamInformation() throws ExecutionException, InterruptedException {
         CompletableFuture<DatastreamValue> future =
                 testStateManager.getDatastreamInformation(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
@@ -338,13 +351,15 @@ public class InMemoryStateManagerTest {
     }
 
     @Test
-    public void testOnReceivedEvent() {
+    public void testOnReceivedEvent() throws IOException {
+        when(mockedDatabase.exists()).thenReturn(true);
+        when(mockedDatabase.insertNewRow(any())).thenReturn(true);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
         Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
         State newState = Whitebox.getInternalState(testStateManager, "state");
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
-                testEvent.getAt(), testEvent.getValue(), Status.OK, null));
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvent(testEvent);
@@ -356,6 +371,83 @@ public class InMemoryStateManagerTest {
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
+        verify(mockedDatabase, times(3)).insertNewRow(any());
+    }
+
+    @Test
+    public void testOnReceivedEventToSendImmediately() throws IOException {
+        when(mockedDatabase.exists()).thenReturn(true);
+        when(mockedDatabase.insertNewRow(any())).thenReturn(true);
+        long newAt = System.currentTimeMillis();
+        Object newValue = "newTest";
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        State newState = Whitebox.getInternalState(testStateManager, "state");
+        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
+        newState.sendImmediately(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+
+        testStateManager.onReceivedEvent(testEvent);
+
+        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(TEST_DEVICE_ID, value.getDeviceId());
+        assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        assertEquals(newAt, value.getAt());
+        assertEquals(newValue, value.getValue());
+        assertEquals(Status.OK, value.getStatus());
+        assertNull(value.getError());
+        assertTrue(value.isSent());
+        Event event = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        verify(mockedEventDispatcher).publish(eq(event));
+        verify(mockedDatabase, times(3)).insertNewRow(any());
+    }
+
+    @Test
+    public void testOnReceivedEventButCantBeStored() throws IOException {
+        when(mockedDatabase.exists()).thenReturn(true);
+        when(mockedDatabase.insertNewRow(any())).thenReturn(false);
+        long newAt = System.currentTimeMillis();
+        Object newValue = "newTest";
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        State newState = Whitebox.getInternalState(testStateManager, "state");
+        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
+        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+
+        testStateManager.onReceivedEvent(testEvent);
+
+        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(TEST_DEVICE_ID, value.getDeviceId());
+        assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        assertEquals(newAt, value.getAt());
+        assertEquals(newValue, value.getValue());
+        assertEquals(Status.OK, value.getStatus());
+        assertNull(value.getError());
+        verify(mockedDatabase, times(3)).insertNewRow(any());
+    }
+
+    @Test
+    public void testOnReceivedEventException() throws IOException {
+        when(mockedDatabase.exists()).thenReturn(true);
+        when(mockedDatabase.insertNewRow(any())).thenThrow( new IOException());
+        long newAt = System.currentTimeMillis();
+        Object newValue = "newTest";
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        State newState = Whitebox.getInternalState(testStateManager, "state");
+        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
+        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+
+        testStateManager.onReceivedEvent(testEvent);
+
+        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(TEST_DEVICE_ID, value.getDeviceId());
+        assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        assertEquals(newAt, value.getAt());
+        assertEquals(newValue, value.getValue());
+        assertEquals(Status.OK, value.getStatus());
+        assertNull(value.getError());
+        verify(mockedDatabase, times(3)).insertNewRow(any());
     }
 
     @Test
@@ -370,5 +462,21 @@ public class InMemoryStateManagerTest {
         testStateManager.close();
 
         verify(mockedEventHandler).unregisterStateManager();
-    }*/
+    }
+
+    @Test
+    public void testLoadConfiguration() throws Exception {
+        whenNew(DatabaseHandler.class).withAnyArguments().thenReturn(mockedDatabase);
+        Map<DatastreamInfo, List<DatastreamValue>> collectData = new HashMap<>();
+        DatastreamInfo dsInfo = new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+        DatastreamValue dsValue = new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, System.currentTimeMillis(), true, Status.OK, null, false);
+        List<DatastreamValue> dsValues = new ArrayList<>();
+        dsValues.add(dsValue);
+        collectData.put(dsInfo, dsValues);
+        when(mockedDatabase.collectDataFromDatabase()).thenReturn(collectData);
+
+        this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().databasePath("this/is/a/path").maxData(100).forgetTime(3600).build());
+
+        verifyNew(DatabaseHandler.class).withArguments(eq("this/is/a/path"), eq(mockedSerializer), eq(100), eq((long) 3600));
+    }
 }

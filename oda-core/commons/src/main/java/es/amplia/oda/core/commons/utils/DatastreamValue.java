@@ -1,8 +1,10 @@
 package es.amplia.oda.core.commons.utils;
 
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Value
+@Data
+@AllArgsConstructor
 public class DatastreamValue {
     public enum Status {
         OK("Successful"),
@@ -21,10 +23,11 @@ public class DatastreamValue {
         }
     }
 
-    private String deviceId;
-    private String datastreamId;
-    private long at;
-    private Object value;
-    private Status status;
-    private String error;
+    private final String deviceId;
+    private final String datastreamId;
+    private final long at;
+    private final Object value;
+    private final Status status;
+    private final String error;
+    private boolean sent;
 }

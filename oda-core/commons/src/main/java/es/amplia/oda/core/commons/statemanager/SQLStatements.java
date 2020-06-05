@@ -17,4 +17,8 @@ public interface SQLStatements {
 	String getDeleteOverloadDataFromADatastreamStatement();
 
 	String getDeleteOlderDataFromDatabaseStatement();
+
+	String getUpdateSentData();
+
+	String getUpdateIsDataSent();
 }

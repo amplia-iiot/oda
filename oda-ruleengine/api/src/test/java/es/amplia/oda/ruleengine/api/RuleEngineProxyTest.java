@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 public class RuleEngineProxyTest {
 
 	private static final String TEST_NAME_RULE = "nameRule";
-	private static final DatastreamValue TEST_DATASTREAM_VALUE = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+	private static final DatastreamValue TEST_DATASTREAM_VALUE = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 
 	@Mock
 	private BundleContext mockedContext;

@@ -1,9 +1,9 @@
 package es.amplia.oda.core.commons.utils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class State {
     private Map<DatastreamInfo, DatastreamState> datastreams;
@@ -41,12 +41,29 @@ public class State {
             return null;
         }
 
+        public void addDatastreamLoadedValues(List<DatastreamValue> list) {
+            storedValues.addAll(storedValues.size(), list);
+        }
+
         public boolean getRefreshed() {
             return this.refreshed;
         }
 
         public boolean getSendImmediately() {
             return this.sendImmediately;
+        }
+
+        public Stream<DatastreamValue> getNotSentValues() {
+            return this.storedValues.stream()
+                    .filter(stored -> !stored.isSent());
+        }
+
+        public void setSent(long at, boolean sent) {
+            this.storedValues.forEach(datastreamValue -> {
+                if (datastreamValue.getAt() == at) {
+                    datastreamValue.setSent(sent);
+                }
+            });
         }
 
         public void sendImmediately() {
@@ -78,6 +95,14 @@ public class State {
      * @param storedValues Map with datastreams to add and their values.
      */
     public void loadData(Map<DatastreamInfo, List<DatastreamValue>> storedValues) {
+        storedValues.forEach((datastreamInfo, datastreamValues) -> {
+            if (this.datastreams.containsKey(datastreamInfo)) {
+                DatastreamState state = this.datastreams.get(datastreamInfo);
+                state.addDatastreamLoadedValues(datastreamValues);
+            } else {
+                this.datastreams.put(datastreamInfo, new DatastreamState(datastreamValues));
+            }
+        });
         this.datastreams = new HashMap<>();
         storedValues.forEach((info, values) -> this.datastreams.put(info, new DatastreamState(values)));
     }
@@ -169,6 +194,27 @@ public class State {
             }
         }
         return createNotFoundValue(datastreamInfo);
+    }
+
+    public Supplier<Stream<DatastreamValue>> getNotSentValuesToSend(DatastreamInfo datastreamInfo) {
+        return () -> this.datastreams.keySet().stream()
+            .filter(datastreamInfo::equals)
+            .flatMap(dsInfo -> this.datastreams.get(dsInfo).getNotSentValues());
+    }
+
+    public List<DatastreamValue> getNotSentValues(DatastreamInfo datastreamInfo) {
+        DatastreamState state = this.datastreams.get(datastreamInfo);
+        if (state != null) {
+            List<DatastreamValue> values = state.getStoredValues().stream().filter(value -> !value.isSent()).collect(Collectors.toList());
+            if (!values.isEmpty()) {
+                return values;
+            }
+        }
+        return createNotFoundValueArray(datastreamInfo);
+    }
+
+    public void setSent(String deviceId, String datastreamId, Map<Long, Boolean> values) {
+        values.forEach((at, sent) -> this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent));
     }
 
     /**
@@ -279,7 +325,7 @@ public class State {
      */
     public DatastreamValue createValue(String deviceId, String datastreamId, Object val) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), val,
-                DatastreamValue.Status.OK, "");
+                DatastreamValue.Status.OK, "", false);
     }
 
     /**
@@ -330,6 +376,6 @@ public class State {
      */
     public DatastreamValue createNotFoundValue(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.NOT_FOUND, "Datastream not found");
+                DatastreamValue.Status.NOT_FOUND, "Datastream not found", false);
     }
 }

@@ -98,7 +98,7 @@ public class RuleEngineNashornTest {
 
 	@Test
 	public void testEngineNotStartedNotRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(false);
 
 		State state = testRuleEngine.engine(mockedState, value);
@@ -109,7 +109,7 @@ public class RuleEngineNashornTest {
 
 	@Test
 	public void testEngineNotStartedRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 
 		State state = testRuleEngine.engine(mockedState, value);
@@ -121,7 +121,7 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineStarted() throws ScriptException {
 		String path = "origin/path";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		Rule rule = new Rule("nameRule", "testDatastream", mockedScriptTranslator);
@@ -144,7 +144,7 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineStartedException() throws ScriptException {
 		String path = "origin/path";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		Rule rule = new Rule("nameRule", "testDatastream", mockedScriptTranslator);
