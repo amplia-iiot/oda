@@ -6,6 +6,7 @@ import es.amplia.oda.core.commons.statemanager.SQLStatements;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.statemanager.inmemory.derby.DerbyStatements;
+import org.apache.derby.iapi.services.io.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,13 +59,14 @@ public class DatabaseHandler {
 	}
 
 	private void connectDatabase() {
+		Statement stmt = null;
 		try {
 			LOGGER.info("Starting connection with the local database");
 			Class.forName(statements.getDriverClassName());
 			connection = DriverManager.getConnection(statements.getProtocolUrlDatabase() + path + statements.getExtraOptions());
-			DatabaseMetaData metadata = connection.getMetaData();
-			ResultSet resultSet = metadata.getTables(null, null, "state", null);
-			if(resultSet.next()) {
+			stmt = connection.createStatement();
+			ResultSet resultSet = stmt.executeQuery(statements.getQueryToGetTables());
+			if(resultSet.next() && resultSet.getString(1).equalsIgnoreCase("state")) {
 				LOGGER.info("Table state exists, connection was established");
 			}
 			else {
@@ -79,7 +81,7 @@ public class DatabaseHandler {
 
 	private void restartTryOfConnect() {
 		File f = new File(path);
-		if(f.delete()) {
+		if(FileUtil.removeDirectory(f)) {
 			createDatabase();
 		} else {
 			LOGGER.error("Impossible to create the database. Check that database path configuration is alright");
@@ -296,7 +298,7 @@ public class DatabaseHandler {
 				return removed >= 1;
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Error trying to delete excesive amount of data: {}", e.getSQLState());
+			LOGGER.error("Error trying to delete excessive amount of data: {}", e.getSQLState());
 		} finally {
 			try {
 				if (result != null) {

@@ -21,4 +21,6 @@ public interface SQLStatements {
 	String getUpdateSentData();
 
 	String getUpdateIsDataSent();
+
+	String getQueryToGetTables();
 }

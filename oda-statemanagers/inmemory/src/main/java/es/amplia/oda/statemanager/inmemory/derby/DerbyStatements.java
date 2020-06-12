@@ -81,4 +81,9 @@ public class DerbyStatements implements SQLStatements {
 	public String getUpdateIsDataSent() {
 		return "SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?";
 	}
+
+	@Override
+	public String getQueryToGetTables() {
+		return "select st.tablename  from sys.systables st LEFT OUTER join sys.sysschemas ss on (st.schemaid = ss.schemaid) where ss.schemaname ='APP'";
+	}
 }
