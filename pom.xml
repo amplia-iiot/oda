@@ -180,7 +180,7 @@
             <dependency>
                 <groupId>es.amplia.oda.ruleengine</groupId>
                 <artifactId>api</artifactId>
-                <version>4.0.2-SNAPSHOT</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>es.amplia.oda.operation</groupId>

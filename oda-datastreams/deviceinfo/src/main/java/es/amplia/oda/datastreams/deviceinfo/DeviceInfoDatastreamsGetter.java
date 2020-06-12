@@ -253,6 +253,10 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         }
     }
 
+    public String getSerialNumber() {
+        return this.serialNumber;
+    }
+
 
     DatastreamsGetter getDatastreamsGetterForDeviceId() {
         return new DatastreamsGetter() {
@@ -279,14 +283,14 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
             public String getDatastreamIdSatisfied() {
                 return SERIAL_NUMBER_DATASTREAM_ID;
             }
-            
+
             public List<String> getDevicesIdManaged() {
                 return Collections.singletonList("");
             }
-            
+
             public CompletableFuture<CollectedValue> get(String device) {
                 return CompletableFuture.completedFuture(
-                    new CollectedValue(System.currentTimeMillis(), serialNumber)
+                    new CollectedValue(System.currentTimeMillis(), getSerialNumber())
                 );
             }
         };

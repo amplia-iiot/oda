@@ -58,7 +58,7 @@ public class Activator implements BundleActivator {
         datastreamsGetterRegistrationForSerialNumber =
                 bundleContext.registerService(DatastreamsGetter.class,
                         new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.SERIAL_NUMBER_DATASTREAM_ID,
-                                deviceInfoDatastreamsGetter::getDatastreamsGetterForSerialNumber), null);
+                                deviceInfoDatastreamsGetter::getSerialNumber), null);
         datastreamsGetterRegistrationForClock =
                 bundleContext.registerService(DatastreamsGetter.class,
                         new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CLOCK_DATASTREAM_ID,

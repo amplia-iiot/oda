@@ -8,6 +8,7 @@ import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atmanager.api.ATResponse;
 
+import es.amplia.oda.hardware.atserver.configuration.ATServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import purejavacomm.*;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-class ATServer implements ATManager, AutoCloseable {
+public class ATServer implements ATManager, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ATServer.class);
 
@@ -35,7 +36,7 @@ class ATServer implements ATManager, AutoCloseable {
         this.atManagerRegistrationManager = atManagerRegistrationManager;
     }
 
-    void loadConfiguration(ATServerConfiguration configuration) {
+    public void loadConfiguration(ATServerConfiguration configuration) {
         try {
             close();
 

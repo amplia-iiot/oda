@@ -31,7 +31,8 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
                         <Export-Package>!*</Export-Package>
-                        <Import-Package>*</Import-Package>
+                        <Embed-Dependency>sqlite-jdbc, derby</Embed-Dependency>
+                        <Import-Package>!org.ibex.nestedvm,!com.ibm.jvm,!org.apache.derby.impl.drda,!org.w3c.dom.xpath,*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                     </instructions>
                 </configuration>
@@ -94,6 +95,11 @@
             <artifactId>api</artifactId>
         </dependency>
         <dependency>
+            <groupId>es.amplia.oda.service</groupId>
+            <artifactId>jsonserializer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
@@ -132,6 +138,12 @@
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>10.8.3.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

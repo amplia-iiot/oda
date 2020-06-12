@@ -55,13 +55,13 @@ public class CollectorImplTest {
     @Test
     public void testCollect() {
         DatastreamValue dv1 =
-                new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, Status.OK, null);
+                new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, Status.OK, null, false);
         DatastreamValue dv2 =
-                new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, Status.OK, null);
+                new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, Status.OK, null, false);
         DatastreamValue dv3 =
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, Status.OK, null);
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, Status.OK, null, false);
         DatastreamValue dv4 =
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_3, TEST_AT_3, TEST_VALUE_3, Status.OK, null);
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_3, TEST_AT_3, TEST_VALUE_3, Status.OK, null, false);
 
         when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySetOf(String.class)))
                 .thenReturn(CompletableFuture.completedFuture(new HashSet<>(Arrays.asList(dv1, dv2, dv3, dv4))));

@@ -1,6 +1,9 @@
 package es.amplia.oda.statemanager.inmemory;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.event.api.EventDispatcherProxy;
@@ -8,6 +11,7 @@ import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.api.OsgiEventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
+import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfigurationHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -44,6 +48,12 @@ public class ActivatorTest {
     private ServiceRegistration<StateManager> mockedRegistration;
     @Mock
     private RuleEngineProxy mockedRuleEngine;
+    @Mock
+    private SerializerProxy mockedSerializer;
+    @Mock
+    private ConfigurableBundleImpl mockedBundle;
+    @Mock
+    private StateManagerInMemoryConfigurationHandler mockedConfigHandler;
 
 
     @Test
@@ -54,13 +64,19 @@ public class ActivatorTest {
         PowerMockito.whenNew(InMemoryStateManager.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(RuleEngineProxy.class).withAnyArguments().thenReturn(mockedRuleEngine);
         PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcherProxy);
+        PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedBundle);
+        PowerMockito.whenNew(StateManagerInMemoryConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
         PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSetterLocator));
         PowerMockito.verifyNew(OsgiEventHandler.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder), eq(mockedEventDispatcherProxy), eq(mockedEventHandler), eq(mockedRuleEngine));
+        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder), eq(mockedEventDispatcherProxy), eq(mockedEventHandler), eq(mockedRuleEngine), eq(mockedSerializer));
+        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
+        PowerMockito.verifyNew(StateManagerInMemoryConfigurationHandler.class).withArguments(eq(mockedStateManager));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(StateManager.class), eq(mockedStateManager), any());
     }
 
@@ -71,9 +87,11 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "stateManagerRegistration", mockedRegistration);
         Whitebox.setInternalState(testActivator, "ruleEngine", mockedRuleEngine);
         Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcherProxy);
+        Whitebox.setInternalState(testActivator, "configurableBundle", mockedBundle);
 
         testActivator.stop(mockedContext);
 
+        verify(mockedBundle).close();
         verify(mockedEventDispatcherProxy).close();
         verify(mockedRegistration).unregister();
         verify(mockedSettersFinder).close();

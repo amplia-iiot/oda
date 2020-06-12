@@ -1,6 +1,7 @@
 package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.core.commons.utils.DevicePattern;
@@ -13,14 +14,19 @@ import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.statemanager.api.EventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
+import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
+import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-class InMemoryStateManager implements StateManager {
+public class InMemoryStateManager implements StateManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryStateManager.class);
 
@@ -30,25 +36,24 @@ class InMemoryStateManager implements StateManager {
     private final EventDispatcher eventDispatcher;
     private final EventHandler eventHandler;
     private final RuleEngine ruleEngine;
+    private final Serializer serializer;
     private final State state = new State();
+    private DatabaseHandler database;
 
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
-                         EventHandler eventHandler, RuleEngine ruleEngine) {
+                         EventHandler eventHandler, RuleEngine ruleEngine, Serializer serializer) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
         this.eventHandler = eventHandler;
         this.ruleEngine = ruleEngine;
+        this.serializer = serializer;
         registerToEvents(eventHandler);
     }
 
     @Override
     public CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId) {
         LOGGER.info("Get datastream info for device {} and datastream {}", deviceId, datastreamId);
-        return CompletableFuture.completedFuture(getDatastreamValue(new DatastreamInfo(deviceId, datastreamId)));
-    }
-
-    private DatastreamValue getDatastreamValue(DatastreamInfo datastreamInfo) {
-        return state.getValue(datastreamInfo);
+        return CompletableFuture.completedFuture(state.getLastValue(new DatastreamInfo(deviceId, datastreamId)));
     }
 
     @Override
@@ -56,7 +61,7 @@ class InMemoryStateManager implements StateManager {
         LOGGER.info("Get datastream info for device {} and datastreams {}", deviceId, datastreamIds);
         return CompletableFuture.completedFuture(datastreamIds.stream()
                 .map(datastreamId -> new DatastreamInfo(deviceId, datastreamId))
-                .map(this::getDatastreamValue)
+                .flatMap(this::getStreamOfDatapointsToSend)
                 .collect(Collectors.toSet()));
     }
 
@@ -64,10 +69,10 @@ class InMemoryStateManager implements StateManager {
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
         LOGGER.info("Get datastream info for device pattern {} and datastream {}", devicePattern, datastreamId);
         return CompletableFuture.completedFuture(
-                state.getStoredValues().entrySet().stream()
-                        .filter(entry -> datastreamId.equals(entry.getKey().getDatastreamId()))
-                        .filter(entry -> devicePattern.match(entry.getKey().getDeviceId()))
-                        .map(Map.Entry::getValue)
+                state.getStoredValues().stream()
+                        .filter(entry -> datastreamId.equals(entry.getDatastreamId()))
+                        .filter(entry -> devicePattern.match(entry.getDeviceId()))
+                        .flatMap(this::getStreamOfDatapointsToSend)
                         .collect(Collectors.toSet()));
     }
 
@@ -75,27 +80,45 @@ class InMemoryStateManager implements StateManager {
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
         LOGGER.info("Get datastream info for device pattern {} and datastreams {}", devicePattern, datastreamIds);
         return CompletableFuture.completedFuture(
-                state.getStoredValues().entrySet().stream()
-                        .filter(entry -> datastreamIds.contains(entry.getKey().getDatastreamId()))
-                        .filter(entry -> devicePattern.match(entry.getKey().getDeviceId()))
-                        .map(Map.Entry::getValue)
+                state.getStoredValues().stream()
+                        .filter(entry -> datastreamIds.contains(entry.getDatastreamId()))
+                        .filter(entry -> devicePattern.match(entry.getDeviceId()))
+                        .flatMap(this::getStreamOfDatapointsToSend)
                         .collect(Collectors.toSet()));
     }
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDeviceInformation(String deviceId) {
         LOGGER.info("Get device info for device {}", deviceId);
-        Map<DatastreamInfo, DatastreamValue> stored = state.getStoredValues();
-        return CompletableFuture.completedFuture(stored.keySet().stream()
+        List<DatastreamInfo> stored = state.getStoredValues();
+        return CompletableFuture.completedFuture(stored.stream()
                 .filter(datastreamInfo -> deviceId.equals(datastreamInfo.getDeviceId()))
-                .map(stored::get)
+                .flatMap(this::getStreamOfDatapointsToSend)
                 .collect(Collectors.toSet()));
+    }
+
+    private synchronized Stream<DatastreamValue> getStreamOfDatapointsToSend(DatastreamInfo datastreamInfo) {
+        if (!this.state.exists(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
+            ArrayList<DatastreamValue> values = new ArrayList<>();
+            values.add(this.state.createNotFoundValue(datastreamInfo));
+            return values.stream();
+        }
+        Map<Long, Boolean> datapoints = database.getDatapointsSentValue(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId());
+        state.setSent(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), datapoints);
+        Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
+        Stream<DatastreamValue> returnStream = supplier.get();
+        supplier.get()
+                .forEach(datastreamValue -> database.updateDataAsSent(
+                        datastreamValue.getDeviceId(),
+                        datastreamValue.getDatastreamId(),
+                        datastreamValue.getAt()));
+        return returnStream;
     }
 
     @Override
     public CompletableFuture<DatastreamValue> setDatastreamValue(String deviceId, String datastreamId, Object value) {
         return setDatastreamValues(deviceId, Collections.singletonMap(datastreamId, value))
-                .thenApply(set -> set.toArray(new DatastreamValue[0])[0]);
+                .thenApply(set -> set.iterator().next());
     }
 
     @Override
@@ -132,7 +155,7 @@ class InMemoryStateManager implements StateManager {
 
     private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR);
+                Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR, false);
     }
 
     private Set<CompletableFuture<DatastreamValue>> setValues(String deviceId, Map<String, Object> datastreamValues,
@@ -154,17 +177,17 @@ class InMemoryStateManager implements StateManager {
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                            Status.PROCESSING_ERROR, error.getMessage());
+                            Status.PROCESSING_ERROR, error.getMessage(), false);
                 } else {
                     state.put(new DatastreamInfo(deviceId, datastreamId),
-                            new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value, Status.OK, null));
+                            new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value, Status.OK, null, false));
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
-                            Status.OK, null);
+                            Status.OK, null, false);
                 }
             });
         } catch (Exception e) {
             return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
-                    System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage()));
+                    System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage(), false));
         }
     }
 
@@ -183,25 +206,36 @@ class InMemoryStateManager implements StateManager {
     }
 
     @Override
-    public void onReceivedEvent(Event event) {
+    public synchronized void onReceivedEvent(Event event) {
         DatastreamValue dsValue = createDatastreamValueFromEvent(event);
         this.ruleEngine.engine(this.state, dsValue);
-        Set<DatastreamInfo> datastreams = this.state.getStoredValues().keySet();
+        List<DatastreamInfo> datastreams = this.state.getStoredValues();
         for (DatastreamInfo dsInfo : datastreams) {
-            if(state.isToSendImmediately(dsInfo)) {
-                event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), dsValue.getValue());
+            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
+                DatastreamValue toPublishValue = state.getLastValue(dsInfo);
+                event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
+                toPublishValue.setSent(true);
                 eventDispatcher.publish(event);
+            }
+            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
+                && this.database != null && this.database.exists()) {
+                try {
+                    DatastreamValue value = state.getLastValue(dsInfo);
+                    if(!this.database.insertNewRow(value)) {
+                        LOGGER.error("The value {} couldn't be stored into the database.", value);
+                    }
+                } catch (IOException e) {
+                    LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
+                }
             }
         }
         this.state.clearRefreshedAndImmediately();
         LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
     }
 
-
-
     private DatastreamValue createDatastreamValueFromEvent(Event event) {
         return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getAt(), event.getValue(),
-                Status.OK, null);
+                Status.OK, null, false);
     }
 
     @Override
@@ -212,5 +246,12 @@ class InMemoryStateManager implements StateManager {
     @Override
     public void close() {
         unregisterToEvents(eventHandler);
+        database.close();
+    }
+
+    public void loadConfiguration(StateManagerInMemoryConfiguration config) {
+        this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
+        Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
+        this.state.loadData(collectData);
     }
 }

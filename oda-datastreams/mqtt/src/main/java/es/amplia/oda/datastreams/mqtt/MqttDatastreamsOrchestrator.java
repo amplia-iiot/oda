@@ -42,7 +42,7 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
     }
 
     public void loadConfiguration(MqttDatastreamsConfiguration configuration,
-						   List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
+                                  List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
         closeResources();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
         mqttClient.connect();

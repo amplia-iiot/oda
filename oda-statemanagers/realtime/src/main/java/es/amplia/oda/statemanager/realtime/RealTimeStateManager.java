@@ -70,7 +70,7 @@ class RealTimeStateManager implements StateManager {
 
     private DatastreamValue createDatastreamNotFound(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.NOT_FOUND, null);
+                DatastreamValue.Status.NOT_FOUND, null, false);
     }
 
     private Set<CompletableFuture<DatastreamValue>> getValues(String deviceId, List<DatastreamsGetter> getters) {
@@ -87,15 +87,15 @@ class RealTimeStateManager implements StateManager {
             return getFuture.handle((ok,error)-> {
                 if (ok != null) {
                     return new DatastreamValue(deviceId, datastreamId, ok.getAt(), ok.getValue(),
-                            DatastreamValue.Status.OK, null);
+                            DatastreamValue.Status.OK, null, false);
                 } else {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage());
+                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage(), false);
                 }
             });
         } catch (Exception e) {
             return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
-                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage()));
+                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage(), false));
         }
     }
 
@@ -180,7 +180,7 @@ class RealTimeStateManager implements StateManager {
 
     private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR);
+                DatastreamValue.Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR, false);
     }
 
     private Set<CompletableFuture<DatastreamValue>> setValues(String deviceId, Map<String, Object> datastreamValues,
@@ -202,15 +202,15 @@ class RealTimeStateManager implements StateManager {
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage());
+                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage(), false);
                 } else {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
-                            DatastreamValue.Status.OK, null);
+                            DatastreamValue.Status.OK, null, false);
                 }
             });
         } catch (Exception e) {
             return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
-                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage()));
+                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR, e.getMessage(), false));
         }
     }
 

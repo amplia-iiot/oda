@@ -14,16 +14,16 @@ import java.util.stream.Collectors;
 
 public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
-    static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
-    static final String CLIENT_ID_PROPERTY_NAME = "clientId";
-    static final String ENABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "enableDatastreamTopic";
-    static final String DISABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "disableDatastreamTopic";
-    static final String EVENT_TOPIC_PROPERTY_NAME = "eventTopic";
-    static final String READ_REQUEST_TOPIC_PROPERTY_NAME = "readRequestTopic";
-    static final String READ_RESPONSE_TOPIC_PROPERTY_NAME = "readResponseTopic";
-    static final String WRITE_REQUEST_TOPIC_PROPERTY_NAME = "writeRequestTopic";
-    static final String WRITE_RESPONSE_TOPIC_PROPERTY_NAME = "writeResponseTopic";
-    static final String LWT_TOPIC_PROPERTY_NAME = "lwtTopic";
+    public static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
+    public static final String CLIENT_ID_PROPERTY_NAME = "clientId";
+    public static final String ENABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "enableDatastreamTopic";
+    public static final String DISABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "disableDatastreamTopic";
+    public static final String EVENT_TOPIC_PROPERTY_NAME = "eventTopic";
+    public static final String READ_REQUEST_TOPIC_PROPERTY_NAME = "readRequestTopic";
+    public static final String READ_RESPONSE_TOPIC_PROPERTY_NAME = "readResponseTopic";
+    public static final String WRITE_REQUEST_TOPIC_PROPERTY_NAME = "writeRequestTopic";
+    public static final String WRITE_RESPONSE_TOPIC_PROPERTY_NAME = "writeResponseTopic";
+    public static final String LWT_TOPIC_PROPERTY_NAME = "lwtTopic";
 
     private static final String DATASTREAMS_CONFIGURATION_REGEX = "(\\w+);(\\w+)";
     private static final Pattern DATASTREAMS_CONFIGURATION_PATTERN = Pattern.compile(DATASTREAMS_CONFIGURATION_REGEX);
