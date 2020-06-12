@@ -10,10 +10,11 @@
     <description>Datastreams of the OpenGate Device Agent</description>
     <modules>
         <module>deviceinfo</module>
+        <module>deviceinfofx30</module>
+        <module>deviceinfoowa450</module>
         <module>gpio</module>
         <module>modbus</module>
         <module>mqtt</module>
-        <module>deviceinfofx30</module>
         <module>simulator</module>
         <module>adc</module>
         <module>i2c</module>

@@ -1,13 +1,14 @@
-package es.amplia.oda.datastreams.simulator;
+package es.amplia.oda.datastreams.simulator.configuration;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 
+import es.amplia.oda.datastreams.simulator.SimulatedDatastreamsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-class SimulatedDatastreamsConfigurationHandler implements ConfigurationUpdateHandler {
+public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUpdateHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimulatedDatastreamsConfigurationHandler.class);
 
@@ -16,7 +17,7 @@ class SimulatedDatastreamsConfigurationHandler implements ConfigurationUpdateHan
     private final List<SimulatedDatastreamsConfiguration> lastConfiguration = new ArrayList<>();
 
 
-    SimulatedDatastreamsConfigurationHandler(SimulatedDatastreamsManager datastreamsManager) {
+    public SimulatedDatastreamsConfigurationHandler(SimulatedDatastreamsManager datastreamsManager) {
         this.manager = datastreamsManager;
     }
 

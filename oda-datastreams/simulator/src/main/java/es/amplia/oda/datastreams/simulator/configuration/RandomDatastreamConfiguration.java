@@ -1,9 +1,9 @@
-package es.amplia.oda.datastreams.simulator;
+package es.amplia.oda.datastreams.simulator.configuration;
 
 import lombok.Value;
 
 @Value
-class RandomDatastreamConfiguration implements SimulatedDatastreamsConfiguration {
+public class RandomDatastreamConfiguration implements SimulatedDatastreamsConfiguration {
     private String datastreamId;
     private String deviceId;
     private double minValue;

@@ -3,7 +3,6 @@ package es.amplia.oda.datastreams.deviceinfo;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.*;
-import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfiguration;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
 import es.amplia.oda.datastreams.deviceinfo.configuration.ScriptsLoader;
