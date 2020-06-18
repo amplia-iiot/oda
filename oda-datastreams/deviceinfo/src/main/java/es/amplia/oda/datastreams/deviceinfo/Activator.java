@@ -134,7 +134,7 @@ public class Activator implements BundleActivator {
         try {
             scriptsLoader.close();
         } catch (Exception e) {
-            LOGGER.error("Error trying to close scripts loader");
+            LOGGER.error("Error trying to close scripts loader", e);
         }
 
         LOGGER.info("Datastreams Getter Device stopped");

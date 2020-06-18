@@ -1,7 +1,10 @@
-package es.amplia.oda.datastreams.mqtt;
+package es.amplia.oda.datastreams.mqtt.configuration;
 
 import es.amplia.oda.comms.mqtt.api.MqttException;
 
+import es.amplia.oda.datastreams.mqtt.DatastreamInfoWithPermission;
+import es.amplia.oda.datastreams.mqtt.MqttDatastreamPermission;
+import es.amplia.oda.datastreams.mqtt.MqttDatastreamsOrchestrator;
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
 import org.junit.Test;

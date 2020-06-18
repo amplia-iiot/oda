@@ -36,7 +36,7 @@ class MqttPahoClient implements MqttClient {
             org.eclipse.paho.client.mqttv3.MqttConnectOptions innerOptions = MqttPahoConnectOptionsMapper.from(options);
             resubscribeTopicsOnReconnectCallback.listenTo(innerClient);
             innerClient.connect(innerOptions);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             throw new MqttException(e.getMessage(), e);
         }
     }

@@ -5,12 +5,16 @@ import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 class AdcDatastreamsGetter implements DatastreamsGetter {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AdcDatastreamsGetter.class);
 
 	private final String datastreamId;
 	private final int pinIndex;
@@ -48,10 +52,11 @@ class AdcDatastreamsGetter implements DatastreamsGetter {
 
 			long at = System.currentTimeMillis();
 			Float value = (float) (((max - min) * channel.getScaledValue()) + min);
+			LOGGER.debug("Getting value {} from ADC pin {} at {}", value, pinIndex, at);
 			return new DatastreamsGetter.CollectedValue(at , value );
 		} catch (AdcDeviceException e) {
 			throw new DataNotFoundException("Error getting value from ADC channel " + pinIndex +
-					", corresponding to datastream " + datastreamId, e);
+					", corresponding to datastream " + datastreamId);
 		}
 	}
 }

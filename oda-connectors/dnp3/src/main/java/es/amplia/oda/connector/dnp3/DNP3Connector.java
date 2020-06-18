@@ -39,6 +39,7 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
     }
 
     public void loadConfiguration(DNP3ConnectorConfiguration config) throws DNP3Exception {
+        LOGGER.info("Loading last configuration for DNP3 connector");
         clearLastConfiguration();
 
         channelListener = new DNP3ChannelListener();
@@ -53,6 +54,7 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
         outstationStackConfig.linkConfig.remoteAddr = config.getRemoteDeviceDNP3Address();
         outstationStackConfig.outstationConfig.indexMode = IndexMode.Discontiguous;
         outstationStackConfig.outstationConfig.allowUnsolicited = config.isUnsolicitedResponse();
+        LOGGER.info("Last configuration for DNP3 connector loaded");
     }
 
     public void init() throws DNP3Exception {
@@ -67,6 +69,7 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
     }
 
     private void clearLastConfiguration() {
+        LOGGER.info("Shutting down previous connector");
         if (outstation != null) {
             scadaConnectorRegistrationManager.unregister();
             outstation.shutdown();
@@ -96,11 +99,13 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
         byte dataQuality = 0x01;
 
         if (isBinaryOutput(value)) {
-            LOGGER.info("Uplink binary input {} in index {}", value, index);
+            LOGGER.info("Uplink binary input in index {}", index);
+            LOGGER.debug("Binary value {} sent in index {}", Boolean.parseBoolean(value.toString()), index);
             BinaryInput binaryInput = new BinaryInput(Boolean.parseBoolean(value.toString()), dataQuality, timestamp);
             updateSet.update(binaryInput, index);
         } else if (isAnalogInput(value)) {
-            LOGGER.info("Uplink analog input {} in index {}", value, index);
+            LOGGER.info("Uplink analog input in index {}", index);
+            LOGGER.debug("Analog value {} sent in index {}", Double.parseDouble(value.toString()), index);
             AnalogInput analogInput = new AnalogInput(Double.parseDouble(value.toString()), dataQuality, timestamp);
             updateSet.update(analogInput, index);
         } else {

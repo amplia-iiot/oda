@@ -5,7 +5,7 @@ package es.amplia.oda.core.commons.utils;
  */
 public final class OdaCommonConstants {
 
-    public static final String OPENGATE_VERSION = "8.0";
+    public static final String OPENGATE_VERSION = "9.0";
 
     /* To avoid object creation */
     private OdaCommonConstants() {}

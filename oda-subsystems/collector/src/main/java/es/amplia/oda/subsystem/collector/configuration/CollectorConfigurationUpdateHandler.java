@@ -31,6 +31,7 @@ public class CollectorConfigurationUpdateHandler implements ConfigurationUpdateH
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        LOGGER.info("Loading new configuration for collector bundle");
         scheduler.clear();
         currentConfiguration.clear();
 

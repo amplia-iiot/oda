@@ -37,7 +37,7 @@ class Iec104CommandHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
 		if (msg.getClass().isAnnotationPresent(ASDU.class)) {
-			LOGGER.info("New ASDU received: {}", msg);
+			LOGGER.debug("New ASDU received: {}", msg);
 			try {
 				switch (msg.getClass().getAnnotation(ASDU.class).name()) {
 					case "C_IC_NA_1":
@@ -49,10 +49,10 @@ class Iec104CommandHandler extends ChannelInboundHandlerAdapter {
 						processBitStringType(ctx, (BitStringCommand) msg);
 						return;
 					default:
-						LOGGER.error("Unknown request: {}. No confirmation will be sent", msg);
+						LOGGER.warn("Unknown request: {}. No confirmation will be sent", msg);
 				}
 			} catch (Exception e) {
-				LOGGER.error("Exception processing ASDU {}: {}", msg, e);
+				LOGGER.error("Exception processing ASDU {}", msg, e);
 			}
 		}
 	}

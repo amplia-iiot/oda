@@ -128,7 +128,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
             currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
                     requestTopic, responseTopic, qos, retained, initialDelay, retryDelay);
         } catch (IllegalArgumentException e) {
-            throw new ConfigurationException("Error parsing configuration properties: " + e);
+            throw new ConfigurationException("Error parsing configuration properties: " + e.getMessage());
         }
 
         LOGGER.info("MQTT connector configuration loaded");
@@ -254,8 +254,11 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     @Override
     public void applyConfiguration() {
-        LOGGER.info("Apply MQTT connector configuration");
+        LOGGER.info("Applying last MQTT connector configuration");
+
         connector.loadConfigurationAndInit(currentConfiguration);
+
+        LOGGER.info("Last MQTT connector configuration applied");
     }
 
     public void reapplyConfiguration() {

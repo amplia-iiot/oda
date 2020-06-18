@@ -55,7 +55,7 @@ public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHa
 			scriptsLoader.loadScripts(currentConfiguration.getSource(), currentConfiguration.getPath());
 			deviceInfoFX30.loadConfiguration(currentConfiguration);
 		} catch (CommandExecutionException | IOException e) {
-			LOGGER.error(e.getMessage());
+			LOGGER.error("Error trying to load the Device Info Scripts: ",  e);
 		}
 	}
 }

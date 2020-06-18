@@ -34,7 +34,7 @@ public class DatastreamsSettersFinderImpl implements DatastreamsSettersFinder {
             notFoundIds.removeAll(providers.keySet());
             return new DatastreamsSettersFinder.Return(providers, notFoundIds);
         } catch (Exception e) {
-            LOGGER.error("Exception when trying to determine providers satisfying {}/{}: {}", deviceId,
+            LOGGER.error("Exception when trying to determine providers satisfying {}/{}: ", deviceId,
                     datastreamIdentifiers, e);
             return new DatastreamsSettersFinder.Return(Collections.emptyMap(), new HashSet<>(datastreamIdentifiers));
         }

@@ -40,11 +40,15 @@ public class Activator implements BundleActivator {
     }
 
     void onServiceChanged() {
+        LOGGER.info("Device Info provider service changed. Applying HTTP connector configuration");
+
         try {
             httpConfigHandler.applyConfiguration();
         } catch (Exception e) {
-            LOGGER.info("Error reapplying HTTP connector configuration", e);
+            LOGGER.info("Error applying HTTP connector configuration", e);
         }
+
+        LOGGER.info("HTTP connector configuration applied");
     }
 
     @Override

@@ -53,8 +53,9 @@ public class DatastreamsAdcConfigurationHandler implements ConfigurationUpdateHa
 				getValueByToken(MINIMUM_PROPERTY_NAME, tokens).map(Double::parseDouble).ifPresent(builder::min);
 				getValueByToken(MAXIMUM_PROPERTY_NAME, tokens).map(Double::parseDouble).ifPresent(builder::max);
 				currentConfiguration.put(datastreamId, builder.build());
+				LOGGER.info("Datastream {} correctly loaded", datastreamId);
 			} catch (IllegalArgumentException e) {
-				LOGGER.warn("Invalid configuration {}: {}", entry.getKey(), entry.getValue());
+				LOGGER.warn("Invalid configuration for datastream {}. {} Execution will continue without use it", entry.getKey(), e.getMessage());
 			}
 		}
 		LOGGER.info("Configuration loaded");

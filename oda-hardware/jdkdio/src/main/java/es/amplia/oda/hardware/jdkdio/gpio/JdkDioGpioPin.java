@@ -4,6 +4,8 @@ import es.amplia.oda.core.commons.gpio.*;
 
 import jdk.dio.gpio.GPIOPin;
 import jdk.dio.gpio.GPIOPinConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +13,9 @@ import java.nio.file.Paths;
 
 public class JdkDioGpioPin implements GpioPin {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdkDioGpioPin.class);
+
+    @SuppressWarnings("all")
     static final String GPIO_BASE_PATH = "/sys/class/gpio";
 
     private final int index;
@@ -76,6 +81,7 @@ public class JdkDioGpioPin implements GpioPin {
 
     @Override
     public void open() {
+        LOGGER.info("Opening GPIO pin {}", index);
         GPIOPinConfig.Builder builder = new GPIOPinConfig.Builder();
 
         try {
@@ -88,6 +94,8 @@ public class JdkDioGpioPin implements GpioPin {
 
             jdkDioPin = JdkDioGpioPinFactory.createAndOpen(pinConfig);
             initModeIfNeeded();
+
+            LOGGER.info("GPIO pin {} opening", index);
         } catch (IOException exception) {
             throw new GpioDeviceException("Unable to open GPIO pin " + getName() + ": " + exception, exception);
         }
@@ -105,6 +113,7 @@ public class JdkDioGpioPin implements GpioPin {
 
     @Override
     public void close() {
+        LOGGER.info("Closing GPIO pin {}", index);
         try {
             jdkDioPin.close();
             jdkDioPin = null;
@@ -118,7 +127,9 @@ public class JdkDioGpioPin implements GpioPin {
         checkIsOpen("get GPIO pin value");
 
         try {
-            return jdkDioPin.getValue() ^ activeLow;
+            boolean result = jdkDioPin.getValue() ^ activeLow;
+            LOGGER.debug("Getting value {} from GPIO pin {}", result, index);
+            return result;
         } catch (IOException e) {
             throw new GpioDeviceException("Unable to get GPIO pin value: " + e, e);
         }
@@ -140,6 +151,7 @@ public class JdkDioGpioPin implements GpioPin {
 
         try {
             operation.process();
+            LOGGER.info("Operation completed for GPIO pin {}: {}", index, operationDescription);
         } catch (IOException e) {
             throw new GpioDeviceException("Unable to " + operationDescription + ": " + e, e);
         }

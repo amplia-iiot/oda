@@ -60,7 +60,8 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         }
 
         state = checkRefreshedDatastream(state, value);
-        LOGGER.info("Refreshed value of state to {}", state);
+        LOGGER.info("Refreshed value of state");
+        LOGGER.debug("Refreshed value of state with the datastream value {}", value);
 
         return state;
     }
@@ -84,6 +85,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
                     this.rules.remove(key);
                 }
             }
+            LOGGER.info("Deleted rules for datastream {}", datastreamId);
         }
     }
 
@@ -101,6 +103,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
             datastreamId = datastreamId.replaceFirst("rules/", "");
 
             initRuleScript(datastreamId, nameRule);
+            LOGGER.info("Created rule {}", nameRule);
         }
     }
 
@@ -141,6 +144,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         }
 
         this.watcher.get(dir).start();
+        LOGGER.info("Created directory {} for a new datastream", dir);
     }
 
     private void initRuleScript(String datastreamId, String nameRule) {
@@ -167,6 +171,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     public void stop() {
+        LOGGER.info("Stopping the rule engine");
         started = false;
         this.rules.clear();
         this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());

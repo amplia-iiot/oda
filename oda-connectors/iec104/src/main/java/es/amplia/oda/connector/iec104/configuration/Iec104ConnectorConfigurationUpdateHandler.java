@@ -48,10 +48,10 @@ public class Iec104ConnectorConfigurationUpdateHandler implements ConfigurationU
 
 	@Override
 	public void applyConfiguration() {
+		LOGGER.info("Applying last configuration");
 		if(currentConfiguration != null) {
-			LOGGER.info("Applying last configuration");
 			connector.loadConfiguration(currentConfiguration);
-			LOGGER.info("Last configuration applied");
 		}
+		LOGGER.info("Last configuration applied");
 	}
 }

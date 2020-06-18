@@ -32,8 +32,8 @@ class MessageLoggerInterceptor implements MessageInterceptor {
     }
 
     private void logSendMessage(String messageDescription, Message message) {
-        LOGGER.info("Send {} to {}:{} => {}", messageDescription, message.getDestination(), message.getDestinationPort(),
-                message);
+        LOGGER.info("Send {} to {}:{}", messageDescription, message.getDestination(), message.getDestinationPort());
+        LOGGER.debug("Message content of {}: {}", messageDescription, message);
     }
 
     @Override
@@ -52,7 +52,7 @@ class MessageLoggerInterceptor implements MessageInterceptor {
     }
 
     private void logReceiveMessage(String messageDescription, Message message) {
-        LOGGER.info("Receive {} from {}:{} => {}", messageDescription, message.getSource(), message.getSourcePort(),
-                message);
+        LOGGER.info("Receive {} from {}:{}", messageDescription, message.getSource(), message.getSourcePort());
+        LOGGER.debug("Message content of {}: {}", messageDescription, message);
     }
 }

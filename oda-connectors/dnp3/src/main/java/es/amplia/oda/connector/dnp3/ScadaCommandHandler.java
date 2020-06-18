@@ -30,10 +30,10 @@ class ScadaCommandHandler implements CommandHandler {
         try {
             result = scadaDispatcher.process(operation, index, value, null).get();
         } catch (ExecutionException e) {
-            LOGGER.error("Error processing SCADA operation " + operation, e);
+            LOGGER.error("Error processing SCADA operation {}", operation, e);
             result = ScadaOperationResult.ERROR;
         } catch (InterruptedException e) {
-            LOGGER.error("Interrupted exception processing SCADA operation " + operation, e);
+            LOGGER.error("Interrupted exception processing SCADA operation {}", operation, e);
             result = ScadaOperationResult.ERROR;
             Thread.currentThread().interrupt();
         }

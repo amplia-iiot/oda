@@ -18,7 +18,7 @@ import java.util.function.Function;
 
 public class ATManagerProxy implements ATManager, AutoCloseable {
 
-    private static final Logger logger = LoggerFactory.getLogger(ATManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ATManagerProxy.class);
 
     private final OsgiServiceProxy<ATManager> proxy;
 

@@ -64,6 +64,7 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
             LOGGER.error(exceptionMessage);
             throw new ConfigurationException(exceptionMessage);
         }
+        LOGGER.info("Loaded and established WebSocket connection");
     }
 
     private URI getUri(ConnectorConfiguration configuration, String deviceId, String apiKey) throws URISyntaxException {
@@ -74,14 +75,13 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
     @Override
     public void uplink(byte[] payload, ContentType contentType) {
         if (client != null) {
+            WebSocketMessage message = new WebSocketMessage(payload);
+            LOGGER.info("Sending message through WebSocket");
+            LOGGER.debug("Message content: {}", message);
             try {
-                LOGGER.debug("Content-Type is not supported in WebSocket (is application defined). Content-Type {} is ignored",
-                        contentType);
-                WebSocketMessage message = new WebSocketMessage(payload);
-                LOGGER.info("Sending message {}", message);
                 client.send(message.getPayload());
             } catch (Exception e) {
-                LOGGER.error("Error sending message through WebSocket connector", e);
+                LOGGER.error("Error sending message: {}", message, e);
             }
         } else {
             LOGGER.error("WebSocket connector is not properly configured");

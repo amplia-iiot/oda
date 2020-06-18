@@ -23,7 +23,8 @@ class Iec104Cache {
 
 
 	<T> void add(String typeId, T value, int index) {
-		LOGGER.info("Adding data with SCADA type {} with index {} and value {}", typeId, index, value);
+		LOGGER.info("Adding data to cache");
+		LOGGER.debug("Adding data with SCADA type {} with index {} and value {} to cache", typeId, index, value);
 		Map<Integer, Object> contain = cache.get(typeId);
 
 		if(contain == null) {
@@ -47,7 +48,7 @@ class Iec104Cache {
 			case "M_ME_NB_1":
 				return getMeasuredValueScaled(value, header, index, timestamp);
 			default:
-				LOGGER.error("{} cannot be translated", type);
+				LOGGER.warn("{} cannot be translated", type);
 				return null;
 		}
 	}
@@ -127,7 +128,7 @@ class Iec104Cache {
 					ret.add(asdu);
 				}
 			} catch (NullPointerException e) {
-				LOGGER.error("Null value stored on cache");
+				LOGGER.error("Null value stored on cache", e);
 			}
 		}
 		return ret;

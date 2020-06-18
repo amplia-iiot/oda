@@ -47,9 +47,10 @@ public class Fx30AnalogInputDevice extends AbstractInputDevice<AnalogInputEvent>
 		try {
 			value.seek(7);
 			float val = Float.parseFloat(value.readLine().split(" ")[0]);
+			LOGGER.debug("Recollected {} as raw value from channel {}", val, adcNumber);
 			return val / vRef / 1000000f;
 		} catch (IOException e) {
-			LOGGER.error("Error trying to get ADC value from {} (pin number {})", name, pinNumber, e);
+			LOGGER.error("Error trying to get ADC value from {} (pin number {}), returning 0 as value", name, pinNumber, e);
 			return 0;
 		}
 	}
@@ -64,7 +65,7 @@ public class Fx30AnalogInputDevice extends AbstractInputDevice<AnalogInputEvent>
 		try {
 			value.close();
 		} catch (IOException e) {
-			LOGGER.error("Error trying to close ADC file");
+			LOGGER.warn("Couldn't trying to close ADC file");
 		}
 	}
 }

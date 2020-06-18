@@ -50,7 +50,7 @@ public class Activator implements BundleActivator {
 		try {
 			configurationUpdateHandler.applyConfiguration();
 		} catch (Exception exception) {
-			LOGGER.warn("Exception applying configuration: ", exception);
+			LOGGER.error("Exception applying configuration: ", exception);
 		}
 	}
 
@@ -65,6 +65,6 @@ public class Activator implements BundleActivator {
 		adcService.close();
 		eventPublisher.close();
 
-		LOGGER.info("Stopped datastreams bundle stopped");
+		LOGGER.info("ADC datastreams bundle stopped");
 	}
 }

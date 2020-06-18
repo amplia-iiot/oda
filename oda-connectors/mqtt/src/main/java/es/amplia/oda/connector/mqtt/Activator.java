@@ -34,7 +34,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) {
-        LOGGER.info("MQTT connector is starting");
+        LOGGER.info("Starting MQTT connector");
 
         mqttClientFactory = new MqttClientFactoryProxy(bundleContext);
         dispatcher = new DispatcherProxy(bundleContext);
@@ -57,14 +57,15 @@ public class Activator implements BundleActivator {
         LOGGER.info("Device Info provider service changed. Reapplying last MQTT connector configuration");
         try {
             configHandler.reapplyConfiguration();
+            LOGGER.info("Last MQTT connector configuration reapplied");
         } catch (Exception e) {
-            LOGGER.warn("Error applying configuration: ", e);
+            LOGGER.error("Error applying configuration: ", e);
         }
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
-        LOGGER.info("MQTT connector is stopping");
+        LOGGER.info("Stopping MQTT connector");
 
         openGateConnectorRegistration.unregister();
         mqttClientFactoryServiceListener.close();

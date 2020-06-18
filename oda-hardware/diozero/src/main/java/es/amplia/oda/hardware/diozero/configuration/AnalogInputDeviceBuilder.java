@@ -54,7 +54,8 @@ class AnalogInputDeviceBuilder {
 		checkRequiredParameters();
 		checkCompatibleParameters();
 
-		LOGGER.info("Build new ADC Channel({},{},{},{},{})", channelIndex, name, path, lowMode, deviceType);
+		LOGGER.info("Build new ADC Channel(Index: {}, Name: {}, Path: {}, LowMode: {}, Type: {})",
+				channelIndex, name, path, lowMode, deviceType);
 		AnalogInputDeviceFactoryInterface factory;
 		switch (deviceType) {
 			case OWASYS:

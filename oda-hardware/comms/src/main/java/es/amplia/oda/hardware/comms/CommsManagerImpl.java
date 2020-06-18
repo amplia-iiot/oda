@@ -39,8 +39,11 @@ class CommsManagerImpl implements CommsManager {
         try {
             clear();
             initSim(pin);
+            LOGGER.info("SIM initialized");
             configureConnection(apn, username, password);
+            LOGGER.info("Connection configured");
             connect(connectionTimeout, retryConnectionTimer);
+            LOGGER.info("Achieved the GSM connection with APN {}", apn);
         } catch (CommandExecutionException e) {
             LOGGER.error("Error establishing communications with SIM PIN {}, APN {}, username {} and password {}",
                     pin, apn, username, password, e);
@@ -70,7 +73,7 @@ class CommsManagerImpl implements CommsManager {
             try {
                 executeScript(CONNECT_SCRIPT, COMMAND_TIMEOUT_MS + connectionTimeout * 1000, Integer.toString(connectionTimeout));
             } catch (CommandExecutionException e) {
-                LOGGER.error("Error establishing data connection", e);
+                LOGGER.error("Error establishing data connection, scheduling the next retry in {} seconds", retryConnectionTimer, e);
                 scheduledConnection =
                         executor.schedule(() -> connect(connectionTimeout, retryConnectionTimer), retryConnectionTimer, TimeUnit.SECONDS);
             }

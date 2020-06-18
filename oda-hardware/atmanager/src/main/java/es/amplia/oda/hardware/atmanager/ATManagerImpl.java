@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ATManagerImpl implements ATManager {
-    private static final Logger logger = LoggerFactory.getLogger(ATManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ATManagerImpl.class);
 
     private final Map<String, Consumer<ATEvent>> registeredEvents = new HashMap<>();
     private final Map<String, Function<ATCommand, ATResponse>> registeredCommands = new HashMap<>();
@@ -48,7 +48,6 @@ public class ATManagerImpl implements ATManager {
     @Override
     public void registerEvent(String atEvent, Consumer<ATEvent> function) throws AlreadyRegisteredException {
         if (registeredEvents.containsKey(atEvent)) {
-            logger.error("Trying to register '{}' two times.", atEvent);
             throw new AlreadyRegisteredException("Cannot register '" + atEvent + "' two times.");
         }
         if (registeredCommands.containsKey(atEvent)) {
@@ -87,7 +86,7 @@ public class ATManagerImpl implements ATManager {
         } else if (type == ATParser.LineType.COMMANDS) {
             handleCommands(parserResult);
         } else if (type == ATParser.LineType.ERROR) {
-            logger.warn("Received the malformed string '{}' (Error = '{}'). It is discarded.", line, parserResult.getErrorMsg());
+            LOGGER.warn("Received the malformed string '{}' (Error = '{}'). It is discarded.", line, parserResult.getErrorMsg());
         } else if (type == ATParser.LineType.PARTIAL_RESPONSE) {
             ATEvent evt = ATEvent.event(parserResult.getResponseName(), parserResult.getResponseParameters());
             if (partialResponses == null) {
@@ -103,7 +102,7 @@ public class ATManagerImpl implements ATManager {
             body.append(parserResult.getBody());
         } else if (type == ATParser.LineType.COMPLETE_RESPONSE) {
             if (commandFuture == null) {
-                logger.error("No command future when a complete response is received.");
+                LOGGER.error("No command future when a complete response is received.");
                 return;
             }
             ATResponse response;
@@ -130,14 +129,14 @@ public class ATManagerImpl implements ATManager {
         if (consumer != null) {
             consumer.accept(event);
         } else {
-            logger.warn("Received an unsolicited message for '{}' but no handler registered", responseName);
+            LOGGER.warn("Received an unsolicited message for '{}' but no handler registered", responseName);
         }
     }
 
     private void handleCommands(ATParser.Result parserResult) {
         List<ATCommand> commands = parserResult.getCommands();
         if (commands.size() != 1) {
-            logger.error("It is currently not supported to handle AT strings with various commands");
+            LOGGER.error("It is currently not supported to handle AT strings with various commands");
             return;
         }
         ATCommand cmd = commands.get(0);
@@ -150,7 +149,7 @@ public class ATManagerImpl implements ATManager {
             if (function != null) {
                 resp = function.apply(cmd);
             } else {
-                logger.warn("Received an AT command for '{}' but no handler registered", cmdName);
+                LOGGER.warn("Received an AT command for '{}' but no handler registered", cmdName);
                 resp = ATResponse.error();
             }
             sendToPeer(resp.toWireString());
@@ -158,11 +157,12 @@ public class ATManagerImpl implements ATManager {
     }
 
     private void sendToPeer(String data) {
-        logger.info("Send to comm port: \"{}\"", data);
+        String dataTrace = data.replaceAll("\n", "");
+        LOGGER.info("Send to comm port: \"{}\"", dataTrace);
         try {
             outputStream.write(data.getBytes());
         } catch (IOException e) {
-            logger.error("Cannot send command response to peer", e);
+            LOGGER.error("Cannot send command response to peer", e);
         }
     }
 
@@ -176,7 +176,7 @@ public class ATManagerImpl implements ATManager {
         try {
             if (semaphore.tryAcquire(timeout, TimeUnit.SECONDS)) {
                 if (commandFuture != null && !commandFuture.isDone()) {
-                    logger.error("Unexpected situation: AT manager is busy processing another command");
+                    LOGGER.error("Unexpected situation: AT manager is busy processing another command");
                     semaphore.release();
                     ATResponse response =
                             ATResponse.error("Unexpected situation: AT manager is busy processing another command");
@@ -194,7 +194,7 @@ public class ATManagerImpl implements ATManager {
                 return CompletableFuture.completedFuture(ATResponse.error("AT command timeout"));
             }
         } catch (InterruptedException e) {
-            logger.error("AT Manager thread interrupted");
+            LOGGER.error("AT Manager thread interrupted");
             Thread.currentThread().interrupt();
             return CompletableFuture.completedFuture(ATResponse.error("Interrupted thread"));
         }

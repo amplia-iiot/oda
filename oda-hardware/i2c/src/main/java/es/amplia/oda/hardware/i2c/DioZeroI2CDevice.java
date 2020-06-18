@@ -1,11 +1,15 @@
 package es.amplia.oda.hardware.i2c;
 
 import es.amplia.oda.core.commons.i2c.I2CDevice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 public class DioZeroI2CDevice implements I2CDevice {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DioZeroI2CDevice.class);
 
 	private final String name;
 	private final int register;
@@ -41,7 +45,9 @@ public class DioZeroI2CDevice implements I2CDevice {
 		synchronized (i2cDevice) {
 			this.i2cDevice.readUInt(this.register);
 			TimeUnit.MILLISECONDS.sleep(500);
-			return (this.i2cDevice.readUInt(this.register));
+			long result = this.i2cDevice.readUInt(this.register);
+			LOGGER.debug("Recollected {} as raw value from {}", result, name);
+			return (result);
 		}
 	}
 
@@ -51,6 +57,7 @@ public class DioZeroI2CDevice implements I2CDevice {
 			this.i2cDevice.readUInt(this.register);
 			TimeUnit.MILLISECONDS.sleep(500);
 			double result = (this.i2cDevice.readUInt(this.register) - minimum) / (maximum - minimum);
+			LOGGER.debug("Recollected {} as raw value from {}", result, name);
 			if(result < 0)
 				return 0;
 			if(result > 1)
@@ -71,6 +78,7 @@ public class DioZeroI2CDevice implements I2CDevice {
 
 	@Override
 	public void write(float data) {
+		LOGGER.info("Setting value {} to the I2C device {}", data, name);
 		ByteBuffer result = ByteBuffer.allocate(4);
 		result.putFloat(data);
 		result.rewind();

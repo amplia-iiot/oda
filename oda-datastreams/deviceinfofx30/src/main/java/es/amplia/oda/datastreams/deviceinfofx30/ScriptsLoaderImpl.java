@@ -67,7 +67,7 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 		try {
 			commander.execute(DELETE_DIR_COMMAND + path);
 		} catch (CommandExecutionException e) {
-			LOGGER.error("Error freeing scripts loader resources");
+			LOGGER.error("Error trying to close scripts loader", e);
 		}
 	}
 }

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public class DNP3ConnectorConfigurationHandler implements ConfigurationUpdateHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DNP3ConnectorConfigurationHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DNP3ConnectorConfigurationHandler.class);
 
     static final String CHANNEL_IDENTIFIER_PROPERTY_NAME = "channelIdentifier";
     static final String OUTSTATION_IDENTIFIER_PROPERTY_NAME = "outstationIdentifier";
@@ -34,14 +34,14 @@ public class DNP3ConnectorConfigurationHandler implements ConfigurationUpdateHan
 
     @Override
     public void loadDefaultConfiguration() {
-        logger.info("Loading default configuration");
+        LOGGER.info("Loading default configuration");
         currentConfiguration = DNP3ConnectorConfiguration.builder().build();
-        logger.info("Loaded default configuration");
+        LOGGER.info("Loaded default configuration");
     }
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
-        logger.info("Loading new configuration");
+        LOGGER.info("Loading new configuration");
 
         DNP3ConnectorConfiguration.DNP3ConnectorConfigurationBuilder builder = DNP3ConnectorConfiguration.builder();
 
@@ -66,22 +66,22 @@ public class DNP3ConnectorConfigurationHandler implements ConfigurationUpdateHan
 
         currentConfiguration = builder.build();
 
-        logger.info("New configuration loaded");
+        LOGGER.info("New configuration loaded");
     }
 
     @Override
     public void applyConfiguration() {
         try {
-            logger.info("Applying last configuration");
+            LOGGER.info("Applying last configuration");
             connector.loadConfiguration(currentConfiguration);
 
             if (currentConfiguration.isEnable()) {
                 connector.init();
-                logger.info("Connector is configured and enabled");
+                LOGGER.info("Connector is configured and enabled");
             } else {
-                logger.info("Connector is configured but disabled");
+                LOGGER.info("Connector is configured but disabled");
             }
-            logger.info("Last configuration applied");
+            LOGGER.info("Last configuration applied");
         } catch (DNP3Exception e) {
             throw new IllegalArgumentException("Invalid configuration for DNP3 Connector", e);
         }

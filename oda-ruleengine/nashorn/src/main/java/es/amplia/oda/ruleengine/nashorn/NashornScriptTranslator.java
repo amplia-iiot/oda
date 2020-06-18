@@ -39,9 +39,9 @@ public class NashornScriptTranslator implements ScriptTranslator {
             Invocable rule = (Invocable) engines.get(script);
             params[0] = rule.invokeFunction(method, params[0], params[1]);
         } catch (ScriptException e) {
-            LOGGER.error("Error trying to execute script " + script + " method " + method);
+            LOGGER.error("Error trying to execute script {} method {}", script, method);
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Method " + method + " doesn't exists on scipt " + script);
+            LOGGER.error("Method {}} doesn't exists on scipt {}", method, script);
         }
         return params[0];
     }
@@ -53,18 +53,18 @@ public class NashornScriptTranslator implements ScriptTranslator {
     }
 
     private String readFile(String file) {
-        try {
-            Scanner script = new Scanner(new File(file));
+        try (Scanner script = new Scanner(new File(file))) {
             StringBuilder scriptContent = new StringBuilder();
 
-            while(script.hasNext()) {
+            while (script.hasNext()) {
                 scriptContent.append(script.nextLine());
             }
 
             script.close();
 
             return scriptContent.toString();
-        } catch (FileNotFoundException ignored) {}
+        } catch (FileNotFoundException ignored) {
+        }
         return "";
     }
 }

@@ -34,7 +34,8 @@ class WebSocketClientImpl extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        LOGGER.info("Messaged arrived: {}", message);
+        LOGGER.info("Messaged arrived");
+        LOGGER.debug("Message content: {}", message);
         try {
             CompletableFuture<byte[]> response = dispatcher.process(message.getBytes(StandardCharsets.UTF_8));
             if (response == null) {

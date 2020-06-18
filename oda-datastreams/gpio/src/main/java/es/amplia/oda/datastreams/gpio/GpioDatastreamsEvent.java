@@ -40,8 +40,8 @@ class GpioDatastreamsEvent extends AbstractDatastreamsEvent {
 
             pin.addGpioPinListener(this::publishValue);
         } catch (GpioDeviceException gpioDeviceException) {
-            LOGGER.warn("Error initializing datastreams {}: Exception adding listener to GPIO pin {}. {}", datastreamId,
-                    pinIndex, gpioDeviceException);
+            LOGGER.warn("Error initializing datastream event {}: Exception adding listener to GPIO pin {}. {}", datastreamId,
+                    pinIndex, gpioDeviceException.getMessage());
         }
     }
 
@@ -54,10 +54,10 @@ class GpioDatastreamsEvent extends AbstractDatastreamsEvent {
         try {
             pin.removeGpioPinListener();
         } catch (GpioDeviceException gpioDeviceException) {
-            LOGGER.warn("Error releasing datastreams {}: Exception removing listener from GPIO pin {}. {}",
+            LOGGER.warn("Error releasing datastream event {}: Exception removing listener from GPIO pin {}. {}",
                     datastreamId, pinIndex, gpioDeviceException.getMessage());
         } catch (Exception exception) {
-            LOGGER.warn("Error releasing datastreams event {}: GPIO pin is not available", datastreamId);
+            LOGGER.warn("Error releasing datastream event {}: GPIO pin is not available", datastreamId);
         }
     }
 }

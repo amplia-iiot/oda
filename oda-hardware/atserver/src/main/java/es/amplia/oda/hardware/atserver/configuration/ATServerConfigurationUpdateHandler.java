@@ -23,6 +23,7 @@ public class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHa
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> properties) {
+        LOGGER.info("Loading new configuration for ATServer bundle");
         LOGGER.debug("AT Server updated with {} properties", properties.size());
 
         String appName = get(properties, "appName", String.class);
@@ -56,6 +57,7 @@ public class ATServerConfigurationUpdateHandler implements ConfigurationUpdateHa
 
         currentConfiguration = new ATServerConfiguration(appName, timeToGetPort, portName, baudRate, dataBits,
                 stopBits, parityAsInt, timeBetweenCommands);
+        LOGGER.info("ATServer bundle new configuration loaded");
     }
 
     @SuppressWarnings({"unchecked", "WrapperTypeMayBePrimitive"})

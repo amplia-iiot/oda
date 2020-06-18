@@ -54,7 +54,7 @@ public class Activator implements BundleActivator {
         try {
             configHandler.applyConfiguration();
         }catch (Exception exception) {
-            LOGGER.warn("Exception applying configuration: ", exception);
+            LOGGER.error("Exception applying configuration: ", exception);
         }
     }
 

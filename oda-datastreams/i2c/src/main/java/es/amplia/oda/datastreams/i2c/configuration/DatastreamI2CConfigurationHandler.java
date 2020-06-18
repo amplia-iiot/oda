@@ -52,7 +52,7 @@ public class DatastreamI2CConfigurationHandler implements ConfigurationUpdateHan
 				getValueByToken(SETTER_PROPERTY_NAME, tokens).map(Boolean::parseBoolean).ifPresent(builder::setter);
 				currentConfiguration.put(datastreamName, builder.build());
 			} catch (IllegalArgumentException e) {
-				LOGGER.warn("Invalid configuration {}: {}", entry.getKey(), entry.getValue());
+				LOGGER.warn("Invalid configuration {}: {}. Module will continue without this datastream.", entry.getKey(), entry.getValue());
 			}
 		}
 

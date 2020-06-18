@@ -48,6 +48,7 @@ class MqttDatastreamsLwtHandler implements AutoCloseable {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 LwtMessage message = serializer.deserialize(mqttMessage.getPayload(), LwtMessage.class);
                 message.getDevices().forEach(this::disableDevice);
             } catch(IOException e) {

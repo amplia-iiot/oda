@@ -5,6 +5,8 @@ import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CDeviceException;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class I2CDatastreamsSetter implements DatastreamsSetter {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(I2CDatastreamsSetter.class);
 
 	private final String datastreamId;
 	private final I2CService service;
@@ -39,6 +43,7 @@ public class I2CDatastreamsSetter implements DatastreamsSetter {
 
 	@Override
 	public CompletableFuture<Void> set(String deviceId, Object value) {
+		LOGGER.info("Setting value for datastream {} to value {}", datastreamId, value);
 		return CompletableFuture.supplyAsync(() -> setValue(deviceId, value));
 	}
 

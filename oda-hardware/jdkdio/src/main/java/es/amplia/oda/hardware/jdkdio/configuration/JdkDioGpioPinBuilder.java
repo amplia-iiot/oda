@@ -68,8 +68,8 @@ class JdkDioGpioPinBuilder {
         checkRequiredParameters();
         checkCompatibleParameters();
 
-        LOGGER.info("Build new GPIO Pin({},{},{},{},{},{},{})", index, name, direction, mode, trigger, activeLow,
-                initialValue);
+        LOGGER.info("Build new GPIO Pin(Idx: {}, Name: {}, Dir: {}, Md: {}, Tr: {}, low: {}, Init: {})",
+                index, name, direction, mode, trigger, activeLow, initialValue);
         return new JdkDioGpioPin(index, name, direction, mode, trigger, activeLow, initialValue);
     }
 

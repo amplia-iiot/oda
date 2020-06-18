@@ -40,8 +40,10 @@ public class DioZeroAdcService implements AdcService, AutoCloseable {
 	}
 
 	public void loadConfiguration(List<AdcChannel> configuredChannels) {
+		LOGGER.info("Loading new configuration for ADC Hardware bundle. Closing previous configuration");
 		close();
 		configuredChannels.forEach(channel -> this.channels.put(channel.getIndex(), channel));
+		LOGGER.info("New configuration for ADC Hardware bundle loaded");
 	}
 
 	@Override

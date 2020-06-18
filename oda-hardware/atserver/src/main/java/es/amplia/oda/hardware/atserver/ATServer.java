@@ -37,6 +37,7 @@ public class ATServer implements ATManager, AutoCloseable {
     }
 
     public void loadConfiguration(ATServerConfiguration configuration) {
+        LOGGER.info("Loading configuration for ATServer");
         try {
             close();
 
@@ -88,7 +89,7 @@ public class ATServer implements ATManager, AutoCloseable {
                 atManager.process(line);
             }
         } catch (IOException e) {
-            LOGGER.error("Error processing evet {}: {}", event, e);
+            LOGGER.error("Error processing event {}: {}", event, e);
         }
     }
 
