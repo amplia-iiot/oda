@@ -2,12 +2,15 @@ package es.amplia.oda.operation.update.operations;
 
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.io.File;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
@@ -44,6 +47,23 @@ public class UpgradeRuleDeploymentElementOperationTest {
     public void setUp() {
         testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, PATH_TO_RULES_FILE,
                 mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+    }
+
+    @After
+    public void cleanUp() {
+        StringBuilder path = new StringBuilder(PATH_TO_RULES_FILE);
+        do {
+            File testFile = new File(PATH_TO_RULES_FILE);
+            if (testFile.exists()) {
+                testFile.delete();
+            }
+            String[] dirs = path.toString().split("/");
+            int max = dirs.length - 1;
+            path = new StringBuilder();
+            for (int i = 0; i < max; i++) {
+                path.append(dirs[i]).append("/");
+            }
+        } while (!path.toString().equals(""));
     }
 
     @Test

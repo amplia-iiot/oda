@@ -1,7 +1,5 @@
-package es.amplia.oda.datastreams.deviceinfofx30;
+package es.amplia.oda.core.commons.utils;
 
-import es.amplia.oda.core.commons.utils.CommandExecutionException;
-import es.amplia.oda.core.commons.utils.CommandProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +9,7 @@ import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
+public class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ScriptsLoaderImpl.class);
 
@@ -21,20 +19,21 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 
 	private String path;
 
-	ScriptsLoaderImpl(CommandProcessor commandProcessor) {
+	public ScriptsLoaderImpl(CommandProcessor commandProcessor) {
 		commander = commandProcessor;
 	}
 
 	@Override
-	public void loadScripts(String source, String path) throws CommandExecutionException, IOException {
+	public void loadScripts(String source, String path, String artifactId) throws CommandExecutionException, IOException {
 		this.path = path;
-		File file = new File(source);
-		File[] files = file.listFiles();
+		File deployDirectory = new File(source);
+		File[] filesOfBundles = deployDirectory.listFiles();
 		String jarToExtract = null;
 
-		for (File temp : Objects.requireNonNull(files)) {
-			if(temp.getName().contains("es.amplia.oda.datastreams.deviceinfofx30")) {
-				jarToExtract = temp.getName();
+		for (File checkingBundle : Objects.requireNonNull(filesOfBundles)) {
+			if(checkingBundle.getName().contains(artifactId)) {
+				jarToExtract = checkingBundle.getName();
+				break;
 			}
 		}
 
@@ -52,6 +51,7 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 								fos.write(is.read());
 							}
 						}
+						commander.execute("chmod u+x " + fileToCopy.getAbsolutePath());
 					}
 				}
 			}
@@ -65,7 +65,10 @@ class ScriptsLoaderImpl implements ScriptsLoader, AutoCloseable {
 	@Override
 	public void close() {
 		try {
-			commander.execute(DELETE_DIR_COMMAND + path);
+			File scriptsFile = new File(path);
+			if (scriptsFile.exists()) {
+				commander.execute(DELETE_DIR_COMMAND + path);
+			}
 		} catch (CommandExecutionException e) {
 			LOGGER.error("Error trying to close scripts loader", e);
 		}

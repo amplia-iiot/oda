@@ -7,14 +7,14 @@ import org.slf4j.LoggerFactory;
 
 class DNP3ChannelListener implements ChannelListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(DNP3ChannelListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DNP3ChannelListener.class);
 
     private ChannelState currentState = ChannelState.SHUTDOWN;
 
     @Override
     public void onStateChange(ChannelState channelState) {
         currentState = channelState;
-        logger.info("Channel state: {}", channelState);
+        LOGGER.info("Channel state: {}", channelState);
     }
 
     boolean isOpen() {

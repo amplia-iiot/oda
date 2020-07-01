@@ -3,8 +3,8 @@ package es.amplia.oda.datastreams.deviceinfofx30.configuration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import es.amplia.oda.core.commons.utils.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
-import es.amplia.oda.datastreams.deviceinfofx30.ScriptsLoader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +17,7 @@ public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHa
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoFX30ConfigurationHandler.class);
 
+	static final String BUNDLE_ARTIFACT_ID = "es.amplia.oda.datastreams.deviceinfofx30";
 	static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
 	static final String API_KEY_PROPERTY_NAME = "apiKey";
 	static final String SOURCE_PROPERTY_NAME = "source";
@@ -52,7 +53,7 @@ public class DeviceInfoFX30ConfigurationHandler implements ConfigurationUpdateHa
 	@Override
 	public void applyConfiguration() {
 		try {
-			scriptsLoader.loadScripts(currentConfiguration.getSource(), currentConfiguration.getPath());
+			scriptsLoader.loadScripts(currentConfiguration.getSource(), currentConfiguration.getPath(), BUNDLE_ARTIFACT_ID);
 			deviceInfoFX30.loadConfiguration(currentConfiguration);
 		} catch (CommandExecutionException | IOException e) {
 			LOGGER.error("Error trying to load the Device Info Scripts: ",  e);

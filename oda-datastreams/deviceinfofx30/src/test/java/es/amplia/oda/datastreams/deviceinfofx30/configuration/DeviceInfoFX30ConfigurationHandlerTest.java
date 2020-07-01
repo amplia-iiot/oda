@@ -3,8 +3,8 @@ package es.amplia.oda.datastreams.deviceinfofx30.configuration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
+import es.amplia.oda.core.commons.utils.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
-import es.amplia.oda.datastreams.deviceinfofx30.ScriptsLoader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -95,7 +95,7 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 
 		testHandler.applyConfiguration();
 
-		verify(mockedScriptsLoader).loadScripts(eq(TEST_SOURCE), eq(TEST_PATH));
+		verify(mockedScriptsLoader).loadScripts(eq(TEST_SOURCE), eq(TEST_PATH), eq(BUNDLE_ARTIFACT_ID));
 		verify(mockedDeviceInfo).loadConfiguration(eq(TEST_CONFIGURATION));
 	}
 
@@ -104,7 +104,7 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 		Whitebox.setInternalState(testHandler, "currentConfiguration", TEST_CONFIGURATION);
 
 		doThrow(new CommandExecutionException("","",null)).when(mockedScriptsLoader)
-				.loadScripts(anyString(), anyString());
+				.loadScripts(anyString(), anyString(), anyString());
 
 		testHandler.applyConfiguration();
 
@@ -115,7 +115,7 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 	public void testApplyConfigurationIOExceptionCaught() throws CommandExecutionException, IOException {
 		Whitebox.setInternalState(testHandler, "currentConfiguration", TEST_CONFIGURATION);
 
-		doThrow(new IOException()).when(mockedScriptsLoader).loadScripts(anyString(), anyString());
+		doThrow(new IOException()).when(mockedScriptsLoader).loadScripts(anyString(), anyString(), anyString());
 
 		testHandler.applyConfiguration();
 
