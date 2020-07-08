@@ -18,6 +18,7 @@
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
+        <diozero.wrapper.version>0.12</diozero.wrapper.version>
         <diozero.version>0.11</diozero.version>
         <apache.commons.math3.version>3.6.1</apache.commons.math3.version>
         <tinylog.version>1.3.6</tinylog.version>
@@ -43,7 +44,7 @@
                                     <goal>bundle</goal>
                                 </goals>
                                 <configuration>
-                                    <classifier>arm</classifier>
+                                    <classifier>legato</classifier>
                                     <instructions>
                                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                                         <Bundle-Version>${project.version}</Bundle-Version>
@@ -52,7 +53,7 @@
                                         <Export-Package>!*</Export-Package>
                                         <Import-Package>!com.diozero.devices, !android.os, !android.util, !dalvik.system, !sun.reflect, *</Import-Package>
                                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                                        <Embed-Dependency>libdiozero-system-utils;classifier=arm;type=so, diozero-core, commons-math3, tinylog</Embed-Dependency>
+                                        <Embed-Dependency>libdiozero-system-utils;classifier=legato;type=so, diozero-core, commons-math3, tinylog</Embed-Dependency>
                                         <Embed-Directory>lib</Embed-Directory>
                                         <Embed-StripVersion>true</Embed-StripVersion>
                                     </instructions>
@@ -66,9 +67,9 @@
                 <dependency>
                     <groupId>com.diozero</groupId>
                     <artifactId>libdiozero-system-utils</artifactId>
-                    <classifier>arm</classifier>
+                    <classifier>legato</classifier>
                     <type>so</type>
-                    <version>${diozero.version}</version>
+                    <version>${diozero.wrapper.version}</version>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
@@ -77,7 +78,7 @@
             <id>owa</id>
             <activation>
                 <file>
-                    <exists>/opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
+                    <exists>${user.home}/owa-compiler/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
                 </file>
             </activation>
             <build>
@@ -117,7 +118,7 @@
                     <artifactId>libdiozero-system-utils</artifactId>
                     <classifier>owa</classifier>
                     <type>so</type>
-                    <version>${diozero.version}</version>
+                    <version>${diozero.wrapper.version}</version>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
@@ -223,7 +224,7 @@
             <artifactId>libdiozero-system-utils</artifactId>
             <classifier>x86_64</classifier>
             <type>so</type>
-            <version>${diozero.version}</version>
+            <version>${diozero.wrapper.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
