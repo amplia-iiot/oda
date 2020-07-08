@@ -9,6 +9,7 @@ import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 
+import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) {
+        LOGGER.info("Starting MQTT datastreams bundle");
         mqttClientFactory = new MqttClientFactoryProxy(bundleContext);
         serializer = new SerializerProxy(bundleContext, ContentType.CBOR);
         eventPublisher = new EventPublisherProxy(bundleContext);
@@ -42,10 +44,12 @@ public class Activator implements BundleActivator {
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         mqttClientFactoryListener = new ServiceListenerBundle<>(bundleContext, MqttClientFactory.class,
                 this::onServiceChanged);
+        LOGGER.info("MQTT datastreams bundle started");
     }
 
     void onServiceChanged() {
         try {
+            LOGGER.info("Applying new configuration for MQTT datastreams bundle");
             configHandler.applyConfiguration();
         } catch (Exception e) {
             LOGGER.error("Error applying MQTT Datastreams configuration after MQTT Client Factory service changed: {0}",
@@ -55,11 +59,13 @@ public class Activator implements BundleActivator {
 
     @Override
     public void stop(BundleContext bundleContext) {
+        LOGGER.info("Stopping MQTT datastreams bundle");
         mqttClientFactoryListener.close();
         configurableBundle.close();
         mqttDatastreamsOrchestrator.close();
         mqttClientFactory.close();
         serializer.close();
         eventPublisher.close();
+        LOGGER.info("MQTT datastreams bundle stopped");
     }
 }

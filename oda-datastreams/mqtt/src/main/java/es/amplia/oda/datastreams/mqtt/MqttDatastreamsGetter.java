@@ -87,6 +87,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
                 String readDatastreamTopic = getDatastreamTopic(deviceId);
                 byte[] payload = serializer.serialize(request);
                 MqttMessage message = MqttMessage.newInstance(payload);
+                LOGGER.debug("Getting value from MQTT datastream {} of device {}", datastreamId, deviceId);
                 mqttClient.publish(readDatastreamTopic, message, ContentType.CBOR);
                 futures.put(request.getId(), future);
             } catch (IOException | MqttException e) {
@@ -122,6 +123,7 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
         @Override
         public void messageArrived(String topic, MqttMessage message) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 ReadResponse response = serializer.deserialize(message.getPayload(), ReadResponse.class);
 
                 if (futures.containsKey(response.getId())) {

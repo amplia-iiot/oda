@@ -31,8 +31,18 @@ public class CommandProcessorImpl implements CommandProcessor {
             }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(processCommand.getInputStream()));
+            BufferedReader stdErr = new BufferedReader(new InputStreamReader(processCommand.getErrorStream()));
             String result = reader.readLine();
+            StringBuilder err = new StringBuilder();
+            String temp;
+            while((temp = stdErr.readLine()) != null) {
+                err.append(temp);
+            }
+            if(!err.toString().equals("")) {
+                LOGGER.error("Something went wrong on command: {}", err);
+            }
             reader.close();
+            stdErr.close();
 
             return result;
         } catch (IOException exception) {

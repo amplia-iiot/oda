@@ -13,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
-    private static final Logger logger = LoggerFactory.getLogger(Activator.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     static {
+        LOGGER.info("Loading the opendnp3 native libraries");
         System.setProperty("com.automatak.dnp3.nostaticload", "");
         try {
             System.loadLibrary("openpal");
@@ -23,8 +24,9 @@ public class Activator implements BundleActivator {
             System.loadLibrary("asiopal");
             System.loadLibrary("asiodnp3");
             System.loadLibrary("opendnp3java");
+            LOGGER.info("Opendnp3 native libraries loaded");
         } catch (UnsatisfiedLinkError e) {
-            logger.error("Error loading the opendnp3 native libs: {}", e.getMessage());
+            LOGGER.error("Error loading the opendnp3 native libs", e);
         }
     }
 
@@ -42,7 +44,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
-        logger.info("DNP 3.0 connector is starting");
+        LOGGER.info("Starting DNP 3.0 connector");
         tableInfo = new ScadaTableInfoProxy(bundleContext);
         dispatcher = new ScadaDispatcherProxy(bundleContext);
         ServiceRegistrationManager<ScadaConnector> scadaConnectorRegistrationManager =
@@ -53,20 +55,21 @@ public class Activator implements BundleActivator {
 
         serviceListenerBundle = new ServiceListenerBundle<>(bundleContext, ScadaTableInfo.class, this::onServiceChanged);
 
-        logger.info("DNP 3.0 connector started");
+        LOGGER.info("DNP 3.0 connector started");
     }
 
     void onServiceChanged() {
+        LOGGER.info("Scada Tables service changed. Applying DNP3 connector configuration");
         try {
             configHandler.applyConfiguration();
-        }catch (Exception exception) {
-            logger.warn("Exception applying configuration");
+        }catch (Exception e) {
+            LOGGER.error("Error applying configuration", e);
         }
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
-        logger.info("DNP 3.0 connector is stopping");
+        LOGGER.info("Stopping DNP 3.0 connector");
 
         serviceListenerBundle.close();
         connector.close();
@@ -74,6 +77,6 @@ public class Activator implements BundleActivator {
         dispatcher.close();
         configurableBundle.close();
 
-        logger.info("DNP 3.0 connector stopped");
+        LOGGER.info("DNP 3.0 connector stopped");
     }
 }

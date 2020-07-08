@@ -45,12 +45,13 @@ public class MainDirectoryWatcher implements DirectoryWatcher {
 						key.reset();
 					}
 				} catch (InterruptedException e) {
-					LOGGER.error("Something unexpected happened during the watch of delete files");
+					LOGGER.error("Something unexpected happened while watching the directory for changes. Watcher will be stopped", e);
+					Thread.currentThread().interrupt();
 				}
 			});
 			creatingWatcherThread.start();
 		} catch (IOException e) {
-			LOGGER.error("Error on Rules directory Watcher creation");
+			LOGGER.error("Error on Rules directory Watcher creation", e);
 		}
 	}
 

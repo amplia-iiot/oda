@@ -5,6 +5,8 @@ import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -13,6 +15,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModbusMasterConfigurationUpdateHandler.class);
 
     static final String TYPE_PROPERTY_NAME = "type";
     static final String ADDRESS_PROPERTY_NAME = "address";
@@ -54,11 +58,13 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        LOGGER.info("Loading new configuration");
         String type = Optional.ofNullable((String) props.get(TYPE_PROPERTY_NAME)).orElse("");
         Consumer<Dictionary<String, ?>> configuratorConsumer =
                 Optional.ofNullable(configuratorConsumers.get(type))
                         .orElseThrow(() -> new ConfigurationException("Invalid Modbus type"));
         configuratorConsumer.accept(props);
+        LOGGER.info("New configuration loaded");
     }
 
     private void loadTCPConfiguration(Dictionary<String, ?> props) {

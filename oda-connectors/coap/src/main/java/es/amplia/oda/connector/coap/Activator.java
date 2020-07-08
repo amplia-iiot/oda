@@ -51,11 +51,11 @@ public class Activator implements BundleActivator {
     }
 
     void onServiceChanged() {
-        LOGGER.info("Device Info provider service changed. Applying COAP connector configuration");
+        LOGGER.info("Device Info provider or AT Manager service changed. Applying COAP connector configuration");
         try {
             configHandler.applyConfiguration();
         } catch (Exception e) {
-            LOGGER.warn("Error applying configuration", e);
+            LOGGER.error("Error applying configuration", e);
         }
     }
 

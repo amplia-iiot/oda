@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 class GpioDatastreamsGetter implements DatastreamsGetter {
 
-    private static final Logger logger = LoggerFactory.getLogger(GpioDatastreamsGetter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GpioDatastreamsGetter.class);
 
     private final String datastreamId;
     private final int pinIndex;
@@ -53,11 +53,12 @@ class GpioDatastreamsGetter implements DatastreamsGetter {
 
 	        long at = System.currentTimeMillis();
 			Boolean value = pin.getValue();
+			LOGGER.debug("Getting value {} from GPIO pin {} at {}", value, pinIndex, at);
 			return new CollectedValue(at , value );
         } catch (GpioDeviceException gpioDeviceException) {
             String msg = String.format("Error getting %s value for %s device: %s", datastreamId, device,
                     gpioDeviceException.getMessage());
-			logger.warn(msg);
+			LOGGER.warn(msg);
             throw new DataNotFoundException(msg);
         }
     }

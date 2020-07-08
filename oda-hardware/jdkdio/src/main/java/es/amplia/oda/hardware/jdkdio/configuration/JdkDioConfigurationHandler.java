@@ -45,6 +45,7 @@ public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
     public void loadConfiguration(Dictionary<String, ?> props) {
         LOGGER.info("Loading new configuration");
         gpioPinsConfiguration = Collections.dictionaryToMap(props);
+        LOGGER.info("New configuration loaded");
     }
 
     @Override
@@ -68,6 +69,7 @@ public class JdkDioConfigurationHandler implements ConfigurationUpdateHandler {
 
     @Override
     public void applyConfiguration() {
+        LOGGER.info("Applying configuration");
         jdkDioGpioService.release();
 
         if (gpioPinsConfiguration != null) {

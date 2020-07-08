@@ -64,6 +64,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 String deviceId = extractDeviceIdFromTopic(topic);
                 DeviceEventMessage deviceEvent =
                         serializer.deserialize(mqttMessage.getPayload(), DeviceEventMessage.class);
@@ -93,6 +94,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 DatastreamInfo datastreamInfo = extractDeviceInfoFromTopic(topic);
                 if (hasPermission(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
                     DatastreamEvent event =

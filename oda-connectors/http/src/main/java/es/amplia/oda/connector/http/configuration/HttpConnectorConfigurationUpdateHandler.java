@@ -2,11 +2,15 @@ package es.amplia.oda.connector.http.configuration;
 
 import es.amplia.oda.connector.http.HttpConnector;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
 
 public class HttpConnectorConfigurationUpdateHandler implements ConfigurationUpdateHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpConnectorConfigurationUpdateHandler.class);
 
     static final String HOST_PROPERTY_NAME = "host";
     static final String PORT_PROPERTY_NAME = "port";
@@ -27,6 +31,7 @@ public class HttpConnectorConfigurationUpdateHandler implements ConfigurationUpd
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        LOGGER.info("Loading new configuration");
         ConnectorConfiguration.ConnectorConfigurationBuilder builder = ConnectorConfiguration.builder();
 
         Optional.ofNullable((String) props.get(HOST_PROPERTY_NAME)).ifPresent(builder::host);
@@ -39,12 +44,15 @@ public class HttpConnectorConfigurationUpdateHandler implements ConfigurationUpd
                 builder.compressionThreshold(Integer.parseInt(value)));
 
         currentConfiguration = builder.build();
+        LOGGER.info("New configuration loaded");
     }
 
     @Override
     public void applyConfiguration() {
+        LOGGER.info("Applying last configuration");
         if (currentConfiguration != null) {
             connector.loadConfiguration(currentConfiguration);
         }
+        LOGGER.info("Last configuration applied");
     }
 }

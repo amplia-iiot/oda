@@ -27,6 +27,7 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
     }
 
     public void addSubscribedTopic(String topic, IMqttMessageListener listener) {
+        LOGGER.debug("Subscribing to {} topic", topic);
         subscribedListeners.put(topic, listener);
     }
 
@@ -48,7 +49,7 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
-        LOGGER.warn("Connection lost", cause);
+        LOGGER.warn("Connection with MQTT broker lost", cause);
     }
 
     @Override

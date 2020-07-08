@@ -57,7 +57,7 @@ class PollerConfigurationUpdateHandler implements ConfigurationUpdateHandler {
                 }
                 add(new PollConfiguration(deviceIdInKey, firstPoll, secondsBetweenPolls), idInKey);
             } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-                LOGGER.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
+                LOGGER.error("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
             }
         }
     }

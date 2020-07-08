@@ -39,7 +39,7 @@ public class DatastreamsGettersFinderImpl implements DatastreamsGettersFinder {
                             .collect(Collectors.toList()));
             return new Return(providers, notFoundIds);
         } catch (Exception e) {
-            LOGGER.error("Exception when trying to determine providers satisfying {}/{}: {}", deviceIdPattern,
+            LOGGER.error("Exception when trying to determine providers satisfying {}/{}: ", deviceIdPattern,
                     datastreamIdentifiers, e);
             return new Return(Collections.emptyList(), new HashSet<>(datastreamIdentifiers));
         }

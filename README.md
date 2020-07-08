@@ -136,6 +136,7 @@ ODA currently support the next devices:
 - X86-64 architecture computers (as development and test environment)
 - [Raspberry Pi](https://www.raspberrypi.org/)
 - Sierra Wireless [FX30/FX30S](https://source.sierrawireless.com/devices/fx-series/fx30/) devices
+- Owasys [OWA450](https://www.owasys.com/en/products/owa450) device
 
 Other devices with same architecture may be supported but has not been tested.
 

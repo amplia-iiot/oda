@@ -10,4 +10,6 @@ class CommsConfiguration {
     private String password;
     private int connectionTimeout;
     private long retryConnectionTimer;
+    private String source;
+    private String path;
 }

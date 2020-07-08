@@ -63,9 +63,17 @@ class AdcChannelDatastreamConfiguration {
 		}
 
 		private void checkConfigurationParams() {
-			if (datastreamId == null || channelPin == DEFAULT_CHANNEL_PIN || (!getter && !event) || (min >= max)) {
-				throw new IllegalArgumentException("Invalid configuration for ADC Datastreams: datastreamId=" + datastreamId +
-						", channelPin=" + channelPin + ", getter=" + getter + ", event=" + event + ", min=" + min + ", max=" + max);
+			if (datastreamId == null) {
+				throw new IllegalArgumentException("DatastreamId can't be null");
+			}
+			if (channelPin == DEFAULT_CHANNEL_PIN) {
+				throw new IllegalArgumentException("Specify a valid channel pin");
+			}
+			if (!getter && !event) {
+				throw new IllegalArgumentException("Datastreams must be at least getter or event");
+			}
+			if (min >= max) {
+				throw new IllegalArgumentException("The value range is invalid");
 			}
 		}
 

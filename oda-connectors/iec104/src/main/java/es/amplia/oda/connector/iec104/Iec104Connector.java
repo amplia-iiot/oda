@@ -44,8 +44,9 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 			if (isConnected()) {
 				Object asdu = cache.getAsdu(iec104Type, value, index, timestamp, this.commonAddress);
 				serverModule.send(asdu);
+				LOGGER.info("Uplink info to index {}", index);
 			} else {
-				LOGGER.info("No connection established for sending data to Master SCADA");
+				LOGGER.warn("No connection established for sending data to Master SCADA. Message cannot be sent");
 			}
 		}
 	}
@@ -57,6 +58,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 
 	public void loadConfiguration(Iec104ConnectorConfiguration currentConfiguration) {
 		try {
+			LOGGER.info("Loading configuration for IEC104 connector");
 			clearLastConfiguration();
 			InetAddress address = InetAddress.getByName(currentConfiguration.getLocalAddress());
 			int port = currentConfiguration.getLocalPort();
@@ -77,6 +79,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 	}
 
 	private void clearLastConfiguration() {
+		LOGGER.info("Clearing previous IEC104 configuration");
 		try {
 			if (server != null) {
 				serverModule.dispose();
@@ -86,7 +89,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 				socketChannel = null;
 			}
 		} catch (Exception e) {
-			LOGGER.error("Error erasing configuration of IEC 104 Connector");
+			LOGGER.error("Error erasing configuration of IEC 104 Connector", e);
 		} finally {
 			cache.clear();
 		}

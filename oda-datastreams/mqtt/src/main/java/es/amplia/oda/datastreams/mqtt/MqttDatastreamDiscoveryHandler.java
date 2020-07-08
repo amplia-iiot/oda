@@ -64,6 +64,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
         try {
             mqttDatastreamsPermissionManager.addPermission(deviceId, datastreamId, mode);
             mqttDatastreamsManager.createDatastream(deviceId, datastreamId);
+            LOGGER.info("Created new datastream with deviceId {}, datastreamId {} and {} permissions", deviceId, datastreamId, mode);
         } catch (MqttException e) {
             LOGGER.error("Error creating MQTT datastream {} of device {} with mode {}: {}", datastreamId, deviceId,
                     mode, e);
@@ -85,6 +86,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
                 String deviceId = topicLevels[topicLevels.length - ONE_LEVEL];
                 EnableDeviceMessage enableDeviceMessage =
@@ -106,6 +108,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
                 String deviceId = topicLevels[topicLevels.length - TWO_LEVELS];
                 String datastreamId = topicLevels[topicLevels.length - ONE_LEVEL];
@@ -132,6 +135,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
+                LOGGER.info("Message arrived to the {} topic", topic);
                 String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
                 String deviceId = topicLevels[topicLevels.length - ONE_LEVEL];
                 DisableDeviceMessage disableDeviceMessage =
@@ -152,6 +156,7 @@ class MqttDatastreamDiscoveryHandler implements AutoCloseable {
     class DisableDatastreamMessageListener implements MqttMessageListener {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
+            LOGGER.info("Message arrived to the {} topic", topic);
             String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
             String deviceId = topicLevels[topicLevels.length - TWO_LEVELS];
             String datastreamId = topicLevels[topicLevels.length - ONE_LEVEL];

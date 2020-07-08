@@ -65,6 +65,7 @@ class Iec104ServerModule implements ServerModule {
 		this.messageManager.registerCodec(BitStringCommand.class.getAnnotation(ASDU.class).id(),
 				BitStringCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringCommandCodec());
+		LOGGER.info("Initialized IEC104 server");
 	}
 
 	@Override
@@ -76,6 +77,7 @@ class Iec104ServerModule implements ServerModule {
 		socketChannel.pipeline().addLast(this.messageChannel);
 		socketChannel.pipeline().addLast(commandHandler);
 		this.socketChannel = socketChannel;
+		LOGGER.info("Initialized IEC104 channel");
 	}
 
 	@Override
@@ -97,9 +99,9 @@ class Iec104ServerModule implements ServerModule {
 		try {
 			messageChannel.write(this.socketChannel.pipeline().context(this.messageChannel), asdu,
 					this.socketChannel.newPromise());
-			LOGGER.info("ASDU sent to Master SCADA: {}", asdu);
+			LOGGER.debug("ASDU sent to Master SCADA: {}", asdu);
 		} catch (Exception e) {
-			LOGGER.error("Error sending ASDU to Master SCADA: {}", e.getMessage());
+			LOGGER.error("Error sending ASDU to Master SCADA", e);
 		}
 	}
 }

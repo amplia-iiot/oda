@@ -18,7 +18,8 @@
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
-        <opendnp3.version>2.2.0</opendnp3.version>
+        <opendnp3.wrapper.version>2.2.1</opendnp3.wrapper.version>
+        <opendnp3.version>2.2.1</opendnp3.version>
     </properties>
 
     <profiles>
@@ -76,7 +77,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopendnp3java</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>legato</classifier>
                     <scope>runtime</scope>
@@ -84,7 +85,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libasiopal</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>legato</classifier>
                     <scope>runtime</scope>
@@ -92,7 +93,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libasiodnp3</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>legato</classifier>
                     <scope>runtime</scope>
@@ -100,7 +101,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopenpal</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>legato</classifier>
                     <scope>runtime</scope>
@@ -108,7 +109,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopendnp3</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>legato</classifier>
                     <scope>runtime</scope>
@@ -119,7 +120,7 @@
             <id>owasys</id>
             <activation>
                 <file>
-                    <exists>/opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
+                    <exists>${user.home}/owa-compiler/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
                 </file>
             </activation>
             <build>
@@ -169,7 +170,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopendnp3java</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>owasys</classifier>
                     <scope>runtime</scope>
@@ -177,7 +178,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libasiopal</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>owasys</classifier>
                     <scope>runtime</scope>
@@ -185,7 +186,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libasiodnp3</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>owasys</classifier>
                     <scope>runtime</scope>
@@ -193,7 +194,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopenpal</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>owasys</classifier>
                     <scope>runtime</scope>
@@ -201,7 +202,7 @@
                 <dependency>
                     <groupId>com.automatak.dnp3</groupId>
                     <artifactId>libopendnp3</artifactId>
-                    <version>${opendnp3.version}</version>
+                    <version>${opendnp3.wrapper.version}</version>
                     <type>so</type>
                     <classifier>owasys</classifier>
                     <scope>runtime</scope>
@@ -312,7 +313,7 @@
         <dependency>
             <groupId>com.automatak.dnp3</groupId>
             <artifactId>libopendnp3java</artifactId>
-            <version>${opendnp3.version}</version>
+            <version>${opendnp3.wrapper.version}</version>
             <type>so</type>
             <classifier>x86_64</classifier>
             <scope>runtime</scope>
@@ -320,7 +321,7 @@
         <dependency>
             <groupId>com.automatak.dnp3</groupId>
             <artifactId>libasiopal</artifactId>
-            <version>${opendnp3.version}</version>
+            <version>${opendnp3.wrapper.version}</version>
             <type>so</type>
             <classifier>x86_64</classifier>
             <scope>runtime</scope>
@@ -328,7 +329,7 @@
         <dependency>
             <groupId>com.automatak.dnp3</groupId>
             <artifactId>libasiodnp3</artifactId>
-            <version>${opendnp3.version}</version>
+            <version>${opendnp3.wrapper.version}</version>
             <type>so</type>
             <classifier>x86_64</classifier>
             <scope>runtime</scope>
@@ -336,7 +337,7 @@
         <dependency>
             <groupId>com.automatak.dnp3</groupId>
             <artifactId>libopenpal</artifactId>
-            <version>${opendnp3.version}</version>
+            <version>${opendnp3.wrapper.version}</version>
             <type>so</type>
             <classifier>x86_64</classifier>
             <scope>runtime</scope>
@@ -344,7 +345,7 @@
         <dependency>
             <groupId>com.automatak.dnp3</groupId>
             <artifactId>libopendnp3</artifactId>
-            <version>${opendnp3.version}</version>
+            <version>${opendnp3.wrapper.version}</version>
             <type>so</type>
             <classifier>x86_64</classifier>
             <scope>runtime</scope>

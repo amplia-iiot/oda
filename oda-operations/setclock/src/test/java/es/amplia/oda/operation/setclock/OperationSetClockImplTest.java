@@ -33,7 +33,7 @@ public class OperationSetClockImplTest {
     public void testSetClock() throws ExecutionException, InterruptedException {
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
                 CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, CLOCK_DATASTREAM,
-                        System.currentTimeMillis(), TEST_TIMESTAMP, Status.OK, null)));
+                        System.currentTimeMillis(), TEST_TIMESTAMP, Status.OK, null, false)));
 
         CompletableFuture<Result> future = testOperation.setClock(TEST_DEVICE_ID, TEST_TIMESTAMP);
         Result result = future.get();
@@ -49,7 +49,7 @@ public class OperationSetClockImplTest {
 
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
                 CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, CLOCK_DATASTREAM,
-                        System.currentTimeMillis(), TEST_TIMESTAMP, Status.PROCESSING_ERROR, error)));
+                        System.currentTimeMillis(), TEST_TIMESTAMP, Status.PROCESSING_ERROR, error, false)));
 
         CompletableFuture<Result> future = testOperation.setClock(TEST_DEVICE_ID, TEST_TIMESTAMP);
         Result result = future.get();

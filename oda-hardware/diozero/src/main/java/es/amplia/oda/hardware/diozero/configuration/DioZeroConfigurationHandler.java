@@ -40,6 +40,7 @@ public class DioZeroConfigurationHandler implements ConfigurationUpdateHandler {
 	public void loadDefaultConfiguration() {
 		LOGGER.info("Loading default configuration");
 		configuredChannels.clear();
+		LOGGER.info("Default configuration loaded");
 	}
 
 	@Override
@@ -65,11 +66,13 @@ public class DioZeroConfigurationHandler implements ConfigurationUpdateHandler {
 							.ifPresent(value -> builder.setDeviceType(DeviceType.typeOf(value)));
 					AnalogInputDevice aid = builder.build();
 					configuredChannels.add(new DioZeroAdcChannel(aid.getGpio(), aid));
+					LOGGER.info("Added new ADC channel to the configured channels");
 				}
 			} catch (Exception exception) {
 				LOGGER.warn("Invalid device configuration {}: {}", entry.getKey(), entry.getValue());
 			}
 		}
+		LOGGER.info("New configuration loaded");
 	}
 
 	@Override

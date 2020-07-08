@@ -2,6 +2,7 @@ package es.amplia.oda.hardware.comms.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.MapBasedDictionary;
+import es.amplia.oda.core.commons.utils.ScriptsLoaderImpl;
 import es.amplia.oda.hardware.comms.CommsManager;
 
 import org.junit.Test;
@@ -21,20 +22,23 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CommsConfigurationUpdateHandlerTest {
-
     private static final String TEST_PIN = "1111";
     private static final String TEST_APN = "apn";
     private static final String TEST_USERNAME = "username";
     private static final String TEST_PASS = "testPass";
     private static final int TEST_CONNECTION_TIMEOUT = 15;
     private static final long TEST_RETRY_CONNECTION_TIMER = 30;
+    private static final String TEST_SOURCE = "path/to/source";
+    private static final String TEST_PATH = "path/to/scripts";
     private static final CommsConfiguration TEST_CONFIGURATION = new CommsConfiguration(TEST_PIN, TEST_APN,
-            TEST_USERNAME, TEST_PASS, TEST_CONNECTION_TIMEOUT, TEST_RETRY_CONNECTION_TIMER);
+            TEST_USERNAME, TEST_PASS, TEST_CONNECTION_TIMEOUT, TEST_RETRY_CONNECTION_TIMER, TEST_SOURCE, TEST_PATH);
     private static final String CURRENT_CONFIGURATION_FIELD_NAME = "currentConfiguration";
 
 
     @Mock
     private CommsManager mockedCommsManager;
+    @Mock
+    private ScriptsLoaderImpl mockedScriptsLoader;
     @InjectMocks
     private CommsConfigurationUpdateHandler testConfigHandler;
 
@@ -52,6 +56,8 @@ public class CommsConfigurationUpdateHandlerTest {
         testProps.put(PASS_PROPERTY_NAME, TEST_PASS);
         testProps.put(CONNECTION_TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_CONNECTION_TIMEOUT));
         testProps.put(RETRY_CONNECTION_TIMER_PROPERTY_NAME, Long.toString(TEST_RETRY_CONNECTION_TIMER));
+        testProps.put(SOURCE_DIRECTORY_PROPERTY_NAME, TEST_SOURCE);
+        testProps.put(PATH_DIRECTORY_PROPERTY_NAME, TEST_PATH);
 
         testConfigHandler.loadConfiguration(testProps);
 
@@ -61,11 +67,15 @@ public class CommsConfigurationUpdateHandlerTest {
     @Test
     public void testLoadConfigurationDefaultValues() {
         Dictionary<String, String> testProps = new MapBasedDictionary<>(String.class);
+        testProps.put(SOURCE_DIRECTORY_PROPERTY_NAME, TEST_SOURCE);
+        testProps.put(PATH_DIRECTORY_PROPERTY_NAME, TEST_PATH);
         testProps.put(APN_PROPERTY_NAME, TEST_APN);
 
         testConfigHandler.loadConfiguration(testProps);
 
         CommsConfiguration conf = getCurrentConfiguration();
+        assertEquals(TEST_SOURCE, conf.getSource());
+        assertEquals(TEST_PATH, conf.getPath());
         assertEquals("", conf.getPin());
         assertEquals(TEST_APN, conf.getApn());
         assertEquals("", conf.getUsername());
@@ -97,6 +107,6 @@ public class CommsConfigurationUpdateHandlerTest {
         testConfigHandler.applyConfiguration();
 
         verify(mockedCommsManager).connect(eq(TEST_PIN), eq(TEST_APN), eq(TEST_USERNAME), eq(TEST_PASS),
-                eq(TEST_CONNECTION_TIMEOUT), eq(TEST_RETRY_CONNECTION_TIMER));
+                eq(TEST_CONNECTION_TIMEOUT), eq(TEST_RETRY_CONNECTION_TIMER), eq(TEST_PATH));
     }
 }

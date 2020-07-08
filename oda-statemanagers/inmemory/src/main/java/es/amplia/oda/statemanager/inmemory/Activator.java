@@ -1,12 +1,15 @@
 package es.amplia.oda.statemanager.inmemory;
 
+import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.api.OsgiEventHandler;
 import es.amplia.oda.statemanager.api.StateManager;
 
+import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfigurationHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -22,6 +25,7 @@ public class Activator implements BundleActivator {
     private EventDispatcherProxy eventDispatcher;
     private OsgiEventHandler eventHandler;
     private ServiceRegistration<StateManager> stateManagerRegistration;
+    private ConfigurableBundle configurableBundle;
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -33,8 +37,11 @@ public class Activator implements BundleActivator {
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         eventHandler = new OsgiEventHandler(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
-        StateManager inMemoryStateManager =
-                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine);
+        SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
+        InMemoryStateManager inMemoryStateManager =
+                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, eventHandler, ruleEngine, serializer);
+        ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);
+        configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationUpdateHandler);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);
 
         LOGGER.info("In Memory State Manager started");
@@ -44,6 +51,7 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext bundleContext) {
         LOGGER.info("In Memory State Manager is stopping");
 
+        configurableBundle.close();
         stateManagerRegistration.unregister();
         datastreamsSettersFinder.close();
         ruleEngine.close();

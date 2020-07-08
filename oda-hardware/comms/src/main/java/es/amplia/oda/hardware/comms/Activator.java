@@ -8,14 +8,12 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
     static final int NUM_THREADS = 1;
 
+    private ScriptsLoader scriptsLoader;
     private CommsManager commsManager;
     private ConfigurableBundle configurableBundle;
 
@@ -24,10 +22,9 @@ public class Activator implements BundleActivator {
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting Comms bundle");
         CommandProcessor commandProcessor = new CommandProcessorImpl();
-        ResourceManager resourceManager = new ResourceManagerImpl();
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
-        commsManager = new CommsManagerImpl(commandProcessor, resourceManager, executor);
-        ConfigurationUpdateHandler configHandler = new CommsConfigurationUpdateHandler(commsManager);
+        scriptsLoader = new ScriptsLoaderImpl(commandProcessor);
+        commsManager = new CommsManagerImpl(commandProcessor);
+        ConfigurationUpdateHandler configHandler = new CommsConfigurationUpdateHandler(scriptsLoader, commsManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         LOGGER.info("Comms bundle started");
     }
@@ -37,6 +34,7 @@ public class Activator implements BundleActivator {
         LOGGER.info("Stopping Comms bundle");
         configurableBundle.close();
         commsManager.close();
+        scriptsLoader.close();
         LOGGER.info("Comms bundle stopped");
     }
 }

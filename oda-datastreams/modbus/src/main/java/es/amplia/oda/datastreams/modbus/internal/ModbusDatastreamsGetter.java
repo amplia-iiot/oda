@@ -2,12 +2,16 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.datastreams.modbus.ModbusType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 class ModbusDatastreamsGetter implements DatastreamsGetter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModbusDatastreamsGetter.class);
 
     private final String datastreamId;
     private final Type datastreamType;
@@ -41,6 +45,7 @@ class ModbusDatastreamsGetter implements DatastreamsGetter {
     public CompletableFuture<CollectedValue> get(String device) {
         int slaveAddress = Optional.ofNullable(deviceIdSlaveAddressMapper.get(device))
                 .orElseThrow(() -> new IllegalArgumentException("Unknown device"));
+        LOGGER.debug("Getting value from the datastream {} of the the device {}", datastreamId, device);
         return CompletableFuture.supplyAsync(() ->
                 readOperatorProcessor.read(datastreamType, dataType, slaveAddress, dataAddress));
     }

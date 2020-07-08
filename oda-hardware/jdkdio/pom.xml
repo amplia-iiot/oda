@@ -18,6 +18,7 @@
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
+        <openjdk.dio.wrapper.version>1.3</openjdk.dio.wrapper.version>
         <openjdk.dio.version>1.1</openjdk.dio.version>
     </properties>
 
@@ -41,7 +42,7 @@
                                     <goal>bundle</goal>
                                 </goals>
                                 <configuration>
-                                    <classifier>arm</classifier>
+                                    <classifier>legato</classifier>
                                     <instructions>
                                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                                         <Bundle-Version>${project.version}</Bundle-Version>
@@ -50,7 +51,7 @@
                                         <Export-Package>!*</Export-Package>
                                         <Import-Package>*</Import-Package>
                                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                                        <Embed-Dependency>dio, libdio;classifier=arm;type=so</Embed-Dependency>
+                                        <Embed-Dependency>dio, libdio;classifier=legato;type=so</Embed-Dependency>
                                         <Embed-Directory>lib</Embed-Directory>
                                         <Embed-StripVersion>true</Embed-StripVersion>
                                     </instructions>
@@ -64,9 +65,9 @@
                 <dependency>
                     <groupId>net.java.openjdk</groupId>
                     <artifactId>libdio</artifactId>
-                    <classifier>arm</classifier>
+                    <classifier>legato</classifier>
                     <type>so</type>
-                    <version>${openjdk.dio.version}</version>
+                    <version>${openjdk.dio.wrapper.version}</version>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
@@ -75,7 +76,7 @@
             <id>owa</id>
             <activation>
                 <file>
-                    <exists>/opt/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
+                    <exists>${user.home}/owa-compiler/gcc-linaro-5.3-2016.02-x86_64_arm-linux-gnueabihf</exists>
                 </file>
             </activation>
             <build>
@@ -115,7 +116,7 @@
                     <artifactId>libdio</artifactId>
                     <classifier>owa</classifier>
                     <type>so</type>
-                    <version>${openjdk.dio.version}</version>
+                    <version>${openjdk.dio.wrapper.version}</version>
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
@@ -219,7 +220,7 @@
             <artifactId>libdio</artifactId>
             <classifier>x86_64</classifier>
             <type>so</type>
-            <version>${openjdk.dio.version}</version>
+            <version>${openjdk.dio.wrapper.version}</version>
             <scope>runtime</scope>
         </dependency>
 

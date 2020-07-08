@@ -58,42 +58,47 @@ public class MessageLoggerInterceptorTest {
     public void testSendRequest() {
         testLoggerInterceptor.sendRequest(TEST_REQUEST);
 
-        verify(mockedLogger).info(anyString(), eq(REQUEST_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_REQUEST));
+        verify(mockedLogger).info(anyString(), eq(REQUEST_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(REQUEST_MESSAGE), eq(TEST_REQUEST));
     }
 
     @Test
     public void testSendResponse() {
         testLoggerInterceptor.sendResponse(TEST_RESPONSE);
 
-        verify(mockedLogger).info(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_RESPONSE));
+        verify(mockedLogger).info(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_RESPONSE));
     }
 
     @Test
     public void testSendEmptyMessage() {
         testLoggerInterceptor.sendEmptyMessage(TEST_EMPTY_MESSAGE);
 
-        verify(mockedLogger).info(anyString(), eq(EMPTY_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_EMPTY_MESSAGE));
+        verify(mockedLogger).info(anyString(), eq(EMPTY_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(EMPTY_MESSAGE), eq(TEST_EMPTY_MESSAGE));
     }
 
     @Test
     public void testReceiveRequest() {
         testLoggerInterceptor.receiveRequest(TEST_REQUEST);
 
-        verify(mockedLogger).info(anyString(), eq(REQUEST_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_REQUEST));
+        verify(mockedLogger).info(anyString(), eq(REQUEST_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(REQUEST_MESSAGE), eq(TEST_REQUEST));
     }
 
     @Test
     public void testReceiveResponse() {
         testLoggerInterceptor.receiveResponse(TEST_RESPONSE);
 
-        verify(mockedLogger).info(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_RESPONSE));
-
+        verify(mockedLogger).info(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(RESPONSE_MESSAGE), eq(TEST_RESPONSE));
     }
 
     @Test
     public void testReceiveEmptyMessage() {
         testLoggerInterceptor.receiveEmptyMessage(TEST_EMPTY_MESSAGE);
 
-        verify(mockedLogger).info(anyString(), eq(EMPTY_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_EMPTY_MESSAGE));
+        verify(mockedLogger).info(anyString(), eq(EMPTY_MESSAGE), eq(TEST_ADDRESS), eq(TEST_PORT));
+        verify(mockedLogger).debug(anyString(), eq(EMPTY_MESSAGE), eq(TEST_EMPTY_MESSAGE));
     }
 }

@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 
 class GpioDatastreamsSetter implements DatastreamsSetter {
 
-    private static final Logger logger = LoggerFactory.getLogger(GpioDatastreamsSetter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GpioDatastreamsSetter.class);
 
     private final String datastreamId;
     private final int pinIndex;
@@ -48,6 +48,7 @@ class GpioDatastreamsSetter implements DatastreamsSetter {
     public CompletableFuture<Void> set(String deviceId, Object value) {
         try {
             Boolean pinValue = (Boolean) value;
+            LOGGER.info("Setting value for datastream {} to value {}", datastreamId, value);
             return CompletableFuture.supplyAsync(() -> setDatastreamValue(deviceId, pinIndex, pinValue));
         } catch (ClassCastException e) {
             String errorMessage = createErrorMessage(deviceId, "Data stream value is not valid");
@@ -58,7 +59,7 @@ class GpioDatastreamsSetter implements DatastreamsSetter {
     private String createErrorMessage(String deviceId, String description) {
         String errorMessage = String.format("Error setting %s value for %s device: %s", datastreamId, deviceId,
                 description);
-        logger.warn(errorMessage);
+        LOGGER.warn(errorMessage);
         return errorMessage;
     }
 

@@ -29,7 +29,7 @@ public class OwasysAnalogInputDevice extends AbstractInputDevice<AnalogInputEven
 		try {
 			this.value = new RandomAccessFile(new File(path), "r");
 		} catch (IOException e) {
-			throw new RuntimeIOException("Error opening file " + path + " for ADC " + adcNumber, e);
+			throw new RuntimeIOException("Error opening file " + path + " for ADC channel " + adcNumber, e);
 		}
 	}
 
@@ -38,9 +38,10 @@ public class OwasysAnalogInputDevice extends AbstractInputDevice<AnalogInputEven
 		try {
 			this.value.seek(0);
 			float val = Float.parseFloat(value.readLine());
+			LOGGER.debug("Recollected {} as raw value from channel {}", val, adcNumber);
 			return val / 3880f;
 		} catch (IOException e) {
-			LOGGER.error("Error trying to get ADC value from {} (pin number {})", name, adcNumber, e);
+			LOGGER.error("Error trying to get ADC value from {} (pin number {}), returning 0 as value", name, adcNumber, e);
 			return 0;
 		}
 	}
@@ -55,7 +56,7 @@ public class OwasysAnalogInputDevice extends AbstractInputDevice<AnalogInputEven
 		try {
 			value.close();
 		} catch (IOException e) {
-			LOGGER.error("Error trying to close ADC file");
+			LOGGER.warn("Error trying to close ADC file");
 		}
 	}
 }

@@ -42,7 +42,11 @@ public class Activator implements BundleActivator {
 	}
 
 	void onServiceChange() {
+		LOGGER.info("Scada Tables service changed. Applying IEC104 connector configuration");
+
 		configHandler.applyConfiguration();
+
+		LOGGER.info("IEC104 connector configuration applied");
 	}
 
 	@Override

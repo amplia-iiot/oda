@@ -6,6 +6,7 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 
+import es.amplia.oda.hardware.atserver.configuration.ATServerConfigurationUpdateHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;

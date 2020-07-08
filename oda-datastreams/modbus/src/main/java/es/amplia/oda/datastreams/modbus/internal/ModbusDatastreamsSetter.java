@@ -2,6 +2,8 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.datastreams.modbus.ModbusType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 class ModbusDatastreamsSetter implements DatastreamsSetter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModbusDatastreamsSetter.class);
 
     private final String datastreamId;
     private final Type datastreamType;
@@ -50,6 +54,7 @@ class ModbusDatastreamsSetter implements DatastreamsSetter {
         return CompletableFuture.supplyAsync(() -> {
             int slaveAddress = Optional.ofNullable(devicesIdSlaveAddressMapper.get(device))
                     .orElseThrow(() -> new IllegalArgumentException("Unknown device identifier"));
+            LOGGER.info("Setting value {} to datastream {} of device {}", value, datastreamId, device);
             writeOperatorProcessor.write(datastreamType, dataType, slaveAddress, dataAddress, value);
             return null;
         });

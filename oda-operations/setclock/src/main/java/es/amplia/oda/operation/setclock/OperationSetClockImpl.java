@@ -28,6 +28,7 @@ class OperationSetClockImpl implements OperationSetClock {
 	public CompletableFuture<Result> setClock(String deviceId, long timestamp) {
 		LOGGER.info("Set clock for device '{}'", deviceId);
 
+
 		return stateManager.setDatastreamValue(deviceId, CLOCK_DATASTREAM, timestamp)
 				.thenApply(this::mapDatastreamValueToResult);
 	}

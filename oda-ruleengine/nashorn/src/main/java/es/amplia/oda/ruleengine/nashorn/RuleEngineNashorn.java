@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
@@ -59,7 +60,8 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         }
 
         state = checkRefreshedDatastream(state, value);
-        LOGGER.info("Refreshed value of state to {}", state);
+        LOGGER.info("Refreshed value of state");
+        LOGGER.debug("Refreshed value of state with the datastream value {}", value);
 
         return state;
     }
@@ -83,6 +85,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
                     this.rules.remove(key);
                 }
             }
+            LOGGER.info("Deleted rules for datastream {}", datastreamId);
         }
     }
 
@@ -100,6 +103,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
             datastreamId = datastreamId.replaceFirst("rules/", "");
 
             initRuleScript(datastreamId, nameRule);
+            LOGGER.info("Created rule {}", nameRule);
         }
     }
 
@@ -140,6 +144,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         }
 
         this.watcher.get(dir).start();
+        LOGGER.info("Created directory {} for a new datastream", dir);
     }
 
     private void initRuleScript(String datastreamId, String nameRule) {
@@ -151,18 +156,22 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     private State checkRefreshedDatastream(State state, DatastreamValue newValue) {
-        if(!state.isRefreshed(newValue.getDatastreamId())) {
+        if(!state.exists(newValue.getDeviceId(), newValue.getDatastreamId())) {
+            state.put(new DatastreamInfo(newValue.getDeviceId(), newValue.getDatastreamId()), newValue);
+        }
+        else if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
             return baseCase(state, newValue);
         }
         return state;
     }
 
     private State baseCase(State state, DatastreamValue newValue) {
-        state.refreshValue(newValue.getDatastreamId(), newValue);
+        state.refreshValue(newValue.getDeviceId(), newValue.getDatastreamId(), newValue);
         return state;
     }
 
     public void stop() {
+        LOGGER.info("Stopping the rule engine");
         started = false;
         this.rules.clear();
         this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());

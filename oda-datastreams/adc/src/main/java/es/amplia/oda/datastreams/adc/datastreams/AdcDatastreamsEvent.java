@@ -40,8 +40,8 @@ class AdcDatastreamsEvent extends AbstractDatastreamsEvent {
 			channel = adcService.getChannelByIndex(pinIndex);
 			channel.addAdcPinListener(this::publishEvent);
 		} catch (AdcDeviceException adcDeviceException) {
-			LOGGER.warn("Error initializing datastreams {}: Exception adding listener to ADC pin {}. {}", datastreamId,
-					pinIndex, adcDeviceException);
+			LOGGER.warn("Couldn't initializing datastream event {}: Exception adding listener to ADC pin {}. {}", datastreamId,
+					pinIndex, adcDeviceException.getMessage());
 		}
 	}
 
@@ -55,10 +55,10 @@ class AdcDatastreamsEvent extends AbstractDatastreamsEvent {
 		try {
 			channel.removeAllAdcPinListener();
 		} catch (AdcDeviceException adcDeviceException) {
-			LOGGER.warn("Error releasing datastreams {}: Exception removing listeners from ADC Channel {}. {}",
+			LOGGER.warn("Error releasing datastream event {}: Exception removing listeners from ADC Channel {}. {}",
 					datastreamId, pinIndex, adcDeviceException.getMessage());
 		} catch (Exception exception) {
-			LOGGER.warn("Error releasing datastreams event {}: ADC channel is not available", datastreamId);
+			LOGGER.warn("Error releasing datastream event {}: ADC channel {} is not available", datastreamId, pinIndex);
 		}
 	}
 }

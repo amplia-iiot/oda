@@ -78,7 +78,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
             }
             add(new DispatcherConfiguration(secondsFirstDispatch, secondsBetweenDispatches), key);
         } catch(NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-            LOGGER.info("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
+            LOGGER.error("Rejecting configuration '{}={}' because is invalid: {}", key, value, ex);
         }
     }
 

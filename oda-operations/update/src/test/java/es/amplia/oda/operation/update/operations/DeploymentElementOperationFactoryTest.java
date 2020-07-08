@@ -3,6 +3,7 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -12,6 +13,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Collections;
+import java.io.File;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
@@ -32,6 +34,25 @@ public class DeploymentElementOperationFactoryTest {
     private OperationConfirmationProcessor mockedOperationConfirmationProcessor;
     @InjectMocks
     private DeploymentElementOperationFactory testFactory;
+
+
+
+    @After
+    public void cleanUp() {
+        StringBuilder path = new StringBuilder(PATH_TO_RULES);
+        do {
+            File testFile = new File(PATH_TO_RULES);
+            if (testFile.exists()) {
+                testFile.delete();
+            }
+            String[] dirs = path.toString().split("/");
+            int max = dirs.length - 1;
+            path = new StringBuilder();
+            for (int i = 0; i < max; i++) {
+                path.append(dirs[i]).append("/");
+            }
+        } while (!path.toString().equals(""));
+    }
 
     @Test
     public void testCreateInstallDeploymentElementOperation() throws Exception {

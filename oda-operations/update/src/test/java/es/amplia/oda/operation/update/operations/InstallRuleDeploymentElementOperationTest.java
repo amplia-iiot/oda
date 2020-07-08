@@ -3,6 +3,8 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,6 +44,23 @@ public class InstallRuleDeploymentElementOperationTest {
     public void setUp() {
         testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE, PATH_TO_RULES_FILE,
                 mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+    }
+
+    @AfterClass
+    public static void cleanUp() {
+        StringBuilder path = new StringBuilder(PATH_TO_RULES_FILE);
+        do {
+            File testFile = new File(PATH_TO_RULES_FILE);
+            if (testFile.exists()) {
+                testFile.delete();
+            }
+            String[] dirs = path.toString().split("/");
+            int max = dirs.length - 1;
+            path = new StringBuilder();
+            for (int i = 0; i < max; i++) {
+                path.append(dirs[i]).append("/");
+            }
+        } while (!path.toString().equals(""));
     }
 
     @Test

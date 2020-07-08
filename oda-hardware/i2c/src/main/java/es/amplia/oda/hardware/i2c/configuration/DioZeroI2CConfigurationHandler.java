@@ -66,6 +66,7 @@ public class DioZeroI2CConfigurationHandler implements ConfigurationUpdateHandle
 				LOGGER.warn("Invalid device configuration {}: {}", entry.getKey(), entry.getValue());
 			}
 		}
+		LOGGER.info("New configuration loaded");
 	}
 
 	private I2CDevice searchConfiguredDevice(int controller, int address) {

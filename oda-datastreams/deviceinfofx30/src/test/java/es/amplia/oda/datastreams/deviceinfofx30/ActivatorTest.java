@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
+import es.amplia.oda.core.commons.utils.ScriptsLoaderImpl;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler;
 import es.amplia.oda.datastreams.deviceinfofx30.datastreams.*;
 import org.junit.Test;

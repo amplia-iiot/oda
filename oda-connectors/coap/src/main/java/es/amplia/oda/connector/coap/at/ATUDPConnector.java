@@ -89,13 +89,14 @@ public class ATUDPConnector implements Connector {
         try {
             atManager.registerEvent(ARRIVE_SOCKET_MESSAGE_AT_EVENT, this::processArrivedSocketMessageEvent);
         } catch (ATManager.AlreadyRegisteredException e) {
-            LOGGER.warn("AT event {} already registered: {}", ARRIVE_SOCKET_MESSAGE_AT_EVENT, e);
+            LOGGER.warn("AT event {} already registered", ARRIVE_SOCKET_MESSAGE_AT_EVENT);
         }
 
         senderExecutor = Executors.newSingleThreadExecutor();
         receiverExecutor = Executors.newSingleThreadExecutor();
 
         running = true;
+        LOGGER.info("CoAP connection started");
     }
 
     private int createLocalSocket() throws InterruptedException, ExecutionException {
@@ -112,7 +113,7 @@ public class ATUDPConnector implements Connector {
                 LOGGER.warn("Invalid response to open socket command");
             }
         } else {
-            LOGGER.warn("Error executing create local socket command: {}", response.getErrorMsg());
+            LOGGER.warn("Couldn't create local socket command: {}", response.getErrorMsg());
         }
 
         return -1;
@@ -194,16 +195,17 @@ public class ATUDPConnector implements Connector {
 
                 Matcher readResponseMatcher = READ_MESSAGE_RESPONSE_PATTERN.matcher(response.getBody());
                 if (readResponseMatcher.matches()) {
+                    LOGGER.info("Message read from socket {}", socketId);
                     return readResponseMatcher.group(1);
                 } else {
                     LOGGER.warn("Invalid response to read message command");
                 }
             } else {
-                LOGGER.info("Error reading message {} from socket {}: {}", messageId, socketId,
+                LOGGER.warn("Couldn't read message {} from socket {}: {}", messageId, socketId,
                         response.getErrorMsg());
             }
         } catch (ExecutionException e) {
-            LOGGER.warn("Error reading message {} from socket {}", messageId, socketId, e);
+            LOGGER.error("Error reading message {} from socket {}", messageId, socketId, e);
         }catch (InterruptedException e) {
             LOGGER.error("Interrupted Exception reading message {} from socket {}", messageId, socketId, e);
             Thread.currentThread().interrupt();
@@ -221,6 +223,7 @@ public class ATUDPConnector implements Connector {
         } else {
             String data = Hex.encodeHexString(msg.getBytes()).toUpperCase();
             senderExecutor.submit(() -> sendMessage(localSocketId, remoteHost, remotePort, msg.getSize(), data));
+            LOGGER.info("Message sent through socket {}", localSocketId);
         }
     }
 
@@ -244,10 +247,10 @@ public class ATUDPConnector implements Connector {
             if (response.isOk()) {
                 LOGGER.info("Message sent through socket {}", socketId);
             } else {
-                LOGGER.info("Error sending message through socket {}: {}", socketId, response.getErrorMsg());
+                LOGGER.warn("Couldn't send message through socket {}: {}", socketId, response.getErrorMsg());
             }
         } catch (ExecutionException e) {
-            LOGGER.warn("Error sending message {} through socket {}", msg, socketId, e);
+            LOGGER.error("Error sending message {} through socket {}", msg, socketId, e);
         } catch (InterruptedException e) {
             LOGGER.error("Interrupted Exception sending message {} through socket {}", msg, socketId, e);
             Thread.currentThread().interrupt();
@@ -291,7 +294,7 @@ public class ATUDPConnector implements Connector {
             if (response.isOk()) {
                 LOGGER.info("Socket {} closed", localSocketId);
             } else {
-                LOGGER.info("Error closing socket {}: {}", localSocketId, response.getErrorMsg());
+                LOGGER.warn("Couldn't close socket {}: {}", localSocketId, response.getErrorMsg());
             }
         } catch (ExecutionException e) {
             LOGGER.error("Error closing socket {}", localSocketId, e);

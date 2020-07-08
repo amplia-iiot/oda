@@ -36,7 +36,7 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
         try {
             modbusMaster.connect();
         } catch (Exception exception) {
-            LOGGER.error("Error connecting modbus master: {}", exception);
+            LOGGER.error("Error connecting modbus master: ", exception);
             throw new ModbusException("Error connecting modbus master", exception);
         }
     }
@@ -58,7 +58,7 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
 
     private ModbusException createModbusException(String operation, String registerType, int unitId, int ref, int count,
                                       Exception exception) {
-        LOGGER.error("Error {} {} {}s from {} of slave {}: {}", operation, count, registerType, ref, unitId, exception);
+        LOGGER.error("Error {} {} {}s from {} of slave {}: ", operation, count, registerType, ref, unitId, exception);
         return new ModbusException("Error " + operation + " " + count + " " + registerType + "s from " + ref +
                 " of slave " + unitId, exception);
     }

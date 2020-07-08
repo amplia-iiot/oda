@@ -65,7 +65,7 @@ public class DatastreamsGpioConfigurationHandler implements ConfigurationUpdateH
 
                 currentConfiguration.put(pinIndex, builder.build());
             } catch (NumberFormatException nfe) {
-                LOGGER.warn("Invalid configuration {}: {}", entry.getKey(), entry.getValue());
+                LOGGER.warn("Invalid configuration {}: {}. The module will continue without this pin.", entry.getKey(), entry.getValue());
             }
         }
 

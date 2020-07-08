@@ -33,10 +33,8 @@ public class InstallRuleDeploymentElementOperation extends DeploymentElementOper
     protected void executeSpecificOperation(FileManager fileManager) throws FileException {
         try {
             File destiny = new File(installFolder);
-            if(!destiny.exists()) {
-                if(!destiny.mkdir()) {
-                    throw new IOException("Impossible create new directory of rule's datastream");
-                }
+            if(!destiny.exists() && !destiny.mkdir()) {
+                throw new IOException("Impossible create new directory of rule's datastream");
             }
             installedFile = fileManager.copy(localFile, installFolder);
             fileManager.insertInFile(toInsert, 0, installedFile);

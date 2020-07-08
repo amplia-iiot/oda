@@ -3,7 +3,6 @@ package es.amplia.oda.datastreams.deviceinfo;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.*;
-import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfiguration;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfigurationHandler;
 
 import es.amplia.oda.datastreams.deviceinfo.configuration.ScriptsLoader;
@@ -59,7 +58,7 @@ public class Activator implements BundleActivator {
         datastreamsGetterRegistrationForSerialNumber =
                 bundleContext.registerService(DatastreamsGetter.class,
                         new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.SERIAL_NUMBER_DATASTREAM_ID,
-                                deviceInfoDatastreamsGetter::getDatastreamsGetterForSerialNumber), null);
+                                deviceInfoDatastreamsGetter::getSerialNumber), null);
         datastreamsGetterRegistrationForClock =
                 bundleContext.registerService(DatastreamsGetter.class,
                         new DatastreamGetterTemplate(DeviceInfoDatastreamsGetter.CLOCK_DATASTREAM_ID,
@@ -135,7 +134,7 @@ public class Activator implements BundleActivator {
         try {
             scriptsLoader.close();
         } catch (Exception e) {
-            LOGGER.error("Error trying to close scripts loader");
+            LOGGER.error("Error trying to close scripts loader", e);
         }
 
         LOGGER.info("Datastreams Getter Device stopped");

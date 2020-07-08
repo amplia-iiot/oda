@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
@@ -97,30 +98,30 @@ public class RuleEngineNashornTest {
 
 	@Test
 	public void testEngineNotStartedNotRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(false);
 
 		State state = testRuleEngine.engine(mockedState, value);
 
 		assertEquals(mockedState, state);
-		verify(mockedState).refreshValue("testDatastream", value);
+		verify(mockedState).put(new DatastreamInfo("testDevice","testDatastream"), value);
 	}
 
 	@Test
 	public void testEngineNotStartedRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 
 		State state = testRuleEngine.engine(mockedState, value);
 
 		assertEquals(mockedState, state);
-		verify(mockedState, never()).refreshValue("testDatastream", value);
+		verify(mockedState, never()).refreshValue("testDevice","testDatastream", value);
 	}
 
 	@Test
 	public void testEngineStarted() throws ScriptException {
 		String path = "origin/path";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		Rule rule = new Rule("nameRule", "testDatastream", mockedScriptTranslator);
@@ -128,7 +129,7 @@ public class RuleEngineNashornTest {
 		watchers.put(path + "testDatastream", mockedRuleWatcher);
 		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenReturn(true);
 		when(mockedScriptTranslator.runMethod("nameRule", "then", mockedState, value)).thenReturn(mockedState);
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
@@ -143,14 +144,14 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineStartedException() throws ScriptException {
 		String path = "origin/path";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "");
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		Rule rule = new Rule("nameRule", "testDatastream", mockedScriptTranslator);
 		rules.put(path + "testDatastream", rule);
 		watchers.put("testDatastream", mockedRuleWatcher);
 		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenThrow(new ClassCastException());
-		when(mockedState.isRefreshed("testDatastream")).thenReturn(true);
+		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
