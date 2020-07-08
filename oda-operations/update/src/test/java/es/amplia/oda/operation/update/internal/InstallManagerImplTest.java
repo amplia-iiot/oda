@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,24 +39,34 @@ public class InstallManagerImplTest {
     private InstallManagerImpl testInstallManager;
 
     private final DeploymentElement installSoftwareElement =
-            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.SOFTWARE, "", "deploy/",
-                    DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.SOFTWARE, "", "deploy/", 1L,
+                    DeploymentElementOperationType.INSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.MANDATORY);
     @Mock
     private DeploymentElementOperation installSoftwareOperation;
     private final DeploymentElement upgradeConfigurationElement =
-            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.CONFIGURATION, "", "configuration/",
-                    DeploymentElementOperationType.UPGRADE, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.CONFIGURATION, "", "configuration/", 1L,
+                    DeploymentElementOperationType.UPGRADE,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.MANDATORY);
     @Mock
     private DeploymentElementOperation upgradeConfigurationOperation;
     private final DeploymentElement uninstallSoftwareElement =
-            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.SOFTWARE, "", "deploy/",
-                    DeploymentElementOperationType.UNINSTALL, DeploymentElementOption.OPTIONAL, 0L);
+            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.SOFTWARE, "", "deploy/", 1L,
+                    DeploymentElementOperationType.UNINSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.OPTIONAL);
     private final DeploymentElement installRuleElement =
-            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.RULE, "", "rules/aRule",
-                    DeploymentElementOperationType.INSTALL, DeploymentElementOption.OPTIONAL, 0L);
+            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.RULE, "", "rules/aRule", 1L,
+                    DeploymentElementOperationType.INSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.OPTIONAL);
     private final DeploymentElement uninstallAnotherElement =
-            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.DEFAULT, "", "another/dir",
-                    DeploymentElementOperationType.UNINSTALL, DeploymentElementOption.OPTIONAL, 0L);
+            new DeploymentElement(TEST_NAME_1, TEST_VERSION_1, DeploymentElementType.DEFAULT, "", "another/dir", 1L,
+                    DeploymentElementOperationType.UNINSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.OPTIONAL);
     @Mock
     private DeploymentElementOperation uninstallSoftwareOperation;
 
@@ -199,8 +210,10 @@ public class InstallManagerImplTest {
     @Test
     public void testRollbackNotInstalledNoException() {
         DeploymentElement notInstalledDeploymentElement =
-                new DeploymentElement("", "", DeploymentElementType.SOFTWARE, "", "",
-                        DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L);
+                new DeploymentElement("", "", DeploymentElementType.SOFTWARE, "", "", 1L,
+                        DeploymentElementOperationType.INSTALL,
+                        Collections.EMPTY_LIST, 0L, "0.0.9",
+                        DeploymentElementOption.MANDATORY);
 
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedInstalledElements);
 

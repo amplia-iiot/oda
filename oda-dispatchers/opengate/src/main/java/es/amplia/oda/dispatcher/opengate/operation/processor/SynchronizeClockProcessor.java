@@ -1,10 +1,14 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
 
 import java.util.Collections;
-import java.util.Objects;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -24,18 +28,27 @@ class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Resul
 
     @Override
     String parseParameters(Request request) {
+        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
         String source = null;
 
-        if (request.getParameters() != null) {
-            source = request.getParameters().stream()
-                    .filter(Objects::nonNull)
-                    .filter(p -> p.getName() != null)
-                    .filter(p -> p.getValue() != null)
-                    .filter(p -> "source".equals(p.getName()))
-                    .map(Parameter::getValue)
-                    .map(ValueObject::getString)
-                    .findFirst()
-                    .orElse(null);
+        ParameterSetOrConfigureOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        if(parameters == null) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        List<ValueSetting> params = parameters.getVariableList();
+        if(params == null) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+
+        for (ValueSetting setting: params) {
+            if(setting.getName().equals("source")) {
+                source = setting.getValue();
+            }
         }
 
         return source;

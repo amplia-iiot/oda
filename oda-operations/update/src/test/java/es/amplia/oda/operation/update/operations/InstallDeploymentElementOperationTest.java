@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
+
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
@@ -22,8 +24,9 @@ public class InstallDeploymentElementOperationTest {
     private static final String TEST_NAME = "testBundle";
     private static final String TEST_VERSION = "1.0.0";
     private static final DeploymentElement installDeploymentElement =
-        new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "",
-                DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+        new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "", 1L,
+                DeploymentElementOperationType.INSTALL, Collections.EMPTY_LIST,
+                0L, "0.0.9", DeploymentElementOption.MANDATORY);
     private static final String LOCAL_FILE = "path/to/local/file.jar";
     private static final String PATH_TO_INSTALL_FOLDER = "path/to/install/folder";
     @Mock

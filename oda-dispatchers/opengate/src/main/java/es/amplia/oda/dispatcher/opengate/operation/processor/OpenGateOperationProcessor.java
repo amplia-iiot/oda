@@ -2,7 +2,7 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.dispatcher.opengate.domain.Output;
-import es.amplia.oda.dispatcher.opengate.domain.Request;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;

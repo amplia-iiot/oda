@@ -1,6 +1,9 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetClock;
 
 import org.junit.Test;
@@ -10,8 +13,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.time.*;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -32,6 +34,11 @@ public class SetClockEquipmentProcessorTest {
     private static final Long TEST_TIMESTAMP = 123567789L;
     private static final ZoneId GMT_ZONE_ID = ZoneId.of("GMT+00:00");
     private static final String TEST_REQUEST_ID = "testRequest";
+    private static final List<ValueSetting> TEST_CLOCK_LIST = new ArrayList<>();
+    static {
+        TEST_CLOCK_LIST.add(new ValueSetting("date", ZonedDateTime.now(GMT_ZONE_ID).toLocalDate().toString()));
+        TEST_CLOCK_LIST.add(new ValueSetting("time", ZonedDateTime.now(GMT_ZONE_ID).toLocalTime().toString()));
+    }
 
     @Mock
     private OperationSetClock mockedOperationSetClock;
@@ -41,33 +48,24 @@ public class SetClockEquipmentProcessorTest {
     @Test
     public void testParseParametersWithDateAndTime() {
         ZonedDateTime dateTime = ZonedDateTime.now(GMT_ZONE_ID);
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject(dateTime.toLocalDate().toString(), null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject(dateTime.toLocalTime().toString(), null, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Arrays.asList(dateParameter, timeParameter));
+        ParameterSetOrConfigureOperation parameters = new ParameterSetOrConfigureOperation(TEST_CLOCK_LIST);
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(parameters);
 
         Long timestamp = testProcessor.parseParameters(request);
 
         assertNotNull(timestamp);
-        assertEquals(dateTime.toInstant().toEpochMilli(), timestamp.longValue());
+        assertTrue(Math.abs(timestamp - dateTime.toInstant().toEpochMilli()) < 100);
     }
 
     @Test
     public void testParseParametersWithAllParams() {
+        List<ValueSetting> allParamsList = new ArrayList<>();
         ZonedDateTime dateTime = ZonedDateTime.of(2019, 1, 1, 10, 0, 0, 0, ZoneId.of("Europe/Madrid"));
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("2019-01-01", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("10:00:00", null, null, null));
-        Parameter timezoneParameter =
-                new Parameter("timezone", null, new ValueObject(null, 2.0, null, null));
-        Parameter dstParameter =
-                new Parameter("dst", null, new ValueObject(null, -1.0, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME,
-                Arrays.asList(dateParameter, timeParameter, timezoneParameter, dstParameter));
+        allParamsList.add(new ValueSetting("date", "2019-01-01"));
+        allParamsList.add(new ValueSetting("time", "10:00:00"));
+        allParamsList.add(new ValueSetting("timezone", "2.0"));
+        allParamsList.add(new ValueSetting("dst", "-1.0"));
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(allParamsList));
 
         Long timestamp = testProcessor.parseParameters(request);
 
@@ -75,12 +73,11 @@ public class SetClockEquipmentProcessorTest {
         assertEquals(dateTime.toInstant().toEpochMilli(), timestamp.longValue());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testParseParametersWithNullParams() {
         ZonedDateTime dateTime = ZonedDateTime.of(LocalDateTime.now(),GMT_ZONE_ID);
 
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, null);
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(null);
 
         Long timestamp = testProcessor.parseParameters(request);
 
@@ -93,8 +90,7 @@ public class SetClockEquipmentProcessorTest {
     public void testParseParametersWithEmptyParams() {
         ZonedDateTime dateTime = ZonedDateTime.of(LocalDateTime.now(),GMT_ZONE_ID);
 
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Collections.emptyList());
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(new ArrayList<>()));
 
         Long timestamp = testProcessor.parseParameters(request);
 
@@ -104,83 +100,45 @@ public class SetClockEquipmentProcessorTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersWithInvalidDateType() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject(null, 99.0, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("09:00:00", null, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Arrays.asList(dateParameter, timeParameter));
-
-        testProcessor.parseParameters(request);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void testParseParametersWithInvalidDateFormat() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("invalid", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("09:00:00", null, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Arrays.asList(dateParameter, timeParameter));
-
-        testProcessor.parseParameters(request);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersWithInvalidTimeType() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("2019-01-01", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject(null, 99.0, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Arrays.asList(dateParameter, timeParameter));
+        List<ValueSetting> allParamsList = new ArrayList<>();
+        allParamsList.add(new ValueSetting("date","this is not a date, sorry"));
+        allParamsList.add(new ValueSetting("time","09:00:00"));
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(allParamsList));
 
         testProcessor.parseParameters(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersWithInvalidTimeFormat() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("2019-01-01", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("invalid", null, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME, Arrays.asList(dateParameter, timeParameter));
+        List<ValueSetting> allParamsList = new ArrayList<>();
+        allParamsList.add(new ValueSetting("date","2019-01-01"));
+        allParamsList.add(new ValueSetting("time","too late, we met one hour ago"));
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(allParamsList));
 
         testProcessor.parseParameters(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersWithInvalidTimezoneType() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("2019-01-01", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("09:00", null, null, null));
-        Parameter timezoneParameter =
-                new Parameter("timezone", null, new ValueObject("+02:00", null, null, null));
-        Parameter dstParameter =
-                new Parameter("dst", null, new ValueObject(null, -1.0, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME,
-                Arrays.asList(dateParameter, timeParameter, timezoneParameter, dstParameter));
+        List<ValueSetting> allParamsList = new ArrayList<>();
+        allParamsList.add(new ValueSetting("date", "2019-01-01"));
+        allParamsList.add(new ValueSetting("time", "10:00:00"));
+        allParamsList.add(new ValueSetting("timezone", "Nepal"));
+        allParamsList.add(new ValueSetting("dst", "-1.0"));
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(allParamsList));
 
         testProcessor.parseParameters(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersWithInvalidDSTType() {
-        Parameter dateParameter =
-                new Parameter("date", null, new ValueObject("2019-01-01", null, null, null));
-        Parameter timeParameter =
-                new Parameter("time", null, new ValueObject("09:00", null, null, null));
-        Parameter timezoneParameter =
-                new Parameter("timezone", null, new ValueObject(null, 2.0, null, null));
-        Parameter dstParameter =
-                new Parameter("dst", null, new ValueObject("+01:00", null, null, null));
-        Request request = new Request("id", System.currentTimeMillis(), "testDevice", null,
-                SET_CLOCK_EQUIPMENT_OPERATION_NAME,
-                Arrays.asList(dateParameter, timeParameter, timezoneParameter, dstParameter));
+        List<ValueSetting> allParamsList = new ArrayList<>();
+        allParamsList.add(new ValueSetting("date", "2019-01-01"));
+        allParamsList.add(new ValueSetting("time", "10:00:00"));
+        allParamsList.add(new ValueSetting("timezone", "0.0"));
+        allParamsList.add(new ValueSetting("dst", "No, we are in december"));
+        RequestSetOrConfigureOperation request = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(allParamsList));
 
         testProcessor.parseParameters(request);
     }

@@ -81,9 +81,35 @@ public interface OperationUpdate {
         @Setter DeploymentElementType type;
         String downloadUrl;
         String path;
+        Long order;
+        DeploymentElementOperationType operation;
+        List<String> validators;
+        Long size;
+        String oldVersion;
+        DeploymentElementOption option;
+        /*
+        String name;
+        String version;
+        @Setter DeploymentElementType type;
+        String downloadUrl;
+        String path;
         DeploymentElementOperationType operation;
         DeploymentElementOption option;
-        Long order;
+         */
+
+        public DeploymentElement(String name, String version, String type, String downloadUrl, String path, Long order, String operation, List<String> validators, Long size, String oldVersion, String option) {
+            this.name = name;
+            this.version = version;
+            this.type = DeploymentElementType.valueOf(type);
+            this.downloadUrl = downloadUrl;
+            this.path = path;
+            this.order = order;
+            this.operation = DeploymentElementOperationType.valueOf(operation);
+            this.validators = validators;
+            this.size = size;
+            this.oldVersion = oldVersion;
+            this.option = DeploymentElementOption.valueOf(option);
+        }
     }
 
     CompletableFuture<Result> update(String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements);

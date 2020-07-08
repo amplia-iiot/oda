@@ -41,16 +41,22 @@ public class DownloadManagerImplTest {
     private static final String VERSION_1 = "1.0.0";
     private static final String URL_1 = "http://www.platform.com/url/to/deploymentelement.jar";
     private static final DeploymentElement deploymentElement1 =
-            new DeploymentElement(NAME_1, VERSION_1, DeploymentElementType.SOFTWARE, URL_1, "deploy/",
-                    DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement(NAME_1, VERSION_1, DeploymentElementType.SOFTWARE, URL_1, "deploy/", 1L,
+                    DeploymentElementOperationType.INSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.MANDATORY);
     private static final String DOWNLOADED_FILE_2 = "/path/to/downloaded/file2.jar";
     private static final DeploymentElement deploymentElement2 =
-            new DeploymentElement("test2", "2.2.2", DeploymentElementType.CONFIGURATION, "", "configuration/",
-                    DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement("test2", "2.2.2", DeploymentElementType.CONFIGURATION, "", "configuration/", 1L,
+                    DeploymentElementOperationType.INSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.MANDATORY);
     private static final String DOWNLOADED_FILE_3 = "/path/to/downloaded/file3.jar";
     private static final DeploymentElement deploymentElement3 =
-            new DeploymentElement("test3", "3.0.0", DeploymentElementType.SOFTWARE, "", "deploy/",
-                    DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+            new DeploymentElement("test3", "3.0.0", DeploymentElementType.SOFTWARE, "", "deploy/", 1L,
+                    DeploymentElementOperationType.INSTALL,
+                    Collections.EMPTY_LIST, 0L, "0.0.9",
+                    DeploymentElementOption.MANDATORY);
     private static final String TEST_API_KEY = "testApiKey";
     private static final String DOWNLOADED_FILES_FIELD_NAME = "downloadedFiles";
     private static final String TEST_VERSION = "1.0.0";
@@ -158,7 +164,8 @@ public class DownloadManagerImplTest {
         String configurationDeploymentElementName = "configurationBundle";
         DeploymentElement configurationDeploymentElement =
                 new DeploymentElement(configurationDeploymentElementName, TEST_VERSION, DeploymentElementType.CONFIGURATION,
-                        URL_1, "configuration/", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+                        URL_1, "configuration/", 1L, DeploymentElementOperationType.INSTALL,
+                        Collections.EMPTY_LIST, 0L, "0.0.9", DeploymentElementOption.MANDATORY);
         HttpGet mockedHttpGet = mock(HttpGet.class);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
@@ -212,7 +219,9 @@ public class DownloadManagerImplTest {
         String otherTypeDeploymentElementName = "otherTypeBundle";
         DeploymentElement otherDeploymentElement =
                 new DeploymentElement(otherTypeDeploymentElementName, TEST_VERSION, DeploymentElementType.FIRMWARE,
-                        URL_1, "", DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 0L);
+                        URL_1, "", 1L, DeploymentElementOperationType.INSTALL,
+                        Collections.EMPTY_LIST, 0L, "0.0.9",
+                        DeploymentElementOption.MANDATORY);
         HttpGet mockedHttpGet = mock(HttpGet.class);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
@@ -325,8 +334,10 @@ public class DownloadManagerImplTest {
     @Test
     public void testGetDownloadedFileNotFound() {
         DeploymentElement nonExistentDeploymentElement =
-                new DeploymentElement("nonexistent", "0.0.0", DeploymentElementType.CONFIGURATION, "", "",
-                        DeploymentElementOperationType.UPGRADE, DeploymentElementOption.OPTIONAL, 2L);
+                new DeploymentElement("nonexistent", "0.0.0", DeploymentElementType.CONFIGURATION, "", "", 1L,
+                        DeploymentElementOperationType.UPGRADE,
+                        Collections.EMPTY_LIST, 0L, "0.0.9",
+                        DeploymentElementOption.OPTIONAL);
 
         Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
 

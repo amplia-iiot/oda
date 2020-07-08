@@ -1,7 +1,8 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
-import es.amplia.oda.dispatcher.opengate.domain.Request;
+import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +42,7 @@ public class OpenGateOperationProcessorTest {
 
     @Test
     public void testProcess() {
-        Request testRequest = new Request();
+        Request testRequest = new RequestGeneralOperation();
         testRequest.setName(TEST_OPERATION);
 
         testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest);
@@ -53,7 +54,7 @@ public class OpenGateOperationProcessorTest {
 
     @Test
     public void testProcessCustomOperation() {
-        Request testRequest = new Request();
+        Request testRequest = new RequestGeneralOperation();
         testRequest.setName(TEST_UNKNOWN_OPERATION);
 
         testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest);

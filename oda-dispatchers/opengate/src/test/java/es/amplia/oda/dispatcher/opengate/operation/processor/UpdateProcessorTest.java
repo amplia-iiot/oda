@@ -1,6 +1,8 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.update.ParameterUpdateOperation;
+import es.amplia.oda.dispatcher.opengate.domain.update.RequestUpdateOperation;
 import es.amplia.oda.operation.api.OperationUpdate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,13 +26,7 @@ public class UpdateProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_BUNDLE_NAME = "testBundle";
-    private static final ValueObject TEST_BUNDLE_NAME_OBJECT = new ValueObject(TEST_BUNDLE_NAME, null, null, null);
-    private static final Parameter TEST_BUNDLE_NAME_PARAM =
-            new Parameter("bundleName", "string", TEST_BUNDLE_NAME_OBJECT);
     private static final String TEST_BUNDLE_VERSION = "1.0.0";
-    private static final ValueObject TEST_BUNDLE_VERSION_OBJECT = new ValueObject(TEST_BUNDLE_VERSION, null, null, null);
-    private static final Parameter TEST_BUNDLE_VERSION_PARAM =
-            new Parameter("bundleVersion", "string", TEST_BUNDLE_VERSION_OBJECT);
     private static final String TEST_DEPLOYMENT_ELEMENT_NAME = "testDeploymentElement";
     private static final String TEST_DEPLOYMENT_ELEMENT_VERSION = "1.0.0";
     private static final String TEST_DEPLOYMENT_ELEMENT_TYPE = "SOFTWARE";
@@ -38,26 +34,28 @@ public class UpdateProcessorTest {
     private static final String TEST_DEPLOYMENT_ELEMENT_PATH = "deploy";
     private static final String TEST_DEPLOYMENT_ELEMENT_OPERATION = "INSTALL";
     private static final String TEST_DEPLOYMENT_ELEMENT_OPTION = "MANDATORY";
-    private static final Integer TEST_DEPLOYMENT_ELEMENT_ORDER = 1;
-    private static final Map<String, Object> TEST_DEPLOYMENT_ELEMENT = new HashMap<>();
-    static {
-        TEST_DEPLOYMENT_ELEMENT.put("name", TEST_DEPLOYMENT_ELEMENT_NAME);
-        TEST_DEPLOYMENT_ELEMENT.put("version", TEST_DEPLOYMENT_ELEMENT_VERSION);
-        TEST_DEPLOYMENT_ELEMENT.put("type", TEST_DEPLOYMENT_ELEMENT_TYPE);
-        TEST_DEPLOYMENT_ELEMENT.put("downloadUrl", TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL);
-        TEST_DEPLOYMENT_ELEMENT.put("path", TEST_DEPLOYMENT_ELEMENT_PATH);
-        TEST_DEPLOYMENT_ELEMENT.put("operation", TEST_DEPLOYMENT_ELEMENT_OPERATION);
-        TEST_DEPLOYMENT_ELEMENT.put("option", TEST_DEPLOYMENT_ELEMENT_OPTION);
-        TEST_DEPLOYMENT_ELEMENT.put("order", TEST_DEPLOYMENT_ELEMENT_ORDER);
-    }
-    private static final ValueObject TEST_VALUE_OBJECT =
-            new ValueObject(null, null, null, Collections.singletonList(TEST_DEPLOYMENT_ELEMENT));
-    private static final Parameter TEST_DEPLOYMENT_ELEMENT_PARAM = new Parameter("deploymentElements", "array", TEST_VALUE_OBJECT);
-    private static final Request TEST_REQUEST =
-            new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                    Arrays.asList(TEST_BUNDLE_NAME_PARAM, TEST_BUNDLE_VERSION_PARAM, TEST_DEPLOYMENT_ELEMENT_PARAM));
-    private static final Parameter TEST_OTHER_PARAM =
-            new Parameter("otherParam", "string", new ValueObject("other", null, null, null));
+    private static final Long TEST_DEPLOYMENT_ELEMENT_ORDER = 1L;
+    private static final List<String> TEST_DEPLOYMENT_ELEMENT_VALIDATORS = new ArrayList<>();
+    private static final Long TEST_DEPLOYMENT_ELEMENT_SIZE = 1024L;
+    private static final String TEST_DEPLOYMENT_ELEMENT_OLDVERSION = "0.9";
+    private static final DeploymentElement TEST_DEPLOYMENT_ELEMENT =
+            new DeploymentElement(
+                    TEST_DEPLOYMENT_ELEMENT_NAME,
+                    TEST_DEPLOYMENT_ELEMENT_VERSION,
+                    TEST_DEPLOYMENT_ELEMENT_TYPE,
+                    TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL,
+                    TEST_DEPLOYMENT_ELEMENT_PATH,
+                    TEST_DEPLOYMENT_ELEMENT_ORDER,
+                    TEST_DEPLOYMENT_ELEMENT_OPERATION,
+                    TEST_DEPLOYMENT_ELEMENT_VALIDATORS,
+                    TEST_DEPLOYMENT_ELEMENT_SIZE,
+                    TEST_DEPLOYMENT_ELEMENT_OLDVERSION,
+                    TEST_DEPLOYMENT_ELEMENT_OPTION
+            );
+    private static final List<DeploymentElement> TEST_DEPLOYMENT_ELEMENTS = Collections.singletonList(TEST_DEPLOYMENT_ELEMENT);
+    private static final ParameterUpdateOperation TEST_BUNDLE_PARAM =
+            new ParameterUpdateOperation(TEST_BUNDLE_NAME, TEST_BUNDLE_VERSION, TEST_DEPLOYMENT_ELEMENTS);
+    private static final RequestUpdateOperation TEST_REQUEST = new RequestUpdateOperation(TEST_BUNDLE_PARAM);
     private static final String TEST_RESULT_DESCRIPTION = "result description";
     private static final UpdateStepName TEST_STEP_NAME = UpdateStepName.ENDINSTALL;
     private static final String TEST_STEP_DESCRIPTION = "Installation description";
@@ -75,7 +73,7 @@ public class UpdateProcessorTest {
 
     @Test
     public void testParseParameters() {
-        UpdateParameters updateParameters = testProcessor.parseParameters(TEST_REQUEST);
+        ParameterUpdateOperation updateParameters = testProcessor.parseParameters(TEST_REQUEST);
 
         assertNotNull(updateParameters);
         assertEquals(TEST_BUNDLE_NAME, updateParameters.getBundleName());
@@ -86,28 +84,21 @@ public class UpdateProcessorTest {
         DeploymentElement deploymentElement = deploymentElements.get(0);
         assertEquals(TEST_DEPLOYMENT_ELEMENT_NAME, deploymentElement.getName());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_VERSION, deploymentElement.getVersion());
-        assertNull(deploymentElement.getType());
+        assertEquals(TEST_DEPLOYMENT_ELEMENT_TYPE, deploymentElement.getType().toString());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL, deploymentElement.getDownloadUrl());
         assertEquals(TEST_DEPLOYMENT_ELEMENT_PATH, deploymentElement.getPath());
         assertEquals(DeploymentElementOperationType.valueOf(TEST_DEPLOYMENT_ELEMENT_OPERATION),
                 deploymentElement.getOperation());
         assertEquals(DeploymentElementOption.valueOf(TEST_DEPLOYMENT_ELEMENT_OPTION), deploymentElement.getOption());
-        assertEquals(Integer.toUnsignedLong(TEST_DEPLOYMENT_ELEMENT_ORDER), deploymentElement.getOrder().longValue());
+        assertEquals(TEST_DEPLOYMENT_ELEMENT_ORDER, deploymentElement.getOrder());
+        assertEquals(TEST_DEPLOYMENT_ELEMENT_VALIDATORS, deploymentElement.getValidators());
+        assertEquals(TEST_DEPLOYMENT_ELEMENT_SIZE, deploymentElement.getSize());
+        assertEquals(TEST_DEPLOYMENT_ELEMENT_OLDVERSION, deploymentElement.getOldVersion());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoParams() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME, null);
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersNoSizeThreeParams() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Collections.emptyList());
+        RequestUpdateOperation invalidRequest = new RequestUpdateOperation(null);
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -116,8 +107,7 @@ public class UpdateProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoBundleNameParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_VERSION_PARAM, TEST_DEPLOYMENT_ELEMENT_PARAM, TEST_OTHER_PARAM));
+        RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation(null, "1.0.0", TEST_DEPLOYMENT_ELEMENTS));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -126,8 +116,7 @@ public class UpdateProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoBundleVersionParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_NAME_PARAM, TEST_DEPLOYMENT_ELEMENT_PARAM, TEST_OTHER_PARAM));
+        RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", null, TEST_DEPLOYMENT_ELEMENTS));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -136,45 +125,7 @@ public class UpdateProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoDeploymentElementParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_NAME_PARAM, TEST_BUNDLE_VERSION_PARAM, TEST_OTHER_PARAM));
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersIncorrectTypeBundleNameParam() {
-        ValueObject invalidBundleNameValue = new ValueObject(null, 99.0, null, null);
-        Parameter invalidBundleNameParam = new Parameter("bundleName", "string", invalidBundleNameValue);
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(invalidBundleNameParam, TEST_BUNDLE_VERSION_PARAM, TEST_DEPLOYMENT_ELEMENT_PARAM));
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersIncorrectTypeBundleVersionParam() {
-        ValueObject invalidBundleVersionValue = new ValueObject(null, 99.0, null, null);
-        Parameter invalidBundleVersionParam = new Parameter("bundleVersion", "string", invalidBundleVersionValue);
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_NAME_PARAM, invalidBundleVersionParam, TEST_DEPLOYMENT_ELEMENT_PARAM));
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersIncorrectDeploymentElementsParam() {
-        ValueObject invalidDeploymentElementsValue = new ValueObject(null, 99.0, null, null);
-        Parameter invalidDeploymentElementsParam =
-                new Parameter("deploymentElements", "string", invalidDeploymentElementsValue);
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_NAME_PARAM, TEST_BUNDLE_VERSION_PARAM, invalidDeploymentElementsParam));
+        RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", "1.0.0", null));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -183,11 +134,7 @@ public class UpdateProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersEmptyDeploymentElementsParam() {
-        ValueObject emptyDeploymentElementsValue = new ValueObject(null, null, null, Collections.emptyList());
-        Parameter emptyDeploymentElementsParam =
-                new Parameter("deploymentElements", "array", emptyDeploymentElementsValue);
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, UPDATE_OPERATION_NAME,
-                Arrays.asList(TEST_BUNDLE_NAME_PARAM, TEST_BUNDLE_VERSION_PARAM, emptyDeploymentElementsParam));
+        RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", "1.0.0", Collections.emptyList()));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -196,18 +143,9 @@ public class UpdateProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        DeploymentElement deploymentElement = new DeploymentElement(TEST_DEPLOYMENT_ELEMENT_NAME,
-                TEST_DEPLOYMENT_ELEMENT_VERSION, DeploymentElementType.SOFTWARE, TEST_DEPLOYMENT_ELEMENT_DOWNLOAD_URL,
-                TEST_DEPLOYMENT_ELEMENT_PATH, DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY,
-                1L);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_BUNDLE_PARAM);
 
-        List<DeploymentElement> deploymentElements = Collections.singletonList(deploymentElement);
-        UpdateParameters updateParameters =
-                new UpdateParameters(TEST_BUNDLE_NAME, TEST_BUNDLE_VERSION, deploymentElements);
-
-        testProcessor.processOperation(TEST_DEVICE_ID, updateParameters);
-
-        verify(mockedUpdate).update(eq(TEST_BUNDLE_NAME), eq(TEST_BUNDLE_VERSION), eq(deploymentElements));
+        verify(mockedUpdate).update(eq(TEST_BUNDLE_NAME), eq(TEST_BUNDLE_VERSION), eq(TEST_DEPLOYMENT_ELEMENTS));
     }
 
     @Test

@@ -1,6 +1,8 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.general.ParameterGeneralOperation;
+import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.operation.api.OperationDiscover;
 
 import org.junit.Test;
@@ -9,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -24,8 +27,10 @@ public class DiscoverProcessorTest {
     private static final String TEST_ID = "testOperationId";
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
-    private static final Request TEST_REQUEST =
-            new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, DISCOVER_OPERATION_NAME, null);
+    private static final ParameterGeneralOperation TEST_PARAMETERS =
+            new ParameterGeneralOperation(Collections.emptyList());
+    private static final RequestGeneralOperation TEST_REQUEST =
+            new RequestGeneralOperation(TEST_PARAMETERS);
     private static final Result TEST_RESULT = new Result(ResultCode.SUCCESSFUL, null);
 
 

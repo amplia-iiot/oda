@@ -12,6 +12,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Collections;
 import java.io.File;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
@@ -56,8 +57,9 @@ public class DeploymentElementOperationFactoryTest {
     @Test
     public void testCreateInstallDeploymentElementOperation() throws Exception {
         DeploymentElement installDeploymentElement =
-                new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "",
-                        DeploymentElementOperationType.INSTALL, DeploymentElementOption.MANDATORY, 1L);
+                new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "", 1L,
+                        DeploymentElementOperationType.INSTALL, Collections.EMPTY_LIST,
+                        0L, "0.0.9", DeploymentElementOption.MANDATORY);
         InstallDeploymentElementOperation mockedInstallOp = mock(InstallDeploymentElementOperation.class);
 
         PowerMockito.whenNew(InstallDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedInstallOp);
@@ -72,8 +74,9 @@ public class DeploymentElementOperationFactoryTest {
     @Test
     public void testCreateUpgradeDeploymentElementOperation() throws Exception {
         DeploymentElement upgradeDeploymentElement =
-                new DeploymentElement("","", DeploymentElementType.CONFIGURATION, "", "",
-                        DeploymentElementOperationType.UPGRADE, DeploymentElementOption.OPTIONAL, 1L);
+                new DeploymentElement("","", DeploymentElementType.CONFIGURATION, "", "", 1L,
+                        DeploymentElementOperationType.UPGRADE,Collections.EMPTY_LIST,
+                        0L, "0.0.9", DeploymentElementOption.OPTIONAL);
         UpgradeDeploymentElementOperation mockedUpgradeOp = mock(UpgradeDeploymentElementOperation.class);
 
         PowerMockito.whenNew(UpgradeDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedUpgradeOp);
@@ -88,8 +91,9 @@ public class DeploymentElementOperationFactoryTest {
     @Test
     public void testCreateDeleteDeploymentElementOperation() throws Exception {
         DeploymentElement uninstallDeploymentElement =
-                new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "",
-                        DeploymentElementOperationType.UNINSTALL, DeploymentElementOption.OPTIONAL, 1L);
+                new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "", 1L,
+                        DeploymentElementOperationType.UNINSTALL,Collections.EMPTY_LIST,
+                        0L, "0.0.9", DeploymentElementOption.OPTIONAL);
         UninstallDeploymentElementOperation mockedUninstallOp = mock(UninstallDeploymentElementOperation.class);
 
         PowerMockito.whenNew(UninstallDeploymentElementOperation.class).withAnyArguments()

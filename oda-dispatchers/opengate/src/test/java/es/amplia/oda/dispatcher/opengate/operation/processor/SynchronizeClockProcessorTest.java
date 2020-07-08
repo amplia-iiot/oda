@@ -1,6 +1,10 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
 
 import org.junit.Test;
@@ -26,10 +30,10 @@ public class SynchronizeClockProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_SOURCE = "testSource";
-    private static final ValueObject TEST_VALUE_OBJECT = new ValueObject(TEST_SOURCE, null, null, null);
-    private static final Parameter TEST_PARAMETER = new Parameter("source", "string", TEST_VALUE_OBJECT);
-    private static final Request TEST_REQUEST = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-            SYNCHRONIZE_CLOCK_OPERATION_NAME, Collections.singletonList(TEST_PARAMETER));
+    private static final ParameterSetOrConfigureOperation TEST_PARAMETER =
+            new ParameterSetOrConfigureOperation(Collections.singletonList(new ValueSetting("source", "sync")));
+    private static final RequestSetOrConfigureOperation TEST_REQUEST =
+            new RequestSetOrConfigureOperation(TEST_PARAMETER);
     private static final String TEST_RESULT_DESCRIPTION = "result description";
     private static final Result TEST_RESULT = new Result(ResultCode.SUCCESSFUL, TEST_RESULT_DESCRIPTION);
 
@@ -44,33 +48,21 @@ public class SynchronizeClockProcessorTest {
     public void testParseParameters() {
         String source = testProcessor.parseParameters(TEST_REQUEST);
 
-        assertEquals(TEST_SOURCE, source);
+        assertEquals("sync", source);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNullParams() {
-        Request nullParamsRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, SYNCHRONIZE_CLOCK_OPERATION_NAME,
-                null);
+        RequestSetOrConfigureOperation nullParamsRequest = new RequestSetOrConfigureOperation(null);
 
         assertNull(testProcessor.parseParameters(nullParamsRequest));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testParseParametersEmptyParams() {
-        Request emptyParamsRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, SYNCHRONIZE_CLOCK_OPERATION_NAME,
-                Collections.emptyList());
+        RequestSetOrConfigureOperation emptyParamsRequest = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(null));
 
         assertNull(testProcessor.parseParameters(emptyParamsRequest));
-    }
-
-    @Test
-    public void testParseParametersInvalidParams() {
-        ValueObject numberValue = new ValueObject(null, 99.0, null, null);
-        Parameter invalidParam = new Parameter("invalid", "number", numberValue);
-        Request invalidParamsRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH, SYNCHRONIZE_CLOCK_OPERATION_NAME,
-                Collections.singletonList(invalidParam));
-
-        assertNull(testProcessor.parseParameters(invalidParamsRequest));
     }
 
     @Test

@@ -3,6 +3,10 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.Step;
+import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.CustomOperation;
 
 import java.util.*;
@@ -24,30 +28,27 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
 
     @Override
     Map<String, Object> parseParameters(Request request) {
-        customOperationName = request.getName();
-        return Optional.ofNullable(request.getParameters()).map(list ->
-                list.stream()
-                .filter(Objects::nonNull)
-                .filter(param -> param.getName() != null)
-                .filter(param -> param.getValue() != null)
-                .collect(Collectors.toMap(Parameter::getName, this::getValue)))
-                .orElse(Collections.emptyMap());
-    }
+        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
 
-    private Object getValue(Parameter parameter) {
-        ValueObject valueObject = parameter.getValue();
-
-        if (valueObject.getString() != null) {
-            return valueObject.getString();
-        } else if (valueObject.getNumber() != null) {
-            return valueObject.getNumber();
-        } else if (valueObject.getObject() != null) {
-            return valueObject.getObject();
-        } else if (valueObject.getArray() != null) {
-            return valueObject.getArray();
-        } else {
-            throw new IllegalArgumentException("Parameter " + parameter.getName() + " has no value");
+        if(request.getName() == null) {
+            throw new IllegalArgumentException("Parameter " + request.getName() + " has no value");
         }
+        customOperationName = request.getName();
+
+        ParameterSetOrConfigureOperation parameters;
+        try {
+            parameters = specificRequest.getParameters();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Wrong format of input parameters");
+        }
+        List<ValueSetting> params = parameters.getVariableList();
+
+        Map<String, Object> parsedParameters = new HashMap<>();
+        for (ValueSetting setting: params) {
+            parsedParameters.put(setting.getName(), setting.getValue());
+        }
+
+        return parsedParameters;
     }
 
     @Override

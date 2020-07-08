@@ -1,6 +1,8 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.get.ParameterGetOperation;
+import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 
 import org.junit.Test;
@@ -27,15 +29,8 @@ public class GetDeviceParametersProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_DATASTREAM = "testDatastream";
-    private static final Map<String, String> TEST_GET_VALUES = new HashMap<>();
-    static {
-        TEST_GET_VALUES.put("variableName", TEST_DATASTREAM);
-    }
-    private static final ValueObject TEST_VALUE_OBJECT =
-            new ValueObject(null, null, null, Collections.singletonList(TEST_GET_VALUES));
-    private static final Parameter TEST_PARAMETER = new Parameter("variableList", "array", TEST_VALUE_OBJECT);
-    private static final Request TEST_REQUEST = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-            GET_DEVICE_PARAMETERS_OPERATION_NAME, Collections.singletonList(TEST_PARAMETER));
+    private static final ParameterGetOperation TEST_PARAMETER = new ParameterGetOperation(Collections.singletonList(TEST_DATASTREAM));
+    private static final RequestGetOperation TEST_REQUEST = new RequestGetOperation(TEST_PARAMETER);
     private static final Set<String> TEST_PARAMS = Collections.singleton(TEST_DATASTREAM);
     private static final String TEST_VALUE = "test";
     private static final GetValue TEST_GET_VALUE = new GetValue(TEST_DATASTREAM, Status.OK, TEST_VALUE, null);
@@ -59,18 +54,7 @@ public class GetDeviceParametersProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoParams() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME, null);
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersNoOneSizeParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME, Collections.emptyList());
+        RequestGetOperation invalidRequest = new RequestGetOperation(null);
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -79,22 +63,7 @@ public class GetDeviceParametersProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNoVariableListParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME,
-                Collections.singletonList(
-                        new Parameter("otherParam", "string", new ValueObject("test", null, null, null))));
-
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseParametersIncorrectTypeVariableListParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME,
-                Collections.singletonList(
-                        new Parameter("variableList", "string", new ValueObject("test", null, null, null))));
+        RequestGetOperation invalidRequest = new RequestGetOperation(new ParameterGetOperation(null));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -103,11 +72,7 @@ public class GetDeviceParametersProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersEmptyVariableListParam() {
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME,
-                Collections.singletonList(
-                        new Parameter("variableList", "string", new ValueObject(null, null, null,
-                                Collections.singletonList(new HashMap<>())))));
+        RequestGetOperation invalidRequest = new RequestGetOperation(new ParameterGetOperation(Collections.emptyList()));
 
         testProcessor.parseParameters(invalidRequest);
 
@@ -116,13 +81,7 @@ public class GetDeviceParametersProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testParseParametersNullElementVariableListParam() {
-        Map<String, String> getParam = new HashMap<>();
-        getParam.put(TEST_DATASTREAM, null);
-        Request invalidRequest = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-                GET_DEVICE_PARAMETERS_OPERATION_NAME,
-                Collections.singletonList(
-                        new Parameter("variableList", "string", new ValueObject(null, null, null,
-                                Collections.singletonList(getParam)))));
+        RequestGetOperation invalidRequest = new RequestGetOperation(new ParameterGetOperation(Collections.singletonList(null)));
 
         testProcessor.parseParameters(invalidRequest);
 

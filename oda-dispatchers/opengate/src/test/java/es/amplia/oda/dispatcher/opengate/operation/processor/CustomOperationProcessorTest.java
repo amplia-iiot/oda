@@ -2,6 +2,9 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.CustomOperation;
 import lombok.Value;
 import org.junit.Test;
@@ -29,22 +32,16 @@ public class CustomOperationProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_CUSTOM_OPERATION_NAME = "customOperation";
-    private static final ValueObject TEST_STRING_VALUE = new ValueObject("test", null, null, null);
-    private static final Parameter TEST_STRING_PARAM = new Parameter("stringParam", "string", TEST_STRING_VALUE);
-    private static final ValueObject TEST_NUMBER_VALUE = new ValueObject(null, 99.0, null, null);
-    private static final Parameter TEST_NUMBER_PARAM = new Parameter("numberParam", "number", TEST_NUMBER_VALUE);
-    private static final ValueObject TEST_OBJECT_VALUE = new ValueObject(null, null, new TestObject("test"), null);
-    private static final Parameter TEST_OBJECT_PARAM = new Parameter("objectParam", "object", TEST_OBJECT_VALUE);
-    private static final ValueObject TEST_ARRAY_VALUE =
-            new ValueObject(null, null, null, Collections.singletonList(new TestObject("test")));
-    private static final Parameter TEST_ARRAY_PARAM = new Parameter("arrayParam", "array", TEST_ARRAY_VALUE);
-    private static final Request TEST_REQUEST = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-            TEST_CUSTOM_OPERATION_NAME,
-            Arrays.asList(TEST_STRING_PARAM, TEST_NUMBER_PARAM, TEST_OBJECT_PARAM, TEST_ARRAY_PARAM));
-    private static final ValueObject TEST_INVALID_VALUE = new ValueObject(null, null, null, null);
-    private static final Parameter TEST_INVALID_PARAM = new Parameter("invalidParam", "string", TEST_INVALID_VALUE);
-    private static final Request TEST_INVALID_REQUEST = new Request(TEST_ID, 0L, TEST_DEVICE_ID, TEST_PATH,
-            TEST_CUSTOM_OPERATION_NAME, Collections.singletonList(TEST_INVALID_PARAM));
+    private static final String TEST_STRING_VALUE = "test";
+    private static final ParameterSetOrConfigureOperation TEST_STRING_PARAM =
+            new ParameterSetOrConfigureOperation(Collections.singletonList(new ValueSetting("string", TEST_STRING_VALUE)));
+    private static final RequestSetOrConfigureOperation TEST_REQUEST =
+            new RequestSetOrConfigureOperation(TEST_STRING_PARAM);
+    private static final String TEST_INVALID_VALUE = null;
+    private static final ParameterSetOrConfigureOperation TEST_INVALID_PARAM =
+            new ParameterSetOrConfigureOperation(Collections.singletonList(new ValueSetting("invalidParam", TEST_INVALID_VALUE)));
+    private static final RequestSetOrConfigureOperation TEST_INVALID_REQUEST =
+            new RequestSetOrConfigureOperation(TEST_INVALID_PARAM);
 
     private static final String TEST_DESCRIPTION = "description of the operation result";
     private static final CustomOperation.Result TEST_RESULT =
@@ -64,14 +61,13 @@ public class CustomOperationProcessorTest {
 
     @Test
     public void testParseParameters() {
+        TEST_REQUEST.setName(TEST_CUSTOM_OPERATION_NAME);
+
         Map<String, Object> params = testProcessor.parseParameters(TEST_REQUEST);
 
         assertNotNull(params);
-        assertEquals(4, params.size());
-        assertEquals(TEST_STRING_VALUE.getString(), params.get(TEST_STRING_PARAM.getName()));
-        assertEquals(TEST_NUMBER_VALUE.getNumber(), params.get(TEST_NUMBER_PARAM.getName()));
-        assertEquals(TEST_OBJECT_VALUE.getObject(), params.get(TEST_OBJECT_PARAM.getName()));
-        assertEquals(TEST_ARRAY_VALUE.getArray(), params.get(TEST_ARRAY_PARAM.getName()));
+        assertEquals(1, params.size());
+        assertEquals(TEST_STRING_VALUE, params.get("string"));
         assertEquals(TEST_CUSTOM_OPERATION_NAME, Whitebox.getInternalState(testProcessor, "customOperationName"));
     }
 
