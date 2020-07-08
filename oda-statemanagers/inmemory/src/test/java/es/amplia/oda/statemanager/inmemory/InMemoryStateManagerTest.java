@@ -240,6 +240,15 @@ public class InMemoryStateManagerTest {
         assertEquals(value, testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)));
     }
 
+    private void equalsValue(DatastreamValue expected, DatastreamValue actual) {
+        assertEquals(expected.getDeviceId(), actual.getDeviceId());
+        assertEquals(expected.getDatastreamId(), actual.getDatastreamId());
+        assertEquals(expected.getValue(), actual.getValue());
+        assertEquals(expected.getError(), actual.getError());
+        assertEquals(expected.getStatus(), actual.getStatus());
+        assertEquals(expected.isSent(), actual.isSent());
+    }
+
     @Test
     public void testSetDatastreamValueRuntimeException() throws ExecutionException, InterruptedException {
         long beforeTest = System.currentTimeMillis();
