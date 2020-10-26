@@ -50,6 +50,7 @@
         <module>oda-dispatchers</module>
         <module>oda-connectors</module>
         <module>oda-demos</module>
+        <module>oda-inferenceengine</module>
     </modules>
 
     <scm>

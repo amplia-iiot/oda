@@ -1,0 +1,52 @@
+
+version: ${project.version}
+sandboxed: false
+start: auto
+
+maxFileSystemBytes: 256000K
+maxMemoryBytes: 256000K
+maxThreads: 100
+
+processes:
+{
+	run:
+	{
+		oda = ( run.sh )
+	}
+
+	envVars:
+    {
+        ODA_ROOT = /legato/systems/current/appsWriteable/oda
+    }
+	
+	maxFileBytes: 128000K
+	maxCoreDumpFileBytes: 512K
+	faultAction: restart
+}
+
+bundles:
+{
+	dir: {
+		[r] ${ODA_RESOURCES}/bin /bin
+		[r] ${ODA_RESOURCES}/lib /lib
+		[r] ${ODA_RESOURCES}/bundle /bundle
+		[r] ${ODA_RESOURCES}/conf /conf
+		[w] ${ODA_RESOURCES}/configuration /configuration
+		[w] ${ODA_RESOURCES}/deploy /deploy
+		[w] ${ODA_RESOURCES}/log /log
+		[r] ${ODA_RESOURCES}/etc /etc
+		[r] ${ODA_RESOURCES}/security /security
+	}
+	
+	file: {
+		[r] ${ODA_RESOURCES}/VERSION.txt /
+	}
+}
+
+requires:
+{	    
+	device:
+    {    	
+        [rw] /dev/ttyHSL0 /dev/ttyHSL0
+    }
+}

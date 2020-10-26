@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>collector</artifactId>
+    <artifactId>api</artifactId>
     <packaging>bundle</packaging>
 
-    <name>OpenGate Device Agent Subsystem - Collector</name>
-    <description>Collector subsystem for OpenGate Device Agent artifacts</description>
+    <name>OpenGate Device Agent Inference Engine - API Inference Engine</name>
+    <description>API Inference Engine for OpenGate Device Agent</description>
 
     <parent>
-        <artifactId>oda-subsystems</artifactId>
-        <groupId>es.amplia.oda.subsystem</groupId>
+        <artifactId>oda-inferenceengine</artifactId>
+        <groupId>es.amplia.oda.inferenceengine</groupId>
         <version>4.1.1-SNAPSHOT</version>
     </parent>
 
@@ -29,44 +29,10 @@
                     <instructions>
                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>!*</Export-Package>
+                        <Export-Package>${bundle.namespace}.*</Export-Package>
                         <Import-Package>*</Import-Package>
-                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Private-Package />
                     </instructions>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>instrument</id>
-                        <goals>
-                            <goal>instrument</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>restore-instrumented-classes</id>
-                        <goals>
-                            <goal>restore-instrumented-classes</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
-                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>
@@ -80,14 +46,6 @@
         <dependency>
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.statemanager</groupId>
-            <artifactId>api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.event</groupId>
-            <artifactId>api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -120,7 +78,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-nop</artifactId>
-            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -130,6 +87,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
 </project>

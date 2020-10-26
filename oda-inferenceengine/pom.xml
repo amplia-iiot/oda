@@ -2,22 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>es.amplia.oda.subsystem</groupId>
-    <artifactId>oda-subsystems</artifactId>
+    <groupId>es.amplia.oda.inferenceengine</groupId>
+    <artifactId>oda-inferenceengine</artifactId>
     <packaging>pom</packaging>
 
-    <name>OpenGate Device Agent Subsystems</name>
-    <description>Subsystems of the OpenGate Device Agent</description>
-    <modules>
-        <module>poller</module>
-        <module>collector</module>
-        <module>predicter</module>
-        <module>sshserver</module>
-    </modules>
-
+    <name>OpenGate Device Agent Inference Engine</name>
+    <description>Inference Engine of the OpenGate Device Agent</description>
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
         <version>4.1.1-SNAPSHOT</version>
     </parent>
+
+    <modules>
+        <module>api</module>
+        <module>dl4j</module>
+    </modules>
 </project>
