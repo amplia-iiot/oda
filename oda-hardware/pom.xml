@@ -17,6 +17,7 @@
         <module>diozero</module>
         <module>i2c</module>
         <module>comms</module>
+        <module>udp</module>
     </modules>
 
     <parent>
