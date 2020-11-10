@@ -44,7 +44,7 @@ public class DatastreamsGpioConfigurationHandler implements ConfigurationUpdateH
         Map<String, ?> mappedProperties = Collections.dictionaryToMap(props);
         for (Map.Entry<String, ?> entry: mappedProperties.entrySet()) {
             try {
-                int pinIndex = Integer.parseInt((entry.getKey()));
+                int pinIndex = Integer.parseInt(entry.getKey());
                 String[] tokens = getTokensFromProperty((String) entry.getValue());
 
                 GpioPinDatastreamConfiguration.GpioPinDatastreamConfigurationBuilder builder =

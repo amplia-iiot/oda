@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
-    static final int NUM_THREADS = 1;
 
     private ScriptsLoader scriptsLoader;
     private CommsManager commsManager;

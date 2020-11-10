@@ -48,15 +48,15 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
     @Value
     static class InnerDatastreamEvent {
-        private String datastreamId;
-        private Long at;
-        private Object value;
+        String datastreamId;
+        Long at;
+        Object value;
     }
 
     @Value
     static class DeviceEventMessage {
-        private List<String> path;
-        private List<InnerDatastreamEvent> datastreams;
+        List<String> path;
+        List<InnerDatastreamEvent> datastreams;
     }
 
     class DeviceEventMessageListener implements MqttMessageListener {
@@ -73,7 +73,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                         .forEach(event -> publish(deviceId, event.getDatastreamId(), deviceEvent.getPath(),
                                 event.getAt(), event.getValue()));
             } catch (Exception e) {
-                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
+                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e.getMessage());
             }
         }
 
@@ -84,9 +84,9 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
     @Value
     static class DatastreamEvent {
-        private List<String> path;
-        private Long at;
-        private Object value;
+        List<String> path;
+        Long at;
+        Object value;
     }
 
     class DatastreamEventMessageListener implements MqttMessageListener {
@@ -104,7 +104,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 }
 
             } catch (Exception e) {
-                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
+                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e.getMessage());
             }
         }
 
