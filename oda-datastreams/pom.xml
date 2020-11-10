@@ -18,6 +18,7 @@
         <module>simulator</module>
         <module>adc</module>
         <module>i2c</module>
+        <module>lora</module>
     </modules>
 
     <parent>

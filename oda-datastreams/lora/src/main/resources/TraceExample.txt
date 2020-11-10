@@ -1,0 +1,21 @@
+An example of traces which send the devices to the gateway:
+
+{
+    "rxpk": [
+        {
+            "tmst":<longValue>,
+            "time":<dateAsString>,
+            "chan":<intValue>,
+            "rfch":<intValue>,
+            "freq":<doubleOrFloatValue>,
+            "stat":<intValue>,
+            "modu":<stringValue>,
+            "datr":<stringValue>,
+            "codr":<stringValue>,
+            "lsnr":<doubleValue>,
+            "rssi":<intValue>,
+            "size":<intValue>,
+            "data":<stringValueEncodedAsHexOrBase64>
+        }
+    ]
+}
