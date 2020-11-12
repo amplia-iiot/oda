@@ -1,8 +1,8 @@
-package es.amplia.oda.datastreams.testing.configuration;
+package es.amplia.oda.datastreams.lora.configuration;
 
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.datastreams.testing.LoraDatastreamsOrchestrator;
-import es.amplia.oda.datastreams.testing.datastreams.LoraException;
+import es.amplia.oda.datastreams.lora.LoraDatastreamsOrchestrator;
+import es.amplia.oda.datastreams.lora.datastreams.LoraException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

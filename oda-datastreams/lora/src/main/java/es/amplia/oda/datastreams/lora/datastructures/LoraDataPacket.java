@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastructures;
+package es.amplia.oda.datastreams.lora.datastructures;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class LoraDataPacket {
 	@Override
 	public String toString() {
 		return "LoraPackets{" +
-				"rxpk=" + rxpk +
+				rxpk +
 				'}';
 	}
 }

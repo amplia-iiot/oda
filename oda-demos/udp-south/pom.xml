@@ -126,16 +126,7 @@
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.statemanager</groupId>
-            <artifactId>inmemory</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.ruleengine</groupId>
-            <artifactId>api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.ruleengine</groupId>
-            <artifactId>nashorn</artifactId>
+            <artifactId>realtime</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -208,7 +199,7 @@
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.datastreams</groupId>
-            <artifactId>testing</artifactId>
+            <artifactId>lora</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

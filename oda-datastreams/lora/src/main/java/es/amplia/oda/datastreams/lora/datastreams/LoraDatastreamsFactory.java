@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastreams;
+package es.amplia.oda.datastreams.lora.datastreams;
 
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;

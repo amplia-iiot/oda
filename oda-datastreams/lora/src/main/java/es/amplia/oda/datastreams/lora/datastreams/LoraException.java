@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastreams;
+package es.amplia.oda.datastreams.lora.datastreams;
 
 public class LoraException extends RuntimeException {
 	public LoraException(String message) {

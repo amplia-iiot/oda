@@ -51,9 +51,7 @@
                 <include>es.amplia.oda.service:jsonserializer</include>
                 <include>es.amplia.oda.dispatcher:opengate</include>
                 <include>es.amplia.oda.statemanager:api</include>
-                <include>es.amplia.oda.statemanager:inmemory</include>
-                <include>es.amplia.oda.ruleengine:api</include>
-                <include>es.amplia.oda.ruleengine:nashorn</include>
+                <include>es.amplia.oda.statemanager:realtime</include>
                 <include>es.amplia.oda.event:api</include>
                 <include>es.amplia.oda.operation:api</include>
                 <include>es.amplia.oda.operation:refreshinfo</include>
@@ -68,7 +66,7 @@
                 <include>es.amplia.oda.datastreams:deviceinfo</include>
                 <include>es.amplia.oda.datastreams:simulator</include>
                 <include>es.amplia.oda.hardware:udp</include>
-                <include>es.amplia.oda.datastreams:testing</include>
+                <include>es.amplia.oda.datastreams:lora</include>
             </includes>
             <outputDirectory>deploy</outputDirectory>
             <outputFileNameMapping>

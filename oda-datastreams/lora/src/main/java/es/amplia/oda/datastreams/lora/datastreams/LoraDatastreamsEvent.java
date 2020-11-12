@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastreams;
+package es.amplia.oda.datastreams.lora.datastreams;
 
 import es.amplia.oda.core.commons.interfaces.AbstractDatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
@@ -6,8 +6,8 @@ import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.udp.UdpException;
 import es.amplia.oda.core.commons.udp.UdpPacket;
 import es.amplia.oda.core.commons.udp.UdpService;
-import es.amplia.oda.datastreams.testing.datastructures.LoraDataPacket;
-import es.amplia.oda.datastreams.testing.datastructures.LoraStatusPacket;
+import es.amplia.oda.datastreams.lora.datastructures.LoraDataPacket;
+import es.amplia.oda.datastreams.lora.datastructures.LoraStatusPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +79,10 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 			LoraStatusPacket loraStayAlive = serializer.deserialize(data, LoraStatusPacket.class);
 			if(loraStayAlive != null && loraStayAlive.getStat() != null) {
 				this.publish(deviceId, "lora", null, System.currentTimeMillis(), loraStayAlive);
+				LOGGER.info("Sent LoRa status message at: {}", System.currentTimeMillis());
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("LoRa packet content: {}", loraStayAlive.toShortString());
+				}
 			} else {
 				throw new IOException();
 			}
@@ -92,6 +96,10 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 			LoraDataPacket loraPacket = serializer.deserialize(data, LoraDataPacket.class);
 			if(loraPacket != null && loraPacket.getRxpk() != null) {
 				this.publish(deviceId, "lora", null, System.currentTimeMillis(), loraPacket);
+				LOGGER.info("Sent LoRa data message");
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("LoRa packet content: {}", loraPacket.toShortString());
+				}
 			} else {
 				throw new IOException();
 			}

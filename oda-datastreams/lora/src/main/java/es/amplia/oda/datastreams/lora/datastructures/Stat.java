@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastructures;
+package es.amplia.oda.datastreams.lora.datastructures;
 
 @SuppressWarnings("unused")
 public class Stat {
@@ -143,7 +143,7 @@ public class Stat {
 	 * @return a short message to show.
 	 */
 	public String toShortString() {
-		return "Sent a status messsage at: " + this.time + " from device " + this.desc;
+		return "Sent a status message at: " + this.time + " from device " + this.desc;
 	}
 
 	@Override

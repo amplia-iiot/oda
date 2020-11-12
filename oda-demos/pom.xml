@@ -12,6 +12,7 @@
         <module>mqtt</module>
         <module>fx30-mqtt</module>
         <module>coap</module>
+        <module>udp-south</module>
     </modules>
 
     <parent>

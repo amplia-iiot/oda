@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.packets;
+package es.amplia.oda.datastreams.lora.packets;
 
 import es.amplia.oda.core.commons.udp.UdpException;
 import org.slf4j.Logger;
@@ -8,6 +8,7 @@ import org.thethingsnetwork.util.security.Crypto;
 import java.util.Arrays;
 import java.util.Base64;
 
+// Not used yet
 public class UplinkData {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UplinkData.class);
@@ -91,7 +92,6 @@ public class UplinkData {
 		return fcnt;
 	}
 
-	// TODO: Pendiente de discutir los objetivos de este módulo
 	public byte[] getDataOfFieldWithBitScale(int initBit, int endBit) {
 		return null;
 	}

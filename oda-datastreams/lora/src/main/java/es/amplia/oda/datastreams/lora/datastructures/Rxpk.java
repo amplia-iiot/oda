@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing.datastructures;
+package es.amplia.oda.datastreams.lora.datastructures;
 
 @SuppressWarnings("unused")
 public class Rxpk {

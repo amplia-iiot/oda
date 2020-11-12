@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.testing;
+package es.amplia.oda.datastreams.lora;
 
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
@@ -8,7 +8,7 @@ import es.amplia.oda.core.commons.udp.UdpService;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
-import es.amplia.oda.datastreams.testing.configuration.LoraDatastreamsConfigurationHandler;
+import es.amplia.oda.datastreams.lora.configuration.LoraDatastreamsConfigurationHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class Activator implements BundleActivator {
 		LOGGER.info("UDP Reader datastreams bundle started");
 	}
 
-	private void onServiceChanged() {
+	void onServiceChanged() {
 		try {
 			LOGGER.info("Applying new configuration for LoRa datastreams");
 			configurationHandler.applyConfiguration();

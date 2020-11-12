@@ -23,9 +23,8 @@ public class JavaUdpService implements UdpService {
 		return CompletableFuture.supplyAsync(() -> {
 			JavaUdpPacket datagram = new JavaUdpPacket(new byte[packetSize]);
 			try {
-				LOGGER.info("Ready to receive data from server");
 				socket.receive(datagram.getDatagramPacket());
-				LOGGER.info("Udp packet received from server");
+				LOGGER.debug("Udp packet received to the ODA server");
 			} catch (IOException e) {
 				LOGGER.warn("Couldn't receive the udp packet from the server");
 				throw new UdpException(e.getMessage());
@@ -53,7 +52,7 @@ public class JavaUdpService implements UdpService {
 		try {
 			stop();
 			socket = new DatagramSocket(uplinkPort, InetAddress.getByName(host));
-			socket.connect(InetAddress.getByName(host), downlinkPort);
+//			socket.connect(InetAddress.getByName(host), downlinkPort);
 			LOGGER.info("Udp connection achieved in {}:{}. It will send messages in {}:{}",
 					host, uplinkPort, host, downlinkPort);
 		} catch (SocketException | UnknownHostException e) {
