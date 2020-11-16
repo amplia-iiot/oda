@@ -95,8 +95,8 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
                 String writeDatastreamTopic = getDatastreamTopic(deviceId);
                 byte[] payload = serializer.serialize(request);
                 MqttMessage message = MqttMessage.newInstance(payload);
-                mqttClient.publish(writeDatastreamTopic, message, ContentType.CBOR);
                 futures.put(request.getId(), future);
+                mqttClient.publish(writeDatastreamTopic, message, ContentType.CBOR);
             } catch (IOException|MqttException e) {
                 LOGGER.error("Error executing write operation request {}: {}", request, e);
                 future.completeExceptionally(new RuntimeException("Error  setting value of " +
