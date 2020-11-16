@@ -13,7 +13,7 @@
     <parent>
         <artifactId>oda-datastreams</artifactId>
         <groupId>es.amplia.oda.datastreams</groupId>
-        <version>4.1.1-SNAPSHOT</version>
+        <version>4.1.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -35,7 +35,7 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>commons-codec, ttn-security</Embed-Dependency>
+                        <Embed-Dependency>commons-codec</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                         <Embed-StripVersion>true</Embed-StripVersion>
                     </instructions>
