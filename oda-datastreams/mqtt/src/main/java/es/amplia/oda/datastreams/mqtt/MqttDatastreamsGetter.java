@@ -88,8 +88,8 @@ class MqttDatastreamsGetter implements DatastreamsGetter, AutoCloseable {
                 byte[] payload = serializer.serialize(request);
                 MqttMessage message = MqttMessage.newInstance(payload);
                 LOGGER.debug("Getting value from MQTT datastream {} of device {}", datastreamId, deviceId);
-                mqttClient.publish(readDatastreamTopic, message, ContentType.CBOR);
                 futures.put(request.getId(), future);
+                mqttClient.publish(readDatastreamTopic, message, ContentType.CBOR);
             } catch (IOException | MqttException e) {
                 LOGGER.error("Error executing request {}: {}", request, e);
                 future.completeExceptionally(new RuntimeException("Error  getting value for " +

@@ -3,8 +3,15 @@ package es.amplia.oda.datastreams.lora.packets;
 import es.amplia.oda.core.commons.udp.UdpException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thethingsnetwork.util.security.Crypto;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -73,11 +80,19 @@ public class UplinkData {
 	public String decryptFrmPayload(byte[] appSKey) {
 		String decryptedData = null;
 		try {
-			decryptedData = Crypto.decrypt(new String(phyPayload), appSKey, null);
+			decryptedData = decrypt(phyPayload, appSKey);
 		} catch (Exception exception) {
 			LOGGER.warn("Couldn't decrypt payload of {} message", this.phyPayload);
 		}
 		return decryptedData;
+	}
+
+	private String decrypt(byte[] phyPayload, byte[] appSKey) throws NoSuchPaddingException, NoSuchAlgorithmException,
+			NoSuchProviderException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+		Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding", "SunJCE");
+		SecretKeySpec secretKeySpec = new SecretKeySpec(appSKey, "AES");
+		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+		return new String(cipher.doFinal(phyPayload));
 	}
 
 	public byte[] getDevaddr() {
