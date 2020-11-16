@@ -12,12 +12,13 @@
         <module>mqtt</module>
         <module>fx30-mqtt</module>
         <module>coap</module>
+        <module>udp-south</module>
     </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.1.1-SNAPSHOT</version>
+        <version>4.2.3-SNAPSHOT</version>
     </parent>
 
     <properties>
