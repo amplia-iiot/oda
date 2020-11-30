@@ -29,10 +29,10 @@ public class ModbusDatastreamsManager implements AutoCloseable {
 
     @Value
     private static class ModbusConfigurationKey {
-        private String datastreamId;
-        private Type datastreamType;
-        private ModbusType modbusType;
-        private int dataAddress;
+        String datastreamId;
+        Type datastreamType;
+        ModbusType modbusType;
+        int dataAddress;
     }
 
     public void loadConfiguration(List<ModbusDatastreamsConfiguration> currentModbusDatastreamsConfigurations) {

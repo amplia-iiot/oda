@@ -12,11 +12,11 @@ public class TCPModbusMasterConfiguration {
     public static final boolean DEFAULT_RECONNECTION = false;
 
     @NonNull
-    private String address;
+    String address;
     @Builder.Default
-    private int port = DEFAULT_PORT;
+    int port = DEFAULT_PORT;
     @Builder.Default
-    private int timeout = DEFAULT_TIMEOUT;
+    int timeout = DEFAULT_TIMEOUT;
     @Builder.Default
-    private boolean reconnect = DEFAULT_RECONNECTION;
+    boolean reconnect = DEFAULT_RECONNECTION;
 }

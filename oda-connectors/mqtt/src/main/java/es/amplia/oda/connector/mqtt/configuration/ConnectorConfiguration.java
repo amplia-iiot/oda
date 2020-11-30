@@ -5,14 +5,14 @@ import lombok.Value;
 
 @Value
 public class ConnectorConfiguration {
-    private String brokerUrl;
-    private String clientId;
-    private MqttConnectOptions connectOptions;
-    private String iotTopic;
-    private String requestTopic;
-    private String responseTopic;
-    private int qos;
-    private boolean retained;
-    private int initialDelay;
-    private int retryDelay;
+    String brokerUrl;
+    String clientId;
+    MqttConnectOptions connectOptions;
+    String iotTopic;
+    String requestTopic;
+    String responseTopic;
+    int qos;
+    boolean retained;
+    int initialDelay;
+    int retryDelay;
 }

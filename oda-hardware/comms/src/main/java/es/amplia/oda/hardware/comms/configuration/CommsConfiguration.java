@@ -4,12 +4,12 @@ import lombok.Value;
 
 @Value
 class CommsConfiguration {
-    private String pin;
-    private String apn;
-    private String username;
-    private String password;
-    private int connectionTimeout;
-    private long retryConnectionTimer;
-    private String source;
-    private String path;
+    String pin;
+    String apn;
+    String username;
+    String password;
+    int connectionTimeout;
+    long retryConnectionTimer;
+    String source;
+    String path;
 }
