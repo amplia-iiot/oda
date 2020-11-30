@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ValueSetting {
 	private String name;
-	private String value;
+	private Object value;
 }
