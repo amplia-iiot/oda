@@ -44,12 +44,15 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
         if(parameters == null) {
             throw new IllegalArgumentException("Wrong format of input parameters");
         }
+
         List<ValueSetting> params = parameters.getVariableList();
 
-        date = getParamAsString("date", params).map(this::parseLocalDate).orElse(date);
-        time = getParamAsString("time", params).map(this::parseLocalTime).orElse(time);
-        offset = getParamAsNumber("timezone", params).map(Number::intValue).orElse(0);
-        offset += getParamAsNumber("dst", params).map(Number::intValue).orElse(0);
+        if(params != null) {
+            date = getParamAsString("date", params).map(this::parseLocalDate).orElse(date);
+            time = getParamAsString("time", params).map(this::parseLocalTime).orElse(time);
+            offset = getParamAsNumber("timezone", params).map(Number::intValue).orElse(0);
+            offset += getParamAsNumber("dst", params).map(Number::intValue).orElse(0);
+        }
 
         return ZonedDateTime.of(date, time, ZoneId.ofOffset("GMT", ZoneOffset.ofHours(offset))).toInstant()
                 .toEpochMilli();
@@ -59,7 +62,7 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
         String value = null;
         for (ValueSetting setting: params) {
             if (setting.getName().equals(name)) {
-                value = setting.getValue();
+                value = (String)setting.getValue();
             }
         }
         if (value != null) {
@@ -89,7 +92,7 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
         Double value = null;
         for (ValueSetting setting: params) {
             if (setting.getName().equals(name)) {
-                value = Double.valueOf(setting.getValue());
+                value = Double.valueOf((String)setting.getValue());
             }
         }
         if (value != null) {

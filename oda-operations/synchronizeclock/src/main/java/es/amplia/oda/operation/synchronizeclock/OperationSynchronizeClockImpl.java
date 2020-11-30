@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-class OperationSynchronizeClockImpl implements OperationSynchronizeClock {
+public class OperationSynchronizeClockImpl implements OperationSynchronizeClock {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OperationSynchronizeClockImpl.class);
 
-	static final String CLOCK_DATASTREAM = "device.clock";
+	private String clockDatastream = "device.clock";
 
 
 	private final StateManager stateManager;
@@ -28,7 +28,7 @@ class OperationSynchronizeClockImpl implements OperationSynchronizeClock {
 	public CompletableFuture<Result> synchronizeClock(String deviceId, String source) {
 		LOGGER.info("Synchronize clock with system time for device '{}'. Ignoring source {}", deviceId, source);
 
-		return stateManager.setDatastreamValue(deviceId, CLOCK_DATASTREAM, System.currentTimeMillis())
+		return stateManager.setDatastreamValue(deviceId, clockDatastream, System.currentTimeMillis())
 				.thenApply(this::mapValueToResult);
 	}
 
@@ -38,5 +38,9 @@ class OperationSynchronizeClockImpl implements OperationSynchronizeClock {
 
 	private ResultCode mapStatusToResultCode(Status status) {
 		return status.equals(Status.OK) ? ResultCode.SUCCESSFUL : ResultCode.ERROR_PROCESSING;
+	}
+
+	public void loadConfiguration(String clockDatastream) {
+		this.clockDatastream = clockDatastream;
 	}
 }

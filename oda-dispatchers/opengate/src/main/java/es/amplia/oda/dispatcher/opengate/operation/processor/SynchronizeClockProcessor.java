@@ -40,14 +40,14 @@ class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Resul
         if(parameters == null) {
             throw new IllegalArgumentException("Wrong format of input parameters");
         }
-        List<ValueSetting> params = parameters.getVariableList();
-        if(params == null) {
-            throw new IllegalArgumentException("Wrong format of input parameters");
-        }
 
-        for (ValueSetting setting: params) {
-            if(setting.getName().equals("source")) {
-                source = setting.getValue();
+        List<ValueSetting> params = parameters.getVariableList();
+
+        if(params != null) {
+            for (ValueSetting setting: params) {
+                if(setting.getName().equals("source")) {
+                    source = (String)setting.getValue();
+                }
             }
         }
 
