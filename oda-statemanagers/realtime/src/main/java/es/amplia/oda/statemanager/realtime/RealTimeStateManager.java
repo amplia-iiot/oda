@@ -229,6 +229,11 @@ class RealTimeStateManager implements StateManager {
 
     @Override
     public void onReceivedEvent(Event event) {
+        publishValue(event);
+    }
+
+    @Override
+    public void publishValue(Event event) {
         eventDispatcher.publish(event);
     }
 
