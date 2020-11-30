@@ -180,7 +180,8 @@ public class OperationUpdateImpl implements OperationUpdate {
 
     public void loadConfiguration(UpdateConfiguration config) {
         rulesPath = config.getRulesPath();
-        installManager.loadConfig(rulesPath);
-        downloadManager.loadConfig(rulesPath);
+        installManager.loadConfig(rulesPath, config.getDeployPath(), config.getConfigurationPath());
+        downloadManager.loadConfig(rulesPath, config.getDeployPath(), config.getConfigurationPath(), config.getDownloadsPath());
+        backupManager.loadConfig(config.getBackupPath());
     }
 }

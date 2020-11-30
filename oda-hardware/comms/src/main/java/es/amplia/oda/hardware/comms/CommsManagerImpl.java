@@ -38,7 +38,9 @@ class CommsManagerImpl implements CommsManager {
             close();
             this.path = path;
             this.pin = pin;
-            initSim(pin);
+            if(!pin.isEmpty()) {
+                initSim(pin);
+            }
             this.reconnect = true;
             LOGGER.info("SIM initialized");
             this.apn = apn;

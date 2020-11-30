@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
-import static es.amplia.oda.operation.update.internal.BackupManagerImpl.BACKUP_FOLDER;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -26,6 +25,7 @@ import static org.mockito.Mockito.*;
 public class BackupManagerImplTest {
 
     private static final String DEPLOYMENT_ELEMENT_NAME = "testBundle";
+    private static final String BACKUP_FOLDER = "backup";
     private static final DeploymentElement DEPLOYMENT_ELEMENT =
             new DeploymentElement(DEPLOYMENT_ELEMENT_NAME, "",
                     OperationUpdate.DeploymentElementType.SOFTWARE, "", "", 1L,

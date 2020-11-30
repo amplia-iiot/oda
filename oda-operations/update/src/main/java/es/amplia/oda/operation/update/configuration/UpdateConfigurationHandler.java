@@ -14,7 +14,11 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateConfigurationHandler.class);
 
-	static final String PATH_PROPERTY_NAME = "path";
+	static final String RULES_PATH_PROPERTY_NAME = "rulesPath";
+	static final String BACKUP_PATH_PROPERTY_NAME = "backupPath";
+	static final String DEPLOY_PATH_PROPERTY_NAME = "deployPath";
+	static final String DOWNLOADS_PATH_PROPERTY_NAME = "downloadsPath";
+	static final String CONFIGURATION_PATH_PROPERTY_NAME = "configurationPath";
 
 	private UpdateConfiguration config;
 	OperationUpdateImpl operationUpdate;
@@ -29,7 +33,15 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 
 		UpdateConfiguration.UpdateConfigurationBuilder builder = UpdateConfiguration.builder();
 
-		builder.rulesPath(Optional.ofNullable((String) props.get(PATH_PROPERTY_NAME))
+		builder.rulesPath(Optional.ofNullable((String) props.get(RULES_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.backupPath(Optional.ofNullable((String) props.get(BACKUP_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.deployPath(Optional.ofNullable((String) props.get(DEPLOY_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.downloadsPath(Optional.ofNullable((String) props.get(DOWNLOADS_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.configurationPath(Optional.ofNullable((String) props.get(CONFIGURATION_PATH_PROPERTY_NAME))
 				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
 
 		config = builder.build();

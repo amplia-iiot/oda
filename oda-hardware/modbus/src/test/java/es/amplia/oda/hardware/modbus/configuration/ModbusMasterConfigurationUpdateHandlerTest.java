@@ -11,8 +11,10 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 
 import static es.amplia.oda.hardware.modbus.configuration.ModbusMasterConfigurationUpdateHandler.*;
 
@@ -196,10 +198,10 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
 
     @Test
     public void testApplyConfiguration() {
-        Whitebox.setInternalState(testConfigHandler, "currentConfiguredModbusMaster", mockedModbusMaster);
+        Whitebox.setInternalState(testConfigHandler, "currentConfiguredModbusMaster", Collections.singletonList(mockedModbusMaster));
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedModbusMasterManager).loadConfiguration(eq(mockedModbusMaster));
+        verify(mockedModbusMasterManager).loadConfiguration(eq(Collections.singletonList(mockedModbusMaster)));
     }
 }

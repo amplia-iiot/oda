@@ -1,5 +1,6 @@
 package es.amplia.oda.operation.get;
 
+import es.amplia.oda.event.api.Event;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.statemanager.api.StateManager;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
@@ -26,7 +28,23 @@ class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
     public CompletableFuture<Result> getDeviceParameters(String deviceId, Set<String> dataStreamIds) {
         LOGGER.debug("Getting values for device '{}': {}", deviceId, dataStreamIds);
 
-        return stateManager.getDatastreamsInformation(deviceId, dataStreamIds).thenApply(this::createResult);
+        CompletableFuture<Result> value = stateManager
+                .getDatastreamsInformation(deviceId, dataStreamIds).thenApply(this::createResult);
+
+        try {
+            List<GetValue> result = value.get().getValues();
+            for (String datastreamId : dataStreamIds) {
+                for (GetValue item : result) {
+                    if (item.getDatastreamId().equals(datastreamId) && item.getStatus() == Status.OK) {
+                        stateManager.publishValue(new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue()));
+                    }
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            LOGGER.error("Fail trying to create the event to send the iot data {}", e.getMessage());
+        }
+
+        return value;
     }
 
     private Result createResult(Set<DatastreamValue> datastreamValues) {
@@ -42,6 +60,7 @@ class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
     private GetValue toGetValue(DatastreamValue datastreamValue) {
         return new GetValue(datastreamValue.getDatastreamId(),
                 toGetValueStatus(datastreamValue.getStatus()),
+                datastreamValue.getAt(),
                 datastreamValue.getValue(),
                 datastreamValue.getError());
     }

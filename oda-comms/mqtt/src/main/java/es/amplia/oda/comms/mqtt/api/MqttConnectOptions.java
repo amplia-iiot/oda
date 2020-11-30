@@ -15,16 +15,16 @@ public class MqttConnectOptions {
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30;
     public static final boolean DEFAULT_AUTOMATIC_RECONNECT = true;
 
-    private MqttVersion mqttVersion;
-    private String username;
-    private char[] password;
-    private int keepAliveInterval;
-    private int maxInFlight;
-    private boolean cleanSession;
-    private int connectionTimeout;
-    private boolean automaticReconnect;
-    private WillOptions will;
-    private SslOptions ssl;
+    MqttVersion mqttVersion;
+    String username;
+    char[] password;
+    int keepAliveInterval;
+    int maxInFlight;
+    boolean cleanSession;
+    int connectionTimeout;
+    boolean automaticReconnect;
+    WillOptions will;
+    SslOptions ssl;
 
     public enum MqttVersion {
         MQTT_3_1, MQTT_3_1_1
@@ -60,10 +60,10 @@ public class MqttConnectOptions {
         public static final int DEFAULT_QOS = 1;
         public static final boolean DEFAULT_RETAINED = false;
 
-        private String topic;
-        private byte[] payload;
-        private int qos;
-        private boolean retained;
+        String topic;
+        byte[] payload;
+        int qos;
+        boolean retained;
 
         private WillOptions(String topic, byte[] payload, int qos, boolean retained) {
             this.topic = topic;
@@ -84,14 +84,14 @@ public class MqttConnectOptions {
         public static final KeyManagerAlgorithm DEFAULT_KEY_MANAGER_ALGORITHM =
                KeyManagerAlgorithm.from(KeyManagerFactory.getDefaultAlgorithm());
 
-        private String keyStore;
-        private KeyStoreType keyStoreType;
-        @NonNull private char[] keyStorePassword;
-        private KeyManagerAlgorithm keyManagerFactoryAlgorithm;
-        private String trustStore;
-        private KeyStoreType trustStoreType;
-        @NonNull private char[] trustStorePassword;
-        private KeyManagerAlgorithm trustManagerFactoryAlgorithm;
+        String keyStore;
+        KeyStoreType keyStoreType;
+        @NonNull char[] keyStorePassword;
+        KeyManagerAlgorithm keyManagerFactoryAlgorithm;
+        String trustStore;
+        KeyStoreType trustStoreType;
+        @NonNull char[] trustStorePassword;
+        KeyManagerAlgorithm trustManagerFactoryAlgorithm;
 
         SslOptions(String keyStore, KeyStoreType keyStoreType, char[] keyStorePassword,
                    KeyManagerAlgorithm keyManagerFactoryAlgorithm, String trustStore, KeyStoreType trustStoreType,

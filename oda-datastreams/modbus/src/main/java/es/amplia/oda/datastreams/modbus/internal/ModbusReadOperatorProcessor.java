@@ -28,8 +28,8 @@ class ModbusReadOperatorProcessor {
 
     @Value
     private static class OperatorSelector {
-        private Type datastreamType;
-        private ModbusType modbusType;
+        Type datastreamType;
+        ModbusType modbusType;
     }
 
     ModbusReadOperatorProcessor(ModbusMaster modbusMaster, ModbusTypeToJavaTypeConverter converter) {

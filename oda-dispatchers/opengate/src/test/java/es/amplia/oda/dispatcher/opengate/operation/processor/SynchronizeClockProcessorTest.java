@@ -58,7 +58,7 @@ public class SynchronizeClockProcessorTest {
         assertNull(testProcessor.parseParameters(nullParamsRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersEmptyParams() {
         RequestSetOrConfigureOperation emptyParamsRequest = new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(null));
 

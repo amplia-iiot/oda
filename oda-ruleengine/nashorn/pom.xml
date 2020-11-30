@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-ruleengine</artifactId>
         <groupId>es.amplia.oda.ruleengine</groupId>
-        <version>4.2.3-SNAPSHOT</version>
+        <version>4.2.4-SNAPSHOT</version>
     </parent>
 
     <properties>

@@ -28,7 +28,6 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.API_KEY_HEADER;
-import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.DOWNLOAD_FOLDER;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -36,6 +35,7 @@ import static org.mockito.Mockito.*;
 @PrepareForTest({ DownloadManagerImpl.class, HttpClientBuilder.class, DataInputStream.class })
 public class DownloadManagerImplTest {
 
+    private static final String DOWNLOAD_FOLDER = "downloads/";
     private static final String DOWNLOADED_FILE_1 = "/path/to/downloaded/file1.jar";
     private static final String NAME_1 = "testBundle1";
     private static final String VERSION_1 = "1.0.0";
@@ -78,7 +78,7 @@ public class DownloadManagerImplTest {
         downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
         spiedDownloadedFiles = spy(downloadedFiles);
 
-        testDownloadManager.loadConfig("rules/");
+        testDownloadManager.loadConfig("rules/", "deploy/", "configuration/", "downloads/");
     }
 
     @Test

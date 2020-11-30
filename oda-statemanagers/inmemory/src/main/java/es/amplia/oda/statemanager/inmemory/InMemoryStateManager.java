@@ -233,6 +233,11 @@ public class InMemoryStateManager implements StateManager {
         LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
     }
 
+    @Override
+    public void publishValue(Event event) {
+        eventDispatcher.publish(event);
+    }
+
     private DatastreamValue createDatastreamValueFromEvent(Event event) {
         return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getAt(), event.getValue(),
                 Status.OK, null, false);

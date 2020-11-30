@@ -1,6 +1,9 @@
 package es.amplia.oda.operation.setclock;
 
+import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.operation.api.OperationSetClock;
+import es.amplia.oda.operation.setclock.configuration.SetClockConfigurationHandler;
 import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.junit.Test;
@@ -31,27 +34,37 @@ public class ActivatorTest {
     private OperationSetClockImpl mockedSetClock;
     @Mock
     private ServiceRegistration<OperationSetClock> mockedRegistration;
+    @Mock
+    private SetClockConfigurationHandler mockedHandler;
+    @Mock
+    private ConfigurableBundleImpl mockedBundle;
 
     @Test
     public void testStart() throws Exception {
         PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(OperationSetClockImpl.class).withAnyArguments().thenReturn(mockedSetClock);
+        PowerMockito.whenNew(SetClockConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedBundle);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OperationSetClockImpl.class).withArguments(eq(mockedStateManager));
+        PowerMockito.verifyNew(SetClockConfigurationHandler.class).withArguments(eq(mockedSetClock));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler), any());
         verify(mockedContext).registerService(eq(OperationSetClock.class), eq(mockedSetClock), any());
     }
 
     @Test
     public void testStop() {
         Whitebox.setInternalState(testActivator, "setClockRegistration", mockedRegistration);
-
         Whitebox.setInternalState(testActivator, "stateManager", mockedStateManager);
+        Whitebox.setInternalState(testActivator, "configurableBundle", mockedBundle);
 
         testActivator.stop(mockedContext);
 
+        verify(mockedBundle).close();
         verify(mockedRegistration).unregister();
+        verify(mockedStateManager).close();
     }
 }

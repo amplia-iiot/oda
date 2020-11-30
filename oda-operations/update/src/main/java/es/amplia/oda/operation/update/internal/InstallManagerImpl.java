@@ -16,9 +16,6 @@ import static es.amplia.oda.operation.update.DeploymentElementOperation.Deployme
 
 public class InstallManagerImpl implements InstallManager {
 
-    static final String SOFTWARE_INSTALL_FOLDER = "deploy/";
-    static final String CONFIGURATION_INSTALL_FOLDER = "configuration/";
-
     private static final Logger logger = LoggerFactory.getLogger(InstallManagerImpl.class);
 
     private final DeploymentElementOperationFactory deploymentElementOperationFactory;
@@ -26,26 +23,27 @@ public class InstallManagerImpl implements InstallManager {
     private final Map<DeploymentElement, DeploymentElementOperation> installedDeploymentElements = new HashMap<>();
 
     private String rulesPath;
+    private String deployPath= "deploy/";
+    private String configurationPath= "configuration/";
 
     public InstallManagerImpl(DeploymentElementOperationFactory deploymentElementOperationFactory) {
         this.deploymentElementOperationFactory = deploymentElementOperationFactory;
     }
 
     public DeploymentElement assignDeployElementType(DeploymentElement deploymentElement) {
-        switch (deploymentElement.getPath()) {
-            case SOFTWARE_INSTALL_FOLDER:
-                deploymentElement.setType(OperationUpdate.DeploymentElementType.SOFTWARE);
-                return deploymentElement;
-            case CONFIGURATION_INSTALL_FOLDER:
-                deploymentElement.setType(OperationUpdate.DeploymentElementType.CONFIGURATION);
-                return deploymentElement;
-            default:
-                if (deploymentElement.getPath().startsWith(rulesPath)) {
-                    deploymentElement.setType(OperationUpdate.DeploymentElementType.RULE);
-                } else {
-                    deploymentElement.setType(OperationUpdate.DeploymentElementType.DEFAULT);
-                }
-                return deploymentElement;
+        if(deploymentElement.getPath().equals(deployPath)) {
+            deploymentElement.setType(OperationUpdate.DeploymentElementType.SOFTWARE);
+            return deploymentElement;
+        } else if (deploymentElement.getPath().equals(configurationPath)) {
+            deploymentElement.setType(OperationUpdate.DeploymentElementType.CONFIGURATION);
+            return deploymentElement;
+        } else {
+            if (deploymentElement.getPath().startsWith(rulesPath)) {
+                deploymentElement.setType(OperationUpdate.DeploymentElementType.RULE);
+            } else {
+                deploymentElement.setType(OperationUpdate.DeploymentElementType.DEFAULT);
+            }
+            return deploymentElement;
         }
     }
 
@@ -97,7 +95,9 @@ public class InstallManagerImpl implements InstallManager {
     }
 
     @Override
-    public void loadConfig(String rulesPath) {
+    public void loadConfig(String rulesPath, String deployPath, String configurationPath) {
         this.rulesPath = rulesPath;
+        this.deployPath = deployPath;
+        this.configurationPath = configurationPath;
     }
 }
