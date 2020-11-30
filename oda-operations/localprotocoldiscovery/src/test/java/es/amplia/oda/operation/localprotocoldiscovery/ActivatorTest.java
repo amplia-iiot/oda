@@ -3,6 +3,8 @@ package es.amplia.oda.operation.localprotocoldiscovery;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
+import es.amplia.oda.core.commons.osgi.proxies.MqttDatastreamsServiceProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
@@ -36,6 +38,8 @@ public class ActivatorTest {
 	@Mock
 	private MqttClientFactoryProxy mockedFactory;
 	@Mock
+	private MqttDatastreamsServiceProxy mockedMqttDatastreamsService;
+	@Mock
 	private SerializerProxy mockedSerializer;
 	@Mock
 	private OperationLocalProtocolDiscoveryImpl mockedOperation;
@@ -46,30 +50,40 @@ public class ActivatorTest {
 	@Mock
 	private ServiceListenerBundle<MqttClientFactory> mockedListener;
 	@Mock
+	private ServiceListenerBundle<MqttDatastreamsService> mockedDatastreamsListener;
+	@Mock
 	private ServiceRegistration<OperationDiscover> mockedRegistration;
 
 	@Test
 	public void testStart() throws Exception {
 		PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedFactory);
+		PowerMockito.whenNew(MqttDatastreamsServiceProxy.class).withAnyArguments()
+				.thenReturn(mockedMqttDatastreamsService);
 		PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
 		PowerMockito.whenNew(OperationLocalProtocolDiscoveryImpl.class).withAnyArguments().thenReturn(mockedOperation);
 		PowerMockito.whenNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class).withAnyArguments()
 				.thenReturn(mockedConfigHandler);
 		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-		PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
+		PowerMockito.whenNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any()).thenReturn(mockedListener);
+		PowerMockito.whenNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any()).thenReturn(mockedDatastreamsListener);
 
 		testActivator.start(mockedContext);
 
 		PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
+		PowerMockito.verifyNew(MqttDatastreamsServiceProxy.class).withArguments(eq(mockedContext));
 		PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
 		PowerMockito.verifyNew(OperationLocalProtocolDiscoveryImpl.class)
-				.withArguments(eq(mockedFactory), eq(mockedSerializer));
+				.withArguments(eq(mockedFactory), eq(mockedMqttDatastreamsService), eq(mockedSerializer));
 		PowerMockito.verifyNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class)
 				.withArguments(eq(mockedOperation));
 		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
 		verify(mockedContext).registerService(eq(OperationDiscover.class), eq(mockedOperation), any());
 		PowerMockito.verifyNew(ServiceListenerBundle.class)
 				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any(Runnable.class));
+		PowerMockito.verifyNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any(Runnable.class));
 	}
 
 	@Test
@@ -93,17 +107,21 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
+		Whitebox.setInternalState(testActivator, "mqttDatastreamsServiceListener", mockedDatastreamsListener);
 		Whitebox.setInternalState(testActivator, "mqttClientFactoryListener", mockedListener);
 		Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
 		Whitebox.setInternalState(testActivator, "mqttClientFactory", mockedFactory);
+		Whitebox.setInternalState(testActivator, "mqttDatastreamsService", mockedMqttDatastreamsService);
 		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigBundle);
 		Whitebox.setInternalState(testActivator, "serializer", mockedSerializer);
 
 		testActivator.stop(mockedContext);
 
+		verify(mockedDatastreamsListener).close();
 		verify(mockedListener).close();
 		verify(mockedRegistration).unregister();
 		verify(mockedFactory).close();
+		verify(mockedMqttDatastreamsService).close();
 		verify(mockedConfigBundle).close();
 		verify(mockedSerializer).close();
 	}

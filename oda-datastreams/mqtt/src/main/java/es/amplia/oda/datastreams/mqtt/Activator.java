@@ -2,9 +2,11 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
+import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
@@ -12,6 +14,7 @@ import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +27,7 @@ public class Activator implements BundleActivator {
     private EventPublisherProxy eventPublisher;
     private MqttDatastreamsConfigurationUpdateHandler configHandler;
     private ConfigurableBundle configurableBundle;
+    private ServiceRegistration<MqttDatastreamsService> mqttDatastreamServiceRegistration;
     private ServiceListenerBundle<MqttClientFactory> mqttClientFactoryListener;
 
     private MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator;
@@ -41,6 +45,8 @@ public class Activator implements BundleActivator {
         mqttDatastreamsOrchestrator = new MqttDatastreamsOrchestrator(mqttClientFactory, serializer, eventPublisher,
                 mqttDatastreamsGetterRegistrationManager, mqttDatastreamsSetterRegistrationManager);
         configHandler = new MqttDatastreamsConfigurationUpdateHandler(mqttDatastreamsOrchestrator);
+        mqttDatastreamServiceRegistration = bundleContext.registerService(MqttDatastreamsService.class,
+                mqttDatastreamsOrchestrator, null);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         mqttClientFactoryListener = new ServiceListenerBundle<>(bundleContext, MqttClientFactory.class,
                 this::onServiceChanged);
@@ -62,6 +68,7 @@ public class Activator implements BundleActivator {
         LOGGER.info("Stopping MQTT datastreams bundle");
         mqttClientFactoryListener.close();
         configurableBundle.close();
+        mqttDatastreamServiceRegistration.unregister();
         mqttDatastreamsOrchestrator.close();
         mqttClientFactory.close();
         serializer.close();

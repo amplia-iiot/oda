@@ -79,8 +79,8 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
 
     @Value
     static class WriteRequestOperation {
-        private int id;
-        private Object value;
+        int id;
+        Object value;
     }
 
     @Override
@@ -98,7 +98,7 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
                 futures.put(request.getId(), future);
                 mqttClient.publish(writeDatastreamTopic, message, ContentType.CBOR);
             } catch (IOException|MqttException e) {
-                LOGGER.error("Error executing write operation request {}: {}", request, e);
+                LOGGER.error("Error executing write operation request {}: {}", request, e.getMessage());
                 future.completeExceptionally(new RuntimeException("Error  setting value of " +
                         datastreamId + " of device " + deviceId + ":" + e));
             }
@@ -116,9 +116,9 @@ class MqttDatastreamsSetter implements DatastreamsSetter, AutoCloseable {
 
     @Value
     static class WriteResponseOperation {
-        private int id;
-        private int status;
-        private String message;
+        int id;
+        int status;
+        String message;
     }
 
     class WriteResponseMessageListener implements MqttMessageListener {
