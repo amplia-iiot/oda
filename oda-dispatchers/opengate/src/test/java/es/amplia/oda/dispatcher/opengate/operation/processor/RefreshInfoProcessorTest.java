@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +30,10 @@ public class RefreshInfoProcessorTest {
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final RequestGeneralOperation TEST_REQUEST = new RequestGeneralOperation();
     private static final String TEST_DATASTREAM = "testDatastream";
-    private static final String TEST_VALUE = "test";
-    private static final Map<String, Object> TEST_OBTAINED = new HashMap<>();
+    private static final OperationRefreshInfo.RefreshInfoValue TEST_VALUE = new OperationRefreshInfo.RefreshInfoValue(TEST_DATASTREAM, OperationRefreshInfo.Status.OK, System.currentTimeMillis(), "Hello", null);
+    private static final Map<String, List<OperationRefreshInfo.RefreshInfoValue>> TEST_OBTAINED = new HashMap<>();
     static {
-        TEST_OBTAINED.put(TEST_DATASTREAM, TEST_VALUE);
+        TEST_OBTAINED.put(TEST_DATASTREAM, Collections.singletonList(TEST_VALUE));
     }
     private static final OperationRefreshInfo.Result TEST_RESULT = new OperationRefreshInfo.Result(TEST_OBTAINED);
 
@@ -79,7 +80,7 @@ public class RefreshInfoProcessorTest {
         OutputVariable outputVariable = (OutputVariable) stepResponse.get(0);
         assertNotNull(outputVariable);
         assertEquals(TEST_DATASTREAM, outputVariable.getVariableName());
-        assertEquals(TEST_VALUE, outputVariable.getVariableValue());
+        assertEquals(Collections.singletonList(TEST_VALUE), outputVariable.getVariableValue());
         assertEquals(SUCCESS_RESULT, outputVariable.getResultCode());
     }
 }

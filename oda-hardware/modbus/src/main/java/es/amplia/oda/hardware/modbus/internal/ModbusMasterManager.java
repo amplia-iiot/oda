@@ -3,6 +3,8 @@ package es.amplia.oda.hardware.modbus.internal;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 
+import java.util.List;
+
 public class ModbusMasterManager implements AutoCloseable {
 
     private final ServiceRegistrationManager<ModbusMaster> serviceRegistrationManager;
@@ -11,9 +13,11 @@ public class ModbusMasterManager implements AutoCloseable {
         this.serviceRegistrationManager = serviceRegistrationManager;
     }
 
-    public void loadConfiguration(ModbusMaster modbusMaster) {
+    public void loadConfiguration(List<ModbusMaster> modbusMaster) {
         serviceRegistrationManager.unregister();
-        serviceRegistrationManager.register(modbusMaster);
+        for (ModbusMaster master : modbusMaster) {
+            serviceRegistrationManager.register(master);
+        }
     }
 
     @Override

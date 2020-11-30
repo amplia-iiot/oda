@@ -11,9 +11,9 @@ public class UDPModbusMasterConfiguration {
     public static final int DEFAULT_TIMEOUT = 3000;
 
     @NonNull
-    private String address;
+    String address;
     @Builder.Default
-    private int port = DEFAULT_PORT;
+    int port = DEFAULT_PORT;
     @Builder.Default
-    private int timeout = DEFAULT_TIMEOUT;
+    int timeout = DEFAULT_TIMEOUT;
 }

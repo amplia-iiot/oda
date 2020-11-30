@@ -4,6 +4,6 @@ import lombok.Value;
 
 @Value
 public class Datapoint {
-    private Long at;
-    private Object value;
+    Long at;
+    Object value;
 }

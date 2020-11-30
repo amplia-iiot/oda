@@ -7,16 +7,19 @@ import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 
+import es.amplia.oda.core.commons.osgi.proxies.MqttDatastreamsServiceProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static es.amplia.oda.operation.api.OperationDiscover.*;
 import static es.amplia.oda.operation.localprotocoldiscovery.OperationLocalProtocolDiscoveryImpl.EMPTY_MESSAGE;
@@ -24,7 +27,8 @@ import static es.amplia.oda.operation.localprotocoldiscovery.OperationLocalProto
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(OperationLocalProtocolDiscoveryImpl.class)
 public class OperationLocalProtocolDiscoveryImplTest {
 
     private static final String TEST_SERVER_URI = "http://test.server:1883";
@@ -37,18 +41,22 @@ public class OperationLocalProtocolDiscoveryImplTest {
     @Mock
     private MqttClientFactory mockedMqttClientFactory;
     @Mock
+    private MqttDatastreamsServiceProxy mockedMqttDatastreamsService;
+    @Mock
     private Serializer mockedSerializer;
     @InjectMocks
     private OperationLocalProtocolDiscoveryImpl testOperationLocalProtocolDiscovery;
 
     @Mock
     private MqttClient mockedClient;
+    @Mock
+    private CompletableFuture<Void> mockedCompletableFuture;
 
     @Test
     public void testDiscover() throws ExecutionException, InterruptedException, IOException {
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, MQTT_CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "topic", TEST_TOPIC);
-
+        Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "waitForMqttDatastreamsService", mockedCompletableFuture);
         when(mockedSerializer.serialize(anyString())).thenReturn(TEST_BYTE_STREAM);
 
         CompletableFuture<Result> future = testOperationLocalProtocolDiscovery.discover();
@@ -62,7 +70,7 @@ public class OperationLocalProtocolDiscoveryImplTest {
     @Test
     public void testDiscoverSerializerThrowsAnException() throws ExecutionException, InterruptedException, IOException {
         String errorDescription = "This is the error description";
-
+        Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "waitForMqttDatastreamsService", mockedCompletableFuture);
         when(mockedSerializer.serialize(anyString())).thenThrow(new IOException(errorDescription));
 
         CompletableFuture<Result> future = testOperationLocalProtocolDiscovery.discover();
@@ -75,10 +83,9 @@ public class OperationLocalProtocolDiscoveryImplTest {
     @Test
     public void testDiscoverMqttClientThrowsMqttException() throws ExecutionException, InterruptedException, IOException {
         String errorDescription = "This is the error description";
-
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, MQTT_CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "topic", TEST_TOPIC);
-
+        Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "waitForMqttDatastreamsService", mockedCompletableFuture);
         when(mockedSerializer.serialize(anyString())).thenReturn(TEST_BYTE_STREAM);
         doThrow(new MqttException(errorDescription)).when(mockedClient)
                 .publish(anyString(), any(MqttMessage.class), any(ContentType.class));
@@ -91,10 +98,14 @@ public class OperationLocalProtocolDiscoveryImplTest {
     }
 
     @Test
-    public void testLoadConfiguration() {
+    public void testLoadConfiguration() throws IOException, InterruptedException {
         when(mockedMqttClientFactory.createMqttClient(anyString(), anyString())).thenReturn(mockedClient);
+        when(mockedSerializer.serialize(any())).thenReturn(new byte[0]);
+        when(mockedMqttDatastreamsService.isReady()).thenReturn(true);
+        doNothing().when(mockedClient).publish(any(), any(), any());
 
         testOperationLocalProtocolDiscovery.loadConfiguration(TEST_SERVER_URI, TEST_CLIENT_ID, TEST_TOPIC);
+        TimeUnit.SECONDS.sleep(1);
 
         assertEquals(TEST_TOPIC, Whitebox.getInternalState(testOperationLocalProtocolDiscovery, "topic"));
         assertEquals(mockedClient,
@@ -121,7 +132,6 @@ public class OperationLocalProtocolDiscoveryImplTest {
     @Test
     public void testCloseCatchesMqttExceptionWhenDisconnecting() {
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, MQTT_CLIENT_FIELD_NAME, mockedClient);
-
         doThrow(new MqttException("")).when(mockedClient).disconnect();
 
         testOperationLocalProtocolDiscovery.close();

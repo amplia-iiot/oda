@@ -6,7 +6,7 @@ import lombok.Value;
 @Value
 class DispatcherConfiguration {
     @NonNull
-    private long initialDelay;
+    long initialDelay;
     @NonNull
-    private long period;
+    long period;
 }

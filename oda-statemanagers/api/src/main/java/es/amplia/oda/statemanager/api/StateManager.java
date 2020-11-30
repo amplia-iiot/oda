@@ -19,5 +19,6 @@ public interface StateManager extends AutoCloseable {
     void registerToEvents(EventHandler eventHandler);
     void unregisterToEvents(EventHandler eventHandler);
     void onReceivedEvent(Event event);
+    void publishValue(Event event);
     void close();
 }

@@ -17,6 +17,7 @@ public interface OperationGetDeviceParameters {
     class GetValue {
         String datastreamId;
         Status status;
+        long at;
         Object value; //null if status != OK
         String error; //null if status != PROCESSING_ERROR
     }

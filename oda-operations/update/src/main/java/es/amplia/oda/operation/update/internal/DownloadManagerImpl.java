@@ -22,11 +22,7 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public class DownloadManagerImpl implements DownloadManager {
 
-    static final String SOFTWARE_INSTALL_FOLDER = "deploy/";
-    static final String CONFIGURATION_INSTALL_FOLDER = "configuration/";
-
     static final String API_KEY_HEADER = "X-ApiKey";
-    static final String DOWNLOAD_FOLDER = "downloads/";
 
     private static final Logger logger = LoggerFactory.getLogger(DownloadManagerImpl.class);
 
@@ -37,6 +33,9 @@ public class DownloadManagerImpl implements DownloadManager {
     private final Map<DeploymentElement, String> downloadedFiles = new HashMap<>();
 
     private String rulesPath;
+    private String deployPath= "deploy/";
+    private String configurationPath= "configuration/";
+    private String downloadsPath= "downloads/";
 
     public DownloadManagerImpl(DeviceInfoProvider deviceInfoProvider, FileManager fileManager) {
         this.deviceInfoProvider = deviceInfoProvider;
@@ -44,9 +43,9 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     public void createDownloadDirectory() throws DownloadException {
-        if (!fileManager.exist(DOWNLOAD_FOLDER)) {
+        if (!fileManager.exist(downloadsPath)) {
             try {
-                fileManager.createDirectory(DOWNLOAD_FOLDER);
+                fileManager.createDirectory(downloadsPath);
             } catch (FileException exception) {
                 throw new DownloadException("Can not create download folder");
             }
@@ -88,16 +87,15 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     private String getDeploymentElementLocalFilePath(DeploymentElement deploymentElement) {
-        switch (deploymentElement.getPath()) {
-            case SOFTWARE_INSTALL_FOLDER:
-                return DOWNLOAD_FOLDER + deploymentElement.getName() + "-" + deploymentElement.getVersion() + ".jar";
-            case CONFIGURATION_INSTALL_FOLDER:
-                return DOWNLOAD_FOLDER + deploymentElement.getName() + ".cfg";
-            default:
-                if (deploymentElement.getPath().startsWith(rulesPath)) {
-                    return DOWNLOAD_FOLDER + deploymentElement.getName() + ".js";
-                }
-                return DOWNLOAD_FOLDER + deploymentElement.getName();
+        if(deploymentElement.getPath().equals(deployPath)) {
+            return downloadsPath + deploymentElement.getName() + "-" + deploymentElement.getVersion() + ".jar";
+        } else if(deploymentElement.getPath().equals(configurationPath)) {
+            return downloadsPath + deploymentElement.getName() + ".cfg";
+        } else {
+            if (deploymentElement.getPath().startsWith(rulesPath)) {
+                return downloadsPath + deploymentElement.getName() + ".js";
+            }
+            return downloadsPath + deploymentElement.getName();
         }
     }
 
@@ -124,7 +122,10 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     @Override
-    public void loadConfig(String rulesPath) {
+    public void loadConfig(String rulesPath, String deployPath, String configurationPath, String downloadsPath) {
         this.rulesPath = rulesPath;
+        this.deployPath = deployPath;
+        this.configurationPath = configurationPath;
+        this.downloadsPath = downloadsPath;
     }
 }

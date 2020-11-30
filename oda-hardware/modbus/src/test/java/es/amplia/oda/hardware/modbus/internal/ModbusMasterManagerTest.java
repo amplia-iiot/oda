@@ -9,6 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
+
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,7 +26,7 @@ public class ModbusMasterManagerTest {
 
     @Test
     public void testLoadConfiguration() {
-        testModbusMasterManager.loadConfiguration(mockedModbusMaster);
+        testModbusMasterManager.loadConfiguration(Collections.singletonList(mockedModbusMaster));
 
         verify(mockedRegistrationManager).unregister();
         verify(mockedRegistrationManager).register(mockedModbusMaster);

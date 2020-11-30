@@ -2,15 +2,31 @@ package es.amplia.oda.operation.api;
 
 import lombok.Value;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface OperationRefreshInfo {
-    @Value
-    class Result
-    {
-        Map<String, Object> obtained;
+    enum Status {
+        OK,
+        NOT_FOUND,
+        PROCESSING_ERROR
     }
+
+    @Value
+    class RefreshInfoValue {
+        String datastreamId;
+        Status status;
+        long at;
+        Object value; //null if status != OK
+        String error; //null if status != PROCESSING_ERROR
+    }
+
+    @Value
+    class Result {
+        Map<String, List<RefreshInfoValue>> values;
+    }
+
 
     /**
      * Search the system for all the registered datastreamsGetters and execute a get() operation in each of them.  

@@ -30,6 +30,8 @@ public class InstallManagerImplTest {
     private static final String LOCAL_FILE = "path/to/element/to/install.jar";
     private static final String PATH_TO_BACKUP_JAR = "path/to/backup.jar";
     private static final String PATH_TO_RULES = "rules/";
+    private static final String PATH_TO_SOFTWARE = "deploy/";
+    private static final String PATH_TO_CONFIGURATION = "configuration/";
     private static final String INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME = "installedDeploymentElements";
     private static final String INSTALL_EXCEPTION_MESSAGE = "Install exception must be thrown";
 
@@ -83,7 +85,7 @@ public class InstallManagerImplTest {
         installedOperations.put(uninstallSoftwareElement, uninstallSoftwareOperation);
         spiedInstalledElements = spy(installedOperations);
 
-        testInstallManager.loadConfig(PATH_TO_RULES);
+        testInstallManager.loadConfig(PATH_TO_RULES, PATH_TO_SOFTWARE, PATH_TO_CONFIGURATION);
     }
 
     @Test
@@ -120,7 +122,7 @@ public class InstallManagerImplTest {
 
         verify(mockedFactory).createDeploymentElementOperation (eq(installSoftwareElement),
                                                                 eq(LOCAL_FILE),
-                                                                eq(SOFTWARE_INSTALL_FOLDER),
+                                                                eq(PATH_TO_SOFTWARE),
                                                                 eq(PATH_TO_RULES));
         verify(installSoftwareOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(installSoftwareElement), eq(installSoftwareOperation));
@@ -137,7 +139,7 @@ public class InstallManagerImplTest {
 
         verify(mockedFactory).createDeploymentElementOperation (eq(upgradeConfigurationElement),
                                                                 eq(LOCAL_FILE),
-                                                                eq(CONFIGURATION_INSTALL_FOLDER),
+                                                                eq(PATH_TO_CONFIGURATION),
                                                                 eq(PATH_TO_RULES));
         verify(upgradeConfigurationOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(upgradeConfigurationElement), eq(upgradeConfigurationOperation));
@@ -154,7 +156,7 @@ public class InstallManagerImplTest {
 
         verify(mockedFactory).createDeploymentElementOperation(eq(uninstallSoftwareElement),
                 eq(LOCAL_FILE),
-                eq(SOFTWARE_INSTALL_FOLDER),
+                eq(PATH_TO_SOFTWARE),
                 eq(PATH_TO_RULES));
         verify(uninstallSoftwareOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(uninstallSoftwareElement), eq(uninstallSoftwareOperation));

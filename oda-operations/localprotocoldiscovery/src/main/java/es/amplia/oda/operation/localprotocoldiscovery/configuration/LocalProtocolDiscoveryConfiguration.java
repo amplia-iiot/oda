@@ -4,7 +4,7 @@ import lombok.Value;
 
 @Value
 public class LocalProtocolDiscoveryConfiguration {
-	private String serverURI;
-	private String clientId;
-	private String discoverTopic;
+	String serverURI;
+	String clientId;
+	String discoverTopic;
 }

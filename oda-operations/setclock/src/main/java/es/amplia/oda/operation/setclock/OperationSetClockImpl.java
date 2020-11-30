@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-class OperationSetClockImpl implements OperationSetClock {
+public class OperationSetClockImpl implements OperationSetClock {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OperationSetClockImpl.class);
 
-	static final String CLOCK_DATASTREAM = "device.clock";
+	private String clockDatastream = "device.clock";
 
 
 	private final StateManager stateManager;
@@ -29,7 +29,7 @@ class OperationSetClockImpl implements OperationSetClock {
 		LOGGER.info("Set clock for device '{}'", deviceId);
 
 
-		return stateManager.setDatastreamValue(deviceId, CLOCK_DATASTREAM, timestamp)
+		return stateManager.setDatastreamValue(deviceId, clockDatastream, timestamp)
 				.thenApply(this::mapDatastreamValueToResult);
 	}
 
@@ -39,5 +39,9 @@ class OperationSetClockImpl implements OperationSetClock {
 
 	private ResultCode mapStatusToResultCode(Status status) {
 		return status.equals(Status.OK) ? ResultCode.SUCCESSFUL : ResultCode.ERROR_PROCESSING;
+	}
+
+	public void loadConfiguration(String clockDatastream) {
+		this.clockDatastream = clockDatastream;
 	}
 }

@@ -8,10 +8,7 @@ import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpdateHandler {
@@ -41,12 +38,13 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     private final ModbusMasterManager modbusMasterManager;
     private final ModbusMasterFactory modbusMasterFactory;
     private final Map<String, Consumer<Dictionary<String, ?>>> configuratorConsumers = new HashMap<>();
-    private ModbusMaster currentConfiguredModbusMaster;
+    private List<ModbusMaster> currentConfiguredModbusMaster;
 
     public ModbusMasterConfigurationUpdateHandler(ModbusMasterManager modbusMasterManager,
                                                   ModbusMasterFactory modbusMasterFactory) {
         this.modbusMasterManager = modbusMasterManager;
         this.modbusMasterFactory = modbusMasterFactory;
+        this.currentConfiguredModbusMaster = new ArrayList<>();
         prepareConfiguratorConsumers();
     }
 
@@ -79,7 +77,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
         Optional.ofNullable((String) props.get(RECONNECT_PROPERTY_NAME)).ifPresent(value ->
                 builder.reconnect(Boolean.parseBoolean(value)));
 
-        currentConfiguredModbusMaster = modbusMasterFactory.createTCPModbusMaster(builder.build());
+        currentConfiguredModbusMaster.add(modbusMasterFactory.createTCPModbusMaster(builder.build()));
     }
 
     private void loadUDPConfiguration(Dictionary<String, ?> props) {
@@ -92,32 +90,40 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
         Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
                 builder.timeout(Integer.parseInt(value)));
 
-        currentConfiguredModbusMaster = modbusMasterFactory.createUDPModbusMaster(builder.build());
+        currentConfiguredModbusMaster.add(modbusMasterFactory.createUDPModbusMaster(builder.build()));
     }
 
     private void loadSerialConfiguration(Dictionary<String, ?> props) {
         SerialModbusConfiguration.SerialModbusConfigurationBuilder builder = SerialModbusConfiguration.builder();
+        List<String> portsName = new ArrayList<>();
 
-        Optional.ofNullable((String) props.get(PORT_NAME_PROPERTY_NAME)).ifPresent(builder::portName);
-        Optional.ofNullable((String) props.get(BAUD_RATE_PROPERTY_NAME)).ifPresent(value ->
-                builder.baudRate(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(FLOW_CONTROL_IN_PROPERTY_NAME)).ifPresent(value ->
-                builder.flowControlIn(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(FLOW_CONTROL_OUT_PROPERTY_NAME)).ifPresent(value ->
-                builder.flowControlOut(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(DATA_BITS_PROPERTY_NAME)).ifPresent(value ->
-                builder.dataBits(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(STOP_BITS_PROPERTY_NAME)).ifPresent(value ->
-                builder.stopBits(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(PARITY_PROPERTY_NAME)).ifPresent(value ->
-                builder.parity(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(ENCODING_PROPERTY_NAME)).ifPresent(builder::encoding);
-        Optional.ofNullable((String) props.get(ECHO_PROPERTY_NAME)).ifPresent(value ->
-                builder.echo(Boolean.parseBoolean(value)));
-        Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
-                builder.timeout(Integer.parseInt(value)));
+        Optional.ofNullable((String) props.get(PORT_NAME_PROPERTY_NAME)).ifPresent(ports ->
+                portsName.addAll(Arrays.asList(ports.split(","))));
+        if(portsName.size() == 0) {
+            throw new IllegalArgumentException("No portname valid specified");
+        }
+        for (String item : portsName) {
+            builder.portName(item);
+            Optional.ofNullable((String) props.get(BAUD_RATE_PROPERTY_NAME)).ifPresent(value ->
+                    builder.baudRate(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(FLOW_CONTROL_IN_PROPERTY_NAME)).ifPresent(value ->
+                    builder.flowControlIn(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(FLOW_CONTROL_OUT_PROPERTY_NAME)).ifPresent(value ->
+                    builder.flowControlOut(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(DATA_BITS_PROPERTY_NAME)).ifPresent(value ->
+                    builder.dataBits(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(STOP_BITS_PROPERTY_NAME)).ifPresent(value ->
+                    builder.stopBits(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(PARITY_PROPERTY_NAME)).ifPresent(value ->
+                    builder.parity(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(ENCODING_PROPERTY_NAME)).ifPresent(builder::encoding);
+            Optional.ofNullable((String) props.get(ECHO_PROPERTY_NAME)).ifPresent(value ->
+                    builder.echo(Boolean.parseBoolean(value)));
+            Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
+                    builder.timeout(Integer.parseInt(value)));
 
-        currentConfiguredModbusMaster = modbusMasterFactory.createSerialModbusMaster(builder.build());
+            currentConfiguredModbusMaster.add(modbusMasterFactory.createSerialModbusMaster(builder.build()));
+        }
     }
 
     @Override

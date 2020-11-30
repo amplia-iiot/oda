@@ -6,8 +6,8 @@ import java.util.Set;
 
 @Value
 public class OutputDatastream {
-    private String version;
-    private String device;
-    private String[] path;
-    private Set<Datastream> datastreams;
+    String version;
+    String device;
+    String[] path;
+    Set<Datastream> datastreams;
 }

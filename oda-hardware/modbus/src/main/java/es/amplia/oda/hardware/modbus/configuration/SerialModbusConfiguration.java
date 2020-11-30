@@ -18,23 +18,23 @@ public class SerialModbusConfiguration {
     private static final int DEFAULT_TIMEOUT = 3000;
 
     @NonNull
-    private String portName;
+    String portName;
     @Builder.Default
-    private int baudRate = DEFAULT_BAUD_RATE;
+    int baudRate = DEFAULT_BAUD_RATE;
     @Builder.Default
-    private int flowControlIn = DEFAULT_FLOW_CONTROL_IN;
+    int flowControlIn = DEFAULT_FLOW_CONTROL_IN;
     @Builder.Default
-    private int flowControlOut = DEFAULT_FLOW_CONTROL_OUT;
+    int flowControlOut = DEFAULT_FLOW_CONTROL_OUT;
     @Builder.Default
-    private int dataBits = DEFAULT_DATA_BITS;
+    int dataBits = DEFAULT_DATA_BITS;
     @Builder.Default
-    private int stopBits = DEFAULT_STOP_BITS;
+    int stopBits = DEFAULT_STOP_BITS;
     @Builder.Default
-    private int parity = DEFAULT_PARITY;
+    int parity = DEFAULT_PARITY;
     @Builder.Default
-    private String encoding = DEFAULT_ENCODING;
+    String encoding = DEFAULT_ENCODING;
     @Builder.Default
-    private boolean echo = DEFAULT_ECHO;
+    boolean echo = DEFAULT_ECHO;
     @Builder.Default
-    private int timeout = DEFAULT_TIMEOUT;
+    int timeout = DEFAULT_TIMEOUT;
 }

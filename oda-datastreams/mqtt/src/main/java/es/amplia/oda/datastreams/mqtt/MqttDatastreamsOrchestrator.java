@@ -7,6 +7,7 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerWithKey;
 
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class MqttDatastreamsOrchestrator implements AutoCloseable {
+public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MqttDatastreamsOrchestrator.class);
 
@@ -25,6 +26,7 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
     private final ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager;
     private final ServiceRegistrationManagerWithKey<String, DatastreamsSetter> datastreamsSetterRegistrationManager;
 
+    private boolean ready;
     private MqttClient mqttClient;
     private MqttDatastreamsManager mqttDatastreamsManager;
     private MqttDatastreamsEvent mqttDatastreamsEvent;
@@ -39,6 +41,7 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
         this.eventPublisher = eventPublisher;
         this.datastreamsGetterRegistrationManager = datastreamsGetterRegistrationManager;
         this.datastreamsSetterRegistrationManager = datastreamsSetterRegistrationManager;
+        this.ready = false;
     }
 
     public void loadConfiguration(MqttDatastreamsConfiguration configuration,
@@ -61,6 +64,7 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
         mqttDatastreamDiscoveryHandler.init(initialDatastreamsConfiguration);
         mqttDatastreamsLwtHandler = new MqttDatastreamsLwtHandler(mqttClient, serializer,
                 mqttDatastreamsPermissionManager, mqttDatastreamsManager, configuration.getLwtTopic());
+        this.ready = true;
     }
 
     private void closeResources() {
@@ -85,6 +89,7 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
                 mqttClient.disconnect();
                 mqttClient = null;
             }
+            this.ready = false;
         } catch (MqttException e) {
             LOGGER.warn("Error closing MQTT resources {0}", e);
         }
@@ -93,5 +98,10 @@ public class MqttDatastreamsOrchestrator implements AutoCloseable {
     @Override
     public void close() {
         closeResources();
+    }
+
+    @Override
+    public boolean isReady() {
+        return ready;
     }
 }

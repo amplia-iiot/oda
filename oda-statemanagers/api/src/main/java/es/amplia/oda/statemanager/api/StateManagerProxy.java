@@ -70,6 +70,11 @@ public class StateManagerProxy implements StateManager, AutoCloseable {
     }
 
     @Override
+    public void publishValue(Event event) {
+        proxy.consumeFirst(stateManager -> stateManager.publishValue(event));
+    }
+
+    @Override
     public void close() {
         proxy.close();
     }

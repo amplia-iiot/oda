@@ -10,10 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -43,6 +40,21 @@ public class OperationRefreshInfoImplTest {
                     new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false)
             )
     );
+    private static final OperationRefreshInfo.RefreshInfoValue TEST_REFRESH_INFO_1 =
+            new OperationRefreshInfo.RefreshInfoValue(
+                    TEST_DATASTREAM_ID_1,
+                    OperationRefreshInfo.Status.OK,
+                    TEST_AT, TEST_VALUE_1,
+                    null
+            );
+    private static final OperationRefreshInfo.RefreshInfoValue TEST_REFRESH_INFO_2 =
+            new OperationRefreshInfo.RefreshInfoValue(
+                    TEST_DATASTREAM_ID_2,
+                    OperationRefreshInfo.Status.OK,
+                    TEST_AT,
+                    TEST_VALUE_2,
+                    null
+            );
 
     @Mock
     private StateManager mockedStateManager;
@@ -58,12 +70,12 @@ public class OperationRefreshInfoImplTest {
         OperationRefreshInfo.Result result = future.get();
 
         assertNotNull(result);
-        Map<String, Object> datastreams = result.getObtained();
+        Map<String, List<OperationRefreshInfo.RefreshInfoValue>> datastreams = result.getValues();
         assertEquals(2, datastreams.size());
         assertTrue(datastreams.containsKey(TEST_DATASTREAM_ID_1));
-        assertEquals(TEST_VALUE_1, datastreams.get(TEST_DATASTREAM_ID_1));
-        assertTrue(datastreams.containsKey(TEST_DATASTREAM_ID_1));
-        assertEquals(TEST_VALUE_2, datastreams.get(TEST_DATASTREAM_ID_2));
+        assertEquals(Collections.singletonList(TEST_REFRESH_INFO_1), datastreams.get(TEST_DATASTREAM_ID_1));
+        assertTrue(datastreams.containsKey(TEST_DATASTREAM_ID_2));
+        assertEquals(Collections.singletonList(TEST_REFRESH_INFO_2), datastreams.get(TEST_DATASTREAM_ID_2));
         verify(mockedStateManager).getDeviceInformation(eq(TEST_DEVICE_ID));
     }
 }

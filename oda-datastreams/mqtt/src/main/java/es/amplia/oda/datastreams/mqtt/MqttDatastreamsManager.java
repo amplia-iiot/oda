@@ -45,7 +45,9 @@ class MqttDatastreamsManager implements AutoCloseable {
     private void createDatastreamsGetter(String deviceId, String datastreamId) {
         createDatastreamIfNotExists(datastreamId, mqttDatastreamsGetters, this::createAndRegisterDatastreamsGetter);
         MqttDatastreamsGetter getter = mqttDatastreamsGetters.get(datastreamId);
-        getter.addManagedDevice(deviceId);
+        if(!getter.getDevicesIdManaged().contains(deviceId)) {
+            getter.addManagedDevice(deviceId);
+        }
     }
 
     private MqttDatastreamsGetter createAndRegisterDatastreamsGetter(String datastreamId) {
@@ -57,7 +59,9 @@ class MqttDatastreamsManager implements AutoCloseable {
     private void createDatastreamsSetter(String deviceId, String datastreamId) {
         createDatastreamIfNotExists(datastreamId, mqttDatastreamsSetters, this::createAndRegisterDatastreamsSetter);
         MqttDatastreamsSetter setter = mqttDatastreamsSetters.get(datastreamId);
-        setter.addManagedDevice(deviceId);
+        if(!setter.getDevicesIdManaged().contains(deviceId)) {
+            setter.addManagedDevice(deviceId);
+        }
     }
 
     private MqttDatastreamsSetter createAndRegisterDatastreamsSetter(String datastreamId) {

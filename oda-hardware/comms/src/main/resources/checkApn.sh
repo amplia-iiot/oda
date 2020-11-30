@@ -12,7 +12,7 @@ then
 
         { echo "RUNNING"; echo "ACTUAL APN $APN"; echo "CONFIG APN $1"; } >> "$2/../log/apn_log.txt"
 
-        if [ "$APN" == "$1" ]
+        if [ "$APN" = "$1" ]
         then
                 echo "EQUALS, CHANGING TO GENERAL APN" >> "$2/../log/apn_log.txt"
                 /legato/systems/current/bin/cm data apn ba.amx

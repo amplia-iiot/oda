@@ -6,6 +6,6 @@ import java.util.Set;
 
 @Value
 public class Datastream {
-    private String id;
-    private Set<Datapoint> datapoints;
+    String id;
+    Set<Datapoint> datapoints;
 }

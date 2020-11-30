@@ -32,6 +32,7 @@ public class ScadaOperationDispatcherTest {
 
     private static final int TEST_INDEX = 1;
     private static final double TEST_VALUE = 18.95;
+    private static final long TEST_AT = System.currentTimeMillis();
     private static final Object TEST_TYPE = null;
     private static final String TEST_DEVICE_ID = "";
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -49,7 +50,7 @@ public class ScadaOperationDispatcherTest {
 
     @Test
     public void testProcessSelectOperation() throws ExecutionException, InterruptedException {
-        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.OK, TEST_VALUE, null);
+        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.OK, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
@@ -69,7 +70,7 @@ public class ScadaOperationDispatcherTest {
 
     @Test
     public void testProcessSelectOperationGetError() throws ExecutionException, InterruptedException {
-        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.PROCESSING_ERROR, TEST_VALUE, null);
+        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.PROCESSING_ERROR, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
@@ -91,7 +92,7 @@ public class ScadaOperationDispatcherTest {
     @Test
     public void testProcessSelectOperationGetResultWithoutRequestedDatastreamId() throws ExecutionException,
             InterruptedException {
-        GetValue getValue =  new GetValue("otherDatastream", Status.OK, TEST_VALUE, null);
+        GetValue getValue =  new GetValue("otherDatastream", Status.OK, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
