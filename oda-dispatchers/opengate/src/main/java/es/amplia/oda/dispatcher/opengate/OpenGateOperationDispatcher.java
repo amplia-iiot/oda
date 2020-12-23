@@ -6,6 +6,8 @@ import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 
+import es.amplia.oda.dispatcher.opengate.domain.custom.InputCustomOperation;
+import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.InputGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.get.InputGetOperation;
@@ -51,6 +53,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         InputSetOrConfigureOperation openGateInputSetOrConfigureOperation = null;
         InputGetOperation openGateInputGetOperation = null;
         InputGeneralOperation openGateInputGeneralOperation = null;
+        InputCustomOperation openGateInputCustomOperation = null;
         try {
             openGateUpdateOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputUpdateOperation.class);
             LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, openGateUpdateOperation);
@@ -93,6 +96,17 @@ class OpenGateOperationDispatcher implements Dispatcher {
             return processSetOrConfigureOperation(openGateInputSetOrConfigureOperation, contentType);
         } catch (Exception e) {
             LOGGER.error("Could not deserialize input as Set Operation: \n{}", e.getMessage());
+        }
+
+        try {
+            openGateInputCustomOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputCustomOperation.class);
+            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, openGateInputCustomOperation);
+            if(openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
+                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+            }
+            return processCustomOperation(openGateInputCustomOperation, contentType);
+        } catch (IOException e) {
+            LOGGER.error("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
         }
 
         if (openGateInputSetOrConfigureOperation == null
@@ -208,6 +222,36 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private CompletableFuture<byte[]> processGeneralOperation(InputGeneralOperation openGateInputGeneralOperation, ContentType contentType) {
         if (openGateInputGeneralOperation != null) {
             RequestGeneralOperation request = openGateInputGeneralOperation.getOperation().getRequest();
+            if (request == null) {
+                throw new IllegalArgumentException(WRONG_SERIALIZED_OPERATION_EXCEPTION_MESSAGE);
+            }
+
+            String deviceIdForOperations;
+            String deviceIdForResponse;
+            String deviceIdInRequest = request.getDeviceId();
+            String odaDeviceId = deviceInfoProvider.getDeviceId();
+            if (deviceIdInRequest == null || "".equals(deviceIdInRequest) || deviceIdInRequest.equals(odaDeviceId)) {
+                deviceIdForOperations = "";
+                deviceIdForResponse = odaDeviceId;
+            } else {
+                deviceIdForOperations = deviceIdInRequest;
+                deviceIdForResponse = deviceIdInRequest;
+            }
+            if(request.getPath() == null) {
+                request.setPath(new String[0]);
+            }
+
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+                    .thenApply(output -> serializeOutput(output, contentType));
+        }
+        else {
+            return null;
+        }
+    }
+
+    private CompletableFuture<byte[]> processCustomOperation(InputCustomOperation openGateInputCustomOperation, ContentType contentType) {
+        if (openGateInputCustomOperation != null) {
+            RequestCustomOperation request = openGateInputCustomOperation.getOperation().getRequest();
             if (request == null) {
                 throw new IllegalArgumentException(WRONG_SERIALIZED_OPERATION_EXCEPTION_MESSAGE);
             }

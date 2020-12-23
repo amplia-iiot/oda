@@ -5,11 +5,16 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.custom.InputOperationCustomOperation;
+import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.InputGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.InputOperationGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.ParameterGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -17,6 +22,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 

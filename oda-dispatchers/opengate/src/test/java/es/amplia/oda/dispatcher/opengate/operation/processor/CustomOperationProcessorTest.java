@@ -2,11 +2,13 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.CustomOperation;
 import lombok.Value;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -33,15 +35,15 @@ public class CustomOperationProcessorTest {
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_CUSTOM_OPERATION_NAME = "customOperation";
     private static final String TEST_STRING_VALUE = "test";
-    private static final ParameterSetOrConfigureOperation TEST_STRING_PARAM =
-            new ParameterSetOrConfigureOperation(Collections.singletonList(new ValueSetting("string", TEST_STRING_VALUE)));
-    private static final RequestSetOrConfigureOperation TEST_REQUEST =
-            new RequestSetOrConfigureOperation(TEST_STRING_PARAM);
+    private static final Map<String, Object> TEST_STRING_PARAM =
+            new HashMap<>();
+    private static final RequestCustomOperation TEST_REQUEST =
+            new RequestCustomOperation(TEST_STRING_PARAM);
     private static final String TEST_INVALID_VALUE = null;
-    private static final ParameterSetOrConfigureOperation TEST_INVALID_PARAM =
-            new ParameterSetOrConfigureOperation(Collections.singletonList(new ValueSetting("invalidParam", TEST_INVALID_VALUE)));
-    private static final RequestSetOrConfigureOperation TEST_INVALID_REQUEST =
-            new RequestSetOrConfigureOperation(TEST_INVALID_PARAM);
+    private static final Map<String, Object> TEST_INVALID_PARAM =
+            new HashMap<>();
+    private static final RequestCustomOperation TEST_INVALID_REQUEST =
+            new RequestCustomOperation(TEST_INVALID_PARAM);
 
     private static final String TEST_DESCRIPTION = "description of the operation result";
     private static final CustomOperation.Result TEST_RESULT =
@@ -58,6 +60,12 @@ public class CustomOperationProcessorTest {
     @Mock
     private CustomOperation mockedOperation2;
 
+
+    @Before
+    public void setUp() {
+        TEST_STRING_PARAM.put("string", TEST_STRING_VALUE);
+        TEST_INVALID_PARAM.put("invalidParam", TEST_INVALID_VALUE);
+    }
 
     @Test
     public void testParseParameters() {

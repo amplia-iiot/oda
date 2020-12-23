@@ -3,6 +3,7 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.Step;
+import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
@@ -28,27 +29,21 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
 
     @Override
     Map<String, Object> parseParameters(Request request) {
-        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
+        RequestCustomOperation specificRequest = (RequestCustomOperation) request;
 
         if(request.getName() == null) {
             throw new IllegalArgumentException("Parameter " + request.getName() + " has no value");
         }
         customOperationName = request.getName();
 
-        ParameterSetOrConfigureOperation parameters;
+        Map<String, Object> parameters;
         try {
             parameters = specificRequest.getParameters();
         } catch (Exception e) {
             throw new IllegalArgumentException("Wrong format of input parameters");
         }
-        List<ValueSetting> params = parameters.getVariableList();
 
-        Map<String, Object> parsedParameters = new HashMap<>();
-        for (ValueSetting setting: params) {
-            parsedParameters.put(setting.getName(), setting.getValue());
-        }
-
-        return parsedParameters;
+        return parameters;
     }
 
     @Override

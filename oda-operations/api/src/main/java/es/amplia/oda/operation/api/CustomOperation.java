@@ -13,9 +13,9 @@ public interface CustomOperation {
     @Value
     class Result
     {
-        private Status status;
-        private String description;
-        private Collection<Step> steps;
+        Status status;
+        String description;
+        Collection<Step> steps;
 
     }
 
@@ -27,11 +27,11 @@ public interface CustomOperation {
 
     @Value
     class Step {
-        private String name;
-        private StepStatus result;
-        private String description;
-        private long timestamp;
-        private List<Object> responses;
+        String name;
+        StepStatus result;
+        String description;
+        long timestamp;
+        List<Object> responses;
 
         public Step(String name, StepStatus result, String description, long timestamp, List<Object> responses) {
             this.name = name;
