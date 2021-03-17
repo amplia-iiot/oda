@@ -2,6 +2,9 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
+import es.amplia.oda.dispatcher.opengate.domain.setclock.Datetime;
+import es.amplia.oda.dispatcher.opengate.domain.setclock.ParameterSetClockOperation;
+import es.amplia.oda.dispatcher.opengate.domain.setclock.RequestSetClockOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
@@ -29,12 +32,12 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
 
     @Override
     Long parseParameters(Request request) {
-        RequestSetOrConfigureOperation specificRequest = (RequestSetOrConfigureOperation) request;
+        RequestSetClockOperation specificRequest = (RequestSetClockOperation) request;
         LocalDate date = LocalDate.now();
         LocalTime time = LocalTime.now();
         int offset = 0;
 
-        ParameterSetOrConfigureOperation parameters;
+        ParameterSetClockOperation parameters;
         try {
             parameters = specificRequest.getParameters();
         } catch (Exception e) {
@@ -45,31 +48,21 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
             throw new IllegalArgumentException("Wrong format of input parameters");
         }
 
-        List<ValueSetting> params = parameters.getVariableList();
+        Datetime datetime = parameters.getDatetime();
 
-        if(params != null) {
-            date = getParamAsString("date", params).map(this::parseLocalDate).orElse(date);
-            time = getParamAsString("time", params).map(this::parseLocalTime).orElse(time);
-            offset = getParamAsNumber("timezone", params).map(Number::intValue).orElse(0);
-            offset += getParamAsNumber("dst", params).map(Number::intValue).orElse(0);
+        if(datetime != null && datetimeNotEmpty(datetime)) {
+            date = parseLocalDate(datetime.getDate());
+            time = parseLocalTime(datetime.getTime());
+            offset = datetime.getTimezone();
+            offset += datetime.getDst();
         }
 
         return ZonedDateTime.of(date, time, ZoneId.ofOffset("GMT", ZoneOffset.ofHours(offset))).toInstant()
                 .toEpochMilli();
     }
 
-    private Optional<String> getParamAsString(String name, List<ValueSetting> params) {
-        String value = null;
-        for (ValueSetting setting: params) {
-            if (setting.getName().equals(name)) {
-                value = (String)setting.getValue();
-            }
-        }
-        if (value != null) {
-            return Optional.of(value);
-        }
-
-        return Optional.empty();
+    private boolean datetimeNotEmpty(Datetime datetime) {
+        return datetime.getDate() != null && datetime.getTime() != null;
     }
 
     private LocalDate parseLocalDate(String dateAsString) {
@@ -86,20 +79,6 @@ class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Time \"" + timeAsString+ "\" has invalid format");
         }
-    }
-
-    private Optional<Double> getParamAsNumber(String name, List<ValueSetting> params) {
-        Double value = null;
-        for (ValueSetting setting: params) {
-            if (setting.getName().equals(name)) {
-                value = Double.valueOf((String)setting.getValue());
-            }
-        }
-        if (value != null) {
-            return Optional.of(value);
-        }
-
-        return Optional.empty();
     }
 
     @Override
