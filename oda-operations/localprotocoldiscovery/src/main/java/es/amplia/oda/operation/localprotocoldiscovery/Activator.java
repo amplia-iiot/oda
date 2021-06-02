@@ -3,6 +3,7 @@ package es.amplia.oda.operation.localprotocoldiscovery;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
 import es.amplia.oda.core.commons.osgi.proxies.MqttDatastreamsServiceProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -15,6 +16,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
 
 public class Activator implements BundleActivator {
 
@@ -29,6 +32,7 @@ public class Activator implements BundleActivator {
     private ServiceRegistration<OperationDiscover> registration;
     private ServiceListenerBundle<MqttClientFactory> mqttClientFactoryListener;
     private ServiceListenerBundle<MqttDatastreamsService> mqttDatastreamsServiceListener;
+    private ServiceListenerBundle<Serializer> serializerServiceListener;
 
 
     @Override
@@ -44,6 +48,7 @@ public class Activator implements BundleActivator {
         registration = context.registerService(OperationDiscover.class, operationLocalProtocolDiscovery, null);
         mqttClientFactoryListener = new ServiceListenerBundle<>(context, MqttClientFactory.class, this::onServiceChanged);
         mqttDatastreamsServiceListener = new ServiceListenerBundle<>(context, MqttDatastreamsService.class, this::onServiceChanged);
+        serializerServiceListener = new ServiceListenerBundle<>(context, Serializer.class, this::onServiceChanged);
         LOGGER.info("Operation Discover started");
     }
 
@@ -59,6 +64,7 @@ public class Activator implements BundleActivator {
     @Override
     public void stop(BundleContext context) {
         LOGGER.info("Stopping Operation Discover");
+        serializerServiceListener.close();
         mqttDatastreamsServiceListener.close();
         mqttClientFactoryListener.close();
         registration.unregister();

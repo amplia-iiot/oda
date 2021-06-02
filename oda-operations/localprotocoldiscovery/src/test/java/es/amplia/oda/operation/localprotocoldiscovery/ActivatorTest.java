@@ -3,6 +3,7 @@ package es.amplia.oda.operation.localprotocoldiscovery;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
 import es.amplia.oda.core.commons.osgi.proxies.MqttDatastreamsServiceProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -52,6 +53,8 @@ public class ActivatorTest {
 	@Mock
 	private ServiceListenerBundle<MqttDatastreamsService> mockedDatastreamsListener;
 	@Mock
+	private ServiceListenerBundle<Serializer> mockedSerializerListener;
+	@Mock
 	private ServiceRegistration<OperationDiscover> mockedRegistration;
 
 	@Test
@@ -68,6 +71,8 @@ public class ActivatorTest {
 				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any()).thenReturn(mockedListener);
 		PowerMockito.whenNew(ServiceListenerBundle.class)
 				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any()).thenReturn(mockedDatastreamsListener);
+		PowerMockito.whenNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(Serializer.class), any()).thenReturn(mockedSerializerListener);
 
 		testActivator.start(mockedContext);
 
@@ -84,6 +89,8 @@ public class ActivatorTest {
 				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any(Runnable.class));
 		PowerMockito.verifyNew(ServiceListenerBundle.class)
 				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any(Runnable.class));
+		PowerMockito.verifyNew(ServiceListenerBundle.class)
+				.withArguments(eq(mockedContext), eq(Serializer.class), any(Runnable.class));
 	}
 
 	@Test
@@ -107,6 +114,7 @@ public class ActivatorTest {
 
 	@Test
 	public void testStop() {
+		Whitebox.setInternalState(testActivator, "serializerServiceListener", mockedSerializerListener);
 		Whitebox.setInternalState(testActivator, "mqttDatastreamsServiceListener", mockedDatastreamsListener);
 		Whitebox.setInternalState(testActivator, "mqttClientFactoryListener", mockedListener);
 		Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
@@ -117,6 +125,7 @@ public class ActivatorTest {
 
 		testActivator.stop(mockedContext);
 
+		verify(mockedSerializerListener).close();
 		verify(mockedDatastreamsListener).close();
 		verify(mockedListener).close();
 		verify(mockedRegistration).unregister();

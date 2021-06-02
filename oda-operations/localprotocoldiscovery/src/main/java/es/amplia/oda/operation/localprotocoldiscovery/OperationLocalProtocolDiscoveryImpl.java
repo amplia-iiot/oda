@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, AutoCloseable {
 
@@ -41,14 +42,22 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
     
     @Override
     public CompletableFuture<Result> discover() {
+        try {
+            waitForMqttDatastreamsService.get(60, TimeUnit.SECONDS);
+            return initialDiscover();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            return CompletableFuture.completedFuture(new Result(ResultCode.ERROR_PROCESSING, e.getMessage()));
+        }
+    }
+
+    public CompletableFuture<Result> initialDiscover() {
         LOGGER.info("Processing discover operation in ODA");
 
         try {
-            waitForMqttDatastreamsService.get();
             byte[] msg = serializer.serialize(EMPTY_MESSAGE);
             mqttClient.publish(topic, MqttMessage.newInstance(msg), ContentType.CBOR);
             return CompletableFuture.completedFuture(new Result(ResultCode.SUCCESSFUL, ""));
-        } catch (IOException | MqttException | InterruptedException | ExecutionException e) {
+        } catch (IOException | MqttException e) {
             return CompletableFuture.completedFuture(new Result(ResultCode.ERROR_PROCESSING, e.getMessage()));
         }
     }
@@ -68,9 +77,9 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
         return CompletableFuture.runAsync(() -> {
             LOGGER.info("Waiting for MQTT Datastreams service ready");
             try {
-                for(int i = 0; i < 3 && !mqttDatastreamsService.isReady(); i++) {
-                    LOGGER.debug("Waiting 3 seconds... Try {}/3. ", i);
-                    TimeUnit.SECONDS.sleep(3);
+                for(int i = 0; i < 10 && !mqttDatastreamsService.isReady(); i++) {
+                    LOGGER.info("Waiting 6 seconds... Try {}/10. ", i);
+                    TimeUnit.SECONDS.sleep(6);
                 }
             } catch (InterruptedException e) {
                 LOGGER.error("Error waiting for service. Will try it immediately");
@@ -81,7 +90,7 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
                 topic = discoverTopic;
                 mqttClient = mqttClientFactory.createMqttClient(serverUri, clientId);
                 mqttClient.connect();
-                discover();
+                initialDiscover();
             } else {
                 LOGGER.error("MQTT Datastream Service wasn't loaded. Discover operation won't works");
             }
