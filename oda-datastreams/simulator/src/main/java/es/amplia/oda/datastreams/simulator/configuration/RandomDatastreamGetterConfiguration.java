@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.simulator.configuration;
 import lombok.Value;
 
 @Value
-public class RandomDatastreamConfiguration implements SimulatedDatastreamsConfiguration {
+public class RandomDatastreamGetterConfiguration implements SimulatedDatastreamsGetterConfiguration {
     private String datastreamId;
     private String deviceId;
     private double minValue;

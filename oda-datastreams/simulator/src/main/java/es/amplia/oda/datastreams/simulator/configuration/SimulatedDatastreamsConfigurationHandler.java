@@ -14,7 +14,8 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
 
 
     private final SimulatedDatastreamsManager manager;
-    private final List<SimulatedDatastreamsConfiguration> lastConfiguration = new ArrayList<>();
+    private final List<SimulatedDatastreamsGetterConfiguration> gettersConfigured = new ArrayList<>();
+    private final List<SetDatastreamSetterConfiguration> settersConfigured = new ArrayList<>();
 
 
     public SimulatedDatastreamsConfigurationHandler(SimulatedDatastreamsManager datastreamsManager) {
@@ -44,17 +45,20 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
             }
 
             String[] valueFields = value.split("\\s*,\\s*");
-            if (valueFields.length == 2) {
+            if (valueFields.length < 2) {
+                settersConfigured.add(
+                        new SetDatastreamSetterConfiguration(datastreamId, deviceId));
+            } else if (valueFields.length == 2) {
                 Object datastreamValue = getValue(valueFields[0].trim(), valueFields[1]);
-                lastConfiguration.add(
-                        new ConstantDatastreamConfiguration(datastreamId, deviceId, datastreamValue));
+                gettersConfigured.add(
+                        new ConstantDatastreamGetterConfiguration(datastreamId, deviceId, datastreamValue));
             } else if (valueFields.length == 3) {
                 double minValue = Double.parseDouble(valueFields[0].trim());
                 double maxValue = Double.parseDouble(valueFields[1]);
                 double maxDiff = Double.parseDouble(valueFields[2]);
 
-                lastConfiguration.add(
-                        new RandomDatastreamConfiguration(datastreamId, deviceId, minValue, maxValue, maxDiff));
+                gettersConfigured.add(
+                        new RandomDatastreamGetterConfiguration(datastreamId, deviceId, minValue, maxValue, maxDiff));
             } else {
                 LOGGER.error("Invalid configuration '{}={}'", key, value);
             }
@@ -83,11 +87,11 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
 
     @Override
     public void loadDefaultConfiguration() {
-        lastConfiguration.clear();
+        gettersConfigured.clear();
     }
 
     @Override
     public void applyConfiguration() {
-        manager.loadConfiguration(lastConfiguration);
+        manager.loadConfiguration(gettersConfigured, settersConfigured);
     }
 }
