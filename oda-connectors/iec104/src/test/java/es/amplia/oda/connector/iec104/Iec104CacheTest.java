@@ -10,6 +10,7 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformatio
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.QualityInformation;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,8 +45,8 @@ public class Iec104CacheTest {
 	private ASDUHeader mockedHeader;
 
 
-	@BeforeClass
-	public static void prepareForTest() {
+	@Before
+	public void prepareForTest() {
 		cache = new HashMap<>();
 		Map<Integer, Object> value = new HashMap<>();
 		Map<Integer, Object> valueBytes = new HashMap<>();
