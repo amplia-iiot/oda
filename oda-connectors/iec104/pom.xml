@@ -22,7 +22,7 @@
         <apache.httpcore.version>4.4.10</apache.httpcore.version>
         <commons.codec.version>1.10</commons.codec.version>
         <commons.logging.version>1.2</commons.logging.version>
-        <netty.version>4.0.19.Final</netty.version>
+        <netty.version>4.1.50.Final</netty.version>
     </properties>
 
     <build>
