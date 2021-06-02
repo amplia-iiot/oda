@@ -91,7 +91,7 @@ public class SetClockEquipmentProcessorTest {
 
         assertNotNull(timestamp);
         assertTrue(timestamp >= dateTime.toInstant().toEpochMilli());
-        assertTrue(timestamp <= ZonedDateTime.now(GMT_ZONE_ID).plusHours(1).toInstant().toEpochMilli());
+        assertTrue(timestamp <= ZonedDateTime.now(GMT_ZONE_ID).plusHours(2).toInstant().toEpochMilli());
     }
 
     @Test(expected = IllegalArgumentException.class)
