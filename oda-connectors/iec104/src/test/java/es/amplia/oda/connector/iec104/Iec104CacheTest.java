@@ -2,6 +2,7 @@ package es.amplia.oda.connector.iec104;
 
 import es.amplia.oda.connector.iec104.types.BitStringPointInformationSequence;
 
+import es.amplia.oda.connector.iec104.types.BitStringPointInformationSingle;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
@@ -190,8 +191,9 @@ public class Iec104CacheTest {
 
 		List<Object> result = testCache.getASDUS(1);
 
-		assertEquals(2, result.size());
-		assertTrue(result.get(0) instanceof SinglePointInformationSequence);
-		assertTrue(result.get(1) instanceof BitStringPointInformationSequence);
+		assertEquals(3, result.size());
+		assertTrue(result.get(0) instanceof SinglePointInformationSingle);
+		assertTrue(result.get(1) instanceof SinglePointInformationSingle);
+		assertTrue(result.get(2) instanceof BitStringPointInformationSingle);
 	}
 }

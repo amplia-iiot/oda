@@ -3,11 +3,13 @@ package es.amplia.oda.connector.iec104;
 import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfiguration;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 import io.netty.channel.socket.SocketChannel;
+import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.InterrogationCommand;
 import org.eclipse.neoscada.protocol.iec60870.server.Server;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -19,7 +21,6 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class Iec104ConnectorTest {
 
-	private Iec104Connector connector;
 
 	@Mock
 	private Iec104Cache mockedCache;
@@ -31,6 +32,10 @@ public class Iec104ConnectorTest {
 	private Server mockedServer;
 	@Mock
 	private SocketChannel mockedChannel;
+	@Mock
+	private MessageChannel mockedMessageChannel;
+
+	private Iec104Connector connector;
 
 	@Before
 	public void prepareForTest() {
@@ -38,6 +43,7 @@ public class Iec104ConnectorTest {
 		Whitebox.setInternalState(connector, "serverModule", mockedModule);
 		Whitebox.setInternalState(connector, "server", mockedServer);
 		Whitebox.setInternalState(connector, "socketChannel", mockedChannel);
+//		Whitebox.setInternalState(connector, "messageChannel", mockedMessageChannel);
 		Whitebox.setInternalState(connector, "spontaneousEnabled", true);
 		Whitebox.setInternalState(connector, "commonAddress", 0);
 	}
@@ -104,8 +110,8 @@ public class Iec104ConnectorTest {
 	}
 
 	@Test
-	public void testCloseWithException() {
-		when(mockedChannel.close()).thenThrow(new NumberFormatException());
+	public void testCloseWithException() throws Exception {
+		doThrow(new NumberFormatException()).when(mockedModule).dispose();
 
 		connector.close();
 

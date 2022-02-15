@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +80,8 @@ public class ATManagerImpl implements ATManager {
 
     @Override
     public void process(String line) {
+        LOGGER.debug(line);
+        messageReadForTraceLogger(line.getBytes());
         ATParser.Result parserResult = atParser.process(line);
         ATParser.LineType type = parserResult.getType();
         if (type == ATParser.LineType.UNSOLICITED_RESPONSE) {
@@ -118,6 +121,21 @@ public class ATManagerImpl implements ATManager {
             timeoutTask.cancel(true);
             commandFuture.complete(response);
             releaseSemaphoreExecutor.schedule((Runnable) semaphore::release, timeBetweenCommands, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void messageReadForTraceLogger(byte[] atMessage) {
+        // We print in the trace log all the bytes read
+        if (LOGGER.isDebugEnabled()) {
+            StringBuilder frameStr = new StringBuilder();
+
+            if (atMessage.length > 0) {
+                frameStr.append(Integer.toHexString((atMessage[0] & 0x000000FF)));
+                for (int i = 1; i < atMessage.length; i++) {
+                    frameStr.append(", ").append(Integer.toHexString((atMessage[i] & 0x000000FF)));
+                }
+            }
+            LOGGER.debug("Characters read " + atMessage.length + ", value: " + frameStr.toString());
         }
     }
 

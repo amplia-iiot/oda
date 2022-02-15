@@ -115,20 +115,15 @@ class Iec104Cache {
 			String key = entry.getKey();
 			Map<Integer, Object> info = entry.getValue();
 
-			List<Object> values = new ArrayList<>();
 			try {
-				int[] array = getLowestAndHighestIndex(info);
-				int lowestIndex = array[0];
-				int highestIndex = array[1];
-				for (int i = lowestIndex; i <= highestIndex; i++) {
-					values.add(info.get(i));
-				}
-				Object asdu = getAsdu(key, values, lowestIndex, System.currentTimeMillis(), commonAddress);
-				if (asdu != null) {
-					ret.add(asdu);
+				for (Map.Entry<Integer, Object> value: info.entrySet()) {
+					Object asdu = getAsdu(key, value.getValue(), value.getKey(), System.currentTimeMillis(), commonAddress);
+					if (asdu != null) {
+						ret.add(asdu);
+					}
 				}
 			} catch (NullPointerException e) {
-				LOGGER.error("Null value stored on cache", e);
+				LOGGER.error("Null value stored on cache");
 			}
 		}
 		return ret;

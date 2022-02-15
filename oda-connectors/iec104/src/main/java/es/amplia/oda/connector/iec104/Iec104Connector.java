@@ -3,9 +3,9 @@ package es.amplia.oda.connector.iec104;
 import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfiguration;
 import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
-
 import io.netty.channel.socket.SocketChannel;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
+import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +22,10 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 	private final Iec104Cache cache;
 	private final ScadaDispatcherProxy dispatcher;
 
-	private Iec104ServerModule serverModule;
-	private Server server;
-	private SocketChannel socketChannel;
+	Iec104ServerModule serverModule;
+	Server server;
+	SocketChannel socketChannel;
+	MessageChannel messageChannel;
 	private int commonAddress;
 	private boolean spontaneousEnabled;
 
@@ -70,6 +71,8 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 			optionsBuilder.setTimeout3(10000);
 			ProtocolOptions options = optionsBuilder.build();
 			serverModule = new Iec104ServerModule(cache, options, dispatcher, commonAddress);
+			if(this.socketChannel != null && this.messageChannel != null)
+				serverModule.initializeChannel(this.socketChannel, this.messageChannel);
 			this.server = new Server(socketAddress, options, Collections.singletonList(serverModule));
 			this.spontaneousEnabled = currentConfiguration.isSpontaneousEnabled();
 			LOGGER.info("Configured IEC104 server {} at port:{}", address, port);
@@ -83,10 +86,12 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 		try {
 			if (server != null) {
 				serverModule.dispose();
-				this.socketChannel.close();
+				if(this.socketChannel == null && this.messageChannel == null) {
+					this.socketChannel = serverModule.getSocketChannel();
+					this.messageChannel = serverModule.getMessageChannel();
+				}
 				this.server.close();
 				server = null;
-				socketChannel = null;
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error erasing configuration of IEC 104 Connector", e);
@@ -98,5 +103,12 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 	@Override
 	public void close() {
 		clearLastConfiguration();
+		if(this.socketChannel != null) {
+			this.socketChannel.close();
+			this.socketChannel = null;
+		}
+		if(this.messageChannel != null) {
+			this.messageChannel = null;
+		}
 	}
 }

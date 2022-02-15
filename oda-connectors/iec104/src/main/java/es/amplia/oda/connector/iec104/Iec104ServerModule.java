@@ -104,4 +104,12 @@ class Iec104ServerModule implements ServerModule {
 			LOGGER.error("Error sending ASDU to Master SCADA", e);
 		}
 	}
+
+	public SocketChannel getSocketChannel() {
+		return socketChannel;
+	}
+
+	public MessageChannel getMessageChannel() {
+		return messageChannel;
+	}
 }
