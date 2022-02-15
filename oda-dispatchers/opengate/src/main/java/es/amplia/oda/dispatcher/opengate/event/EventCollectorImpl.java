@@ -43,6 +43,21 @@ public class EventCollectorImpl implements EventCollector {
         }
     }
 
+    @Override
+    public void publish(List<Event> events) {
+        List<Event> eventsToPublish = new ArrayList<>();
+        for (Event event : events) {
+            if (isEventFromCollectedDatastream(event)) {
+                LOGGER.info("Collected event {} of datastream {}", event, event.getDatastreamId());
+                collect(event);
+            } else {
+                eventsToPublish.add(event);
+            }
+        }
+        if(eventsToPublish.size() > 0)
+            eventDispatcher.publish(eventsToPublish);
+    }
+
     private boolean isEventFromCollectedDatastream(Event event) {
         return datastreamIdsToCollect.contains(event.getDatastreamId());
     }

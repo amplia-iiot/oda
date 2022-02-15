@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DevicePattern;
 import es.amplia.oda.event.api.Event;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +20,8 @@ public interface StateManager extends AutoCloseable {
     void registerToEvents(EventHandler eventHandler);
     void unregisterToEvents(EventHandler eventHandler);
     void onReceivedEvent(Event event);
+    void onReceivedEvents(List<Event> event);
     void publishValue(Event event);
+    void publishMultipleValues(List<Event> event);
     void close();
 }

@@ -11,12 +11,11 @@ import es.amplia.oda.event.api.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -32,8 +31,12 @@ public class EventDispatcherImplTest {
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final int TEST_VALUE = 9;
+    private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
+    private static final int TEST_VALUE_2 = 53;
     private static final Event TEST_EVENT =
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, System.currentTimeMillis(), TEST_VALUE);
+    private static final Event TEST_EVENT_2 =
+            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, null, System.currentTimeMillis(), TEST_VALUE_2);
     private static final OutputDatastream TEST_OUTPUT_DATASTREAM =
             new OutputDatastream("8.0", TEST_DEVICE_ID, null, Collections.singleton(
                     new Datastream(TEST_DATASTREAM_ID, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
@@ -63,6 +66,27 @@ public class EventDispatcherImplTest {
 
         verify(mockedEventParser).parse(eq(TEST_EVENT));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
+        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
+    }
+
+    @Test
+    public void testPublishGroup() throws IOException {
+        Set<Datastream> datastreams = new HashSet<>();
+        datastreams.add(new Datastream(TEST_DATASTREAM_ID, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
+        datastreams.add(new Datastream(TEST_DATASTREAM_ID_2, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
+        OutputDatastream outputDatastream =
+                new OutputDatastream("8.0", TEST_DEVICE_ID, null, datastreams);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
+        events.add(TEST_EVENT_2);
+
+        when(mockedEventParser.parse(any(List.class))).thenReturn(outputDatastream);
+        when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
+
+        testEventDispatcher.publish(events);
+
+        verify(mockedEventParser).parse(eq(events));
+        verify(mockedSerializer).serialize(eq(outputDatastream));
         verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
     }
 

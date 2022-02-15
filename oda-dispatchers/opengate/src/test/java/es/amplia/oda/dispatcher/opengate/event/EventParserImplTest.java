@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -33,6 +35,10 @@ public class EventParserImplTest {
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
     private static final Event TEST_EVENT_NULL_PATH =
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, TEST_AT, TEST_VALUE);
+    private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
+    private static final int TEST_VALUE_2 = 782;
+    private static final Event TEST_EVENT_2 =
+            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, TEST_VALUE_2);
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
@@ -63,6 +69,49 @@ public class EventParserImplTest {
         assertNotNull(datapoint);
         assertEquals(TEST_AT, (long) datapoint.getAt());
         assertEquals(TEST_VALUE, datapoint.getValue());
+        verify(mockedDeviceInfoProvider).getDeviceId();
+    }
+
+    @Test
+    public void testParseGroup() {
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
+        events.add(TEST_EVENT_2);
+
+        OutputDatastream outputDatastream = testEventParser.parse(events);
+
+        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
+        assertArrayEquals(TEST_PATH, outputDatastream.getPath());
+        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertNotNull(datastreams);
+        assertFalse(datastreams.isEmpty());
+        assertEquals(2, datastreams.size());
+        Datastream datastream = datastreams.toArray(new Datastream[0])[0];
+        assertNotNull(datastream);
+        assertEquals(TEST_DATASTREAM_ID, datastream.getId());
+        Set<Datapoint> datapoints = datastream.getDatapoints();
+        assertNotNull(datapoints);
+        assertFalse(datapoints.isEmpty());
+        assertEquals(1, datapoints.size());
+        Datapoint datapoint = datapoints.toArray(new Datapoint[0])[0];
+        assertNotNull(datapoint);
+        assertEquals(TEST_AT, (long) datapoint.getAt());
+        assertEquals(TEST_VALUE, datapoint.getValue());
+        verify(mockedDeviceInfoProvider).getDeviceId();
+
+        datastream = datastreams.toArray(new Datastream[0])[1];
+        assertNotNull(datastream);
+        assertEquals(TEST_DATASTREAM_ID_2, datastream.getId());
+        datapoints = datastream.getDatapoints();
+        assertNotNull(datapoints);
+        assertFalse(datapoints.isEmpty());
+        assertEquals(1, datapoints.size());
+        datapoint = datapoints.toArray(new Datapoint[0])[0];
+        assertNotNull(datapoint);
+        assertNull(datapoint.getAt());
+        assertEquals(TEST_VALUE_2, datapoint.getValue());
         verify(mockedDeviceInfoProvider).getDeviceId();
     }
 

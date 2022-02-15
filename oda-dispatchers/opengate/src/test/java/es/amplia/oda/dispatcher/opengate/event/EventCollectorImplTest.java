@@ -30,10 +30,14 @@ public class EventCollectorImplTest {
     private static final String[] TEST_PATH = new String[] { "testGateway" };
     private static final long TEST_AT = System.currentTimeMillis();
     private static final Object TEST_VALUE = 99;
+    private static final String TEST_COLLECTED_DATASTREAM_ID_2 = "collectedDatastream2";
+    private static final Object TEST_VALUE_2 = "meh";
     private static final Event TEST_NOT_COLLECTED_EVENT =
             new Event(TEST_NOT_COLLECTED_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
     private static final Event TEST_COLLECTED_EVENT =
             new Event(TEST_COLLECTED_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
+    private static final Event TEST_COLLECTED_EVENT_2 =
+            new Event(TEST_COLLECTED_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE_2);
 
 
     @Mock
@@ -84,6 +88,23 @@ public class EventCollectorImplTest {
         verify(spiedCollectedEvents).merge(eq(TEST_COLLECTED_DATASTREAM_ID), any(), any());
         assertEquals(Collections.singletonList(TEST_COLLECTED_EVENT),
                 spiedCollectedEvents.get(TEST_COLLECTED_DATASTREAM_ID));
+    }
+
+    @Test
+    public void testPublishCollectedMultipleDatastream() {
+        when(spiedDatastreamIdsToCollect.contains(anyString())).thenReturn(true);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_COLLECTED_EVENT);
+        events.add(TEST_COLLECTED_EVENT_2);
+
+        testEventCollector.publish(events);
+
+        verifyZeroInteractions(mockedEventDispatcher);
+        verify(spiedCollectedEvents).merge(eq(TEST_COLLECTED_DATASTREAM_ID_2), any(), any());
+        assertEquals(Collections.singletonList(TEST_COLLECTED_EVENT),
+                spiedCollectedEvents.get(TEST_COLLECTED_DATASTREAM_ID));
+        assertEquals(Collections.singletonList(TEST_COLLECTED_EVENT_2),
+                spiedCollectedEvents.get(TEST_COLLECTED_DATASTREAM_ID_2));
     }
 
     @Test

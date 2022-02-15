@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 class EventDispatcherImpl implements EventDispatcher {
 
@@ -36,8 +37,18 @@ class EventDispatcherImpl implements EventDispatcher {
         publish(outputEvent);
     }
 
+    @Override
+    public void publish(List<Event> events) {
+        OutputDatastream outputEvent = parse(events);
+        publish(outputEvent);
+    }
+
     OutputDatastream parse(Event event) {
         return eventParser.parse(event);
+    }
+
+    OutputDatastream parse(List<Event> events) {
+        return eventParser.parse(events);
     }
 
     void publish(OutputDatastream outputEvent) {

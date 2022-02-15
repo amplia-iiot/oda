@@ -6,9 +6,7 @@ import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import es.amplia.oda.event.api.Event;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -34,6 +32,26 @@ class EventParserImpl implements EventParser {
         Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
 
         return new OutputDatastream(OPENGATE_VERSION, deviceId, path, Collections.singleton(datastream));
+    }
+
+    @Override
+    public OutputDatastream parse(List<Event> events) {
+        String hostId = deviceInfoProvider.getDeviceId();
+        String deviceId = events.get(0).getDeviceId();
+        deviceId = "".equals(deviceId) ? hostId : deviceId;
+        String[] path = getPath(hostId, deviceId, events.get(0).getPath());
+        Set<Datastream> datastreams = new HashSet<>();
+
+        for(Event event: events) {
+            Long at = event.getAt();
+
+            Datapoint datapoint = new Datapoint(at, event.getValue());
+            Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
+
+            datastreams.add(datastream);
+        }
+
+        return new OutputDatastream(OPENGATE_VERSION, deviceId, path, datastreams);
     }
 
     private String[] getPath(String hostId, String deviceId, String[] path) {

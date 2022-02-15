@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 
 import org.osgi.framework.BundleContext;
 
+import java.util.List;
 import java.util.Optional;
 
 public class EventDispatcherProxy implements EventDispatcher, AutoCloseable {
@@ -12,15 +13,23 @@ public class EventDispatcherProxy implements EventDispatcher, AutoCloseable {
     private final OsgiServiceProxy<EventDispatcher> proxy;
 
     private final InterceptorProxy<Event, EventInterceptor> eventInterceptorProxy;
+    private final InterceptorProxy<List<Event>, EventListInterceptor> eventListInterceptorProxy;
 
     public EventDispatcherProxy(BundleContext bundleContext) {
         proxy = new OsgiServiceProxy<>(EventDispatcher.class, bundleContext);
         eventInterceptorProxy = new InterceptorProxy<>(EventInterceptor.class, bundleContext);
+        eventListInterceptorProxy = new InterceptorProxy<>(EventListInterceptor.class, bundleContext);
     }
 
     @Override
     public void publish(Event event) {
         Optional<Event> resultEvent = eventInterceptorProxy.intercept(Optional.of(event));
+        resultEvent.ifPresent(value -> proxy.consumeAll(eventDispatcher -> eventDispatcher.publish(value)));
+    }
+
+    @Override
+    public void publish(List<Event> event) {
+        Optional<List<Event>> resultEvent = eventListInterceptorProxy.intercept(Optional.of(event));
         resultEvent.ifPresent(value -> proxy.consumeAll(eventDispatcher -> eventDispatcher.publish(value)));
     }
 

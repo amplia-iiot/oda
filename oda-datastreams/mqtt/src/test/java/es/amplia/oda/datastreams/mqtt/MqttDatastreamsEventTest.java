@@ -17,6 +17,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -76,6 +79,13 @@ public class MqttDatastreamsEventTest {
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
         MqttDatastreamsEvent.InnerDatastreamEvent event2 =
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID_2, null, TEST_VALUE_2);
+        Map<String, Map<Long, Object>> events = new HashMap<>();
+        Map<Long, Object> datastream1 = new HashMap<>();
+        datastream1.put(event1.getAt(), event1.getValue());
+        Map<Long, Object> datastream2 = new HashMap<>();
+        datastream2.put(event2.getAt(), event2.getValue());
+        events.put(event1.getDatastreamId(), datastream1);
+        events.put(event2.getDatastreamId(), datastream2);
         MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
                 new MqttDatastreamsEvent.DeviceEventMessage(Arrays.asList(gateway1, gateway1_1),
                         Arrays.asList(event1, event2));
@@ -94,9 +104,36 @@ public class MqttDatastreamsEventTest {
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2));
         verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), aryEq(expectedPath), eq(TEST_AT), eq(TEST_VALUE));
+                .publishGroupEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(events));
+    }
+
+    @Test
+    public void testOneDeviceEventMessageListenerMessageArriveWithPath() throws MqttException, IOException {
+        String testTopic = TEST_EVENT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID;
+        ArgumentCaptor<MqttDatastreamsEvent.DeviceEventMessageListener> listenerCaptor =
+                ArgumentCaptor.forClass(MqttDatastreamsEvent.DeviceEventMessageListener.class);
+        String gateway1 = "gateway1";
+        String gateway1_1 = "gateway1_1";
+        MqttDatastreamsEvent.InnerDatastreamEvent event1 =
+                new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
+        MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
+                new MqttDatastreamsEvent.DeviceEventMessage(Arrays.asList(gateway1, gateway1_1),
+                        Collections.singletonList(event1));
+        String[] expectedPath = new String[] {gateway1, gateway1_1};
+
+        when(mockedPermissionManager.hasReadPermission(anyString(), anyString())).thenReturn(true);
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(testDeviceEventMessage);
+
+        verify(mockedClient).subscribe(eq(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC), listenerCaptor.capture());
+        MqttDatastreamsEvent.DeviceEventMessageListener testListener = listenerCaptor.getValue();
+
+        testListener.messageArrived(testTopic, MqttMessage.newInstance(TEST_PAYLOAD));
+
+        verify(mockedSerializer)
+                .deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
+        verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2), aryEq(expectedPath), eq(null), eq(TEST_VALUE_2));
+                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), aryEq(expectedPath), eq(TEST_AT), eq(TEST_VALUE));
     }
 
     @Test
@@ -108,6 +145,13 @@ public class MqttDatastreamsEventTest {
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
         MqttDatastreamsEvent.InnerDatastreamEvent event2 =
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID_2, null, TEST_VALUE_2);
+        Map<String, Map<Long, Object>> events = new HashMap<>();
+        Map<Long, Object> datastream1 = new HashMap<>();
+        datastream1.put(event1.getAt(), event1.getValue());
+        Map<Long, Object> datastream2 = new HashMap<>();
+        datastream2.put(event2.getAt(), event2.getValue());
+        events.put(event1.getDatastreamId(), datastream1);
+        events.put(event2.getDatastreamId(), datastream2);
         MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
                 new MqttDatastreamsEvent.DeviceEventMessage(null, Arrays.asList(event1, event2));
 
@@ -122,10 +166,34 @@ public class MqttDatastreamsEventTest {
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2));
+
+        verify(mockedEventPublisher)
+                .publishGroupEvents(eq(TEST_DEVICE_ID), eq(null), eq(events));
+    }
+
+    @Test
+    public void testOneDeviceEventMessageListenerMessageArriveWithoutPath() throws MqttException, IOException {
+        String testTopic = TEST_EVENT_TOPIC + MqttDatastreams.TOPIC_LEVEL_SEPARATOR + TEST_DEVICE_ID;
+        ArgumentCaptor<MqttDatastreamsEvent.DeviceEventMessageListener> listenerCaptor =
+                ArgumentCaptor.forClass(MqttDatastreamsEvent.DeviceEventMessageListener.class);
+        MqttDatastreamsEvent.InnerDatastreamEvent event1 =
+                new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
+        MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
+                new MqttDatastreamsEvent.DeviceEventMessage(null, Collections.singletonList(event1));
+
+        when(mockedPermissionManager.hasReadPermission(anyString(), anyString())).thenReturn(true);
+        when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(testDeviceEventMessage);
+
+        verify(mockedClient).subscribe(eq(TEST_SUBSCRIBED_DEVICE_EVENT_TOPIC), listenerCaptor.capture());
+        MqttDatastreamsEvent.DeviceEventMessageListener testListener = listenerCaptor.getValue();
+
+        testListener.messageArrived(testTopic, MqttMessage.newInstance(TEST_PAYLOAD));
+
+        verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
+        verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
+
         verify(mockedEventPublisher)
                 .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), eq(null), eq(TEST_AT), eq(TEST_VALUE));
-        verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2), eq(null), eq(null), eq(TEST_VALUE_2));
     }
 
     @Test

@@ -12,7 +12,9 @@ import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static es.amplia.oda.datastreams.mqtt.MqttDatastreams.*;
 
@@ -63,15 +65,28 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
+            Map<String,Map<Long,Object>> events = new HashMap<>();
             try {
                 LOGGER.info("Message arrived to the {} topic", topic);
                 String deviceId = extractDeviceIdFromTopic(topic);
                 DeviceEventMessage deviceEvent =
                         serializer.deserialize(mqttMessage.getPayload(), DeviceEventMessage.class);
-                deviceEvent.getDatastreams().stream()
-                        .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
-                        .forEach(event -> publish(deviceId, event.getDatastreamId(), deviceEvent.getPath(),
-                                event.getAt(), event.getValue()));
+                if(deviceEvent.getDatastreams().size() == 1) {
+                    deviceEvent.getDatastreams().stream()
+                            .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
+                            .forEach(event -> publish(deviceId, event.getDatastreamId(), deviceEvent.getPath(),
+                                    event.getAt(), event.getValue()));
+                } else {
+                    deviceEvent.getDatastreams().stream()
+                            .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
+                            .forEach(event -> {
+                                Map<Long, Object> entry = new HashMap<>();
+                                entry.put(event.getAt(), event.getValue());
+                                events.put(event.getDatastreamId(), entry);
+                            });
+                    if(events.size() > 0)
+                        publishGroup(deviceId, deviceEvent.getPath(), events);
+                }
             } catch (Exception e) {
                 LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
             }

@@ -215,7 +215,7 @@ public class InMemoryStateManager implements StateManager {
                 DatastreamValue toPublishValue = state.getLastValue(dsInfo);
                 event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
                 toPublishValue.setSent(true);
-                eventDispatcher.publish(event);
+                publishValue(event);
             }
             if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
                 && this.database != null && this.database.exists()) {
@@ -234,7 +234,44 @@ public class InMemoryStateManager implements StateManager {
     }
 
     @Override
+    public synchronized void onReceivedEvents(List<Event> events) {
+        List<Event> eventsToSendImmediately = new ArrayList<>();
+        for (Event event : events) {
+            DatastreamValue dsValue = createDatastreamValueFromEvent(event);
+            this.ruleEngine.engine(this.state, dsValue);
+            List<DatastreamInfo> datastreams = this.state.getStoredValues();
+            for (DatastreamInfo dsInfo : datastreams) {
+                if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
+                    DatastreamValue toPublishValue = state.getLastValue(dsInfo);
+                    event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
+                    toPublishValue.setSent(true);
+                    eventsToSendImmediately.add(event);
+                }
+                if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
+                        && this.database != null && this.database.exists()) {
+                    try {
+                        DatastreamValue value = state.getLastValue(dsInfo);
+                        if (!this.database.insertNewRow(value)) {
+                            LOGGER.error("The value {} couldn't be stored into the database.", value);
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
+                    }
+                }
+            }
+            this.state.clearRefreshedAndImmediately();
+            LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
+        }
+        publishMultipleValues(eventsToSendImmediately);
+    }
+
+    @Override
     public void publishValue(Event event) {
+        eventDispatcher.publish(event);
+    }
+
+    @Override
+    public void publishMultipleValues(List<Event> event) {
         eventDispatcher.publish(event);
     }
 
