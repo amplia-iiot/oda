@@ -23,15 +23,6 @@ class EventParserReducedOutputImpl implements EventParser {
     }
 
     @Override
-    public OutputDatastream parse(Event event) {
-        String deviceId = getDeviceId(event);
-        Datapoint datapoint = new Datapoint(null, event.getValue());
-        Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
-
-        return new OutputDatastream(OPENGATE_VERSION, deviceId, null, Collections.singleton(datastream));
-    }
-
-    @Override
     public OutputDatastream parse(List<Event> events) {
         String deviceId = getDeviceId(events.get(0));
         Set<Datastream> datastreams = new HashSet<>();

@@ -15,9 +15,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.Events.*;
 
@@ -61,14 +59,18 @@ public class OsgiEventHandlerTest {
 
     @Test
     public void testHandleEvent() {
+        Map<String, Object> event = new HashMap<>();
+        List<Map<String, Object>> events = new ArrayList<>();
         Map<String, Object> props = new HashMap<>();
         props.put(DATASTREAM_ID_PROPERTY_NAME, TEST_DATASTREAM_ID);
         props.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
         props.put(PATH_PROPERTY_NAME, TEST_PATH);
         props.put(AT_PROPERTY_NAME, TEST_AT);
         props.put(VALUE_PROPERTY_NAME, TEST_VALUE);
-        org.osgi.service.event.Event osgiEvent = new org.osgi.service.event.Event(EVENT_TOPIC, props);
-        Event expectedEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
+        events.add(props);
+        event.put("events", events);
+        org.osgi.service.event.Event osgiEvent = new org.osgi.service.event.Event(EVENT_TOPIC, event);
+        List<Event> expectedEvent = Collections.singletonList(new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE));
 
         verify(mockedContext).registerService(eq(EventHandler.class), eventHandlerCaptor.capture(), any());
 
@@ -77,7 +79,7 @@ public class OsgiEventHandlerTest {
         OsgiEventHandler.EventHandlerImpl eventHandler = eventHandlerCaptor.getValue();
         eventHandler.handleEvent(osgiEvent);
 
-        verify(mockedStateManager).onReceivedEvent(eq(expectedEvent));
+        verify(mockedStateManager).onReceivedEvents(eq(expectedEvent));
     }
 
     @Test

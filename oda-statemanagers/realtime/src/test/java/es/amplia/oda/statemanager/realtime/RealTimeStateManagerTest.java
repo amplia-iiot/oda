@@ -352,9 +352,9 @@ public class RealTimeStateManagerTest {
     public void testOnReceivedEvent() {
         Event event = new Event(TEST_DATASTREAM_ID_1, TEST_DEVICE_ID, null, TEST_AT_1, TEST_VALUE_1);
 
-        testStateManager.onReceivedEvent(event);
+        testStateManager.onReceivedEvents(Collections.singletonList(event));
 
-        verify(mockedEventDispatcher).publish(eq(event));
+        verify(mockedEventDispatcher).publish(eq(Collections.singletonList(event)));
     }
 
     @Test

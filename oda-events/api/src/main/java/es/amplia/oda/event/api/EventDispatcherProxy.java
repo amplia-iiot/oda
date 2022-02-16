@@ -12,19 +12,11 @@ public class EventDispatcherProxy implements EventDispatcher, AutoCloseable {
 
     private final OsgiServiceProxy<EventDispatcher> proxy;
 
-    private final InterceptorProxy<Event, EventInterceptor> eventInterceptorProxy;
     private final InterceptorProxy<List<Event>, EventListInterceptor> eventListInterceptorProxy;
 
     public EventDispatcherProxy(BundleContext bundleContext) {
         proxy = new OsgiServiceProxy<>(EventDispatcher.class, bundleContext);
-        eventInterceptorProxy = new InterceptorProxy<>(EventInterceptor.class, bundleContext);
         eventListInterceptorProxy = new InterceptorProxy<>(EventListInterceptor.class, bundleContext);
-    }
-
-    @Override
-    public void publish(Event event) {
-        Optional<Event> resultEvent = eventInterceptorProxy.intercept(Optional.of(event));
-        resultEvent.ifPresent(value -> proxy.consumeAll(eventDispatcher -> eventDispatcher.publish(value)));
     }
 
     @Override

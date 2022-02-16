@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +80,11 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 		try {
 			LoraStatusPacket loraStayAlive = serializer.deserialize(data, LoraStatusPacket.class);
 			if(loraStayAlive != null && loraStayAlive.getStat() != null) {
-				this.publish(deviceId, "lora", null, System.currentTimeMillis(), loraStayAlive);
+				Map<String, Map<Long, Object>> event = new HashMap<>();
+				Map<Long, Object> eventData = new HashMap<>();
+				eventData.put(System.currentTimeMillis(), loraStayAlive);
+				event.put("lora", eventData);
+				this.publish(deviceId, null, event);
 				LOGGER.info("Sent LoRa status message at: {}", System.currentTimeMillis());
 				if(LOGGER.isDebugEnabled()) {
 					LOGGER.debug("LoRa packet content: {}", loraStayAlive.toShortString());
@@ -95,7 +101,11 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 		try {
 			LoraDataPacket loraPacket = serializer.deserialize(data, LoraDataPacket.class);
 			if(loraPacket != null && loraPacket.getRxpk() != null) {
-				this.publish(deviceId, "lora", null, System.currentTimeMillis(), loraPacket);
+				Map<String, Map<Long, Object>> event = new HashMap<>();
+				Map<Long, Object> eventData = new HashMap<>();
+				eventData.put(System.currentTimeMillis(), loraPacket);
+				event.put("lora", eventData);
+				this.publish(deviceId, null, event);
 				LOGGER.info("Sent LoRa data message");
 				if(LOGGER.isDebugEnabled()) {
 					LOGGER.debug("LoRa packet content: {}", loraPacket.toShortString());

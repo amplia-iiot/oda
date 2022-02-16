@@ -1,6 +1,5 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
-import javafx.beans.binding.ObjectExpression;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,20 +58,6 @@ public class EventPublisherProxyTest {
     }
 
     @Test
-    public void testPublishEvent() {
-        testEventPublisher.publishEvent(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_PATH, TEST_AT, TEST_VALUE);
-
-        verify(mockedEventAdmin).sendEvent(eventCaptor.capture());
-        Event capturedEvent = eventCaptor.getValue();
-        assertEquals(EVENT_TOPIC, capturedEvent.getTopic());
-        assertEquals(TEST_DEVICE_ID, capturedEvent.getProperty(DEVICE_ID_PROPERTY_NAME));
-        assertEquals(TEST_DATASTREAM_ID, capturedEvent.getProperty(DATASTREAM_ID_PROPERTY_NAME));
-        assertEquals(TEST_PATH, capturedEvent.getProperty(PATH_PROPERTY_NAME));
-        assertEquals(TEST_AT, capturedEvent.getProperty(AT_PROPERTY_NAME));
-        assertEquals(TEST_VALUE, capturedEvent.getProperty(VALUE_PROPERTY_NAME));
-    }
-
-    @Test
     public void testPublishGroupEvents() {
         Map<String, Map<Long, Object>> events = new HashMap<>();
         Map<Long, Object> event1 = new HashMap<>();
@@ -82,7 +67,7 @@ public class EventPublisherProxyTest {
         events.put(TEST_DATASTREAM_ID, event1);
         events.put(TEST_DATASTREAM_ID_2, event2);
 
-        testEventPublisher.publishGroupEvents(TEST_DEVICE_ID, TEST_PATH, events);
+        testEventPublisher.publishEvents(TEST_DEVICE_ID, TEST_PATH, events);
 
         verify(mockedEventAdmin).sendEvent(eventCaptor.capture());
         Event capturedEvent = eventCaptor.getValue();

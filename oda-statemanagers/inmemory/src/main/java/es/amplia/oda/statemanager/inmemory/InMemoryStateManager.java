@@ -206,34 +206,6 @@ public class InMemoryStateManager implements StateManager {
     }
 
     @Override
-    public synchronized void onReceivedEvent(Event event) {
-        DatastreamValue dsValue = createDatastreamValueFromEvent(event);
-        this.ruleEngine.engine(this.state, dsValue);
-        List<DatastreamInfo> datastreams = this.state.getStoredValues();
-        for (DatastreamInfo dsInfo : datastreams) {
-            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
-                DatastreamValue toPublishValue = state.getLastValue(dsInfo);
-                event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
-                toPublishValue.setSent(true);
-                publishValue(event);
-            }
-            if(state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
-                && this.database != null && this.database.exists()) {
-                try {
-                    DatastreamValue value = state.getLastValue(dsInfo);
-                    if(!this.database.insertNewRow(value)) {
-                        LOGGER.error("The value {} couldn't be stored into the database.", value);
-                    }
-                } catch (IOException e) {
-                    LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
-                }
-            }
-        }
-        this.state.clearRefreshedAndImmediately();
-        LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
-    }
-
-    @Override
     public synchronized void onReceivedEvents(List<Event> events) {
         List<Event> eventsToSendImmediately = new ArrayList<>();
         for (Event event : events) {
@@ -262,16 +234,11 @@ public class InMemoryStateManager implements StateManager {
             this.state.clearRefreshedAndImmediately();
             LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
         }
-        publishMultipleValues(eventsToSendImmediately);
+        publishValues(eventsToSendImmediately);
     }
 
     @Override
-    public void publishValue(Event event) {
-        eventDispatcher.publish(event);
-    }
-
-    @Override
-    public void publishMultipleValues(List<Event> event) {
+    public void publishValues(List<Event> event) {
         eventDispatcher.publish(event);
     }
 

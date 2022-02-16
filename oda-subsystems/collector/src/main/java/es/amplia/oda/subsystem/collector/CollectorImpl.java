@@ -46,6 +46,6 @@ class CollectorImpl implements Collector {
     }
 
     private void publishEvents(List<Event> events) {
-        events.forEach(eventDispatcher::publish);
+        eventDispatcher.publish(events);
     }
 }

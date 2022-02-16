@@ -46,8 +46,10 @@ public class EventParserReducedOutputImplTest {
     @Test
     public void testParse() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
 
-        OutputDatastream output = testEventParser.parse(TEST_EVENT);
+        OutputDatastream output = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, output.getVersion());
         assertEquals(TEST_DEVICE_ID, output.getDevice());
@@ -115,8 +117,10 @@ public class EventParserReducedOutputImplTest {
     @Test
     public void testParseSameDeviceAndHostId() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
 
-        OutputDatastream output = testEventParser.parse(TEST_EVENT);
+        OutputDatastream output = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, output.getVersion());
         assertNull(output.getDevice());

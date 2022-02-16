@@ -46,33 +46,6 @@ public class EventParserImplTest {
     private EventParserImpl testEventParser;
 
     @Test
-    public void testParse() {
-        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
-
-        OutputDatastream outputDatastream = testEventParser.parse(TEST_EVENT);
-
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertArrayEquals(TEST_PATH, outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
-        assertNotNull(datastreams);
-        assertFalse(datastreams.isEmpty());
-        assertEquals(1, datastreams.size());
-        Datastream datastream = datastreams.toArray(new Datastream[0])[0];
-        assertNotNull(datastream);
-        assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
-        assertNotNull(datapoints);
-        assertFalse(datapoints.isEmpty());
-        assertEquals(1, datapoints.size());
-        Datapoint datapoint = datapoints.toArray(new Datapoint[0])[0];
-        assertNotNull(datapoint);
-        assertEquals(TEST_AT, (long) datapoint.getAt());
-        assertEquals(TEST_VALUE, datapoint.getValue());
-        verify(mockedDeviceInfoProvider).getDeviceId();
-    }
-
-    @Test
     public void testParseGroup() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         List<Event> events = new ArrayList<>();
@@ -88,38 +61,15 @@ public class EventParserImplTest {
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(2, datastreams.size());
-        Datastream datastream = datastreams.toArray(new Datastream[0])[0];
-        assertNotNull(datastream);
-        assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
-        assertNotNull(datapoints);
-        assertFalse(datapoints.isEmpty());
-        assertEquals(1, datapoints.size());
-        Datapoint datapoint = datapoints.toArray(new Datapoint[0])[0];
-        assertNotNull(datapoint);
-        assertEquals(TEST_AT, (long) datapoint.getAt());
-        assertEquals(TEST_VALUE, datapoint.getValue());
-        verify(mockedDeviceInfoProvider).getDeviceId();
-
-        datastream = datastreams.toArray(new Datastream[0])[1];
-        assertNotNull(datastream);
-        assertEquals(TEST_DATASTREAM_ID_2, datastream.getId());
-        datapoints = datastream.getDatapoints();
-        assertNotNull(datapoints);
-        assertFalse(datapoints.isEmpty());
-        assertEquals(1, datapoints.size());
-        datapoint = datapoints.toArray(new Datapoint[0])[0];
-        assertNotNull(datapoint);
-        assertNull(datapoint.getAt());
-        assertEquals(TEST_VALUE_2, datapoint.getValue());
-        verify(mockedDeviceInfoProvider).getDeviceId();
     }
 
     @Test
     public void testParseNotNullPath() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT_NULL_PATH);
 
-        OutputDatastream outputDatastream = testEventParser.parse(TEST_EVENT_NULL_PATH);
+        OutputDatastream outputDatastream = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
@@ -145,8 +95,10 @@ public class EventParserImplTest {
     @Test
     public void testParseNullHostId() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(null);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
 
-        OutputDatastream outputDatastream = testEventParser.parse(TEST_EVENT);
+        OutputDatastream outputDatastream = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
@@ -172,8 +124,10 @@ public class EventParserImplTest {
     @Test
     public void testParseDifferentHostIdAndDeviceIdNullPath() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT_NULL_PATH);
 
-        OutputDatastream outputDatastream = testEventParser.parse(TEST_EVENT_NULL_PATH);
+        OutputDatastream outputDatastream = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
@@ -203,8 +157,10 @@ public class EventParserImplTest {
         expectedPath[0] = TEST_HOST_ID;
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_EVENT);
 
-        OutputDatastream outputDatastream = testEventParser.parse(TEST_EVENT);
+        OutputDatastream outputDatastream = testEventParser.parse(events);
 
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());

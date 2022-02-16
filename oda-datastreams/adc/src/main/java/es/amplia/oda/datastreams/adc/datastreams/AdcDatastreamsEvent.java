@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 class AdcDatastreamsEvent extends AbstractDatastreamsEvent {
 
@@ -47,7 +49,11 @@ class AdcDatastreamsEvent extends AbstractDatastreamsEvent {
 
 	private void publishEvent(AdcEvent event) {
 		float value = (float) (((max - min) * event.getScaledValue()) + min);
-		publish("", datastreamId, Collections.emptyList(), event.getEpochTime(), value);
+		Map<String, Map<Long, Object>> events = new HashMap<>();
+		Map<Long, Object> data = new HashMap<>();
+		data.put(event.getEpochTime(), value);
+		events.put(datastreamId, data);
+		publish("", Collections.emptyList(), events);
 	}
 
 	@Override

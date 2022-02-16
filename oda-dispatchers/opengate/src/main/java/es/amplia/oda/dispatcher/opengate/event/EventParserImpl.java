@@ -21,20 +21,6 @@ class EventParserImpl implements EventParser {
     }
 
     @Override
-    public OutputDatastream parse(Event event) {
-        String hostId = deviceInfoProvider.getDeviceId();
-        String deviceId = event.getDeviceId();
-        deviceId = "".equals(deviceId) ? hostId : deviceId;
-        String[] path = getPath(hostId, deviceId, event.getPath());
-        Long at = event.getAt();
-
-        Datapoint datapoint = new Datapoint(at, event.getValue());
-        Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
-
-        return new OutputDatastream(OPENGATE_VERSION, deviceId, path, Collections.singleton(datastream));
-    }
-
-    @Override
     public OutputDatastream parse(List<Event> events) {
         String hostId = deviceInfoProvider.getDeviceId();
         String deviceId = events.get(0).getDeviceId();

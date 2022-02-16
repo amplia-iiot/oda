@@ -371,7 +371,7 @@ public class InMemoryStateManagerTest {
                 testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
-        testStateManager.onReceivedEvent(testEvent);
+        testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -396,7 +396,7 @@ public class InMemoryStateManagerTest {
         newState.sendImmediately(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
-        testStateManager.onReceivedEvent(testEvent);
+        testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -407,7 +407,7 @@ public class InMemoryStateManagerTest {
         assertNull(value.getError());
         assertTrue(value.isSent());
         Event event = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        verify(mockedEventDispatcher).publish(eq(event));
+        verify(mockedEventDispatcher).publish(eq(Collections.singletonList(event)));
         verify(mockedDatabase, times(3)).insertNewRow(any());
     }
 
@@ -423,7 +423,7 @@ public class InMemoryStateManagerTest {
                 testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
-        testStateManager.onReceivedEvent(testEvent);
+        testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
@@ -447,7 +447,7 @@ public class InMemoryStateManagerTest {
                 testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
-        testStateManager.onReceivedEvent(testEvent);
+        testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());

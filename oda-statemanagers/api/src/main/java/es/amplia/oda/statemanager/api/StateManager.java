@@ -19,9 +19,7 @@ public interface StateManager extends AutoCloseable {
     CompletableFuture<Set<DatastreamValue>> setDatastreamValues(String deviceId, Map<String, Object> datastreamValues);
     void registerToEvents(EventHandler eventHandler);
     void unregisterToEvents(EventHandler eventHandler);
-    void onReceivedEvent(Event event);
     void onReceivedEvents(List<Event> event);
-    void publishValue(Event event);
-    void publishMultipleValues(List<Event> event);
+    void publishValues(List<Event> event);
     void close();
 }

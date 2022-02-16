@@ -8,12 +8,6 @@ import java.util.List;
  */
 public interface EventDispatcher {
     /**
-     * Publish an event generated from a source to the dispatcher to process it,
-     * cache it or send it through a connector.
-     * @param event Event to publish.
-     */
-    void publish(Event event);
-    /**
      * Publish a list of events generated from a source to the dispatcher to process it,
      * cache it or send it through a connector.
      * @param event List of events to publish.

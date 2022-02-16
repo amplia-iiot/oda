@@ -66,23 +66,13 @@ public class StateManagerProxy implements StateManager, AutoCloseable {
     }
 
     @Override
-    public void onReceivedEvent(Event event) {
-        proxy.consumeFirst(stateManager -> stateManager.onReceivedEvent(event));
-    }
-
-    @Override
     public void onReceivedEvents(List<Event> event) {
         proxy.consumeFirst(stateManager -> stateManager.onReceivedEvents(event));
     }
 
     @Override
-    public void publishValue(Event event) {
-        proxy.consumeFirst(stateManager -> stateManager.publishValue(event));
-    }
-
-    @Override
-    public void publishMultipleValues(List<Event> event) {
-        proxy.consumeFirst(stateManager -> stateManager.publishMultipleValues(event));
+    public void publishValues(List<Event> event) {
+        proxy.consumeFirst(stateManager -> stateManager.publishValues(event));
     }
 
     @Override

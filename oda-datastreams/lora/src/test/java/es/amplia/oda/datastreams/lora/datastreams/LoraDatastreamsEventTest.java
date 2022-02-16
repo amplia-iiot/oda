@@ -177,14 +177,14 @@ public class LoraDatastreamsEventTest {
 		when(mockedSerializer.deserialize(eq(LORA_STATUS_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraDataPacket.class)))
 				.thenReturn(null);
 		when(mockedStatus.getStat()).thenReturn(mockedStat);
-		doNothing().when(mockedPublisher).publishEvent(any(), any(), any(), any(), any());
+		doNothing().when(mockedPublisher).publishEvents(any(), any(), any());
 
 		testDatastreamsEvent.registerToEventSource();
 		TimeUnit.SECONDS.sleep(3);
 
 		verify(mockedSerializer, atLeastOnce()).deserialize(eq(LORA_STATUS_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraStatusPacket.class));
 		verify(mockedSerializer, atLeastOnce()).deserialize(eq(LORA_STATUS_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraDataPacket.class));
-		verify(mockedPublisher, atLeastOnce()).publishEvent(eq("gatewayForUnitTests"), eq("lora"), (String[]) isNull(), anyLong(), eq(mockedStatus));
+		verify(mockedPublisher, atLeastOnce()).publishEvents(eq("gatewayForUnitTests"), (String[]) isNull(), any());
 		Thread thread = Whitebox.getInternalState(testDatastreamsEvent, "readingThread");
 		assertNotNull(thread);
 		assertTrue(thread.isAlive());
@@ -203,14 +203,14 @@ public class LoraDatastreamsEventTest {
 		when(mockedSerializer.deserialize(eq(LORA_DATA_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraDataPacket.class)))
 				.thenReturn(mockedData);
 		when(mockedData.getRxpk()).thenReturn(Collections.singletonList(mockedRxpk));
-		doNothing().when(mockedPublisher).publishEvent(any(), any(), any(), any(), any());
+		doNothing().when(mockedPublisher).publishEvents(any(), any(), any());
 
 		testDatastreamsEvent.registerToEventSource();
 		TimeUnit.SECONDS.sleep(3);
 
 		verify(mockedSerializer, atLeastOnce()).deserialize(eq(LORA_DATA_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraStatusPacket.class));
 		verify(mockedSerializer, atLeastOnce()).deserialize(eq(LORA_DATA_BYTE_ARRAY_EXPECTED_TO_DESERIALIZE), eq(LoraDataPacket.class));
-		verify(mockedPublisher, atLeastOnce()).publishEvent(eq("gatewayForUnitTests"), eq("lora"), (String[]) isNull(), anyLong(), eq(mockedData));
+		verify(mockedPublisher, atLeastOnce()).publishEvents(eq("gatewayForUnitTests"), (String[]) isNull(), any());
 		Thread thread = Whitebox.getInternalState(testDatastreamsEvent, "readingThread");
 		assertNotNull(thread);
 		assertTrue(thread.isAlive());

@@ -32,19 +32,9 @@ class EventDispatcherImpl implements EventDispatcher {
     }
 
     @Override
-    public void publish(Event event) {
-        OutputDatastream outputEvent = parse(event);
-        publish(outputEvent);
-    }
-
-    @Override
     public void publish(List<Event> events) {
         OutputDatastream outputEvent = parse(events);
         publish(outputEvent);
-    }
-
-    OutputDatastream parse(Event event) {
-        return eventParser.parse(event);
     }
 
     OutputDatastream parse(List<Event> events) {

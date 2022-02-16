@@ -6,6 +6,5 @@ import java.util.Map;
 public interface DatastreamsEvent {
     void registerToEventSource();
     void unregisterFromEventSource();
-    void publish(String deviceId, String datastreamId, List<String> path, Long at, Object value);
-    void publishGroup(String deviceId, List<String> path, Map<String, Map<Long, Object>> events);
+    void publish(String deviceId, List<String> path, Map<String, Map<Long, Object>> events);
 }

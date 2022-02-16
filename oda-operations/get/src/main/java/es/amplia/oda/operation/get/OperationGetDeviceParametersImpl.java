@@ -8,6 +8,7 @@ import es.amplia.oda.statemanager.api.StateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -36,7 +37,7 @@ class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
             for (String datastreamId : dataStreamIds) {
                 for (GetValue item : result) {
                     if (item.getDatastreamId().equals(datastreamId) && item.getStatus() == Status.OK) {
-                        stateManager.publishValue(new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue()));
+                        stateManager.publishValues(Collections.singletonList(new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue())));
                     }
                 }
             }

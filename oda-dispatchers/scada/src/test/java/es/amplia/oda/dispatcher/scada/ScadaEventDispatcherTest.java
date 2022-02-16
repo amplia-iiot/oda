@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.Collections;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
@@ -41,7 +43,7 @@ public class ScadaEventDispatcherTest {
 
         when(mockedTranslator.translate(any())).thenReturn(returnedInfo);
 
-        testDispatcher.publish(event);
+        testDispatcher.publish(Collections.singletonList(event));
 
         verify(mockedTranslator).translate(eq(dsInfo));
         verify(mockedConnector).uplink(eq(returnedInfo.getIndex()), eq(value), eq(returnedInfo.getType()), eq(timestamp));
@@ -58,7 +60,7 @@ public class ScadaEventDispatcherTest {
 
         when(mockedTranslator.translate(any())).thenThrow(new DataNotFoundException(""));
 
-        testDispatcher.publish(event);
+        testDispatcher.publish(Collections.singletonList(event));
 
         verify(mockedTranslator).translate(eq(dsInfo));
         verify(mockedConnector, never()).uplink(anyInt(), any(), any(), anyLong());

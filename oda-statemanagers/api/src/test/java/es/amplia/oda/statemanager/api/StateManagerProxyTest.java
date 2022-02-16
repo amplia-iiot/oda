@@ -176,12 +176,12 @@ public class StateManagerProxyTest {
 
     @Test
     public void testOnReceivedEvent() {
-        testProxy.onReceivedEvent(TEST_EVENT);
+        testProxy.onReceivedEvents(Collections.singletonList(TEST_EVENT));
 
         verify(mockedProxy).consumeFirst(stateManagerConsumerCaptor.capture());
         Consumer<StateManager> consumer = stateManagerConsumerCaptor.getValue();
         consumer.accept(mockedStateManager);
-        verify(mockedStateManager).onReceivedEvent(eq(TEST_EVENT));
+        verify(mockedStateManager).onReceivedEvents(eq(Collections.singletonList(TEST_EVENT)));
     }
 
     @Test

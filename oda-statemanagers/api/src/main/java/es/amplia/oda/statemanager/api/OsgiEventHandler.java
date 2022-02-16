@@ -40,38 +40,20 @@ public class OsgiEventHandler implements EventHandler {
     class EventHandlerImpl implements org.osgi.service.event.EventHandler {
         @Override
         public void handleEvent(org.osgi.service.event.Event osgiEvent) {
-            if(osgiEvent.containsProperty("events")) {
-                // List of events
-                List<Event> events = new ArrayList<>();
-                List<HashMap<String, Object>> parameters = (List<HashMap<String, Object>>) osgiEvent.getProperty("events");
-                parameters.forEach(event -> {
-                    String datastreamId = (String) event.get(DATASTREAM_ID_PROPERTY_NAME);
-                    String deviceId = (String) event.get(DEVICE_ID_PROPERTY_NAME);
-                    String[] path = (String[]) event.get(PATH_PROPERTY_NAME);
-                    Long at = (Long) event.get(AT_PROPERTY_NAME);
-                    Object value = event.get(VALUE_PROPERTY_NAME);
-                    Event eventToAdd = new Event(datastreamId, deviceId, path, at, value);
-                    events.add(eventToAdd);
-                });
+            // List of events
+            List<Event> events = new ArrayList<>();
+            List<HashMap<String, Object>> parameters = (List<HashMap<String, Object>>) osgiEvent.getProperty("events");
+            parameters.forEach(event -> {
+                String datastreamId = (String) event.get(DATASTREAM_ID_PROPERTY_NAME);
+                String deviceId = (String) event.get(DEVICE_ID_PROPERTY_NAME);
+                String[] path = (String[]) event.get(PATH_PROPERTY_NAME);
+                Long at = (Long) event.get(AT_PROPERTY_NAME);
+                Object value = event.get(VALUE_PROPERTY_NAME);
+                Event eventToAdd = new Event(datastreamId, deviceId, path, at, value);
+                events.add(eventToAdd);
+            });
 
-                notifyStateManager(events);
-            } else {
-                // Single event
-                String datastreamId = (String) osgiEvent.getProperty(DATASTREAM_ID_PROPERTY_NAME);
-                String deviceId = (String) osgiEvent.getProperty(DEVICE_ID_PROPERTY_NAME);
-                String[] path = (String[]) osgiEvent.getProperty(PATH_PROPERTY_NAME);
-                Long at = (Long) osgiEvent.getProperty(AT_PROPERTY_NAME);
-                Object value = osgiEvent.getProperty(VALUE_PROPERTY_NAME);
-                Event event = new Event(datastreamId, deviceId, path, at, value);
-
-                notifyStateManager(event);
-            }
-        }
-
-        private void notifyStateManager(es.amplia.oda.event.api.Event event) {
-            if (stateManager != null) {
-                stateManager.onReceivedEvent(event);
-            }
+            notifyStateManager(events);
         }
 
         private void notifyStateManager(List<es.amplia.oda.event.api.Event> events) {

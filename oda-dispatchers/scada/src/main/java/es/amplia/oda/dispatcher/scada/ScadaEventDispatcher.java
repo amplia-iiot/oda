@@ -26,19 +26,6 @@ class ScadaEventDispatcher implements EventDispatcher {
     }
 
     @Override
-    public void publish(Event event) {
-        try {
-            LOGGER.info("Publishing events {}", event);
-            DatastreamInfo datastreamInfo =
-                    new DatastreamInfo(event.getDeviceId(), event.getDatastreamId(), event.getValue());
-        	ScadaInfo info = translator.translate(datastreamInfo);
-            connector.uplink(info.getIndex(), info.getValue(), info.getType(), event.getAt());
-        } catch (DataNotFoundException exception) {
-            LOGGER.warn("Can not publish event {}: SCADA index not found", event);
-        }
-    }
-
-    @Override
     public void publish(List<Event> events) {
         for (Event event : events) {
             try {

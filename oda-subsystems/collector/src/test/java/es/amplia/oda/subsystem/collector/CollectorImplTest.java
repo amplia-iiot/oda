@@ -14,10 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.*;
@@ -49,7 +46,7 @@ public class CollectorImplTest {
     private CollectorImpl testCollector;
 
     @Captor
-    private ArgumentCaptor<Event> eventCaptor;
+    private ArgumentCaptor<List<Event>> eventCaptor;
 
 
     @Test
@@ -69,8 +66,8 @@ public class CollectorImplTest {
         testCollector.collect(TEST_DEVICE_PATTERN, TEST_DATASTREAMS);
 
         verify(mockedStateManager).getDatastreamsInformation(eq(TEST_DEVICE_PATTERN), eq(TEST_DATASTREAMS));
-        verify(mockedEventDispatcher, times(4)).publish(eventCaptor.capture());
-        List<Event> events = eventCaptor.getAllValues();
+        verify(mockedEventDispatcher, times(1)).publish(eventCaptor.capture());
+        List<Event> events = eventCaptor.getValue();
         assertPublishedEvent(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, events);
         assertPublishedEvent(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, events);
         assertPublishedEvent(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, events);

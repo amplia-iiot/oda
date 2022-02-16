@@ -63,8 +63,7 @@ public class AdcDatastreamsEventTest {
 
 		capturedListener.channelValueChanged(mockedEvent);
 
-		verify(mockedEventPublisher).publishEvent(eq(""), eq(TEST_DATASTREAM), eq(new String[0]), anyLong(),
-				eq((TEST_MAX - TEST_MIN) * TEST_VALUE - TEST_MIN));
+		verify(mockedEventPublisher).publishEvents(eq(""), eq(new String[0]), any());
 	}
 
 	@Test

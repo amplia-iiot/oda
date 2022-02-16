@@ -104,7 +104,7 @@ public class MqttDatastreamsEventTest {
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2));
         verify(mockedEventPublisher)
-                .publishGroupEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(events));
+                .publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(events));
     }
 
     @Test
@@ -132,8 +132,11 @@ public class MqttDatastreamsEventTest {
         verify(mockedSerializer)
                 .deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
-        verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), aryEq(expectedPath), eq(TEST_AT), eq(TEST_VALUE));
+        Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
+        Map<Long, Object> dataToCompare = new HashMap<>();
+        dataToCompare.put(TEST_AT, TEST_VALUE);
+        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
+        verify(mockedEventPublisher).publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(eventToCompare));
     }
 
     @Test
@@ -168,7 +171,7 @@ public class MqttDatastreamsEventTest {
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID_2));
 
         verify(mockedEventPublisher)
-                .publishGroupEvents(eq(TEST_DEVICE_ID), eq(null), eq(events));
+                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(events));
     }
 
     @Test
@@ -191,9 +194,12 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
-
+        Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
+        Map<Long, Object> dataToCompare = new HashMap<>();
+        dataToCompare.put(TEST_AT, TEST_VALUE);
+        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
         verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), eq(null), eq(TEST_AT), eq(TEST_VALUE));
+                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(eventToCompare));
     }
 
     @Test
@@ -263,8 +269,12 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DatastreamEvent.class));
+        Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
+        Map<Long, Object> dataToCompare = new HashMap<>();
+        dataToCompare.put(TEST_AT, TEST_VALUE);
+        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
         verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), aryEq(expectedPath), eq(TEST_AT), eq(TEST_VALUE));
+                .publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(eventToCompare));
     }
 
     @Test
@@ -286,8 +296,12 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DatastreamEvent.class));
+        Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
+        Map<Long, Object> dataToCompare = new HashMap<>();
+        dataToCompare.put(TEST_AT, TEST_VALUE);
+        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
         verify(mockedEventPublisher)
-                .publishEvent(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID), eq(null), eq(TEST_AT), eq(TEST_VALUE));
+                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(eventToCompare));
     }
 
     @Test

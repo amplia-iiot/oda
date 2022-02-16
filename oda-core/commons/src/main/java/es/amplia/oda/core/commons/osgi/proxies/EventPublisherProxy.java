@@ -21,20 +21,7 @@ public class EventPublisherProxy implements EventPublisher {
     }
 
     @Override
-    public void publishEvent(String deviceId, String datastreamId, String[] path, Long at, Object value) {
-        Map<String, Object> eventProperties = new HashMap<>();
-        eventProperties.put(DEVICE_ID_PROPERTY_NAME, deviceId);
-        eventProperties.put(DATASTREAM_ID_PROPERTY_NAME, datastreamId);
-        eventProperties.put(PATH_PROPERTY_NAME, path);
-        eventProperties.put(AT_PROPERTY_NAME, at);
-        eventProperties.put(VALUE_PROPERTY_NAME, value);
-        Event event = new Event(EVENT_TOPIC, eventProperties);
-
-        eventAdmin.sendEvent(event);
-    }
-
-    @Override
-    public void publishGroupEvents(String deviceId, String[] path, Map<String, Map<Long,Object>> events) {
+    public void publishEvents(String deviceId, String[] path, Map<String, Map<Long,Object>> events) {
         List<Map<String, Object>> eventList = new ArrayList<>();
         events.entrySet().stream()
                         .forEach(event -> {

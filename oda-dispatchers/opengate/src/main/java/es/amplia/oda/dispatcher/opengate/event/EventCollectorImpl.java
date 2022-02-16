@@ -34,16 +34,6 @@ public class EventCollectorImpl implements EventCollector {
     }
 
     @Override
-    public void publish(Event event) {
-        if (isEventFromCollectedDatastream(event)) {
-            LOGGER.info("Collected event {} of datastream {}", event, event.getDatastreamId());
-            collect(event);
-        } else {
-            eventDispatcher.publish(event);
-        }
-    }
-
-    @Override
     public void publish(List<Event> events) {
         List<Event> eventsToPublish = new ArrayList<>();
         for (Event event : events) {
@@ -79,7 +69,7 @@ public class EventCollectorImpl implements EventCollector {
         for(String datastreamId : datastreamIds) {
             List<Event> events = collectedEvents.remove(datastreamId);
             if (events != null) {
-                events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(), eventDispatcher.parse(event),
+                events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(), eventDispatcher.parse(Collections.singletonList(event)),
                         this::mergeOutputDatastreams));
             } else {
                 LOGGER.info("No events collected for {}", datastreamId);

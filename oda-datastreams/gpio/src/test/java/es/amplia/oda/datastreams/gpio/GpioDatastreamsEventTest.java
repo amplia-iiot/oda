@@ -13,6 +13,9 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -107,7 +110,7 @@ public class GpioDatastreamsEventTest {
 
         testGpioDatastreamsEvent.publishValue(testValue);
 
-        verify(mockedEventPublisher).publishEvent(eq(""), eq(TEST_DATASTREAM_ID), eq(null), anyLong(), eq(testValue));
+        verify(mockedEventPublisher).publishEvents(eq(""), eq(null), any());
     }
 
     @Test

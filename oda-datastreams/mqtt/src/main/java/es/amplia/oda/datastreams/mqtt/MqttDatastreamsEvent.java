@@ -71,22 +71,15 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 String deviceId = extractDeviceIdFromTopic(topic);
                 DeviceEventMessage deviceEvent =
                         serializer.deserialize(mqttMessage.getPayload(), DeviceEventMessage.class);
-                if(deviceEvent.getDatastreams().size() == 1) {
-                    deviceEvent.getDatastreams().stream()
-                            .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
-                            .forEach(event -> publish(deviceId, event.getDatastreamId(), deviceEvent.getPath(),
-                                    event.getAt(), event.getValue()));
-                } else {
-                    deviceEvent.getDatastreams().stream()
-                            .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
-                            .forEach(event -> {
-                                Map<Long, Object> entry = new HashMap<>();
-                                entry.put(event.getAt(), event.getValue());
-                                events.put(event.getDatastreamId(), entry);
-                            });
-                    if(events.size() > 0)
-                        publishGroup(deviceId, deviceEvent.getPath(), events);
-                }
+                deviceEvent.getDatastreams().stream()
+                        .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
+                        .forEach(event -> {
+                            Map<Long, Object> entry = new HashMap<>();
+                            entry.put(event.getAt(), event.getValue());
+                            events.put(event.getDatastreamId(), entry);
+                        });
+                if(events.size() > 0)
+                    publish(deviceId, deviceEvent.getPath(), events);
             } catch (Exception e) {
                 LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
             }
@@ -108,14 +101,17 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
+            Map<String,Map<Long,Object>> events = new HashMap<>();
+            Map<Long,Object> eventInfo = new HashMap<>();
             try {
                 LOGGER.info("Message arrived to the {} topic", topic);
                 DatastreamInfo datastreamInfo = extractDeviceInfoFromTopic(topic);
                 if (hasPermission(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
                     DatastreamEvent event =
                             serializer.deserialize(mqttMessage.getPayload(), DatastreamEvent.class);
-                    publish(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), event.getPath(),
-                            event.getAt(), event.getValue());
+                    eventInfo.put(event.getAt(), event.getValue());
+                    events.put(datastreamInfo.getDatastreamId(), eventInfo);
+                    publish(datastreamInfo.getDeviceId(), event.getPath(), events);
                 }
 
             } catch (Exception e) {

@@ -9,6 +9,9 @@ import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 class GpioDatastreamsEvent extends AbstractDatastreamsEvent {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GpioDatastreamsEvent.class);
@@ -46,7 +49,11 @@ class GpioDatastreamsEvent extends AbstractDatastreamsEvent {
     }
 
     void publishValue(boolean value) {
-        publish("", datastreamId, null, System.currentTimeMillis(), value);
+        Map<String, Map<Long, Object>> event = new HashMap<>();
+        Map<Long, Object> data = new HashMap<>();
+        data.put(System.currentTimeMillis(), value);
+        event.put(datastreamId, data);
+        publish("", null, event);
     }
 
     @Override

@@ -54,7 +54,11 @@ class PollerImpl implements Poller {
 
     private void sendValueAsEvent (String deviceId, String datastreamId, CollectedValue data) {
         LOGGER.debug("Sending event {}, for device {}", data, deviceId);
+        Map<String, Map<Long, Object>> event = new HashMap<>();
+        Map<Long, Object> eventData = new HashMap<>();
+        eventData.put(data.getAt(), data.getValue());
+        event.put(datastreamId, eventData);
         Optional.ofNullable(datastreamsEvent)
-                .ifPresent(value -> value.publish(deviceId, datastreamId, null, data.getAt(), data.getValue()));
+                .ifPresent(value -> value.publish(deviceId, null, event));
     }
 }

@@ -8,9 +8,7 @@ import es.amplia.oda.statemanager.api.StateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -34,9 +32,12 @@ class OperationRefreshInfoImpl implements OperationRefreshInfo {
         try{
             Map<String, List<RefreshInfoValue>> result = value.get().getValues();
             for (Map.Entry<String, List<RefreshInfoValue>> entry: result.entrySet()){
+                List<Event> events = new ArrayList<>();
                 for (RefreshInfoValue item : entry.getValue()) {
-                    stateManager.publishValue(new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue()));
+                    Event event = new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue());
+                    events.add(event);
                 }
+                stateManager.publishValues(events);
             }
         } catch (InterruptedException | ExecutionException e) {
             LOGGER.error("Fail trying to create the event to send the iot data {}", e.getMessage());

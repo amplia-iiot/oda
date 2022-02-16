@@ -58,18 +58,6 @@ public class EventDispatcherImplTest {
     }
 
     @Test
-    public void testPublish() throws IOException {
-        when(mockedEventParser.parse(any(Event.class))).thenReturn(TEST_OUTPUT_DATASTREAM);
-        when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
-
-        testEventDispatcher.publish(TEST_EVENT);
-
-        verify(mockedEventParser).parse(eq(TEST_EVENT));
-        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
-        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
-    }
-
-    @Test
     public void testPublishGroup() throws IOException {
         Set<Datastream> datastreams = new HashSet<>();
         datastreams.add(new Datastream(TEST_DATASTREAM_ID, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
@@ -90,7 +78,7 @@ public class EventDispatcherImplTest {
         verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
     }
 
-    @Test
+    /*@Test
     public void testParse() {
         when(mockedEventParser.parse(any(Event.class))).thenReturn(TEST_OUTPUT_DATASTREAM);
 
@@ -98,7 +86,7 @@ public class EventDispatcherImplTest {
 
         assertEquals(TEST_OUTPUT_DATASTREAM, result);
         verify(mockedEventParser).parse(eq(TEST_EVENT));
-    }
+    }*/
 
     @Test
     public void testPublishOutputDatastream() throws IOException {
