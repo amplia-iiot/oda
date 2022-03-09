@@ -2,6 +2,7 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
@@ -48,7 +49,7 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
                                   List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
         closeResources();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
-        mqttClient.connect();
+        mqttClient.connect(MqttConnectOptions.builder(null, new char[0]).build());
         MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager = new MqttDatastreamsPermissionManager();
         MqttDatastreamsFactory mqttDatastreamsFactory =
                 new MqttDatastreamsFactory(mqttClient, mqttDatastreamsPermissionManager, serializer, eventPublisher,

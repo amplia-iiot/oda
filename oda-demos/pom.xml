@@ -13,6 +13,7 @@
         <module>fx30-mqtt</module>
         <module>coap</module>
         <module>udp-south</module>
+        <module>a4Radar</module>
     </modules>
 
     <parent>

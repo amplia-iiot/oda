@@ -18,7 +18,7 @@
         <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
-        <eclipse.paho.version>1.2.1</eclipse.paho.version>
+        <eclipse.paho.version>1.2.5</eclipse.paho.version>
     </properties>
 
     <build>
