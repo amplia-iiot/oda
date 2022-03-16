@@ -95,5 +95,9 @@
             <directory>src/main/resources/gogoConsoleConfiguration/</directory>
             <outputDirectory>etc</outputDirectory>
         </fileSet>
+        <fileSet>
+            <directory>src/main/resources/service/</directory>
+            <outputDirectory>service</outputDirectory>
+        </fileSet>
     </fileSets>
 </assembly>

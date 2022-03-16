@@ -4,7 +4,7 @@ After=polluxnet
 Requires=polluxnet
 
 [Service]
-ExecStart=/path/to/a4radar-4.2.9-SNAPSHOT/bin/run.sh
+ExecStart=/path/to/owa-mqtt-4.2.10-SNAPSHOT/bin/run.sh
 Restart=always
 RestartSec=5s
 
