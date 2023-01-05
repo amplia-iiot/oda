@@ -37,8 +37,8 @@ public class UpgradeRuleDeploymentElementOperation extends DeploymentElementOper
                 throw new DeploymentElementOperationException("Deployment element file to upgrade is not found");
             }
             fileManager.delete(installedFile);
-            upgradedFile = fileManager.copy(localFile, installFolder + ".js");
-            fileManager.insertInFile(toInsert, 0, installedFile);
+            upgradedFile = fileManager.copy(localFile, installFolder);
+            fileManager.insertInFile(toInsert, 0, upgradedFile);
         } catch (IOException e) {
             throw new FileException(e.getMessage());
         }
