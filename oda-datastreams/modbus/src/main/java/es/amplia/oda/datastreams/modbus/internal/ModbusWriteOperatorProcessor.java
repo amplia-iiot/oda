@@ -22,8 +22,8 @@ class ModbusWriteOperatorProcessor {
 
     @Value
     private static class OperatorSelector {
-        private Type type;
-        private ModbusType modbusType;
+        Type type;
+        ModbusType modbusType;
     }
 
     @FunctionalInterface
@@ -37,6 +37,7 @@ class ModbusWriteOperatorProcessor {
         this.converter = converter;
         this.writeMethods = generateWriteMethods();
     }
+
 
     private Map<OperatorSelector, TriConsumer<Integer, Integer, Object>> generateWriteMethods() {
         Map<OperatorSelector, TriConsumer<Integer, Integer, Object>> methods = new HashMap<>();

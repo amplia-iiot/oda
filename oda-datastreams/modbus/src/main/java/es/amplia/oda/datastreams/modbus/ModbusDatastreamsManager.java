@@ -73,7 +73,10 @@ public class ModbusDatastreamsManager implements AutoCloseable {
                 modbusDatastreamsFactory.createModbusDatastreamsGetter(modbusConfigurationKey.datastreamId,
                         modbusConfigurationKey.datastreamType, devicesIdModbusSlaveMapper,
                         modbusConfigurationKey.getModbusType(), modbusConfigurationKey.getDataAddress());
-        datastreamsGetterRegistrationManager.register(datastreamsGetter);
+
+        if (datastreamsGetter != null) {
+            datastreamsGetterRegistrationManager.register(datastreamsGetter);
+        }
     }
 
     private void createAndRegisterModbusDatastreamsSetter(ModbusConfigurationKey modbusConfigurationKey,
@@ -82,7 +85,10 @@ public class ModbusDatastreamsManager implements AutoCloseable {
                 modbusDatastreamsFactory.createModbusDatastreamsSetter(modbusConfigurationKey.datastreamId,
                         modbusConfigurationKey.datastreamType, devicesIdModbusSlaveMapper,
                         modbusConfigurationKey.getModbusType(), modbusConfigurationKey.getDataAddress());
-        datastreamsSetterRegistrationManager.register(datastreamsSetter);
+
+        if (datastreamsSetter != null) {
+            datastreamsSetterRegistrationManager.register(datastreamsSetter);
+        }
     }
 
     @Override
