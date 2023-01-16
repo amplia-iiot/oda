@@ -13,6 +13,8 @@ public class TCPModbusMasterConfiguration {
 
     @NonNull
     String address;
+    @NonNull
+    String deviceId;
     @Builder.Default
     int port = DEFAULT_PORT;
     @Builder.Default

@@ -101,4 +101,10 @@ public class ModbusMasterProxy implements ModbusMaster, AutoCloseable {
     public void close() {
         proxy.close();
     }
+
+    @Override
+    public String getDeviceId() {
+        return Optional.ofNullable(proxy.callFirst(ModbusMaster::getDeviceId))
+                .orElseThrow(() -> new ModbusException(NO_MODBUS_MASTER_AVAILABLE_MESSAGE));
+    }
 }
