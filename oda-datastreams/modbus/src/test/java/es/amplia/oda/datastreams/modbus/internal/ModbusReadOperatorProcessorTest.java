@@ -2,22 +2,23 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +34,10 @@ public class ModbusReadOperatorProcessorTest {
     private static final float TEST_FLOAT_VALUE = 1234.5678f;
     private static final long TEST_LONG_VALUE = 1234567890123456L;
     private static final double TEST_DOUBLE_VALUE = 12345678.90123456;
+    private static final String TEST_DEVICE_ID = "TestDeviceId";
 
+    @Mock
+    private ModbusConnectionsFinder mockedConnectionsLocator;
     @Mock
     private ModbusMaster mockedModbusMaster;
     @Mock
@@ -45,11 +49,16 @@ public class ModbusReadOperatorProcessorTest {
     private Register mockedRegister;
     private final Register[] dummyRegisters = new Register[0];
 
+    @Before
+    public void setUp() {
+        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+    }
+
     @Test
     public void testReadBooleanFromInputDiscrete() {
         when(mockedModbusMaster.readInputDiscrete(anyInt(), anyInt())).thenReturn(TEST_BOOLEAN_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Boolean.class, ModbusType.INPUT_DISCRETE,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class, ModbusType.INPUT_DISCRETE,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_BOOLEAN_VALUE, collectedValue.getValue());
@@ -58,14 +67,15 @@ public class ModbusReadOperatorProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testReadInvalidTypeFromInputDiscrete() {
-        testReadOperatorProcessor.read(Byte[].class, ModbusType.INPUT_DISCRETE, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
+        testReadOperatorProcessor.read(TEST_DEVICE_ID, Byte[].class, ModbusType.INPUT_DISCRETE, TEST_SLAVE_ADDRESS,
+                TEST_DATA_ADDRESS);
     }
 
     @Test
     public void testReadBooleanFromCoil() {
         when(mockedModbusMaster.readCoil(anyInt(), anyInt())).thenReturn(TEST_BOOLEAN_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Boolean.class, ModbusType.COIL,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class, ModbusType.COIL,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_BOOLEAN_VALUE, collectedValue.getValue());
@@ -74,7 +84,8 @@ public class ModbusReadOperatorProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testReadInvalidTypeFromCoil() {
-        testReadOperatorProcessor.read(Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
+        testReadOperatorProcessor.read(TEST_DEVICE_ID, Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS,
+                TEST_DATA_ADDRESS);
     }
 
     @Test
@@ -82,7 +93,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegister(anyInt(), anyInt())).thenReturn(mockedRegister);
         when(mockedConverter.convertRegisterToByteArray(any(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Byte[].class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Byte[].class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertArrayEquals(TEST_BYTE_ARRAY_VALUE, (byte[]) collectedValue.getValue());
@@ -95,7 +106,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegister(anyInt(), anyInt())).thenReturn(mockedRegister);
         when(mockedConverter.convertRegisterToShort(any(Register.class))).thenReturn(TEST_SHORT_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Short.class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Short.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_SHORT_VALUE, collectedValue.getValue());
@@ -108,7 +119,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToInteger(any(Register[].class))).thenReturn(TEST_INTEGER_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Integer.class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Integer.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_INTEGER_VALUE, collectedValue.getValue());
@@ -121,7 +132,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToFloat(any(Register[].class))).thenReturn(TEST_FLOAT_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Float.class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Float.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_FLOAT_VALUE, collectedValue.getValue());
@@ -134,7 +145,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToLong(any(Register[].class))).thenReturn(TEST_LONG_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Long.class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Long.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_LONG_VALUE, collectedValue.getValue());
@@ -147,7 +158,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToDouble(any(Register[].class))).thenReturn(TEST_DOUBLE_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Double.class, ModbusType.INPUT_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Double.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_DOUBLE_VALUE, collectedValue.getValue());
@@ -157,7 +168,7 @@ public class ModbusReadOperatorProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testReadInvalidDataTypeFromInputRegister() {
-        testReadOperatorProcessor.read(Boolean.class, ModbusType.INPUT_REGISTER, TEST_SLAVE_ADDRESS,
+        testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class, ModbusType.INPUT_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS);
     }
 
@@ -166,7 +177,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegister(anyInt(), anyInt())).thenReturn(mockedRegister);
         when(mockedConverter.convertRegisterToByteArray(any(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Byte[].class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Byte[].class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertArrayEquals(TEST_BYTE_ARRAY_VALUE, (byte[]) collectedValue.getValue());
@@ -179,7 +190,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegister(anyInt(), anyInt())).thenReturn(mockedRegister);
         when(mockedConverter.convertRegisterToShort(any(Register.class))).thenReturn(TEST_SHORT_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Short.class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Short.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_SHORT_VALUE, collectedValue.getValue());
@@ -192,7 +203,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToInteger(any(Register[].class))).thenReturn(TEST_INTEGER_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Integer.class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Integer.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_INTEGER_VALUE, collectedValue.getValue());
@@ -205,7 +216,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToFloat(any(Register[].class))).thenReturn(TEST_FLOAT_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Float.class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Float.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_FLOAT_VALUE, collectedValue.getValue());
@@ -218,7 +229,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToLong(any(Register[].class))).thenReturn(TEST_LONG_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Long.class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Long.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_LONG_VALUE, collectedValue.getValue());
@@ -231,7 +242,7 @@ public class ModbusReadOperatorProcessorTest {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
         when(mockedConverter.convertRegistersToDouble(any(Register[].class))).thenReturn(TEST_DOUBLE_VALUE);
 
-        CollectedValue collectedValue = testReadOperatorProcessor.read(Double.class, ModbusType.HOLDING_REGISTER,
+        CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Double.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
 
         assertEquals(TEST_DOUBLE_VALUE, collectedValue.getValue());
@@ -241,7 +252,7 @@ public class ModbusReadOperatorProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testReadInvalidDataTypeFromHoldingRegister() {
-        testReadOperatorProcessor.read(Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS);
     }
 }

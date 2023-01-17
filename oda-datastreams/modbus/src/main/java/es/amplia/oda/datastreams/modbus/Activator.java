@@ -13,14 +13,12 @@ import org.slf4j.LoggerFactory;
 
 public class Activator implements BundleActivator {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
+
     private ModbusDatastreamsManager modbusDatastreamsManager;
     private ConfigurableBundle configurableBundle;
     private ServiceListenerBundle<ModbusMaster> modbusMasterListenerBundle;
-    private ModbusConnectionsManager modbusConnectionsManager;
-    private ModbusDatastreamsConfigurationUpdateHandler configHandler;
-
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
+    private ModbusConnectionsFinder modbusConnectionsFinder;
 
 
     @Override
@@ -29,10 +27,10 @@ public class Activator implements BundleActivator {
         LOGGER.info("Starting up Modbus data streams bundle");
 
         // initiate manager of modbus connections
-        modbusConnectionsManager = new ModbusConnectionsManager(bundleContext);
+        modbusConnectionsFinder = new ModbusConnectionsFinder(bundleContext);
 
         // ini data streams factory
-        ModbusDatastreamsFactory modbusDatastreamsFactory = new ModbusDatastreamsFactoryImpl(modbusConnectionsManager);
+        ModbusDatastreamsFactory modbusDatastreamsFactory = new ModbusDatastreamsFactoryImpl(modbusConnectionsFinder);
 
         // create modbus data streams getter and setters
         ServiceRegistrationManager<DatastreamsGetter> datastreamsGetterRegistrationManager =
@@ -44,31 +42,22 @@ public class Activator implements BundleActivator {
                 new ModbusDatastreamsManager(modbusDatastreamsFactory, datastreamsGetterRegistrationManager,
                         datastreamsSetterRegistrationManager);
 
-        // modbus bundle configuration handler
-        configHandler = new ModbusDatastreamsConfigurationUpdateHandler(modbusDatastreamsManager);
-
         // make bundle configurable
+        ModbusDatastreamsConfigurationUpdateHandler configHandler =
+                new ModbusDatastreamsConfigurationUpdateHandler(modbusDatastreamsManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
-        // listen for configuration changes in Modbus Hardware
+        // listen for configuration changes in Modbus Hardware bundles
         modbusMasterListenerBundle =
                 new ServiceListenerBundle<>(bundleContext, ModbusMaster.class, this::onServiceChanged);
 
-        LOGGER.info("Modbus data streams bundle started");
+        onServiceChanged();
 
+        LOGGER.info("Modbus data streams bundle started");
     }
 
     void onServiceChanged() {
-
-        LOGGER.info("Applying new configuration for Modbus data streams");
-
-        // update list of connections
-        modbusConnectionsManager.addAllModbusConnection();
-
-        // update datastreams
-        configHandler.applyConfiguration();
-
-        LOGGER.info("Modbus data streams new configuration applied");
+        modbusConnectionsFinder.connect();
     }
 
     @Override
@@ -79,7 +68,8 @@ public class Activator implements BundleActivator {
         modbusMasterListenerBundle.close();
         configurableBundle.close();
         modbusDatastreamsManager.close();
-        modbusConnectionsManager.close();
+        modbusConnectionsFinder.disconnect();
+        modbusConnectionsFinder.close();
 
         LOGGER.info("Modbus data streams bundle stopped");
     }
