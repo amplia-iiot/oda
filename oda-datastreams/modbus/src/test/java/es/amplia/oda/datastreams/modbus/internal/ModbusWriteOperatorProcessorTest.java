@@ -4,7 +4,6 @@ import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -145,5 +144,16 @@ public class ModbusWriteOperatorProcessorTest {
     public void testWriteBooleanToHoldingRegister() {
         testWriteOperatorProcessor.write(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE);
+    }
+
+    @Test
+    public void testGetModbusConnectionFromOsgi()
+    {
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(null);
+
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Double.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+                TEST_DATA_ADDRESS, TEST_DOUBLE_VALUE);
+
+        verify(mockedConnectionsLocator).getModbusConnectionWithId(TEST_DEVICE_ID);
     }
 }

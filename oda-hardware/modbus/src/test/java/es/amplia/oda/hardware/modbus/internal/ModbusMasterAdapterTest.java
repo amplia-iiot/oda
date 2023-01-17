@@ -6,22 +6,22 @@ import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.Register;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ModbusMasterAdapter.class)
 public class ModbusMasterAdapterTest {
 
     private static final int TEST_UNIT_ID = 5;
@@ -36,12 +36,22 @@ public class ModbusMasterAdapterTest {
     private static final Register TEST_REGISTER = new Register(5);
     private static final Register[] TEST_REGISTERS = new Register[4];
 
+    private final String TEST_DEVICE_ID = "testDeviceId";
     @Mock
     private ModbusTCPMaster mockedModbusMaster;
     @Mock
     private ModbusTypeMapper mockedMapper;
-    @InjectMocks
+
     private ModbusMasterAdapter<ModbusTCPMaster> testModbusMasterAdapter;
+
+
+    @Before
+    public void setUp() {
+
+        // ini class to test
+        testModbusMasterAdapter = new ModbusMasterAdapter<>(mockedModbusMaster, mockedMapper, TEST_DEVICE_ID);
+
+    }
 
     @Test
     public void testConnect() throws Exception {
@@ -265,5 +275,16 @@ public class ModbusMasterAdapterTest {
         testModbusMasterAdapter.disconnect();
 
         verify(mockedModbusMaster).disconnect();
+    }
+
+    @Test
+    public void testGetDeviceId() throws Exception {
+        PowerMockito.whenNew(ModbusMasterAdapter.class).
+                withAnyArguments().
+                thenReturn(testModbusMasterAdapter);
+
+        String deviceId = testModbusMasterAdapter.getDeviceId();
+
+        Assert.assertEquals(TEST_DEVICE_ID, deviceId);
     }
 }

@@ -131,7 +131,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     @Test(expected = IllegalArgumentException.class)
     public void testLoadUDPInvalidConfiguration() {
         Dictionary<String, String>  udpInvalidConfiguration = new Hashtable<>();
-        udpInvalidConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
+        udpInvalidConfiguration.put(TYPE_PROPERTY_NAME, UDP_MODBUS_TYPE);
         udpInvalidConfiguration.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         udpInvalidConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
         udpInvalidConfiguration.put(DEVICE_ID, TEST_DEVICE_ID);

@@ -4,7 +4,7 @@ import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,8 +14,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
-import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
-
+import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.FOUR_REGISTERS;
+import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.TWO_REGISTERS;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.*;
@@ -254,5 +254,16 @@ public class ModbusReadOperatorProcessorTest {
     public void testReadInvalidDataTypeFromHoldingRegister() {
         testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS);
+    }
+
+    @Test
+    public void testGetModbusConnectionFromOsgi()
+    {
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(null);
+
+        CollectedValue valueRead = testReadOperatorProcessor.read(TEST_DEVICE_ID, Boolean.class,
+                ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS);
+
+        Assert.assertNull(valueRead);
     }
 }
