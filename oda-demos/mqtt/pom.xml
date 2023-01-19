@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-demos</artifactId>
         <groupId>es.amplia.oda.demo</groupId>
-        <version>4.2.10-SNAPSHOT</version>
+        <version>4.3.2-SNAPSHOT</version>
     </parent>
 
     <build>
