@@ -2,6 +2,7 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
@@ -99,7 +100,7 @@ public class MqttDatastreamsOrchestratorTest {
         testOrchestrator.loadConfiguration(TEST_CONFIGURATION, TEST_INITIAL_DATASTREAM_CONF);
 
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        verify(mockedClient).connect();
+        verify(mockedClient).connect(MqttConnectOptions.builder(null, new char[0]).build());
         PowerMockito.verifyNew(MqttDatastreamsPermissionManager.class).withNoArguments();
         PowerMockito.verifyNew(MqttDatastreamsFactory.class).withArguments(eq(mockedClient),
                 eq(mockedPermissionManager), eq(mockedSerializer), eq(mockedEventPublisher), eq(TEST_READ_REQUEST_TOPIC),
@@ -139,7 +140,7 @@ public class MqttDatastreamsOrchestratorTest {
         verify(mockedDatastreamsManager).close();
         verify(mockedClient).disconnect();
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        verify(mockedClient).connect();
+        verify(mockedClient).connect(MqttConnectOptions.builder(null, new char[0]).build());
         PowerMockito.verifyNew(MqttDatastreamsPermissionManager.class).withNoArguments();
         PowerMockito.verifyNew(MqttDatastreamsFactory.class).withArguments(eq(mockedClient),
                 eq(mockedPermissionManager), eq(mockedSerializer), eq(mockedEventPublisher), eq(TEST_READ_REQUEST_TOPIC),
