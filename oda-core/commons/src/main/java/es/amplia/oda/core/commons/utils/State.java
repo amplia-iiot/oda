@@ -135,6 +135,12 @@ public class State {
      * @param value Object with the new value and its metadata that we want to use to refresh datastream.
      */
     public void refreshValue(String deviceId, String datastreamId, DatastreamValue value) {
+        DatastreamState state = this.datastreams.get(getKey(deviceId, datastreamId));
+
+        if (state == null) {
+            this.datastreams.put(new DatastreamInfo(deviceId, datastreamId), new DatastreamState());
+        }
+
         this.datastreams.get(getKey(deviceId, datastreamId)).refreshValue(value);
     }
 
