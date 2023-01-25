@@ -31,7 +31,7 @@ function setValueFromDatastreamValue(state, deviceId, datastreamId, value) {
 
 function setValue(state, deviceId, datastreamId, value) {
     var newValue = state.createValue(deviceId, datastreamId, value);
-    state.refreshValue(datastreamId, newValue);
+    state.refreshValue(deviceId, datastreamId, newValue);
     return state;
 }
 
