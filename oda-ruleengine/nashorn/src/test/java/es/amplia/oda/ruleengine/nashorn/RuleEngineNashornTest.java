@@ -175,10 +175,10 @@ public class RuleEngineNashornTest {
 	}
 
 	@Test
-	public void testDeleteDatastreamDirectory() throws ScriptException {
+	public void testDeleteDatastreamDirectory() throws ScriptException, IOException {
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		HashMap<String, Rule> rules = new HashMap<>();
-		Rule rule = new Rule("script", "testDatastream", new NashornScriptTranslator());
+		Rule rule = new Rule("script", "testDatastream", mockedScriptTranslator);
 		watchers.put("script", mockedRuleWatcher);
 		rules.put("script", rule);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);

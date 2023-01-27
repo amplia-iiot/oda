@@ -2,7 +2,6 @@ package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.State;
-import jdk.nashorn.api.scripting.NashornScriptEngine;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +14,6 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
@@ -57,9 +55,10 @@ public class NashornScriptTranslatorTest {
 		FileOutputStream output = new FileOutputStream(root + "/src/test/rule.js");
 		output.write(42);
 
-		testTranslator.initScript(root + "/src/test/rule.js");
+		String script = root + "/src/test/rule.js";
+		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("*");
+		verify(mockedEngine).eval("load('" + script + "')");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
 		output.close();
 		ruleFilToCreate.delete();
@@ -70,9 +69,10 @@ public class NashornScriptTranslatorTest {
 		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
 		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 
-		testTranslator.initScript("none file to do the test");
+		String script = "none file to do the test";
+		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("");
+		verify(mockedEngine).eval("load('" + script + "')");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
 	}
 
@@ -97,7 +97,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethod() throws ScriptException, NoSuchMethodException {
+	public void testRunMethod() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
@@ -112,7 +112,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethodScriptException() throws ScriptException, NoSuchMethodException {
+	public void testRunMethodScriptException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
@@ -127,7 +127,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethodNoMethodException() throws ScriptException, NoSuchMethodException {
+	public void testRunMethodNoMethodException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");

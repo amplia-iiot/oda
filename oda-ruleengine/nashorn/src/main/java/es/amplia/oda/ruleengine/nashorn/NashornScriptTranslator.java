@@ -8,10 +8,7 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
-import java.util.Scanner;
 
 public class NashornScriptTranslator implements ScriptTranslator {
 
@@ -24,7 +21,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
     public void initScript(String script) throws ScriptException {
         ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName(ENGINE_NAME);
-        engine.eval(readFile(script));
+        engine.eval("load('" + script + "')");
         engines.put(script, engine);
     }
 
@@ -41,7 +38,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
         } catch (ScriptException e) {
             LOGGER.error("Error trying to execute script {} method {}", script, method);
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Method {}} doesn't exists on scipt {}", method, script);
+            LOGGER.error("Method {} doesn't exists on script {}", method, script);
         }
         return params[0];
     }
@@ -50,21 +47,5 @@ public class NashornScriptTranslator implements ScriptTranslator {
     public void close() {
         // With this library is not required, but in others objects have to be closed before stop the program.
         engines.clear();
-    }
-
-    private String readFile(String file) {
-        try (Scanner script = new Scanner(new File(file))) {
-            StringBuilder scriptContent = new StringBuilder();
-
-            while (script.hasNext()) {
-                scriptContent.append(script.nextLine());
-            }
-
-            script.close();
-
-            return scriptContent.toString();
-        } catch (FileNotFoundException ignored) {
-        }
-        return "";
     }
 }
