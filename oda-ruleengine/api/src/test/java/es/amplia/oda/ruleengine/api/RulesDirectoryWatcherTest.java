@@ -66,11 +66,11 @@ public class RulesDirectoryWatcherTest {
 		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 
 		testDirectoryWatcher.start();
-		File fileToCreate = new File(testRoute + "/tempDir");
+		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
 		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).createRule(testRoute + "/tempDir");
+		verify(mockedEngine).createRule(testRoute + "/tempDir.js");
 
 		fileToCreate.delete();
 	}
@@ -80,14 +80,14 @@ public class RulesDirectoryWatcherTest {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
-		File fileToCreate = new File(testRoute + "/tempDir");
+		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
 		testDirectoryWatcher.start();
 		fileToCreate.delete();
 
 		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).deleteRule(testRoute + "/tempDir");
+		verify(mockedEngine).deleteRule(testRoute + "/tempDir.js");
 	}
 
 	@Test

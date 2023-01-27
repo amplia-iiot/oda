@@ -35,10 +35,15 @@ public class RulesDirectoryWatcher implements DirectoryWatcher {
 					while(true) {
 						WatchKey key = creatingWatcher.take();
 						key.pollEvents().forEach(event -> {
-							if (event.kind().name().equals(ENTRY_CREATE.name())) {
-								engine.createRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
-							} else if (event.kind().name().equals(ENTRY_DELETE.name())) {
-								engine.deleteRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
+							// only check files ending with .js (javascript files)
+							// in linux, when a file is modified, a temporal file called goutputstream is created
+							// with this condition we avoid the watcher to detect this temporary file
+							if (event.context().toString().endsWith(".js")) {
+								if (event.kind().name().equals(ENTRY_CREATE.name())) {
+									engine.createRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
+								} else if (event.kind().name().equals(ENTRY_DELETE.name())) {
+									engine.deleteRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
+								}
 							}
 						});
 						key.reset();
