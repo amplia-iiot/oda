@@ -63,7 +63,7 @@ public class ModbusDatastreamsSetterTest {
         CompletableFuture<Void> future = testSetter.set(TEST_DEVICE_ID, TEST_VALUE);
         future.get();
 
-        verify(mockedWriterOperatorProcessor).write(eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE),
+        verify(mockedWriterOperatorProcessor).write(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE),
                 eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(TEST_VALUE));
     }
 

@@ -59,7 +59,7 @@ public class ModbusDatastreamsGetterTest {
         future.get();
 
         verify(mockedReadOperatorProcessor)
-                .read(eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE), eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS));
+                .read(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE), eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS));
     }
 
     @Test(expected = IllegalArgumentException.class)

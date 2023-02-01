@@ -2,8 +2,8 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,30 +16,32 @@ class ModbusWriteOperatorProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModbusWriteOperatorProcessor.class);
 
-    private final ModbusMaster modbusMaster;
+    private final ModbusConnectionsFinder modbusConnectionsLocator;
     private final JavaTypeToModbusTypeConverter converter;
-    private final Map<OperatorSelector, TriConsumer<Integer, Integer, Object>> writeMethods;
+    private final Map<OperatorSelector, QuadConsumer<ModbusMaster, Integer, Integer, Object>> writeMethods;
+
 
     @Value
     private static class OperatorSelector {
-        private Type type;
-        private ModbusType modbusType;
+        Type type;
+        ModbusType modbusType;
     }
 
     @FunctionalInterface
-    private interface TriConsumer<T,U,V> {
-        void accept(T t, U u, V v);
+    private interface QuadConsumer<T,U,V,W> {
+        void accept(T t, U u, V v, W w);
     }
 
 
-    ModbusWriteOperatorProcessor(ModbusMaster modbusMaster, JavaTypeToModbusTypeConverter converter) {
-        this.modbusMaster = modbusMaster;
+    ModbusWriteOperatorProcessor(ModbusConnectionsFinder modbusConnectionsLocator, JavaTypeToModbusTypeConverter converter) {
+        this.modbusConnectionsLocator = modbusConnectionsLocator;
         this.converter = converter;
         this.writeMethods = generateWriteMethods();
     }
 
-    private Map<OperatorSelector, TriConsumer<Integer, Integer, Object>> generateWriteMethods() {
-        Map<OperatorSelector, TriConsumer<Integer, Integer, Object>> methods = new HashMap<>();
+
+    private Map<OperatorSelector, QuadConsumer<ModbusMaster, Integer, Integer, Object>> generateWriteMethods() {
+        Map<OperatorSelector, QuadConsumer<ModbusMaster, Integer, Integer, Object>> methods = new HashMap<>();
         methods.put(new OperatorSelector(Boolean.class, ModbusType.COIL), this::writeBooleanToCoil);
         methods.put(new OperatorSelector(Byte[].class, ModbusType.HOLDING_REGISTER), this::writeByteArrayToHoldingRegister);
         methods.put(new OperatorSelector(Short.class, ModbusType.HOLDING_REGISTER), this::writeShortToHoldingRegister);
@@ -50,49 +52,57 @@ class ModbusWriteOperatorProcessor {
         return methods;
     }
 
-    void write(Type datastreamType, ModbusType dataType, int slaveAddress, int dataAddress, Object value) {
-        writeMethods.getOrDefault(new OperatorSelector(datastreamType, dataType), this::throwInvalidDataTypes)
-                .accept(slaveAddress, dataAddress, value);
+    void write(String deviceId, Type datastreamType, ModbusType dataType, int slaveAddress, int dataAddress, Object value) {
+
+        // retrieve modbus connection from pool
+        ModbusMaster modbusConnection = modbusConnectionsLocator.getModbusConnectionWithId(deviceId);
+
+        if (modbusConnection == null) {
+            LOGGER.error("There is no hardware modbus service available for the device {}", deviceId);
+        } else {
+            writeMethods.getOrDefault(new OperatorSelector(datastreamType, dataType), this::throwInvalidDataTypes)
+                    .accept(modbusConnection, slaveAddress, dataAddress, value);
+        }
     }
 
-    private void throwInvalidDataTypes(int slaveAddress, int dataAddress, Object value) {
+    private void throwInvalidDataTypes(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         LOGGER.error("Trying to write {} to an invalid modbus type in slave address {} and data address {}", value,
                 slaveAddress, dataAddress);
         throw new IllegalArgumentException("Invalid data types to write " + value + " to slave " + slaveAddress +
                 " in data address " + dataAddress);
     }
 
-    private void writeBooleanToCoil(int slaveAddress, int dataAddress, Object value) {
-        modbusMaster.writeCoil(slaveAddress, dataAddress, (boolean) value);
+    private void writeBooleanToCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
+        modbusConnection.writeCoil(slaveAddress, dataAddress, (boolean) value);
     }
 
-    private void writeByteArrayToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeByteArrayToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register register = converter.convertByteArrayToRegister((byte[]) value);
-        modbusMaster.writeHoldingRegister(slaveAddress, dataAddress, register);
+        modbusConnection.writeHoldingRegister(slaveAddress, dataAddress, register);
     }
 
-    private void writeShortToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeShortToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register register = converter.convertShortToRegister((short) value);
-        modbusMaster.writeHoldingRegister(slaveAddress, dataAddress, register);
+        modbusConnection.writeHoldingRegister(slaveAddress, dataAddress, register);
     }
 
-    private void writeIntegerToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeIntegerToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register[] registers = converter.convertIntegerToRegisters((int) value);
-        modbusMaster.writeHoldingRegisters(slaveAddress, dataAddress, registers);
+        modbusConnection.writeHoldingRegisters(slaveAddress, dataAddress, registers);
     }
 
-    private void writeFloatToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeFloatToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register[] registers = converter.convertFloatToRegisters((float) value);
-        modbusMaster.writeHoldingRegisters(slaveAddress, dataAddress, registers);
+        modbusConnection.writeHoldingRegisters(slaveAddress, dataAddress, registers);
     }
 
-    private void writeLongToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeLongToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register[] registers = converter.convertLongToRegisters((long) value);
-        modbusMaster.writeHoldingRegisters(slaveAddress, dataAddress, registers);
+        modbusConnection.writeHoldingRegisters(slaveAddress, dataAddress, registers);
     }
 
-    private void writeDoubleToHoldingRegister(int slaveAddress, int dataAddress, Object value) {
+    private void writeDoubleToHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, Object value) {
         Register[] registers = converter.convertDoubleToRegisters((double) value);
-        modbusMaster.writeHoldingRegisters(slaveAddress, dataAddress, registers);
+        modbusConnection.writeHoldingRegisters(slaveAddress, dataAddress, registers);
     }
 }

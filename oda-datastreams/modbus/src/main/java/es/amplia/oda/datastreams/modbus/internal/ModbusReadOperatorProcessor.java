@@ -2,8 +2,8 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
 import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
@@ -22,9 +21,9 @@ class ModbusReadOperatorProcessor {
     static final int TWO_REGISTERS = 2;
     static final int FOUR_REGISTERS = 4;
     
-    private final ModbusMaster modbusMaster;
+    private final ModbusConnectionsFinder modbusConnectionsLocator;
     private final ModbusTypeToJavaTypeConverter converter;
-    private final Map<OperatorSelector, BiFunction<Integer, Integer, CollectedValue>> readFunctions;
+    private final Map<OperatorSelector, TriFunction<ModbusMaster, Integer, Integer, CollectedValue>> readFunctions;
 
     @Value
     private static class OperatorSelector {
@@ -32,14 +31,20 @@ class ModbusReadOperatorProcessor {
         ModbusType modbusType;
     }
 
-    ModbusReadOperatorProcessor(ModbusMaster modbusMaster, ModbusTypeToJavaTypeConverter converter) {
-        this.modbusMaster = modbusMaster;
+    @FunctionalInterface
+    interface TriFunction<A,B,C,R> {
+
+        R apply(A a, B b, C c);
+    }
+
+    ModbusReadOperatorProcessor(ModbusConnectionsFinder modbusConnectionsLocator, ModbusTypeToJavaTypeConverter converter) {
+        this.modbusConnectionsLocator = modbusConnectionsLocator;
         this.converter = converter;
         this.readFunctions = generateReadFunctions();
     }
 
-    private Map<OperatorSelector, BiFunction<Integer, Integer, CollectedValue>> generateReadFunctions() {
-        Map<OperatorSelector, BiFunction<Integer, Integer, CollectedValue>> functions = new HashMap<>();
+    private Map<OperatorSelector, TriFunction<ModbusMaster, Integer, Integer, CollectedValue>> generateReadFunctions() {
+        Map<OperatorSelector, TriFunction<ModbusMaster, Integer, Integer, CollectedValue>> functions = new HashMap<>();
         functions.put(new OperatorSelector(Boolean.class, ModbusType.INPUT_DISCRETE), this::readBooleanFromInputDiscrete);
         functions.put(new OperatorSelector(Boolean.class, ModbusType.COIL), this::readBooleanFromCoil);
         functions.put(new OperatorSelector(Byte[].class, ModbusType.INPUT_REGISTER), this::readBytesFromInputRegister);
@@ -57,85 +62,94 @@ class ModbusReadOperatorProcessor {
         return functions;
     }
 
-    CollectedValue read(Type datastreamType, ModbusType dataType, int slaveAddress, int dataAddress) {
-        return readFunctions.getOrDefault(new OperatorSelector(datastreamType, dataType), this::throwInvalidDataTypes)
-                .apply(slaveAddress, dataAddress);
+    CollectedValue read(String deviceId, Type datastreamType, ModbusType dataType, int slaveAddress, int dataAddress) {
+
+        // retrieve modbus connection from pool
+        ModbusMaster modbusConnection = modbusConnectionsLocator.getModbusConnectionWithId(deviceId);
+
+        if (modbusConnection == null) {
+            LOGGER.error("There is no hardware modbus service available for the device {}", deviceId);
+            return null;
+        } else {
+            return readFunctions.getOrDefault(new OperatorSelector(datastreamType, dataType), this::throwInvalidDataTypes)
+                    .apply(modbusConnection, slaveAddress, dataAddress);
+        }
     }
 
-    private CollectedValue throwInvalidDataTypes(int slaveAddress, int dataAddress) {
+    private CollectedValue throwInvalidDataTypes(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         LOGGER.error("Trying to read a data type from invalid modbus register in slave address {} and data address {}",
                 slaveAddress, dataAddress);
         throw new IllegalArgumentException("Invalid data types to read from slave " + slaveAddress +
                 " in data address " + dataAddress);
     }
     
-    private CollectedValue readBooleanFromInputDiscrete(int slaveAddress, int dataAddress) {
-        boolean value = modbusMaster.readInputDiscrete(slaveAddress, dataAddress);
+    private CollectedValue readBooleanFromInputDiscrete(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        boolean value = modbusConnection.readInputDiscrete(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), value);
     }
 
-    private CollectedValue readBooleanFromCoil(int slaveAddress, int dataAddress) {
-        boolean value = modbusMaster.readCoil(slaveAddress, dataAddress);
+    private CollectedValue readBooleanFromCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        boolean value = modbusConnection.readCoil(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), value);
     }
 
-    private CollectedValue readBytesFromInputRegister(int slaveAddress, int dataAddress) {
-        Register registerValue = modbusMaster.readInputRegister(slaveAddress, dataAddress);
+    private CollectedValue readBytesFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register registerValue = modbusConnection.readInputRegister(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue));
     }
 
-    private CollectedValue readShortFromInputRegister(int slaveAddress, int dataAddress) {
-        Register registerValue = modbusMaster.readInputRegister(slaveAddress, dataAddress);
+    private CollectedValue readShortFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register registerValue = modbusConnection.readInputRegister(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue));
     }
 
-    private CollectedValue readIntegerFromTwoInputRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
+    private CollectedValue readIntegerFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues));
     }
 
-    private CollectedValue readFloatFromTwoInputRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
+    private CollectedValue readFloatFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues));
     }
 
-    private CollectedValue readLongFromFourInputRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
+    private CollectedValue readLongFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues));
     }
 
-    private CollectedValue readDoubleFromFourInputRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
+    private CollectedValue readDoubleFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues));
     }
 
-    private CollectedValue readBytesFromHoldingRegister(int slaveAddress, int dataAddress) {
-        Register registerValue = modbusMaster.readHoldingRegister(slaveAddress, dataAddress);
+    private CollectedValue readBytesFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register registerValue = modbusConnection.readHoldingRegister(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue));
     }
 
-    private CollectedValue readShortFromHoldingRegister(int slaveAddress, int dataAddress) {
-        Register registerValue = modbusMaster.readHoldingRegister(slaveAddress, dataAddress);
+    private CollectedValue readShortFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register registerValue = modbusConnection.readHoldingRegister(slaveAddress, dataAddress);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue));
     }
 
-    private CollectedValue readIntegerFromTwoHoldingRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
+    private CollectedValue readIntegerFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues));
     }
 
-    private CollectedValue readFloatFromTwoHoldingRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
+    private CollectedValue readFloatFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues));
     }
 
-    private CollectedValue readLongFromFourHoldingRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
+    private CollectedValue readLongFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues));
     }
 
-    private CollectedValue readDoubleFromFourHoldingRegister(int slaveAddress, int dataAddress) {
-        Register[] registerValues = modbusMaster.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
+    private CollectedValue readDoubleFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
+        Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
         return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues));
     }
 }

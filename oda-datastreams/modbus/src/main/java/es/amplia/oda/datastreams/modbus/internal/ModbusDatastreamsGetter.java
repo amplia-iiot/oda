@@ -47,6 +47,6 @@ class ModbusDatastreamsGetter implements DatastreamsGetter {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown device"));
         LOGGER.debug("Getting value from the datastream {} of the the device {}", datastreamId, device);
         return CompletableFuture.supplyAsync(() ->
-                readOperatorProcessor.read(datastreamType, dataType, slaveAddress, dataAddress));
+                readOperatorProcessor.read(device, datastreamType, dataType, slaveAddress, dataAddress));
     }
 }

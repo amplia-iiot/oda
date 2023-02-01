@@ -15,13 +15,13 @@ public class ModbusMasterFactory {
     public ModbusMaster createTCPModbusMaster(TCPModbusMasterConfiguration conf) {
         ModbusTCPMaster modbusTCPMaster =
                 new ModbusTCPMaster(conf.getAddress(), conf.getPort(), conf.getTimeout(), conf.isReconnect());
-        return new ModbusMasterAdapter<>(modbusTCPMaster, new ModbusTypeMapper());
+        return new ModbusMasterAdapter<>(modbusTCPMaster, new ModbusTypeMapper(), conf.getDeviceId());
     }
 
     public ModbusMaster createUDPModbusMaster(UDPModbusMasterConfiguration conf) {
         ModbusUDPMaster modbusUDPMaster =
                 new ModbusUDPMaster(conf.getAddress(), conf.getPort(), conf.getTimeout());
-        return new ModbusMasterAdapter<>(modbusUDPMaster, new ModbusTypeMapper());
+        return new ModbusMasterAdapter<>(modbusUDPMaster, new ModbusTypeMapper(), conf.getDeviceId());
     }
 
     public ModbusMaster createSerialModbusMaster(SerialModbusConfiguration conf) {
@@ -32,6 +32,6 @@ public class ModbusMasterFactory {
         serialParams.setEncoding(conf.getEncoding());
 
         ModbusSerialMaster modbusSerialMaster = new ModbusSerialMaster(serialParams, conf.getTimeout());
-        return new ModbusMasterAdapter<>(modbusSerialMaster, new ModbusTypeMapper());
+        return new ModbusMasterAdapter<>(modbusSerialMaster, new ModbusTypeMapper(), null);
     }
 }

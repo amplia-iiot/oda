@@ -1,8 +1,8 @@
 package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +15,8 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
@@ -23,16 +24,22 @@ import static org.mockito.Matchers.eq;
 public class ModbusDatastreamsFactoryImplTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
+    private static final int TEST_DATA_ADDRESS = 5;
+    private static final String TEST_DEVICE_ID = "deviceId";
     private static final Type TEST_DATASTREAM_TYPE = String.class;
     private static final Map<String, Integer> TEST_MAPPER = new HashMap<>();
+    static {
+        TEST_MAPPER.put(TEST_DEVICE_ID, TEST_DATA_ADDRESS) ;
+    }
     private static final ModbusType TEST_DATA_TYPE = ModbusType.HOLDING_REGISTER;
-    private static final int TEST_DATA_ADDRESS = 5;
 
-    @Mock
-    private ModbusMaster mockedModbusMaster;
+
 
     private ModbusDatastreamsFactoryImpl testFactory;
-
+    @Mock
+    private ModbusMaster mockedModbusMaster;
+    @Mock
+    private ModbusConnectionsFinder mockedConnectionsFinder;
     @Mock
     private ModbusTypeToJavaTypeConverter mockedModbusTypeConverter;
     @Mock
@@ -56,8 +63,9 @@ public class ModbusDatastreamsFactoryImplTest {
                 .thenReturn(mockedReadOperatorProcessor);
         PowerMockito.whenNew(ModbusWriteOperatorProcessor.class).withAnyArguments()
                 .thenReturn(mockedWriteOperatorProcessor);
+        PowerMockito.when(mockedConnectionsFinder.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
 
-        testFactory = new ModbusDatastreamsFactoryImpl(mockedModbusMaster);
+        testFactory = new ModbusDatastreamsFactoryImpl(mockedConnectionsFinder);
     }
 
     @Test
@@ -65,9 +73,9 @@ public class ModbusDatastreamsFactoryImplTest {
         PowerMockito.verifyNew(ModbusTypeToJavaTypeConverter.class).withNoArguments();
         PowerMockito.verifyNew(JavaTypeToModbusTypeConverter.class).withNoArguments();
         PowerMockito.verifyNew(ModbusReadOperatorProcessor.class)
-                .withArguments(eq(mockedModbusMaster), eq(mockedModbusTypeConverter));
+                .withArguments(eq(mockedConnectionsFinder), eq(mockedModbusTypeConverter));
         PowerMockito.verifyNew(ModbusWriteOperatorProcessor.class)
-                .withArguments(eq(mockedModbusMaster), eq(mockedJavaTypeConverter));
+                .withArguments(eq(mockedConnectionsFinder), eq(mockedJavaTypeConverter));
     }
 
     @Test
@@ -82,6 +90,9 @@ public class ModbusDatastreamsFactoryImplTest {
         PowerMockito.verifyNew(ModbusDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
                 eq(TEST_DATASTREAM_TYPE), eq(TEST_MAPPER), eq(TEST_DATA_TYPE), eq(TEST_DATA_ADDRESS),
                 eq(mockedReadOperatorProcessor));
+        PowerMockito.verifyNew(ModbusTypeToJavaTypeConverter.class).withNoArguments();
+        PowerMockito.verifyNew(ModbusReadOperatorProcessor.class)
+                .withArguments(eq(mockedConnectionsFinder), eq(mockedModbusTypeConverter));
     }
 
     @Test
@@ -96,5 +107,8 @@ public class ModbusDatastreamsFactoryImplTest {
         PowerMockito.verifyNew(ModbusDatastreamsSetter.class).withArguments(eq(TEST_DATASTREAM_ID),
                 eq(TEST_DATASTREAM_TYPE), eq(TEST_MAPPER), eq(TEST_DATA_TYPE), eq(TEST_DATA_ADDRESS),
                 eq(mockedWriteOperatorProcessor));
+        PowerMockito.verifyNew(JavaTypeToModbusTypeConverter.class).withNoArguments();
+        PowerMockito.verifyNew(ModbusWriteOperatorProcessor.class)
+                .withArguments(eq(mockedConnectionsFinder), eq(mockedJavaTypeConverter));
     }
 }

@@ -2,14 +2,15 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
@@ -27,8 +28,12 @@ public class ModbusWriteOperatorProcessorTest {
     private static final float TEST_FLOAT_VALUE = 1234.5678f;
     private static final long TEST_LONG_VALUE = 1234567890123456L;
     private static final double TEST_DOUBLE_VALUE = 12345678.90123456;
+    private static final String TEST_DEVICE_ID = "testDevice";
 
 
+
+    @Mock
+    private ModbusConnectionsFinder mockedConnectionsLocator;
     @Mock
     private ModbusMaster mockedModbusMaster;
     @Mock
@@ -52,12 +57,13 @@ public class ModbusWriteOperatorProcessorTest {
     public void setUp() {
         twoMockedRegisters = new Register[] { mockedRegister, mockedRegister2 };
         fourMockedRegisters = new Register[] { mockedRegister, mockedRegister2, mockedRegister3, mockedRegister4 };
+        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
     }
 
     @Test
     public void testWriteBooleanToCoil() {
         testWriteOperatorProcessor
-                .write(Boolean.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE);
+                .write(TEST_DEVICE_ID, Boolean.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE);
 
         verify(mockedModbusMaster).writeCoil(eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(TEST_BOOLEAN_VALUE));
     }
@@ -65,14 +71,14 @@ public class ModbusWriteOperatorProcessorTest {
     @Test(expected = IllegalArgumentException.class)
     public void testWriteInvalidTypeToCoil() {
         testWriteOperatorProcessor
-                .write(Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_INTEGER_VALUE);
+                .write(TEST_DEVICE_ID, Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_INTEGER_VALUE);
     }
 
     @Test
     public void testWriteByteArrayToHoldingRegister() {
         when(mockedConverter.convertByteArrayToRegister(any(byte[].class))).thenReturn(mockedRegister);
 
-        testWriteOperatorProcessor.write(Byte[].class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Byte[].class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_BYTE_ARRAY_VALUE);
 
         verify(mockedConverter).convertByteArrayToRegister(eq(TEST_BYTE_ARRAY_VALUE));
@@ -84,7 +90,7 @@ public class ModbusWriteOperatorProcessorTest {
         when(mockedConverter.convertShortToRegister(anyShort())).thenReturn(mockedRegister);
 
         testWriteOperatorProcessor
-                .write(Short.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_SHORT_VALUE);
+                .write(TEST_DEVICE_ID, Short.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_SHORT_VALUE);
 
         verify(mockedConverter).convertShortToRegister(eq(TEST_SHORT_VALUE));
         verify(mockedModbusMaster).writeHoldingRegister(eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(mockedRegister));
@@ -94,7 +100,7 @@ public class ModbusWriteOperatorProcessorTest {
     public void testWriteIntegerToHoldingRegister() {
         when(mockedConverter.convertIntegerToRegisters(anyInt())).thenReturn(twoMockedRegisters);
 
-        testWriteOperatorProcessor.write(Integer.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Integer.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_INTEGER_VALUE);
 
         verify(mockedConverter).convertIntegerToRegisters(eq(TEST_INTEGER_VALUE));
@@ -105,7 +111,7 @@ public class ModbusWriteOperatorProcessorTest {
     public void testWriteFloatToHoldingRegister() {
         when(mockedConverter.convertFloatToRegisters(anyFloat())).thenReturn(twoMockedRegisters);
 
-        testWriteOperatorProcessor.write(Float.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Float.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_FLOAT_VALUE);
 
         verify(mockedConverter).convertFloatToRegisters(eq(TEST_FLOAT_VALUE));
@@ -116,7 +122,7 @@ public class ModbusWriteOperatorProcessorTest {
     public void testWriteLongToHoldingRegister() {
         when(mockedConverter.convertLongToRegisters(anyLong())).thenReturn(fourMockedRegisters);
 
-        testWriteOperatorProcessor.write(Long.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Long.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_LONG_VALUE);
 
         verify(mockedConverter).convertLongToRegisters(eq(TEST_LONG_VALUE));
@@ -127,7 +133,7 @@ public class ModbusWriteOperatorProcessorTest {
     public void testWriteDoubleToHoldingRegister() {
         when(mockedConverter.convertDoubleToRegisters(anyDouble())).thenReturn(fourMockedRegisters);
 
-        testWriteOperatorProcessor.write(Double.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Double.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_DOUBLE_VALUE);
 
         verify(mockedConverter).convertDoubleToRegisters(eq(TEST_DOUBLE_VALUE));
@@ -136,7 +142,18 @@ public class ModbusWriteOperatorProcessorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testWriteBooleanToHoldingRegister() {
-        testWriteOperatorProcessor.write(Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
                 TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE);
+    }
+
+    @Test
+    public void testGetModbusConnectionFromOsgi()
+    {
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(null);
+
+        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Double.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+                TEST_DATA_ADDRESS, TEST_DOUBLE_VALUE);
+
+        verify(mockedConnectionsLocator).getModbusConnectionWithId(TEST_DEVICE_ID);
     }
 }

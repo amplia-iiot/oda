@@ -3,8 +3,8 @@ package es.amplia.oda.hardware.modbus.configuration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
+import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +16,6 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     private static final Logger LOGGER = LoggerFactory.getLogger(ModbusMasterConfigurationUpdateHandler.class);
 
     static final String TYPE_PROPERTY_NAME = "type";
-    static final String ADDRESS_PROPERTY_NAME = "address";
     static final String PORT_PROPERTY_NAME = "port";
     static final String TIMEOUT_PROPERTY_NAME = "timeout";
     static final String RECONNECT_PROPERTY_NAME = "reconnect";
@@ -29,7 +28,8 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     static final String PARITY_PROPERTY_NAME = "parity";
     static final String ENCODING_PROPERTY_NAME = "encoding";
     static final String ECHO_PROPERTY_NAME = "echo";
-
+    static final String CONNECTIONS_PROPERTY_NAME = "connections";
+    static final String DEVICE_ID = "deviceId";
     static final String TCP_MODBUS_TYPE = "TCP";
     static final String UDP_MODBUS_TYPE = "UDP";
     static final String SERIAL_MODBUS_TYPE = "Serial";
@@ -38,7 +38,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     private final ModbusMasterManager modbusMasterManager;
     private final ModbusMasterFactory modbusMasterFactory;
     private final Map<String, Consumer<Dictionary<String, ?>>> configuratorConsumers = new HashMap<>();
-    private List<ModbusMaster> currentConfiguredModbusMaster;
+    private final List<ModbusMaster> currentConfiguredModbusMaster;
 
     public ModbusMasterConfigurationUpdateHandler(ModbusMasterManager modbusMasterManager,
                                                   ModbusMasterFactory modbusMasterFactory) {
@@ -66,31 +66,92 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     }
 
     private void loadTCPConfiguration(Dictionary<String, ?> props) {
+        currentConfiguredModbusMaster.clear();
+
+        // create builder
         TCPModbusMasterConfiguration.TCPModbusMasterConfigurationBuilder builder =
                 TCPModbusMasterConfiguration.builder();
 
-        Optional.ofNullable((String) props.get(ADDRESS_PROPERTY_NAME)).ifPresent(builder::address);
-        Optional.ofNullable((String) props.get(PORT_PROPERTY_NAME)).ifPresent(value ->
-                builder.port(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
-                builder.timeout(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(RECONNECT_PROPERTY_NAME)).ifPresent(value ->
-                builder.reconnect(Boolean.parseBoolean(value)));
+        // list of connections
+        List<String> connectionList = new ArrayList<>();
 
-        currentConfiguredModbusMaster.add(modbusMasterFactory.createTCPModbusMaster(builder.build()));
+        Optional.ofNullable((String) props.get(CONNECTIONS_PROPERTY_NAME)).ifPresent(connections ->
+                connectionList.addAll(Arrays.asList(connections.split(";"))));
+
+        if(connectionList.isEmpty()) {
+            throw new IllegalArgumentException("No connections valid specified");
+        }
+        for (String item : connectionList) {
+
+            // first element of string is the name of the connection
+            // second element is the IP address
+            // third element is the port
+            List<String> connectionProperties = Arrays.asList(item.split(","));
+
+            if(!connectionProperties.isEmpty())
+            {
+                Optional.of(connectionProperties.get(0).trim()).ifPresent(builder::deviceId);
+            }
+            if(connectionProperties.size() >= 2)
+            {
+                Optional.of(connectionProperties.get(1).trim()).ifPresent(builder::address);
+            }
+            if(connectionProperties.size() >= 3)
+            {
+                Optional.of(connectionProperties.get(2).trim()).ifPresent(value ->
+                        builder.port(Integer.parseInt(value)));
+            }
+
+            Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
+                    builder.timeout(Integer.parseInt(value)));
+            Optional.ofNullable((String) props.get(RECONNECT_PROPERTY_NAME)).ifPresent(value ->
+                    builder.reconnect(Boolean.parseBoolean(value)));
+
+            currentConfiguredModbusMaster.add(modbusMasterFactory.createTCPModbusMaster(builder.build()));
+        }
     }
 
     private void loadUDPConfiguration(Dictionary<String, ?> props) {
+        currentConfiguredModbusMaster.clear();
+
+        // create builder
         UDPModbusMasterConfiguration.UDPModbusMasterConfigurationBuilder builder =
                 UDPModbusMasterConfiguration.builder();
 
-        Optional.ofNullable((String) props.get(ADDRESS_PROPERTY_NAME)).ifPresent(builder::address);
-        Optional.ofNullable((String) props.get(PORT_PROPERTY_NAME)).ifPresent(value ->
-                builder.port(Integer.parseInt(value)));
-        Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
-                builder.timeout(Integer.parseInt(value)));
+        // list of connections
+        List<String> connectionList = new ArrayList<>();
 
-        currentConfiguredModbusMaster.add(modbusMasterFactory.createUDPModbusMaster(builder.build()));
+        Optional.ofNullable((String) props.get(CONNECTIONS_PROPERTY_NAME)).ifPresent(connections ->
+                connectionList.addAll(Arrays.asList(connections.split(";"))));
+        if(connectionList.isEmpty()) {
+            throw new IllegalArgumentException("No connections valid specified");
+        }
+        for (String item : connectionList) {
+
+            // first element of string is the device id
+            // second element is the IP address
+            // third element is the port
+            List<String> connectionProperties = Arrays.asList(item.split(","));
+
+            if(!connectionProperties.isEmpty())
+            {
+                Optional.of(connectionProperties.get(0).trim()).ifPresent(builder::deviceId);
+            }
+            if(connectionProperties.size() >= 2)
+            {
+                Optional.of(connectionProperties.get(1).trim()).ifPresent(builder::address);
+            }
+            if(connectionProperties.size() >= 3)
+            {
+                Optional.of(connectionProperties.get(2).trim()).ifPresent(value ->
+                        builder.port(Integer.parseInt(value)));
+            }
+
+            Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
+                    builder.timeout(Integer.parseInt(value)));
+
+            currentConfiguredModbusMaster.add(modbusMasterFactory.createUDPModbusMaster(builder.build()));
+        }
     }
 
     private void loadSerialConfiguration(Dictionary<String, ?> props) {
@@ -99,7 +160,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
 
         Optional.ofNullable((String) props.get(PORT_NAME_PROPERTY_NAME)).ifPresent(ports ->
                 portsName.addAll(Arrays.asList(ports.split(","))));
-        if(portsName.size() == 0) {
+        if(portsName.isEmpty()) {
             throw new IllegalArgumentException("No portname valid specified");
         }
         for (String item : portsName) {
