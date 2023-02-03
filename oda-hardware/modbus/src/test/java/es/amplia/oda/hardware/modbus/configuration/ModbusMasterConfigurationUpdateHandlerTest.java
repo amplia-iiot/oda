@@ -51,12 +51,12 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final String TEST_ENCODING = "rtc";
     private static final boolean TEST_ECHO = true;
     private static final SerialModbusConfiguration TEST_SERIAL_COMPLETE_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).baudRate(TEST_BAUD_RATE)
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).baudRate(TEST_BAUD_RATE)
                     .flowControlIn(TEST_FLOW_CONTROL_IN).flowControlOut(TEST_FLOW_CONTROL_OUT).dataBits(TEST_DATA_BITS)
                     .stopBits(TEST_STOP_BITS).parity(TEST_PARITY).encoding(TEST_ENCODING).echo(TEST_ECHO)
                     .timeout(TEST_TIMEOUT).build();
     private static final SerialModbusConfiguration TEST_SERIAL_DEFAULT_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).build();
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).build();
 
     @Mock
     private ModbusMasterManager mockedModbusMasterManager;
@@ -144,6 +144,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         Dictionary<String, String>  serialCompleteConfiguration = new Hashtable<>();
         serialCompleteConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
         serialCompleteConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
+        serialCompleteConfiguration.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
         serialCompleteConfiguration.put(BAUD_RATE_PROPERTY_NAME, Integer.toString(TEST_BAUD_RATE));
         serialCompleteConfiguration.put(FLOW_CONTROL_IN_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_IN));
         serialCompleteConfiguration.put(FLOW_CONTROL_OUT_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_OUT));
@@ -164,6 +165,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         Dictionary<String, String>  serialRequiredConfiguration = new Hashtable<>();
         serialRequiredConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
         serialRequiredConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
+        serialRequiredConfiguration.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
 
         testConfigHandler.loadConfiguration(serialRequiredConfiguration);
 

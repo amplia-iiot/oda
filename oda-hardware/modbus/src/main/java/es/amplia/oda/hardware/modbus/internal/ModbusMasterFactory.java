@@ -32,6 +32,6 @@ public class ModbusMasterFactory {
         serialParams.setEncoding(conf.getEncoding());
 
         ModbusSerialMaster modbusSerialMaster = new ModbusSerialMaster(serialParams, conf.getTimeout());
-        return new ModbusMasterAdapter<>(modbusSerialMaster, new ModbusTypeMapper(), null);
+        return new ModbusMasterAdapter<>(modbusSerialMaster, new ModbusTypeMapper(), conf.getDeviceId());
     }
 }

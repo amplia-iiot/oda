@@ -20,6 +20,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     static final String TIMEOUT_PROPERTY_NAME = "timeout";
     static final String RECONNECT_PROPERTY_NAME = "reconnect";
     static final String PORT_NAME_PROPERTY_NAME = "portName";
+    static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
     static final String BAUD_RATE_PROPERTY_NAME = "baudRate";
     static final String FLOW_CONTROL_IN_PROPERTY_NAME = "flowControlIn";
     static final String FLOW_CONTROL_OUT_PROPERTY_NAME = "flowControlOut";
@@ -165,6 +166,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
         }
         for (String item : portsName) {
             builder.portName(item);
+            builder.deviceId((String) props.get(DEVICE_ID));
             Optional.ofNullable((String) props.get(BAUD_RATE_PROPERTY_NAME)).ifPresent(value ->
                     builder.baudRate(Integer.parseInt(value)));
             Optional.ofNullable((String) props.get(FLOW_CONTROL_IN_PROPERTY_NAME)).ifPresent(value ->

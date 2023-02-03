@@ -44,7 +44,7 @@ public class ModbusMasterFactoryTest {
             UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
                     .deviceId(TEST_DEVICE_ID).build();
     private static final SerialModbusConfiguration TEST_SERIAL_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).baudRate(TEST_BAUD_RATE)
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).baudRate(TEST_BAUD_RATE)
                     .flowControlIn(TEST_FLOW_CONTROL_IN).flowControlOut(TEST_FLOW_CONTROL_OUT)
                     .dataBits(TEST_DATA_BITS).stopBits(TEST_STOP_BITS).parity(TEST_PARITY).echo(TEST_ECHO)
                     .encoding(TEST_ENCODING).timeout(TEST_TIMEOUT).build();
