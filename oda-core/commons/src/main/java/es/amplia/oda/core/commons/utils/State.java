@@ -335,6 +335,19 @@ public class State {
     }
 
     /**
+     * Create and object DatastreamValue with the value val and the metadata specified.
+     *
+     * @param deviceId String with the identifier of the device to which the datastream we want to assign to the value.
+     * @param datastreamId String with the identifier of the datastream we want to assign to the value.
+     * @param at date of the datastream
+     * @param val Object that is being associated to the datastream.
+     * @return Object DatastreamValue with the value and its metadata
+     */
+    public DatastreamValue createValue(String deviceId, String datastreamId, long at, Object val) {
+        return new DatastreamValue(deviceId, datastreamId, at, val, DatastreamValue.Status.OK, "", false);
+    }
+
+    /**
      * Auxiliary method used by other to create a value with a NOT_FOUND status. Used to warn that the datastream doesn't
      * exists in State's maps.
      *

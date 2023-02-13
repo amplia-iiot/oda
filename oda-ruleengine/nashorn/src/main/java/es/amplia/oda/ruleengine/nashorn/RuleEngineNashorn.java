@@ -51,6 +51,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
             for (String rule : rulesOfDatastream) {
                 try {
                     if (rules.get(rule).when(state, value)) {
+                        LOGGER.info("Applying rule {} to datastream {}", rule, value.getDatastreamId());
                         state = rules.get(rule).then(state, value);
                     }
                 } catch (ClassCastException e) {

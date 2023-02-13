@@ -35,6 +35,12 @@ function setValue(state, deviceId, datastreamId, value) {
     return state;
 }
 
+function setValueWithTime(state, deviceId, datastreamId, at, value) {
+    var newValue = state.createValue(deviceId, datastreamId, at, value);
+    state.refreshValue(deviceId, datastreamId, newValue);
+    return state;
+}
+
 // FILTERING VALUES
 
 function filterBetween(value, min, max) {
