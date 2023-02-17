@@ -19,8 +19,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     static final String PORT_PROPERTY_NAME = "port";
     static final String TIMEOUT_PROPERTY_NAME = "timeout";
     static final String RECONNECT_PROPERTY_NAME = "reconnect";
-    static final String PORT_NAME_PROPERTY_NAME = "portName";
-    static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
+    static final String PORTS_PROPERTY_NAME = "ports";
     static final String BAUD_RATE_PROPERTY_NAME = "baudRate";
     static final String FLOW_CONTROL_IN_PROPERTY_NAME = "flowControlIn";
     static final String FLOW_CONTROL_OUT_PROPERTY_NAME = "flowControlOut";
@@ -157,16 +156,29 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
 
     private void loadSerialConfiguration(Dictionary<String, ?> props) {
         SerialModbusConfiguration.SerialModbusConfigurationBuilder builder = SerialModbusConfiguration.builder();
-        List<String> portsName = new ArrayList<>();
+        List<String> portsInfo = new ArrayList<>();
 
-        Optional.ofNullable((String) props.get(PORT_NAME_PROPERTY_NAME)).ifPresent(ports ->
-                portsName.addAll(Arrays.asList(ports.split(","))));
-        if(portsName.isEmpty()) {
-            throw new IllegalArgumentException("No portname valid specified");
+        Optional.ofNullable((String) props.get(PORTS_PROPERTY_NAME)).ifPresent(ports ->
+                portsInfo.addAll(Arrays.asList(ports.split(";"))));
+        if(portsInfo.isEmpty()) {
+            throw new IllegalArgumentException("No ports valid specified");
         }
-        for (String item : portsName) {
-            builder.portName(item);
-            builder.deviceId((String) props.get(DEVICE_ID));
+
+        for (String item : portsInfo) {
+
+            // first element of string is the port name
+            // second element is the deviceId associated to the port
+            List<String> portInfo = Arrays.asList(item.split(","));
+
+            if(!portInfo.isEmpty())
+            {
+                Optional.of(portInfo.get(0).trim()).ifPresent(builder::portName);
+            }
+            if(portInfo.size() >= 2)
+            {
+                Optional.of(portInfo.get(1).trim()).ifPresent(builder::deviceId);
+            }
+
             Optional.ofNullable((String) props.get(BAUD_RATE_PROPERTY_NAME)).ifPresent(value ->
                     builder.baudRate(Integer.parseInt(value)));
             Optional.ofNullable((String) props.get(FLOW_CONTROL_IN_PROPERTY_NAME)).ifPresent(value ->

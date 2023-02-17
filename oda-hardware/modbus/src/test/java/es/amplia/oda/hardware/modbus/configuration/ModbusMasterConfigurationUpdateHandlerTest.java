@@ -26,6 +26,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final int TEST_TIMEOUT = 10000;
     private static final boolean TEST_RECONNECT = true;
     private static final String TEST_DEVICE_ID = "deviceId";
+    private static final String TEST_PORTS_SERIAL_PROPERTY = "testPort, deviceId";
     private static final String TEST_CONNECT_PROPERTY_MIN = "deviceId, localhost";
     private static final String TEST_CONNECT_PROPERTY_FULL = "deviceId, localhost, 12345";
 
@@ -143,8 +144,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     public void testLoadSerialCompleteConfiguration() {
         Dictionary<String, String>  serialCompleteConfiguration = new Hashtable<>();
         serialCompleteConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
-        serialCompleteConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
-        serialCompleteConfiguration.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
+        serialCompleteConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY);
         serialCompleteConfiguration.put(BAUD_RATE_PROPERTY_NAME, Integer.toString(TEST_BAUD_RATE));
         serialCompleteConfiguration.put(FLOW_CONTROL_IN_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_IN));
         serialCompleteConfiguration.put(FLOW_CONTROL_OUT_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_OUT));
@@ -164,8 +164,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     public void testLoadSerialMinimumConfiguration() {
         Dictionary<String, String>  serialRequiredConfiguration = new Hashtable<>();
         serialRequiredConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
-        serialRequiredConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
-        serialRequiredConfiguration.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
+        serialRequiredConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY);
 
         testConfigHandler.loadConfiguration(serialRequiredConfiguration);
 
