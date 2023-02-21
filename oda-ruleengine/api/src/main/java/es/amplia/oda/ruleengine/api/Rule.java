@@ -5,18 +5,18 @@ import es.amplia.oda.core.commons.utils.DatastreamValue;
 import lombok.Value;
 
 import javax.script.ScriptException;
+import java.util.List;
 
 @Value
 public class Rule {
 	String name;
-	String datastreamId;
+	List<String> datastreamIds;
 	ScriptTranslator script;
 
-	public Rule(String name, String datastreamId, ScriptTranslator script) throws ScriptException {
+	public Rule(String name, List<String> datastreamIds, ScriptTranslator script) throws ScriptException {
 		this.name = name;
-		this.datastreamId = datastreamId;
 		this.script = script;
-
+		this.datastreamIds = datastreamIds;
 		script.initScript(name);
 	}
 
