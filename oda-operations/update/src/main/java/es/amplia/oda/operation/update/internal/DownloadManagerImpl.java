@@ -33,6 +33,7 @@ public class DownloadManagerImpl implements DownloadManager {
     private final Map<DeploymentElement, String> downloadedFiles = new HashMap<>();
 
     private String rulesPath;
+    private String rulesUtilsPath;
     private String deployPath= "deploy/";
     private String configurationPath= "configuration/";
     private String downloadsPath= "downloads/";
@@ -87,12 +88,13 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     private String getDeploymentElementLocalFilePath(DeploymentElement deploymentElement) {
-        if(deploymentElement.getPath().equals(deployPath)) {
+        if (deploymentElement.getPath().equals(deployPath)) {
             return downloadsPath + deploymentElement.getName() + "-" + deploymentElement.getVersion() + ".jar";
-        } else if(deploymentElement.getPath().equals(configurationPath)) {
+        } else if (deploymentElement.getPath().equals(configurationPath)) {
             return downloadsPath + deploymentElement.getName() + ".cfg";
         } else {
-            if (deploymentElement.getPath().startsWith(rulesPath)) {
+            if (deploymentElement.getPath().startsWith(rulesPath)
+                    || deploymentElement.getPath().startsWith(rulesUtilsPath)) {
                 return downloadsPath + deploymentElement.getName() + ".js";
             }
             return downloadsPath + deploymentElement.getName();
@@ -122,8 +124,10 @@ public class DownloadManagerImpl implements DownloadManager {
     }
 
     @Override
-    public void loadConfig(String rulesPath, String deployPath, String configurationPath, String downloadsPath) {
+    public void loadConfig(String rulesPath, String rulesUtilsPath, String deployPath, String configurationPath,
+                           String downloadsPath) {
         this.rulesPath = rulesPath;
+        this.rulesUtilsPath = rulesUtilsPath;
         this.deployPath = deployPath;
         this.configurationPath = configurationPath;
         this.downloadsPath = downloadsPath;

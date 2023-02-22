@@ -21,20 +21,22 @@ public class DeploymentElementOperationFactory {
 
     public DeploymentElementOperation createDeploymentElementOperation (DeploymentElement deploymentElement,
                                                                         String localFile, String installFolder,
-                                                                        String rulesPath) {
+                                                                        String rulesPath, String rulesUtilsPath) {
         OperationUpdate.DeploymentElementOperationType operation = deploymentElement.getOperation();
         switch (operation) {
             case INSTALL:
-                if (deploymentElement.getPath().startsWith(rulesPath)) {
-                    return new InstallRuleDeploymentElementOperation(deploymentElement, localFile , installFolder, fileManager,
-                            operationConfirmationProcessor, rulesPath);
+                if (deploymentElement.getPath().startsWith(rulesPath)
+                        || deploymentElement.getPath().startsWith(rulesUtilsPath)) {
+                    return new InstallRuleDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
+                            operationConfirmationProcessor);
                 }
                 return new InstallDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                         operationConfirmationProcessor);
             case UPGRADE:
-                if (deploymentElement.getPath().startsWith(rulesPath)) {
+                if (deploymentElement.getPath().startsWith(rulesPath)
+                        || deploymentElement.getPath().startsWith(rulesUtilsPath)) {
                     return new UpgradeRuleDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
-                            operationConfirmationProcessor, rulesPath);
+                            operationConfirmationProcessor);
                 }
                 return new UpgradeDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                         operationConfirmationProcessor);

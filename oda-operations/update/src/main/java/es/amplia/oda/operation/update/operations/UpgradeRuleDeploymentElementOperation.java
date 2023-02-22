@@ -3,45 +3,34 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import java.io.IOException;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public class UpgradeRuleDeploymentElementOperation extends DeploymentElementOperationBase {
 
-    private static final String LIB_FILE = "utils.js";
-
     private final String localFile;
     private final String installFolder;
-    private final String toInsert;
 
     private String upgradedFile;
 
     UpgradeRuleDeploymentElementOperation(DeploymentElement deploymentElement, String localFile, String installFolder,
 										  FileManager fileManager,
-										  OperationConfirmationProcessor operationConfirmationProcessor,
-                                          String rulesPath) {
+										  OperationConfirmationProcessor operationConfirmationProcessor) {
         super(deploymentElement, fileManager, operationConfirmationProcessor);
         this.localFile = localFile;
         this.installFolder = installFolder;
-        this.toInsert = "load(\"" + System.getProperty("user.dir") + "/" + rulesPath + LIB_FILE + "\");\n\n";
     }
 
     @Override
     protected void executeSpecificOperation(FileManager fileManager)
             throws FileException, DeploymentElementOperationException {
-        try {
-            String installedFile = fileManager.find(installFolder, getName());
-            if (installedFile == null) {
-                throw new DeploymentElementOperationException("Deployment element file to upgrade is not found");
-            }
-            fileManager.delete(installedFile);
-            upgradedFile = fileManager.copy(localFile, installFolder);
-            fileManager.insertInFile(toInsert, 0, upgradedFile);
-        } catch (IOException e) {
-            throw new FileException(e.getMessage());
+        String installedFile = fileManager.find(installFolder, getName());
+        if (installedFile == null) {
+            throw new DeploymentElementOperationException("Deployment element file to upgrade is not found");
         }
+        fileManager.delete(installedFile);
+        upgradedFile = fileManager.copy(localFile, installFolder);
     }
 
     @Override

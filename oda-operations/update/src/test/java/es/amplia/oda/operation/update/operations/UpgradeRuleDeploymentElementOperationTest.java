@@ -47,8 +47,8 @@ public class UpgradeRuleDeploymentElementOperationTest {
 
     @Before
     public void setUp() {
-        testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, PATH_TO_RULES_FILE,
-                mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+        testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT,
+                LOCAL_FILE, PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
     @After

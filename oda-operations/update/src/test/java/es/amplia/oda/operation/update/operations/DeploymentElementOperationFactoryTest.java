@@ -27,6 +27,8 @@ public class DeploymentElementOperationFactoryTest {
     private static final String LOCAL_FILE_JAR = "path/to/local/file.jar";
     private static final String INSTALL_FOLDER = "path/to/install/folder";
     private static final String PATH_TO_RULES = "path/to/rules/files";
+    private static final String PATH_TO_RULES_UTILS = "path/to/jslib";
+
 
     @Mock
     private FileManager mockedFileManager;
@@ -64,7 +66,8 @@ public class DeploymentElementOperationFactoryTest {
 
         PowerMockito.whenNew(InstallDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedInstallOp);
 
-        testFactory.createDeploymentElementOperation(installDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
+        testFactory.createDeploymentElementOperation(installDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
         PowerMockito.verifyNew(InstallDeploymentElementOperation.class)
                 .withArguments(eq(installDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
@@ -81,7 +84,8 @@ public class DeploymentElementOperationFactoryTest {
 
         PowerMockito.whenNew(UpgradeDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedUpgradeOp);
 
-        testFactory.createDeploymentElementOperation(upgradeDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
+        testFactory.createDeploymentElementOperation(upgradeDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
         PowerMockito.verifyNew(UpgradeDeploymentElementOperation.class)
                 .withArguments(eq(upgradeDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
@@ -99,7 +103,8 @@ public class DeploymentElementOperationFactoryTest {
         PowerMockito.whenNew(UninstallDeploymentElementOperation.class).withAnyArguments()
                 .thenReturn(mockedUninstallOp);
 
-        testFactory.createDeploymentElementOperation(uninstallDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER, PATH_TO_RULES);
+        testFactory.createDeploymentElementOperation(uninstallDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
         PowerMockito.verifyNew(UninstallDeploymentElementOperation.class)
                 .withArguments(eq(uninstallDeploymentElement), eq(INSTALL_FOLDER), eq(mockedFileManager),

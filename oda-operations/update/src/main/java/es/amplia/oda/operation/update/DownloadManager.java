@@ -17,5 +17,5 @@ public interface DownloadManager {
 
     void deleteDownloadedFiles();
 
-    void loadConfig(String rulesPath, String deployPath, String configutationPath, String downloadsPath);
+    void loadConfig(String rulesPath, String rulesUtilsPath, String deployPath, String configutationPath, String downloadsPath);
 }

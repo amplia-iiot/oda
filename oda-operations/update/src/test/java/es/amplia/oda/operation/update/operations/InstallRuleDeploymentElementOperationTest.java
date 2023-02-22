@@ -42,8 +42,8 @@ public class InstallRuleDeploymentElementOperationTest {
 
     @Before
     public void setUp() {
-        testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE, PATH_TO_RULES_FILE,
-                mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+        testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE,
+                PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
     @AfterClass
