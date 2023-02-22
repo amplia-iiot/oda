@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn.configuration;
 
+import es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.RuleEngineNashorn;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,17 +21,20 @@ public class RuleEngineNashornConfigurationHandlerTest {
 	RuleEngineConfigurationHandler testHandler;
 
 	@Mock
+	NashornScriptTranslator mockedScriptTranslator;
+	@Mock
 	RuleEngineNashorn mockedEngine;
 
 	@Before
 	public void setUp() {
-		testHandler = new RuleEngineConfigurationHandler(mockedEngine);
+		testHandler = new RuleEngineConfigurationHandler(mockedEngine, mockedScriptTranslator);
 	}
 
 	@Test
 	public void testLoadConfiguration() {
 		Dictionary<String, String> props = new Hashtable<>();
 		props.put("path", "this/is/a/path");
+		props.put("utilsPath", "this/is/another/path");
 
 		testHandler.loadConfiguration(props);
 

@@ -50,6 +50,7 @@ public class NashornScriptTranslatorTest {
 		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
 		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 		String root = new File(".").getCanonicalPath();
+		Whitebox.setInternalState(testTranslator, "jsUtilsPath", root + "/src/test/");
 		File ruleFilToCreate = new File(root + "/src/test/rule.js");
 		ruleFilToCreate.createNewFile();
 		FileOutputStream output = new FileOutputStream(root + "/src/test/rule.js");
@@ -58,7 +59,7 @@ public class NashornScriptTranslatorTest {
 		String script = root + "/src/test/rule.js";
 		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("load('" + script + "')");
+		verify(mockedEngine).eval("*");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
 		output.close();
 		ruleFilToCreate.delete();
@@ -72,7 +73,7 @@ public class NashornScriptTranslatorTest {
 		String script = "none file to do the test";
 		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("load('" + script + "')");
+		verify(mockedEngine).eval("");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
 	}
 

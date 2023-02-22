@@ -161,7 +161,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         try {
             this.rules.put(nameRule, new Rule(nameRule, datastreamIds, script));
         } catch (ScriptException e) {
-            LOGGER.error("Cannot init rule {}: {}", nameRule, e.getMessage());
+           LOGGER.error("Cannot init rule {}: {}", nameRule, e.getMessage());
         }
     }
 
