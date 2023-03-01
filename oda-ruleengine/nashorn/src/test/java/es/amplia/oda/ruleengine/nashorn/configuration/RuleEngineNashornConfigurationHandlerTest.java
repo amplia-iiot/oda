@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn.configuration;
 
+import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.RuleEngineNashorn;
 import org.junit.Before;
@@ -48,5 +49,13 @@ public class RuleEngineNashornConfigurationHandlerTest {
 		testHandler.applyConfiguration();
 
 		verify(mockedEngine).loadConfiguration(null);
+	}
+
+	@Test(expected = ConfigurationException.class)
+	public void testMissingPath() {
+		Dictionary<String, String> props = new Hashtable<>();
+		props.put("path", "this/is/a/path");
+
+		testHandler.loadConfiguration(props);
 	}
 }

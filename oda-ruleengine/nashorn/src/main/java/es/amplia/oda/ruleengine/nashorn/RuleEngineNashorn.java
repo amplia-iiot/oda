@@ -21,6 +21,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     private static final Logger LOGGER = LoggerFactory.getLogger(RuleEngineNashorn.class);
 
     private String path;
+    private String jsUtilsPath;
     private HashMap<String, Rule> rules;
     private HashMap<String, DirectoryWatcher> watcher;
 
@@ -34,10 +35,12 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     public void loadConfiguration(RuleEngineConfiguration config) {
         this.path = config.getPath();
+        this.jsUtilsPath = config.getUtilsPath();
         this.rules = new HashMap<>();
         this.watcher = new HashMap<>();
 
         prepareMainDirectory();
+        prepareJsUtilsDirectory();
 
         started = true;
     }
@@ -147,6 +150,41 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
         this.watcher.get(dir).start();
         LOGGER.info("Created directory {} for a new datastream", dir);
+    }
+
+    private void prepareJsUtilsDirectory() {
+        this.watcher.put(this.jsUtilsPath, new RulesUtilsDirectoryWatcher(Paths.get(this.jsUtilsPath), this));
+        this.watcher.get(this.jsUtilsPath).start();
+    }
+
+    @Override
+    public void reloadAllRules() {
+
+        try {
+            Stream<Path> pathStreamDirectory = Files.list(Paths.get(this.path))
+                    .filter(filePath -> filePath.toFile().isDirectory());
+            List<String> directories = pathStreamDirectory.map(Path::toString).collect(Collectors.toList());
+            directories.forEach(this::reloadRules);
+
+            pathStreamDirectory.close();
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    private void reloadRules(String dir) {
+        try (Stream<Path> pathStreamFiles = Files.list(Paths.get(dir)).filter(filePath -> filePath.toFile().isFile())) {
+            List<String> files = pathStreamFiles.map(Path::toString).filter(file -> file.endsWith(".js"))
+                    .collect(Collectors.toList());
+
+            for (String file : files) {
+                initRuleScript(dir, file);
+            }
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+
+        LOGGER.info("Reloaded rules in directory {}", dir);
     }
 
     private void initRuleScript(String dirName, String nameRule) {

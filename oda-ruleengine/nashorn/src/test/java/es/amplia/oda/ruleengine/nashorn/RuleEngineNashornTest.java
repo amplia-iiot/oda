@@ -54,7 +54,8 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testLoadConfiguration() throws Exception {
 		String root = new File(".").getCanonicalPath();
-		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory").build();
+		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory")
+				.utilsPath(root + "/src/test/java/testDirectory").build();
 		whenNew(MainDirectoryWatcher.class).withAnyArguments().thenReturn(mockedMainWatcher);
 		whenNew(RulesDirectoryWatcher.class).withAnyArguments().thenReturn(mockedRuleWatcher);
 
@@ -77,7 +78,8 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testLoadConfigurationRuleException() throws Exception {
 		String root = new File(".").getCanonicalPath();
-		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory").build();
+		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory")
+				.utilsPath(root + "/src/test/java/testDirectory").build();
 		whenNew(MainDirectoryWatcher.class).withAnyArguments().thenReturn(mockedMainWatcher);
 		whenNew(RulesDirectoryWatcher.class).withAnyArguments().thenReturn(mockedRuleWatcher);
 		whenNew(Rule.class).withAnyArguments().thenThrow(ScriptException.class);
@@ -324,6 +326,50 @@ public class RuleEngineNashornTest {
 		Files.delete(Paths.get(rule2Path));
 		Files.delete(Paths.get(rule3Path));
 		Files.delete(Paths.get(rule4Path));
+		Files.delete(Paths.get(root));
+	}
+
+	@Test
+	public void testReloadAllRules() throws IOException {
+
+		String root = new File(".").getCanonicalPath() + "/src/test/java/rules/";
+
+		// initial conditions
+		Whitebox.setInternalState(testRuleEngine, "path", root);
+		// create and store rules
+		HashMap<String, Rule> rules = new HashMap<>();
+		Whitebox.setInternalState(testRuleEngine, "rules", rules);
+
+
+		// rule1
+		String rule1Path = root + "rule1";
+		Files.createDirectories(Paths.get(rule1Path));
+		String rule1Name = rule1Path + "/rule1.js";
+		File rule1File = new File(rule1Name);
+		rule1File.createNewFile();
+		// rule2
+		String rule2Path = root + "rule2";
+		Files.createDirectories(Paths.get(rule2Path));
+		String rule2Name = rule2Path + "/rule2.js";
+		File rule2File = new File(rule2Name);
+		rule2File.createNewFile();
+
+		// test before method call
+		rules = Whitebox.getInternalState(testRuleEngine, "rules");
+		assertEquals(0, rules.size());
+
+		// call method to test
+		testRuleEngine.reloadAllRules();
+
+		// assertions
+		rules = Whitebox.getInternalState(testRuleEngine, "rules");
+		assertEquals(2, rules.size());
+
+		// clean files created
+		rule1File.delete();
+		rule2File.delete();
+		Files.delete(Paths.get(rule1Path));
+		Files.delete(Paths.get(rule2Path));
 		Files.delete(Paths.get(root));
 	}
 }
