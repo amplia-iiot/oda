@@ -1,0 +1,12 @@
+[Unit]
+Description=ODA Service
+After=polluxnet
+Requires=polluxnet
+
+[Service]
+ExecStart=/path/to/owa-mqtt-4.2.10-SNAPSHOT/bin/run.sh
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
