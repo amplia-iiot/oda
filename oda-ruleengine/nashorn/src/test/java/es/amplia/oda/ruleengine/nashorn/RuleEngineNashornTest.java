@@ -150,10 +150,10 @@ public class RuleEngineNashornTest {
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
-		Rule rule = new Rule("nameRule", Collections.singletonList("testDatastream"), mockedScriptTranslator);
+		Rule rule = new Rule(path + "testDatastream", Collections.singletonList("testDatastream"), mockedScriptTranslator);
 		rules.put(path + "testDatastream", rule);
 		watchers.put("testDatastream", mockedRuleWatcher);
-		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenThrow(new ClassCastException());
+		when(mockedScriptTranslator.runMethod(path + "testDatastream", "when", mockedState, value)).thenThrow(new ClassCastException());
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);

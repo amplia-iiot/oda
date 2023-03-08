@@ -44,7 +44,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     @Override
     public synchronized State engine(State state, DatastreamValue value) {
-        if (started && this.watcher.get(this.path + value.getDatastreamId()) != null) {
+        if (started) {
 
             List<String> rulesOfDatastream = rules.values().stream()
                     .filter(rule -> rule.getDatastreamIds().contains(value.getDatastreamId()))
@@ -80,12 +80,13 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     @Override
     public void deleteDatastreamDirectory(String datastreamId) {
-        if (this.watcher.get(datastreamId) != null) {
-            this.watcher.get(datastreamId).stop();
-            this.watcher.remove(datastreamId);
+        String fullPath = this.path + datastreamId;
+        if (this.watcher.get(fullPath) != null) {
+            this.watcher.get(fullPath).stop();
+            this.watcher.remove(fullPath);
             List<String> keys = new ArrayList<>(this.rules.keySet());
             for (String key : keys) {
-                if (key.contains(path + datastreamId)) {
+                if (key.contains(fullPath)) {
                     this.rules.remove(key);
                 }
             }
