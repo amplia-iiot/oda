@@ -72,10 +72,10 @@ public class NashornScriptTranslator implements ScriptTranslator {
                 scriptContent.append(replaceLoadPath(script.nextLine()));
             }
 
-            script.close();
-
             return scriptContent.toString();
-        } catch (FileNotFoundException ignored) {
+        } catch (FileNotFoundException e) {
+            LOGGER.error("File not found {}", file);
+
         }
         return "";
     }
@@ -88,10 +88,10 @@ public class NashornScriptTranslator implements ScriptTranslator {
 
         if (stringToCheck.startsWith(loadString)) {
 
-            // If javascript to load is util.js, don't replace
+            // If javascript to load is util.js, return empty string
             // This adds compatibility with older versions where utils.js wasn't loaded internally
             if (stringToCheck.contains("/utils.js")) {
-                return stringToCheck;
+                return "";
             }
 
             String jsToLoad = stringToCheck.substring(stringToCheck.indexOf(loadString) + loadString.length() + 1);
