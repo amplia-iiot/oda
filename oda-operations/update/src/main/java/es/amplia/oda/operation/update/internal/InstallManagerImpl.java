@@ -23,6 +23,7 @@ public class InstallManagerImpl implements InstallManager {
     private final Map<DeploymentElement, DeploymentElementOperation> installedDeploymentElements = new HashMap<>();
 
     private String rulesPath;
+    private String rulesUtilsPath;
     private String deployPath= "deploy/";
     private String configurationPath= "configuration/";
 
@@ -31,14 +32,15 @@ public class InstallManagerImpl implements InstallManager {
     }
 
     public DeploymentElement assignDeployElementType(DeploymentElement deploymentElement) {
-        if(deploymentElement.getPath().equals(deployPath)) {
+        if (deploymentElement.getPath().equals(deployPath)) {
             deploymentElement.setType(OperationUpdate.DeploymentElementType.SOFTWARE);
             return deploymentElement;
         } else if (deploymentElement.getPath().equals(configurationPath)) {
             deploymentElement.setType(OperationUpdate.DeploymentElementType.CONFIGURATION);
             return deploymentElement;
         } else {
-            if (deploymentElement.getPath().startsWith(rulesPath)) {
+            if (deploymentElement.getPath().startsWith(rulesPath)
+                    || deploymentElement.getPath().startsWith(rulesUtilsPath)) {
                 deploymentElement.setType(OperationUpdate.DeploymentElementType.RULE);
             } else {
                 deploymentElement.setType(OperationUpdate.DeploymentElementType.DEFAULT);
@@ -58,7 +60,7 @@ public class InstallManagerImpl implements InstallManager {
             deploymentElement = assignDeployElementType(deploymentElement);
             operation =
                     deploymentElementOperationFactory.createDeploymentElementOperation(deploymentElement, localFile,
-                            deploymentElement.getPath(), rulesPath);
+                            deploymentElement.getPath(), rulesPath, rulesUtilsPath);
             operation.execute();
         } catch (DeploymentElementOperationException exception) {
             throw new InstallException(exception.getMessage());
@@ -95,8 +97,9 @@ public class InstallManagerImpl implements InstallManager {
     }
 
     @Override
-    public void loadConfig(String rulesPath, String deployPath, String configurationPath) {
+    public void loadConfig(String rulesPath, String rulesUtilsPath, String deployPath, String configurationPath) {
         this.rulesPath = rulesPath;
+        this.rulesUtilsPath = rulesUtilsPath;
         this.deployPath = deployPath;
         this.configurationPath = configurationPath;
     }

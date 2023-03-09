@@ -26,7 +26,9 @@ import static org.mockito.Mockito.verify;
 public class RuleEngineProxyTest {
 
 	private static final String TEST_NAME_RULE = "nameRule";
-	private static final DatastreamValue TEST_DATASTREAM_VALUE = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+	private static final DatastreamValue TEST_DATASTREAM_VALUE =
+			new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(),
+					true, DatastreamValue.Status.OK, "", false);
 
 	@Mock
 	private BundleContext mockedContext;
@@ -110,6 +112,16 @@ public class RuleEngineProxyTest {
 				ruleEngineConsumerCaptor.getValue();
 		capturedFunction.accept(mockedRuleEngine);
 		verify(mockedRuleEngine).deleteRule(TEST_NAME_RULE);
+	}
+
+	@Test
+	public void testReloadAllRules() {
+		testProxy.reloadAllRules();
+
+		verify(mockedProxy).consumeFirst(ruleEngineConsumerCaptor.capture());
+		Consumer<RuleEngine> capturedFunction = ruleEngineConsumerCaptor.getValue();
+		capturedFunction.accept(mockedRuleEngine);
+		verify(mockedRuleEngine).reloadAllRules();
 	}
 
 	@Test

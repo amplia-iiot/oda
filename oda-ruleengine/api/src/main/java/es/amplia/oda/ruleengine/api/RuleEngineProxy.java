@@ -39,6 +39,9 @@ public class RuleEngineProxy implements RuleEngine, AutoCloseable {
 	}
 
 	@Override
+	public void reloadAllRules() {proxy.consumeFirst(RuleEngine::reloadAllRules);}
+
+	@Override
 	public void stop() {
 		proxy.consumeFirst(RuleEngine::stop);
 	}

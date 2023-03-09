@@ -1,7 +1,7 @@
 package es.amplia.oda.ruleengine.nashorn;
 
-import es.amplia.oda.core.commons.utils.*;
-import es.amplia.oda.ruleengine.api.ScriptTranslator;
+import es.amplia.oda.core.commons.utils.ConfigurableBundle;
+import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfigurationHandler;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -15,7 +15,7 @@ public class Activator implements BundleActivator {
 
 	private ConfigurableBundle configurableBundle;
 	private RuleEngineNashorn ruleEngine;
-	private ScriptTranslator scriptTranslator;
+	private NashornScriptTranslator scriptTranslator;
 	private ServiceRegistration<es.amplia.oda.ruleengine.api.RuleEngine> ruleEngineServiceRegistration;
 
 
@@ -25,9 +25,11 @@ public class Activator implements BundleActivator {
 
 		scriptTranslator = new NashornScriptTranslator();
 		ruleEngine = new RuleEngineNashorn(scriptTranslator);
-		RuleEngineConfigurationHandler engineConfigurationHandler = new RuleEngineConfigurationHandler(ruleEngine);
+		RuleEngineConfigurationHandler engineConfigurationHandler = new RuleEngineConfigurationHandler(ruleEngine,
+				scriptTranslator);
 		configurableBundle = new ConfigurableBundleImpl(bundleContext, engineConfigurationHandler);
-		ruleEngineServiceRegistration = bundleContext.registerService(es.amplia.oda.ruleengine.api.RuleEngine.class, ruleEngine, null);
+		ruleEngineServiceRegistration = bundleContext.registerService(es.amplia.oda.ruleengine.api.RuleEngine.class,
+				ruleEngine, null);
 
 		LOGGER.info("Rule engine started");
 	}

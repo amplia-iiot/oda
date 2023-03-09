@@ -78,7 +78,8 @@ public class DownloadManagerImplTest {
         downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
         spiedDownloadedFiles = spy(downloadedFiles);
 
-        testDownloadManager.loadConfig("rules/", "deploy/", "configuration/", "downloads/");
+        testDownloadManager.loadConfig("rules/", "jslib/", "deploy/",
+                "configuration/", "downloads/");
     }
 
     @Test
