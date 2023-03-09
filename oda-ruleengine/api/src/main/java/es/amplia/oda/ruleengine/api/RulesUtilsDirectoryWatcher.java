@@ -4,14 +4,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 
-public class RulesDirectoryWatcher implements DirectoryWatcher {
+public class RulesUtilsDirectoryWatcher implements DirectoryWatcher {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RulesDirectoryWatcher.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RulesUtilsDirectoryWatcher.class);
 
 	Path path;
 	RuleEngine engine;
@@ -20,7 +23,7 @@ public class RulesDirectoryWatcher implements DirectoryWatcher {
 	Thread creatingWatcherThread;
 
 
-	public RulesDirectoryWatcher(Path path, RuleEngine engine) {
+	public RulesUtilsDirectoryWatcher(Path path, RuleEngine engine) {
 		this.path = path;
 		this.engine = engine;
 	}
@@ -32,18 +35,15 @@ public class RulesDirectoryWatcher implements DirectoryWatcher {
 			path.register(creatingWatcher, ENTRY_CREATE, ENTRY_DELETE);
 			creatingWatcherThread = new Thread(() -> {
 				try {
-					while(true) {
+					while (true) {
 						WatchKey key = creatingWatcher.take();
 						key.pollEvents().forEach(event -> {
 							// only check files ending with .js (javascript files)
 							// in linux, when a file is modified, a temporal file called goutputstream is created
 							// with this condition we avoid the watcher to detect this temporary file
 							if (event.context().toString().endsWith(".js")) {
-								if (event.kind().name().equals(ENTRY_CREATE.name())) {
-									engine.createRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
-								} else if (event.kind().name().equals(ENTRY_DELETE.name())) {
-									engine.deleteRule(this.path.toString() + FileSystems.getDefault().getSeparator() + event.context().toString());
-								}
+								// reload all rules
+								engine.reloadAllRules();
 							}
 						});
 						key.reset();
@@ -55,7 +55,7 @@ public class RulesDirectoryWatcher implements DirectoryWatcher {
 			});
 			creatingWatcherThread.start();
 		} catch (IOException e) {
-			LOGGER.error("Error on Rules directory Watcher creation", e);
+			LOGGER.error("Error on Rules utils directory Watcher creation", e);
 		}
 	}
 

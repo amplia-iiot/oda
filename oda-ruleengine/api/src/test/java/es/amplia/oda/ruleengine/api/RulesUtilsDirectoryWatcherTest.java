@@ -24,8 +24,8 @@ import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(RulesDirectoryWatcher.class)
-public class RulesDirectoryWatcherTest {
+@PrepareForTest(RulesUtilsDirectoryWatcher.class)
+public class RulesUtilsDirectoryWatcherTest {
 
 	@Mock
 	RuleEngine mockedEngine;
@@ -33,7 +33,7 @@ public class RulesDirectoryWatcherTest {
 	Path mockedPath;
 
 	@InjectMocks
-	RulesDirectoryWatcher testDirectoryWatcher;
+	RulesUtilsDirectoryWatcher testDirectoryWatcher;
 
 	@Mock
 	Thread mockedThread;
@@ -42,7 +42,7 @@ public class RulesDirectoryWatcherTest {
 	public void testConstructor() {
 		String path = "this/is/a/path";
 
-		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(path), mockedEngine);
+		testDirectoryWatcher = new RulesUtilsDirectoryWatcher(Paths.get(path), mockedEngine);
 
 		assertEquals(Paths.get(path), Whitebox.getInternalState(testDirectoryWatcher, "path"));
 		assertEquals(mockedEngine, Whitebox.getInternalState(testDirectoryWatcher, "engine"));
@@ -63,23 +63,22 @@ public class RulesDirectoryWatcherTest {
 	public void testThreadCreateEvent() throws InterruptedException, IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
-		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
+		testDirectoryWatcher = new RulesUtilsDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 
 		testDirectoryWatcher.start();
+
 		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
 		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).createRule(testRoute + "/tempDir.js");
-
-		fileToCreate.delete();
+		verify(mockedEngine).reloadAllRules();
 	}
 
 	@Test
 	public void testThreadDeleteEvent() throws InterruptedException, IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
-		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
+		testDirectoryWatcher = new RulesUtilsDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
@@ -87,14 +86,14 @@ public class RulesDirectoryWatcherTest {
 		fileToCreate.delete();
 
 		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).deleteRule(testRoute + "/tempDir.js");
+		verify(mockedEngine).reloadAllRules();
 	}
 
 	@Test
 	public void testThreadException() throws IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
-		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
+		testDirectoryWatcher = new RulesUtilsDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 
 		testDirectoryWatcher.start();
 		testDirectoryWatcher.stop();

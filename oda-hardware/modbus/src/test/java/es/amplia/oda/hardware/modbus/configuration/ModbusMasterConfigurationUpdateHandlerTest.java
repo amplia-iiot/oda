@@ -14,11 +14,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.List;
 
 import static es.amplia.oda.hardware.modbus.configuration.ModbusMasterConfigurationUpdateHandler.*;
-
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -28,15 +25,23 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final int TEST_PORT = 12345;
     private static final int TEST_TIMEOUT = 10000;
     private static final boolean TEST_RECONNECT = true;
+    private static final String TEST_DEVICE_ID = "deviceId";
+    private static final String TEST_PORTS_SERIAL_PROPERTY = "testPort, deviceId";
+    private static final String TEST_CONNECT_PROPERTY_MIN = "deviceId, localhost";
+    private static final String TEST_CONNECT_PROPERTY_FULL = "deviceId, localhost, 12345";
+
+
+
     private static final TCPModbusMasterConfiguration TEST_TCP_COMPLETE_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .reconnect(TEST_RECONNECT).build();
+                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).build();
     private static final TCPModbusMasterConfiguration TEST_TCP_DEFAULT_CONFIGURATION =
-            TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).build();
+            TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).deviceId(TEST_DEVICE_ID).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_COMPLETE_CONFIGURATION =
-            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT).build();
+            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
+                    .deviceId(TEST_DEVICE_ID).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_DEFAULT_CONFIGURATION =
-            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).build();
+            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).deviceId(TEST_DEVICE_ID).build();
     private static final String TEST_PORT_NAME = "testPort";
     private static final int TEST_BAUD_RATE = 38400;
     private static final int TEST_FLOW_CONTROL_IN = 1;
@@ -47,12 +52,12 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final String TEST_ENCODING = "rtc";
     private static final boolean TEST_ECHO = true;
     private static final SerialModbusConfiguration TEST_SERIAL_COMPLETE_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).baudRate(TEST_BAUD_RATE)
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).baudRate(TEST_BAUD_RATE)
                     .flowControlIn(TEST_FLOW_CONTROL_IN).flowControlOut(TEST_FLOW_CONTROL_OUT).dataBits(TEST_DATA_BITS)
                     .stopBits(TEST_STOP_BITS).parity(TEST_PARITY).encoding(TEST_ENCODING).echo(TEST_ECHO)
                     .timeout(TEST_TIMEOUT).build();
     private static final SerialModbusConfiguration TEST_SERIAL_DEFAULT_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).build();
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).build();
 
     @Mock
     private ModbusMasterManager mockedModbusMasterManager;
@@ -68,25 +73,24 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     public void testLoadTCPCompleteConfiguration() {
         Dictionary<String, String>  tcpCompleteConfiguration = new Hashtable<>();
         tcpCompleteConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
-        tcpCompleteConfiguration.put(ADDRESS_PROPERTY_NAME, TEST_ADDRESS);
-        tcpCompleteConfiguration.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         tcpCompleteConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
         tcpCompleteConfiguration.put(RECONNECT_PROPERTY_NAME, Boolean.toString(TEST_RECONNECT));
+        tcpCompleteConfiguration.put(CONNECTIONS_PROPERTY_NAME, TEST_CONNECT_PROPERTY_FULL);
 
         testConfigHandler.loadConfiguration(tcpCompleteConfiguration);
 
-        verify(mockedModbusMasterFactory).createTCPModbusMaster(eq(TEST_TCP_COMPLETE_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createTCPModbusMaster(TEST_TCP_COMPLETE_CONFIGURATION);
     }
 
     @Test
     public void testLoadTCPMinimumConfiguration() {
         Dictionary<String, String>  tcpRequiredConfiguration = new Hashtable<>();
         tcpRequiredConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
-        tcpRequiredConfiguration.put(ADDRESS_PROPERTY_NAME, TEST_ADDRESS);
+        tcpRequiredConfiguration.put(CONNECTIONS_PROPERTY_NAME, TEST_CONNECT_PROPERTY_MIN);
 
         testConfigHandler.loadConfiguration(tcpRequiredConfiguration);
 
-        verify(mockedModbusMasterFactory).createTCPModbusMaster(eq(TEST_TCP_DEFAULT_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createTCPModbusMaster(TEST_TCP_DEFAULT_CONFIGURATION);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -99,39 +103,39 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
 
         testConfigHandler.loadConfiguration(tcpInvalidConfiguration);
 
-        verify(mockedModbusMasterFactory).createTCPModbusMaster(eq(TEST_TCP_COMPLETE_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createTCPModbusMaster(TEST_TCP_COMPLETE_CONFIGURATION);
     }
 
     @Test
     public void testLoadUDPCompleteConfiguration() {
         Dictionary<String, String>  udpCompleteConfiguration = new Hashtable<>();
         udpCompleteConfiguration.put(TYPE_PROPERTY_NAME, UDP_MODBUS_TYPE);
-        udpCompleteConfiguration.put(ADDRESS_PROPERTY_NAME, TEST_ADDRESS);
-        udpCompleteConfiguration.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         udpCompleteConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
+        udpCompleteConfiguration.put(CONNECTIONS_PROPERTY_NAME, TEST_CONNECT_PROPERTY_FULL);
 
         testConfigHandler.loadConfiguration(udpCompleteConfiguration);
 
-        verify(mockedModbusMasterFactory).createUDPModbusMaster(eq(TEST_UDP_COMPLETE_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createUDPModbusMaster(TEST_UDP_COMPLETE_CONFIGURATION);
     }
 
     @Test
     public void testLoadUDPMinimumConfiguration() {
         Dictionary<String, String>  udpRequiredConfiguration = new Hashtable<>();
         udpRequiredConfiguration.put(TYPE_PROPERTY_NAME, UDP_MODBUS_TYPE);
-        udpRequiredConfiguration.put(ADDRESS_PROPERTY_NAME, TEST_ADDRESS);
+        udpRequiredConfiguration.put(CONNECTIONS_PROPERTY_NAME, TEST_CONNECT_PROPERTY_MIN);
 
         testConfigHandler.loadConfiguration(udpRequiredConfiguration);
 
-        verify(mockedModbusMasterFactory).createUDPModbusMaster(eq(TEST_UDP_DEFAULT_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createUDPModbusMaster(TEST_UDP_DEFAULT_CONFIGURATION);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testLoadUDPInvalidConfiguration() {
         Dictionary<String, String>  udpInvalidConfiguration = new Hashtable<>();
-        udpInvalidConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
+        udpInvalidConfiguration.put(TYPE_PROPERTY_NAME, UDP_MODBUS_TYPE);
         udpInvalidConfiguration.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         udpInvalidConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
+        udpInvalidConfiguration.put(DEVICE_ID, TEST_DEVICE_ID);
 
         testConfigHandler.loadConfiguration(udpInvalidConfiguration);
     }
@@ -140,7 +144,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     public void testLoadSerialCompleteConfiguration() {
         Dictionary<String, String>  serialCompleteConfiguration = new Hashtable<>();
         serialCompleteConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
-        serialCompleteConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
+        serialCompleteConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY);
         serialCompleteConfiguration.put(BAUD_RATE_PROPERTY_NAME, Integer.toString(TEST_BAUD_RATE));
         serialCompleteConfiguration.put(FLOW_CONTROL_IN_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_IN));
         serialCompleteConfiguration.put(FLOW_CONTROL_OUT_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_OUT));
@@ -153,18 +157,18 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
 
         testConfigHandler.loadConfiguration(serialCompleteConfiguration);
 
-        verify(mockedModbusMasterFactory).createSerialModbusMaster(eq(TEST_SERIAL_COMPLETE_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createSerialModbusMaster(TEST_SERIAL_COMPLETE_CONFIGURATION);
     }
 
     @Test
     public void testLoadSerialMinimumConfiguration() {
         Dictionary<String, String>  serialRequiredConfiguration = new Hashtable<>();
         serialRequiredConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
-        serialRequiredConfiguration.put(PORT_NAME_PROPERTY_NAME, TEST_PORT_NAME);
+        serialRequiredConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY);
 
         testConfigHandler.loadConfiguration(serialRequiredConfiguration);
 
-        verify(mockedModbusMasterFactory).createSerialModbusMaster(eq(TEST_SERIAL_DEFAULT_CONFIGURATION));
+        verify(mockedModbusMasterFactory).createSerialModbusMaster(TEST_SERIAL_DEFAULT_CONFIGURATION);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -192,7 +196,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     }
 
     @Test(expected = ConfigurationException.class)
-    public void testLoadDefaultConfigurationNotAllowed() throws Exception {
+    public void testLoadDefaultConfigurationNotAllowed() {
         testConfigHandler.loadDefaultConfiguration();
     }
 
@@ -202,6 +206,6 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedModbusMasterManager).loadConfiguration(eq(Collections.singletonList(mockedModbusMaster)));
+        verify(mockedModbusMasterManager).loadConfiguration(Collections.singletonList(mockedModbusMaster));
     }
 }

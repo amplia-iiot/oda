@@ -7,6 +7,7 @@ import lombok.Value;
 @Builder
 public class UpdateConfiguration {
 	String rulesPath;
+	String rulesUtilsPath;
 	String backupPath;
 	String deployPath;
 	String downloadsPath;

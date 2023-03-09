@@ -2,7 +2,7 @@ package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.State;
-import jdk.nashorn.api.scripting.NashornScriptEngine;
+import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +15,12 @@ import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
@@ -52,12 +55,14 @@ public class NashornScriptTranslatorTest {
 		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
 		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 		String root = new File(".").getCanonicalPath();
+		Whitebox.setInternalState(testTranslator, "jsUtilsPath", root + "/src/test/");
 		File ruleFilToCreate = new File(root + "/src/test/rule.js");
 		ruleFilToCreate.createNewFile();
 		FileOutputStream output = new FileOutputStream(root + "/src/test/rule.js");
 		output.write(42);
 
-		testTranslator.initScript(root + "/src/test/rule.js");
+		String script = root + "/src/test/rule.js";
+		testTranslator.initScript(script);
 
 		verify(mockedEngine).eval("*");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
@@ -70,7 +75,8 @@ public class NashornScriptTranslatorTest {
 		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
 		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 
-		testTranslator.initScript("none file to do the test");
+		String script = "none file to do the test";
+		testTranslator.initScript(script);
 
 		verify(mockedEngine).eval("");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
@@ -97,7 +103,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethod() throws ScriptException, NoSuchMethodException {
+	public void testRunMethod() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
@@ -112,7 +118,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethodScriptException() throws ScriptException, NoSuchMethodException {
+	public void testRunMethodScriptException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
@@ -127,7 +133,7 @@ public class NashornScriptTranslatorTest {
 	}
 
 	@Test
-	public void testRunMethodNoMethodException() throws ScriptException, NoSuchMethodException {
+	public void testRunMethodNoMethodException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("nashorn");
@@ -139,5 +145,53 @@ public class NashornScriptTranslatorTest {
 		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
 
 		assertEquals(mockedState, state);
+	}
+
+	@Test
+	public void testReplaceLoadPath() throws ScriptException, IOException {
+
+		String root = new File(".").getCanonicalPath() + "/src/test/java/rules/";
+		Whitebox.setInternalState(testTranslator, "jsUtilsPath", root + "jsUtils/");
+
+		// rule file
+		String rulePath = root + "rule";
+		Files.createDirectories(Paths.get(rulePath));
+		String ruleName = rulePath + "/rule.js";
+		File ruleFile = new File(ruleName);
+		ruleFile.createNewFile();
+		FileWriter fileWriter = new FileWriter(ruleName);
+		fileWriter.write("load(\"utils.js\");\n function nothing(a, b) \n {return a}");
+		fileWriter.close();
+
+		// js utils file
+		String jsUtilsPath = root + "/jsUtils";
+		Files.createDirectories(Paths.get(jsUtilsPath));
+		String jsUtilsName = jsUtilsPath + "/utils.js";
+		File jsUtilsFile = new File(jsUtilsName);
+		jsUtilsFile.createNewFile();
+
+		// launch method
+		testTranslator.initScript(ruleName);
+
+		// test condition
+		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
+
+		// clean files created
+		ruleFile.delete();
+		jsUtilsFile.delete();
+		Files.delete(Paths.get(rulePath));
+		Files.delete(Paths.get(jsUtilsPath));
+		Files.delete(Paths.get(root));
+	}
+
+	@Test
+	public void testLoadConfiguration() throws Exception {
+		String root = new File(".").getCanonicalPath() + "/src/test/java/rules/";
+		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/rules/testDirectory")
+				.utilsPath(root + "/src/test/java/rules/testDirectory").build();
+
+		testTranslator.loadConfiguration(config);
+
+		assertEquals(Whitebox.getInternalState(testTranslator, "jsUtilsPath"), root + "/src/test/java/rules/testDirectory");
 	}
 }

@@ -8,8 +8,10 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.script.ScriptException;
+import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -25,7 +27,7 @@ public class RuleTest {
 
 	@Test
 	public void testConstructor() throws ScriptException {
-		testRule = new Rule("Norma", "Presión", mockedTranslator);
+		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 
 		verify(mockedTranslator).initScript("Norma");
 	}
@@ -34,13 +36,13 @@ public class RuleTest {
 	public void testConstructorException() throws ScriptException {
 		doThrow(new ScriptException("")).when(mockedTranslator).initScript(anyString());
 
-		testRule = new Rule("Norma", "Presión", mockedTranslator);
+		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 	}
 	
 	@Test
 	public void testWhen() throws ScriptException {
 		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(true);
-		testRule = new Rule("Norma", "Presión", mockedTranslator);
+		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 
 		boolean result = testRule.when(mockedState, testDatastreamValue);
@@ -51,7 +53,7 @@ public class RuleTest {
 	@Test
 	public void testThen() throws ScriptException {
 		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(mockedState);
-		testRule = new Rule("Norma", "Presión", mockedTranslator);
+		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
 
 		State result = testRule.then(mockedState, testDatastreamValue);

@@ -2,6 +2,7 @@ package es.amplia.oda.ruleengine.nashorn.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
+import es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.RuleEngineNashorn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +16,17 @@ public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandle
 	private static final Logger LOGGER = LoggerFactory.getLogger(RuleEngineConfigurationHandler.class);
 
 	private static final String PATH_PROPERTY_NAME = "path";
+	private static final String UTILS_PATH_PROPERTY_NAME = "utilsPath";
+
 
 	private RuleEngineConfiguration config;
 	RuleEngineNashorn ruleEngine;
+	NashornScriptTranslator scriptTranslator;
 
-	public RuleEngineConfigurationHandler(RuleEngineNashorn ruleEngine) {
+
+	public RuleEngineConfigurationHandler(RuleEngineNashorn ruleEngine, NashornScriptTranslator scriptTranslator) {
 		this.ruleEngine = ruleEngine;
+		this.scriptTranslator = scriptTranslator;
 	}
 
 	@Override
@@ -31,6 +37,8 @@ public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandle
 
 		builder.path(Optional.ofNullable((String) props.get(PATH_PROPERTY_NAME))
 				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.utilsPath(Optional.ofNullable((String) props.get(UTILS_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
 
 		config = builder.build();
 
@@ -39,6 +47,7 @@ public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandle
 
 	@Override
 	public void applyConfiguration() {
+		this.scriptTranslator.loadConfiguration(this.config);
 		this.ruleEngine.loadConfiguration(this.config);
 	}
 

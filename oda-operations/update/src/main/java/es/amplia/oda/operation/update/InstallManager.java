@@ -19,5 +19,5 @@ public interface InstallManager {
 
     void clearInstalledDeploymentElements();
 
-    void loadConfig(String rulesPath, String deployPath, String configurationPath);
+    void loadConfig(String rulesPath, String rulesUtilsPath, String deployPath, String configurationPath);
 }

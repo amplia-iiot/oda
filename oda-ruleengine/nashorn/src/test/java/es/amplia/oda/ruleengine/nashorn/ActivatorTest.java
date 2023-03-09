@@ -55,7 +55,7 @@ public class ActivatorTest {
 
 		verifyNew(NashornScriptTranslator.class).withNoArguments();
 		verifyNew(RuleEngineNashorn.class).withArguments(eq(mockedTranslator));
-		verifyNew(RuleEngineConfigurationHandler.class).withArguments(eq(mockedRuleEngine));
+		verifyNew(RuleEngineConfigurationHandler.class).withArguments(eq(mockedRuleEngine), eq(mockedTranslator));
 		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedRuleEngineHandler));
 	}
 

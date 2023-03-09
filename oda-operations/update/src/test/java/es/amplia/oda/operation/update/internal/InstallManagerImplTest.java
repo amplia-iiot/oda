@@ -30,6 +30,7 @@ public class InstallManagerImplTest {
     private static final String LOCAL_FILE = "path/to/element/to/install.jar";
     private static final String PATH_TO_BACKUP_JAR = "path/to/backup.jar";
     private static final String PATH_TO_RULES = "rules/";
+    private static final String PATH_TO_RULES_UTILS = "jslib/";
     private static final String PATH_TO_SOFTWARE = "deploy/";
     private static final String PATH_TO_CONFIGURATION = "configuration/";
     private static final String INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME = "installedDeploymentElements";
@@ -85,7 +86,7 @@ public class InstallManagerImplTest {
         installedOperations.put(uninstallSoftwareElement, uninstallSoftwareOperation);
         spiedInstalledElements = spy(installedOperations);
 
-        testInstallManager.loadConfig(PATH_TO_RULES, PATH_TO_SOFTWARE, PATH_TO_CONFIGURATION);
+        testInstallManager.loadConfig(PATH_TO_RULES, PATH_TO_RULES_UTILS, PATH_TO_SOFTWARE, PATH_TO_CONFIGURATION);
     }
 
     @Test
@@ -115,15 +116,17 @@ public class InstallManagerImplTest {
     public void testInstallInstallSoftware() throws InstallException, DeploymentElementOperationException {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedEmptyInstalledElements);
 
-        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(), anyString()))
+        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(),
+                anyString(), anyString()))
                 .thenReturn(installSoftwareOperation);
 
         testInstallManager.install(installSoftwareElement, LOCAL_FILE);
 
-        verify(mockedFactory).createDeploymentElementOperation (eq(installSoftwareElement),
-                                                                eq(LOCAL_FILE),
-                                                                eq(PATH_TO_SOFTWARE),
-                                                                eq(PATH_TO_RULES));
+        verify(mockedFactory).createDeploymentElementOperation(eq(installSoftwareElement),
+                eq(LOCAL_FILE),
+                eq(PATH_TO_SOFTWARE),
+                eq(PATH_TO_RULES),
+                eq(PATH_TO_RULES_UTILS));
         verify(installSoftwareOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(installSoftwareElement), eq(installSoftwareOperation));
     }
@@ -132,15 +135,16 @@ public class InstallManagerImplTest {
     public void testInstallUpgradeConfiguration() throws InstallException, DeploymentElementOperationException {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedEmptyInstalledElements);
 
-        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(), anyString()))
-                .thenReturn(upgradeConfigurationOperation);
+        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString()
+                , anyString(), anyString())).thenReturn(upgradeConfigurationOperation);
 
         testInstallManager.install(upgradeConfigurationElement, LOCAL_FILE);
 
-        verify(mockedFactory).createDeploymentElementOperation (eq(upgradeConfigurationElement),
-                                                                eq(LOCAL_FILE),
-                                                                eq(PATH_TO_CONFIGURATION),
-                                                                eq(PATH_TO_RULES));
+        verify(mockedFactory).createDeploymentElementOperation(eq(upgradeConfigurationElement),
+                eq(LOCAL_FILE),
+                eq(PATH_TO_CONFIGURATION),
+                eq(PATH_TO_RULES),
+                eq(PATH_TO_RULES_UTILS));
         verify(upgradeConfigurationOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(upgradeConfigurationElement), eq(upgradeConfigurationOperation));
     }
@@ -149,15 +153,16 @@ public class InstallManagerImplTest {
     public void testInstallUninstallSoftware() throws InstallException, DeploymentElementOperationException {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedEmptyInstalledElements);
 
-        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(), anyString()))
-                .thenReturn(uninstallSoftwareOperation);
+        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(),
+                anyString(), anyString())).thenReturn(uninstallSoftwareOperation);
 
         testInstallManager.install(uninstallSoftwareElement, LOCAL_FILE);
 
         verify(mockedFactory).createDeploymentElementOperation(eq(uninstallSoftwareElement),
                 eq(LOCAL_FILE),
                 eq(PATH_TO_SOFTWARE),
-                eq(PATH_TO_RULES));
+                eq(PATH_TO_RULES),
+                eq(PATH_TO_RULES_UTILS));
         verify(uninstallSoftwareOperation).execute();
         verify(spiedEmptyInstalledElements).put(eq(uninstallSoftwareElement), eq(uninstallSoftwareOperation));
     }
@@ -166,8 +171,8 @@ public class InstallManagerImplTest {
     public void testInstallInstallSoftwareException() throws InstallException, DeploymentElementOperationException {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedInstalledElements);
 
-        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(), anyString()))
-                .thenReturn(installSoftwareOperation);
+        when(mockedFactory.createDeploymentElementOperation(any(DeploymentElement.class), anyString(), anyString(),
+                anyString(), anyString())).thenReturn(installSoftwareOperation);
         doThrow(new DeploymentElementOperationException("")).when(installSoftwareOperation).execute();
 
         try {

@@ -21,6 +21,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     private static final Logger LOGGER = LoggerFactory.getLogger(RuleEngineNashorn.class);
 
     private String path;
+    private String jsUtilsPath;
     private HashMap<String, Rule> rules;
     private HashMap<String, DirectoryWatcher> watcher;
 
@@ -34,23 +35,29 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     public void loadConfiguration(RuleEngineConfiguration config) {
         this.path = config.getPath();
+        this.jsUtilsPath = config.getUtilsPath();
         this.rules = new HashMap<>();
         this.watcher = new HashMap<>();
 
         prepareMainDirectory();
+        prepareJsUtilsDirectory();
 
         started = true;
     }
 
     @Override
     public synchronized State engine(State state, DatastreamValue value) {
-        if (started && this.watcher.get(this.path + value.getDatastreamId()) != null) {
-            List<String> rulesOfDatastream = rules.keySet().stream()
-                    .filter(rulename -> rulename.contains(this.path + value.getDatastreamId()))
+        if (started) {
+
+            List<String> rulesOfDatastream = rules.values().stream()
+                    .filter(rule -> rule.getDatastreamIds().contains(value.getDatastreamId()))
+                    .map(Rule::getName)
                     .collect(Collectors.toList());
+
             for (String rule : rulesOfDatastream) {
                 try {
                     if (rules.get(rule).when(state, value)) {
+                        LOGGER.info("Applying rule {} to datastream {}", rule, value.getDatastreamId());
                         state = rules.get(rule).then(state, value);
                     }
                 } catch (ClassCastException e) {
@@ -76,12 +83,13 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     @Override
     public void deleteDatastreamDirectory(String datastreamId) {
-        if (this.watcher.get(datastreamId) != null) {
-            this.watcher.get(datastreamId).stop();
-            this.watcher.remove(datastreamId);
+        String fullPath = this.path + datastreamId;
+        if (this.watcher.get(fullPath) != null) {
+            this.watcher.get(fullPath).stop();
+            this.watcher.remove(fullPath);
             List<String> keys = new ArrayList<>(this.rules.keySet());
             for (String key : keys) {
-                if (key.contains(path + datastreamId)) {
+                if (key.contains(fullPath)) {
                     this.rules.remove(key);
                 }
             }
@@ -92,17 +100,15 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     @Override
     public void createRule(String nameRule) {
         File f = new File(nameRule);
-        if(f.isFile()) {
-            int index = nameRule.lastIndexOf('/');
-            String datastreamId = "";
+        if (f.isFile()) {
+            int index = nameRule.lastIndexOf(FileSystems.getDefault().getSeparator());
+            String dirName = "";
 
             if (index != -1) {
-                datastreamId = nameRule.substring(0, index);
+                dirName = nameRule.substring(0, index);
             }
 
-            datastreamId = datastreamId.replaceFirst("rules/", "");
-
-            initRuleScript(datastreamId, nameRule);
+            initRuleScript(dirName, nameRule);
             LOGGER.info("Created rule {}", nameRule);
         }
     }
@@ -147,11 +153,54 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         LOGGER.info("Created directory {} for a new datastream", dir);
     }
 
-    private void initRuleScript(String datastreamId, String nameRule) {
+    private void prepareJsUtilsDirectory() {
+        this.watcher.put(this.jsUtilsPath, new RulesUtilsDirectoryWatcher(Paths.get(this.jsUtilsPath), this));
+        this.watcher.get(this.jsUtilsPath).start();
+    }
+
+    @Override
+    public void reloadAllRules() {
+
         try {
-            this.rules.put(nameRule, new Rule(nameRule, datastreamId, script));
+            Stream<Path> pathStreamDirectory = Files.list(Paths.get(this.path))
+                    .filter(filePath -> filePath.toFile().isDirectory());
+            List<String> directories = pathStreamDirectory.map(Path::toString).collect(Collectors.toList());
+            directories.forEach(this::reloadRules);
+
+            pathStreamDirectory.close();
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    private void reloadRules(String dir) {
+        try (Stream<Path> pathStreamFiles = Files.list(Paths.get(dir)).filter(filePath -> filePath.toFile().isFile())) {
+            List<String> files = pathStreamFiles.map(Path::toString).filter(file -> file.endsWith(".js"))
+                    .collect(Collectors.toList());
+
+            for (String file : files) {
+                initRuleScript(dir, file);
+            }
+        } catch (IOException e) {
+            LOGGER.error(e.getMessage());
+        }
+
+        LOGGER.info("Reloaded rules in directory {}", dir);
+    }
+
+    private void initRuleScript(String dirName, String nameRule) {
+
+        // the name of the directory where the rules are stored are the ids of the datastreams affected
+        // the datastreamIds are separated by ":"
+        String currentPath = this.path;
+        List<String> datastreamIds = Arrays.asList(dirName.substring(
+                        dirName.indexOf(currentPath) + currentPath.length())
+                .split(":"));
+
+        try {
+            this.rules.put(nameRule, new Rule(nameRule, datastreamIds, script));
         } catch (ScriptException e) {
-            LOGGER.error("Cannot init rule {}: {}", nameRule, e.getMessage());
+           LOGGER.error("Cannot init rule {}: {}", nameRule, e.getMessage());
         }
     }
 

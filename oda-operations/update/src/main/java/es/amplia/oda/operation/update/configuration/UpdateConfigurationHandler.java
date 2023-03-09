@@ -15,6 +15,7 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateConfigurationHandler.class);
 
 	static final String RULES_PATH_PROPERTY_NAME = "rulesPath";
+	static final String RULES_UTILS_PATH_PROPERTY_NAME = "rulesUtilsPath";
 	static final String BACKUP_PATH_PROPERTY_NAME = "backupPath";
 	static final String DEPLOY_PATH_PROPERTY_NAME = "deployPath";
 	static final String DOWNLOADS_PATH_PROPERTY_NAME = "downloadsPath";
@@ -34,6 +35,8 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 		UpdateConfiguration.UpdateConfigurationBuilder builder = UpdateConfiguration.builder();
 
 		builder.rulesPath(Optional.ofNullable((String) props.get(RULES_PATH_PROPERTY_NAME))
+				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+		builder.rulesUtilsPath(Optional.ofNullable((String) props.get(RULES_UTILS_PATH_PROPERTY_NAME))
 				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
 		builder.backupPath(Optional.ofNullable((String) props.get(BACKUP_PATH_PROPERTY_NAME))
 				.orElseThrow(() ->  missingPathExceptionSupplier().get()));

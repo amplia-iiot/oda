@@ -1,6 +1,7 @@
 package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.ruleengine.api.ScriptTranslator;
+import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,14 +18,25 @@ public class NashornScriptTranslator implements ScriptTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator.class);
     private static final String ENGINE_NAME = "nashorn";
+    private String jsUtilsPath;
 
     private HashMap<String,ScriptEngine> engines = new HashMap<>();
+
+    public void loadConfiguration(RuleEngineConfiguration config) {
+        this.jsUtilsPath = config.getUtilsPath();
+    }
 
     @Override
     public void initScript(String script) throws ScriptException {
         ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName(ENGINE_NAME);
+
+        // all rules will have preloaded all the functions from utils.js
+        engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+
+        // load rule
         engine.eval(readFile(script));
+
         engines.put(script, engine);
     }
 
@@ -41,7 +53,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
         } catch (ScriptException e) {
             LOGGER.error("Error trying to execute script {} method {}", script, method);
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Method {}} doesn't exists on scipt {}", method, script);
+            LOGGER.error("Method {} doesn't exists on script {}", method, script);
         }
         return params[0];
     }
@@ -57,14 +69,35 @@ public class NashornScriptTranslator implements ScriptTranslator {
             StringBuilder scriptContent = new StringBuilder();
 
             while (script.hasNext()) {
-                scriptContent.append(script.nextLine());
+                scriptContent.append(replaceLoadPath(script.nextLine()));
             }
 
-            script.close();
-
             return scriptContent.toString();
-        } catch (FileNotFoundException ignored) {
+        } catch (FileNotFoundException e) {
+            LOGGER.error("File not found {}", file);
+
         }
         return "";
+    }
+
+    private String replaceLoadPath(String stringToCheck) {
+        // if rule contains lines to load another javascript, its path must be added
+        // load("script.js") lines must be treated to add the path where script.js is stored
+        // final result will be load("jslib/script.js")
+        String loadString = "load(";
+
+        if (stringToCheck.startsWith(loadString)) {
+
+            // If javascript to load is util.js, return empty string
+            // This adds compatibility with older versions where utils.js wasn't loaded internally
+            if (stringToCheck.contains("/utils.js")) {
+                return "";
+            }
+
+            String jsToLoad = stringToCheck.substring(stringToCheck.indexOf(loadString) + loadString.length() + 1);
+            return loadString + "\"" + jsUtilsPath + jsToLoad;
+        }
+
+        return stringToCheck;
     }
 }

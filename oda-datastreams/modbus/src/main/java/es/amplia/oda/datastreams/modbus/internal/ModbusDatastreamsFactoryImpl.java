@@ -1,6 +1,6 @@
 package es.amplia.oda.datastreams.modbus.internal;
 
-import es.amplia.oda.core.commons.modbus.ModbusMaster;
+import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusDatastreamsFactory;
 import es.amplia.oda.datastreams.modbus.ModbusType;
 
@@ -13,9 +13,11 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
     private final ModbusWriteOperatorProcessor writeOperatorProcessor;
 
 
-    public ModbusDatastreamsFactoryImpl(ModbusMaster modbusMaster) {
-        this.readOperatorProcessor = new ModbusReadOperatorProcessor(modbusMaster, new ModbusTypeToJavaTypeConverter());
-        this.writeOperatorProcessor = new ModbusWriteOperatorProcessor(modbusMaster, new JavaTypeToModbusTypeConverter());
+    public ModbusDatastreamsFactoryImpl(ModbusConnectionsFinder modbusConnectionsFinder) {
+        this.readOperatorProcessor = new ModbusReadOperatorProcessor(modbusConnectionsFinder,
+                new ModbusTypeToJavaTypeConverter());
+        this.writeOperatorProcessor = new ModbusWriteOperatorProcessor(modbusConnectionsFinder,
+                new JavaTypeToModbusTypeConverter());
     }
 
     @Override

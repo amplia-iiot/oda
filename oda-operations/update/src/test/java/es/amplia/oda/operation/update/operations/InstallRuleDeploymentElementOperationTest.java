@@ -2,8 +2,6 @@ package es.amplia.oda.operation.update.operations;
 
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
-
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +15,6 @@ import java.util.Collections;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
-
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
@@ -42,8 +39,8 @@ public class InstallRuleDeploymentElementOperationTest {
 
     @Before
     public void setUp() {
-        testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE, PATH_TO_RULES_FILE,
-                mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+        testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE,
+                PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
     @AfterClass

@@ -23,15 +23,15 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class UpgradeRuleDeploymentElementOperationTest {
 
-    private static final String TEST_NAME = "testBundle";
+    private static final String TEST_NAME = "testRule";
     private static final String TEST_VERSION = "1.0.0";
     private static final DeploymentElement UPGRADE_DEPLOYMENT_ELEMENT =
             new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "", 1L,
                     DeploymentElementOperationType.UPGRADE, Collections.EMPTY_LIST,
                     0L, "0.0.9", DeploymentElementOption.MANDATORY);
-    private static final String LOCAL_FILE = "path/to/local/file.jar";
-    private static final String PATH_TO_BACKUP_JAR = "path/to/backup.jar";
-    private static final String PATH_TO_UPGRADED_JAR = "path/to/upgraded.jar";
+    private static final String LOCAL_FILE = "path/to/rules/rule.js";
+    private static final String PATH_TO_BACKUP_JAR = "path/to/backup.js";
+    private static final String PATH_TO_UPGRADED_JAR = "path/to/upgraded.js";
     private static final String PATH_TO_RULES_FILE = "path/to/rules/rule";
     private static final String PATH_TO_RULES = "path/to/rules";
 
@@ -47,8 +47,8 @@ public class UpgradeRuleDeploymentElementOperationTest {
 
     @Before
     public void setUp() {
-        testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, PATH_TO_RULES_FILE,
-                mockedFileManager, mockedOperationConfirmationProcessor, PATH_TO_RULES);
+        testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT,
+                LOCAL_FILE, PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
     @After
@@ -77,7 +77,7 @@ public class UpgradeRuleDeploymentElementOperationTest {
         testUpgradeOperation.executeSpecificOperation(mockedFileManager);
 
         verify(mockedFileManager).delete(eq(oldVersion));
-        verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE + ".js"));
+        verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
     }
 
     @Test(expected = DeploymentElementOperationException.class)
@@ -94,7 +94,7 @@ public class UpgradeRuleDeploymentElementOperationTest {
         String oldVersion = "/path/to/last/version";
 
         when(mockedFileManager.find(eq(PATH_TO_RULES_FILE), eq(TEST_NAME))).thenReturn(oldVersion);
-        doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE + ".js"));
+        doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
 
         testUpgradeOperation.executeSpecificOperation(mockedFileManager);
 

@@ -26,6 +26,7 @@ public class ModbusMasterFactoryTest {
     private static final int TEST_PORT = 12345;
     private static final int TEST_TIMEOUT = 10000;
     private static final boolean TEST_RECONNECT = true;
+    private static final String TEST_DEVICE_ID = "deviceId";
     private static final String TEST_PORT_NAME = "testPort";
     private static final int TEST_BAUD_RATE = 38400;
     private static final int TEST_FLOW_CONTROL_IN = 1;
@@ -38,11 +39,12 @@ public class ModbusMasterFactoryTest {
 
     private static final TCPModbusMasterConfiguration TEST_TCP_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .reconnect(TEST_RECONNECT).build();
+                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_CONFIGURATION =
-            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT).build();
+            UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
+                    .deviceId(TEST_DEVICE_ID).build();
     private static final SerialModbusConfiguration TEST_SERIAL_CONFIGURATION =
-            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).baudRate(TEST_BAUD_RATE)
+            SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).baudRate(TEST_BAUD_RATE)
                     .flowControlIn(TEST_FLOW_CONTROL_IN).flowControlOut(TEST_FLOW_CONTROL_OUT)
                     .dataBits(TEST_DATA_BITS).stopBits(TEST_STOP_BITS).parity(TEST_PARITY).echo(TEST_ECHO)
                     .encoding(TEST_ENCODING).timeout(TEST_TIMEOUT).build();

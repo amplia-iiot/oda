@@ -55,7 +55,7 @@ class ModbusDatastreamsSetter implements DatastreamsSetter {
             int slaveAddress = Optional.ofNullable(devicesIdSlaveAddressMapper.get(device))
                     .orElseThrow(() -> new IllegalArgumentException("Unknown device identifier"));
             LOGGER.info("Setting value {} to datastream {} of device {}", value, datastreamId, device);
-            writeOperatorProcessor.write(datastreamType, dataType, slaveAddress, dataAddress, value);
+            writeOperatorProcessor.write(device, datastreamType, dataType, slaveAddress, dataAddress, value);
             return null;
         });
     }
