@@ -81,10 +81,7 @@
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
         </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.statemanager</groupId>
-            <artifactId>api</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>es.amplia.oda.event</groupId>
             <artifactId>api</artifactId>

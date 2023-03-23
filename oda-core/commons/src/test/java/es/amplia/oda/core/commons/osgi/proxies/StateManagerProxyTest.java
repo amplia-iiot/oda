@@ -1,10 +1,9 @@
-package es.amplia.oda.statemanager.api;
+package es.amplia.oda.core.commons.osgi.proxies;
 
-import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.Event;
-
+import es.amplia.oda.core.commons.utils.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,8 +44,7 @@ public class StateManagerProxyTest {
     private OsgiServiceProxy<StateManager> mockedProxy;
     @Mock
     private StateManager mockedStateManager;
-    @Mock
-    private EventHandler mockedEventHandler;
+
     @Captor
     private ArgumentCaptor<Function<StateManager, CompletableFuture<DatastreamValue>>>
             datastreamValueFutureFunctionCaptor;
@@ -152,26 +150,6 @@ public class StateManagerProxyTest {
                 datastreamsValueFutureFunctionCaptor.getValue();
         capturedFunction.apply(mockedStateManager);
         verify(mockedStateManager).setDatastreamValues(eq(TEST_DEVICE_ID), eq(datastreamValues));
-    }
-
-    @Test
-    public void testRegisterToEvents() {
-        testProxy.registerToEvents(mockedEventHandler);
-
-        verify(mockedProxy).consumeFirst(stateManagerConsumerCaptor.capture());
-        Consumer<StateManager> consumer = stateManagerConsumerCaptor.getValue();
-        consumer.accept(mockedStateManager);
-        verify(mockedStateManager).registerToEvents(eq(mockedEventHandler));
-    }
-
-    @Test
-    public void testUnregisterToEvents() {
-        testProxy.unregisterToEvents(mockedEventHandler);
-
-        verify(mockedProxy).consumeFirst(stateManagerConsumerCaptor.capture());
-        Consumer<StateManager> consumer = stateManagerConsumerCaptor.getValue();
-        consumer.accept(mockedStateManager);
-        verify(mockedStateManager).unregisterToEvents(eq(mockedEventHandler));
     }
 
     @Test

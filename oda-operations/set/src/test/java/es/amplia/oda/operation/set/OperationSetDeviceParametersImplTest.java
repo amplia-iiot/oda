@@ -1,9 +1,9 @@
 package es.amplia.oda.operation.set;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.StateManager;
 
 import lombok.Value;
 import org.junit.Test;

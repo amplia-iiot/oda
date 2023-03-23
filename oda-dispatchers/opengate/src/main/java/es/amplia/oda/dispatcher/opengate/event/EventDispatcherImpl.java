@@ -3,8 +3,8 @@ package es.amplia.oda.dispatcher.opengate.event;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.Event;
 import es.amplia.oda.event.api.EventDispatcher;
 
 import org.slf4j.Logger;

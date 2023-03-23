@@ -1,5 +1,6 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
+import es.amplia.oda.core.commons.utils.Event;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,7 +8,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.event.Event;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -15,10 +15,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static es.amplia.oda.core.commons.utils.Events.*;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -40,21 +40,20 @@ public class EventPublisherProxyTest {
     private EventPublisherProxy testEventPublisher;
 
     @Mock
-    private EventAdminProxy mockedEventAdmin;
+    private StateManagerProxy mockedStateManager;
 
     @Captor
-    private ArgumentCaptor<Event> eventCaptor;
+    private ArgumentCaptor<List<Event>> eventCaptor;
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.whenNew(EventAdminProxy.class).withAnyArguments().thenReturn(mockedEventAdmin);
-
+        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
         testEventPublisher = new EventPublisherProxy(mockedContext);
     }
 
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(EventAdminProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
     }
 
     @Test
@@ -67,30 +66,29 @@ public class EventPublisherProxyTest {
         events.put(TEST_DATASTREAM_ID, event1);
         events.put(TEST_DATASTREAM_ID_2, event2);
 
+        // call method
         testEventPublisher.publishEvents(TEST_DEVICE_ID, TEST_PATH, events);
 
-        verify(mockedEventAdmin).sendEvent(eventCaptor.capture());
-        Event capturedEvent = eventCaptor.getValue();
-        assertNotNull(capturedEvent.getProperty("events"));
-        assertEquals(2, ((List) capturedEvent.getProperty("events")).size());
-        Map<String, Object> event1Received = ((Map)((List) capturedEvent.getProperty("events")).get(0));
-        assertEquals(TEST_DEVICE_ID, event1Received.get(DEVICE_ID_PROPERTY_NAME));
-        assertEquals(TEST_PATH, event1Received.get(PATH_PROPERTY_NAME));
-        assertEquals(TEST_DATASTREAM_ID, event1Received.get(DATASTREAM_ID_PROPERTY_NAME));
-        assertEquals(TEST_AT, event1Received.get(AT_PROPERTY_NAME));
-        assertEquals(TEST_VALUE, event1Received.get(VALUE_PROPERTY_NAME));
-        Map<String, Object> event2Received = ((Map)((List) capturedEvent.getProperty("events")).get(1));
-        assertEquals(TEST_DEVICE_ID, event2Received.get(DEVICE_ID_PROPERTY_NAME));
-        assertEquals(TEST_PATH, event2Received.get(PATH_PROPERTY_NAME));
-        assertEquals(TEST_DATASTREAM_ID_2, event2Received.get(DATASTREAM_ID_PROPERTY_NAME));
-        assertNull(event2Received.get(AT_PROPERTY_NAME));
-        assertEquals(TEST_VALUE_2, event2Received.get(VALUE_PROPERTY_NAME));
+        // assertions
+        verify(mockedStateManager).onReceivedEvents(eventCaptor.capture());
+        List<Event> capturedEvents = eventCaptor.getValue();
+        assertEquals(2, capturedEvents.size());
+        assertEquals(TEST_DEVICE_ID, capturedEvents.get(0).getDeviceId());
+        assertEquals(TEST_PATH,  capturedEvents.get(0).getPath());
+        assertEquals(TEST_DATASTREAM_ID,  capturedEvents.get(0).getDatastreamId());
+        assertEquals(Optional.ofNullable(TEST_AT), Optional.ofNullable(capturedEvents.get(0).getAt()));
+        assertEquals(TEST_VALUE,  capturedEvents.get(0).getValue());
+        assertEquals(TEST_DEVICE_ID, capturedEvents.get(1).getDeviceId());
+        assertEquals(TEST_PATH, capturedEvents.get(1).getPath());
+        assertEquals(TEST_DATASTREAM_ID_2, capturedEvents.get(1).getDatastreamId());
+        assertNull(capturedEvents.get(1).getAt());
+        assertEquals(TEST_VALUE_2, capturedEvents.get(1).getValue());
     }
 
     @Test
     public void testClose() {
         testEventPublisher.close();
 
-        verify(mockedEventAdmin).close();
+        verify(mockedStateManager).close();
     }
 }

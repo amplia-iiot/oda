@@ -1,4 +1,4 @@
-package es.amplia.oda.event.api;
+package es.amplia.oda.core.commons.utils;
 
 import lombok.NonNull;
 import lombok.ToString;

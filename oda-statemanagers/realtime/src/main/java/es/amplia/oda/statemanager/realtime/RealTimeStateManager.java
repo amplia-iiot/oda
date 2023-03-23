@@ -2,18 +2,13 @@ package es.amplia.oda.statemanager.realtime;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.Event;
+import es.amplia.oda.core.commons.interfaces.StateManager;
+import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcher;
-import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.EventHandler;
-import es.amplia.oda.statemanager.api.StateManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -26,18 +21,15 @@ class RealTimeStateManager implements StateManager {
 
     private final DatastreamsGettersFinder datastreamsGettersFinder;
     private final DatastreamsSettersFinder datastreamsSettersFinder;
-    private final EventHandler eventHandler;
     private final EventDispatcher eventDispatcher;
 
 
     RealTimeStateManager(DatastreamsGettersFinder datastreamsGettersFinder,
                          DatastreamsSettersFinder datastreamsSettersFinder,
-                         EventHandler eventHandler, EventDispatcher eventDispatcher) {
+                        EventDispatcher eventDispatcher) {
         this.datastreamsGettersFinder = datastreamsGettersFinder;
         this.datastreamsSettersFinder = datastreamsSettersFinder;
-        this.eventHandler = eventHandler;
         this.eventDispatcher = eventDispatcher;
-        registerToEvents(eventHandler);
     }
 
     @Override
@@ -218,16 +210,6 @@ class RealTimeStateManager implements StateManager {
     }
 
     @Override
-    public void registerToEvents(EventHandler eventHandler) {
-        eventHandler.registerStateManager(this);
-    }
-
-    @Override
-    public void unregisterToEvents(EventHandler eventHandler) {
-        eventHandler.unregisterStateManager();
-    }
-
-    @Override
     public void onReceivedEvents(List<Event> event) {
         publishValues(event);
     }
@@ -239,6 +221,6 @@ class RealTimeStateManager implements StateManager {
 
     @Override
     public void close() {
-        unregisterToEvents(eventHandler);
+
     }
 }

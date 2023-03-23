@@ -1,11 +1,11 @@
 package es.amplia.oda.subsystem.collector;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.Event;
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-import es.amplia.oda.statemanager.api.StateManager;
 
 import java.util.List;
 import java.util.Set;

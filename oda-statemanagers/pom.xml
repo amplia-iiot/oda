@@ -16,7 +16,6 @@
     </parent>
 
     <modules>
-        <module>api</module>
         <module>realtime</module>
         <module>inmemory</module>
     </modules>

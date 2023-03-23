@@ -1,9 +1,9 @@
 package es.amplia.oda.operation.synchronizeclock;
 
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
 import es.amplia.oda.operation.synchronizeclock.configuration.SynchronizeConfigurationHandler;
-import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

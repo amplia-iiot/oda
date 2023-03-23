@@ -4,7 +4,6 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.utils.*;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;

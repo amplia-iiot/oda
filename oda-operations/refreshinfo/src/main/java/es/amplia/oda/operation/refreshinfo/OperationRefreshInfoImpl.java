@@ -1,10 +1,9 @@
 package es.amplia.oda.operation.refreshinfo;
 
-import es.amplia.oda.event.api.Event;
-import es.amplia.oda.operation.api.OperationGetDeviceParameters;
+import es.amplia.oda.core.commons.interfaces.StateManager;
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.StateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

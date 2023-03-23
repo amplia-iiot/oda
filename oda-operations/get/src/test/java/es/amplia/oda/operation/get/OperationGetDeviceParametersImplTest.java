@@ -1,8 +1,8 @@
 package es.amplia.oda.operation.get;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.StateManager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

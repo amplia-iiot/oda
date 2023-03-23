@@ -1,10 +1,10 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.EventCollector;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.Event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
