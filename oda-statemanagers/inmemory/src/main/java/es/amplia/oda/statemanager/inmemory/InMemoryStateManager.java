@@ -37,6 +37,9 @@ public class InMemoryStateManager implements StateManager {
     private DatabaseHandler database;
     private final ExecutorService executor;
 
+    private int maxHistoricalData;
+    private long forgetTime;
+
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
                          RuleEngine ruleEngine, Serializer serializer, ExecutorService executor) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
@@ -101,6 +104,9 @@ public class InMemoryStateManager implements StateManager {
         }
         Map<Long, Boolean> datapoints = database.getDatapointsSentValue(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId());
         state.setSent(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), datapoints);
+        // remove historic values stored in memory
+        state.removeHistoricStoredValues(datastreamInfo.getDatastreamId(),datastreamInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
+        // get values to publish
         Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
         Stream<DatastreamValue> returnStream = supplier.get();
         supplier.get()
@@ -243,6 +249,8 @@ public class InMemoryStateManager implements StateManager {
     }
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
+        this.forgetTime = config.getForgetTime();
+        this.maxHistoricalData = config.getMaxData();
         this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
         Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
         this.state.loadData(collectData);

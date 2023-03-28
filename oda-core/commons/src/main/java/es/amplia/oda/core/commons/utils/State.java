@@ -1,11 +1,16 @@
 package es.amplia.oda.core.commons.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class State {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(State.class);
     private Map<DatastreamInfo, DatastreamState> datastreams;
 
     private static class DatastreamState {
@@ -73,6 +78,21 @@ public class State {
         public void clearRefreshedAndImmediately() {
             this.sendImmediately = false;
             this.refreshed = false;
+        }
+
+        public void removeHistoricStoredValues(long forgetTime, int maxHistoricalData) {
+            long time = System.currentTimeMillis() - forgetTime;
+
+            List<DatastreamValue> oldValuesByDate = this.storedValues.stream()
+                    .filter(value -> value.getAt() <= time)
+                    .collect(Collectors.toList());
+
+            this.storedValues.removeAll(oldValuesByDate);
+
+            if (this.storedValues.size() > maxHistoricalData) {
+                List<DatastreamValue> oldValuesByMaxNumber = this.storedValues.subList(0, this.storedValues.size() - maxHistoricalData);
+                this.storedValues.removeAll(oldValuesByMaxNumber);
+            }
         }
     }
 
@@ -208,19 +228,16 @@ public class State {
             .flatMap(dsInfo -> this.datastreams.get(dsInfo).getNotSentValues());
     }
 
-    public List<DatastreamValue> getNotSentValues(DatastreamInfo datastreamInfo) {
-        DatastreamState state = this.datastreams.get(datastreamInfo);
-        if (state != null) {
-            List<DatastreamValue> values = state.getStoredValues().stream().filter(value -> !value.isSent()).collect(Collectors.toList());
-            if (!values.isEmpty()) {
-                return values;
-            }
-        }
-        return createNotFoundValueArray(datastreamInfo);
-    }
-
     public void setSent(String deviceId, String datastreamId, Map<Long, Boolean> values) {
         values.forEach((at, sent) -> this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent));
+    }
+
+    public void removeHistoricStoredValues(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {
+        DatastreamState state = this.datastreams.get(new DatastreamInfo(deviceId, datastreamId));
+
+        if (state != null) {
+            state.removeHistoricStoredValues(forgetTime, maxHistoricData);
+        }
     }
 
     /**
