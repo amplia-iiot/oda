@@ -48,7 +48,8 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 
 		assertEquals(DATABASE_PATH_PROPERTY_VALUE, ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getDatabasePath());
 		assertEquals(Integer.parseInt(MAX_DATA_PROPERTY_VALUE), ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getMaxData());
-		assertEquals(Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE), ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetTime());
+		assertEquals(Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE) * 1000,
+				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetTime());
 	}
 
 	@Test

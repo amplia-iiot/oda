@@ -104,8 +104,6 @@ public class InMemoryStateManager implements StateManager {
         }
         Map<Long, Boolean> datapoints = database.getDatapointsSentValue(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId());
         state.setSent(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), datapoints);
-        // remove historic values stored in memory
-        state.removeHistoricStoredValues(datastreamInfo.getDatastreamId(),datastreamInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
         // get values to publish
         Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
         Stream<DatastreamValue> returnStream = supplier.get();
@@ -226,6 +224,8 @@ public class InMemoryStateManager implements StateManager {
                         LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
                     }
                 }
+                // remove old values stored in memory
+                state.removeHistoricStoredValues(dsInfo.getDatastreamId(),dsInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
             }
             this.state.clearRefreshedAndImmediately();
             LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());

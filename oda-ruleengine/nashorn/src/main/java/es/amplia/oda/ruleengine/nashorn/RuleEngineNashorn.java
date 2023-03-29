@@ -67,8 +67,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         }
 
         state = checkRefreshedDatastream(state, value);
-        LOGGER.info("Refreshed value of state");
-        LOGGER.debug("Refreshed value of state with the datastream value {}", value);
+        LOGGER.info("Refreshed value of state with the datastream value {}", value);
 
         return state;
     }
