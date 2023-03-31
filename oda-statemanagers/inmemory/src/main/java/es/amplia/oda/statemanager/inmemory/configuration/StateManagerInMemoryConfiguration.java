@@ -9,4 +9,5 @@ public class StateManagerInMemoryConfiguration {
 	String databasePath;
 	int maxData;
 	long forgetTime;
+	long forgetPeriod;
 }

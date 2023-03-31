@@ -24,6 +24,8 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 	public static final String DATABASE_PATH_PROPERTY_VALUE = "/123/fake/street";
 	public static final String MAX_DATA_PROPERTY_VALUE = "123";
 	public static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "600";
+	public static final String PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "10";
+
 
 	@Mock
 	public InMemoryStateManager mockedStateManager;
@@ -34,7 +36,8 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 			new StateManagerInMemoryConfiguration(
 					DATABASE_PATH_PROPERTY_VALUE,
 					Integer.parseInt(MAX_DATA_PROPERTY_VALUE),
-					Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE)
+					Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
+					Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE)
 			);
 
 	@Test
@@ -43,13 +46,16 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 		props.put(DATABASE_PATH_PROPERTY_NAME, DATABASE_PATH_PROPERTY_VALUE);
 		props.put(MAX_DATA_PROPERTY_NAME, MAX_DATA_PROPERTY_VALUE);
 		props.put(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME, TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE);
+		props.put(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_NAME, PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE);
 
 		testConfigHandler.loadConfiguration(props);
 
 		assertEquals(DATABASE_PATH_PROPERTY_VALUE, ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getDatabasePath());
 		assertEquals(Integer.parseInt(MAX_DATA_PROPERTY_VALUE), ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getMaxData());
-		assertEquals(Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE) * 1000,
+		assertEquals(Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
 				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetTime());
+		assertEquals(Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
+				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetPeriod());
 	}
 
 	@Test
@@ -58,6 +64,6 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 
 		testConfigHandler.applyConfiguration();
 
-		verify(this.mockedStateManager).loadConfiguration(eq(config));
+		verify(this.mockedStateManager).loadConfiguration(config);
 	}
 }

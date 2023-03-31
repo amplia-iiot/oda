@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.statemanager.DatabaseException;
 import es.amplia.oda.core.commons.statemanager.SQLStatements;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.statemanager.inmemory.derby.DerbyStatements;
 import org.apache.derby.iapi.services.io.FileUtil;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseHandler.class);
@@ -28,7 +30,7 @@ public class DatabaseHandler {
 	DatatypesUtils datatypesUtils;
 	SQLStatements statements = new DerbyStatements();
 
-	public DatabaseHandler(String databasePath, Serializer serializer, int maxData, long forgetTime) {
+	public DatabaseHandler(String databasePath, Serializer serializer, Scheduler scheduler, int maxData, long forgetTime, long forgetPeriod) {
 		this.path = databasePath;
 		this.serializer = serializer;
 		this.maxHistoricalData = maxData;
@@ -39,6 +41,10 @@ public class DatabaseHandler {
 		} else {
 			connectDatabase();
 		}
+
+		// create a periodical task to delete old data from database
+		scheduler.clear();
+		scheduler.schedule(this::deleteOldHistoricData, forgetPeriod, forgetPeriod, TimeUnit.SECONDS);
 	}
 
 	private void createDatabase() {
@@ -59,17 +65,16 @@ public class DatabaseHandler {
 	}
 
 	private void connectDatabase() {
-		Statement stmt = null;
+		Statement stmt;
 		try {
 			LOGGER.info("Starting connection with the local database");
 			Class.forName(statements.getDriverClassName());
 			connection = DriverManager.getConnection(statements.getProtocolUrlDatabase() + path + statements.getExtraOptions());
 			stmt = connection.createStatement();
 			ResultSet resultSet = stmt.executeQuery(statements.getQueryToGetTables());
-			if(resultSet.next() && resultSet.getString(1).equalsIgnoreCase("state")) {
+			if (resultSet.next() && resultSet.getString(1).equalsIgnoreCase("state")) {
 				LOGGER.info("Table state exists, connection was established");
-			}
-			else {
+			} else {
 				restartTryOfConnect();
 			}
 			LOGGER.info("Connection with the database achieved");
@@ -93,7 +98,9 @@ public class DatabaseHandler {
 		Statement stmt = null;
 		try {
 			stmt = connection.createStatement();
-			ResultSet result = stmt.executeQuery(statements.getObtainStoredDataStatement());
+			String partialStatement = statements.getObtainStoredDataStatement();
+			ResultSet result = stmt.executeQuery(partialStatement);
+			LOGGER.debug("Executing query {}", partialStatement);
 			Map<DatastreamInfo, List<DatastreamValue>> map = generateMapOfData(result);
 			stmt.close();
 			result.close();
@@ -115,14 +122,15 @@ public class DatabaseHandler {
 		PreparedStatement prstmt = null;
 		ResultSet result = null;
 		try {
-			prstmt = connection.prepareStatement(statements.getCountRowsOfADatastreamStatement());
+			String partialStatement = statements.getCountRowsOfADatastreamStatement();
+			prstmt = connection.prepareStatement(partialStatement);
 			datatypesUtils.insertParameter(prstmt, 1, deviceId);
 			datatypesUtils.insertParameter(prstmt, 2, datastreamId);
 			result = prstmt.executeQuery();
+			LOGGER.debug("Executing query {} with parameters {}, {}", partialStatement, deviceId, datastreamId);
 			if(result.next()) {
 				return result.getInt("count");
-			}
-			else {
+			} else {
 				throw new SQLException();
 			}
 		} catch (SQLException e) {
@@ -143,14 +151,15 @@ public class DatabaseHandler {
 	}
 
 	public Map<Long, Boolean> getDatapointsSentValue(String deviceId, String datastreamId) {
-		deleteOldHistoricData();
 		PreparedStatement stmt = null;
 		ResultSet result = null;
 		try {
-			stmt = connection.prepareStatement(statements.getUpdateIsDataSent());
+			String partialStatement = statements.getUpdateIsDataSent();
+			stmt = connection.prepareStatement(partialStatement);
 			stmt.setString(1, deviceId);
 			stmt.setString(2, datastreamId);
 			result = stmt.executeQuery();
+			LOGGER.debug("Executing query {} with parameters {}, {}", partialStatement, deviceId, datastreamId);
 			Map<Long, Boolean> datapoints = new HashMap<>();
 			while (result.next()) {
 				long at = result.getLong("at");
@@ -203,6 +212,7 @@ public class DatabaseHandler {
 		try {
 			stmt = connection.createStatement();
 			stmt.executeUpdate(sql);
+			LOGGER.debug("Executing query {} ", sql);
 		} catch (SQLException e) {
 			LOGGER.error("Error trying to update the table: {}", e.getSQLState());
 		} finally {
@@ -253,6 +263,7 @@ public class DatabaseHandler {
 			for (int i = 1; i <= parameters.size(); i++) {
 				datatypesUtils.insertParameter(prstmt, i, parameters.get(i-1));
 			}
+			LOGGER.debug("Executing query {} with parameters {}", sql, parameters);
 			return prstmt.executeUpdate();
 		} catch (SQLException throwables) {
 			LOGGER.error("Impossible execute the update: {}", sql);
@@ -281,11 +292,14 @@ public class DatabaseHandler {
 		PreparedStatement prstmt = null;
 		ResultSet result = null;
 		try {
-			prstmt = connection.prepareStatement(statements.getSelectRowNOfADatastreamStatement());
+			String partialStatement = statements.getSelectRowNOfADatastreamStatement();
+			prstmt = connection.prepareStatement(partialStatement);
 			prstmt.setString(1, deviceId);
 			prstmt.setString(2, datastreamId);
 			prstmt.setInt(3, maxHistoricalData - 1);
 			result = prstmt.executeQuery();
+			LOGGER.debug("Executing query {} with parameters {}, {}, {}", partialStatement,
+					deviceId, datastreamId, maxHistoricalData - 1);
 			if (result.next()) {
 				long at = result.getLong("at");
 				result.close();
@@ -320,10 +334,12 @@ public class DatabaseHandler {
 	}
 
 	private void deleteOldHistoricData() {
-		long time = System.currentTimeMillis();
-		time -= (this.forgetTime);
-		List<Object> params = new ArrayList<>();
-		params.add(time);
+		// delete by datastream datetime
+		// remove datastreams whose datetime it's older than forgettime
+		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
+
+		// prepare and execute query
+		List<Object> params = Collections.singletonList(maxTimeToRetain);
 		preparedUpdate(statements.getDeleteOlderDataFromDatabaseStatement(), params);
 	}
 

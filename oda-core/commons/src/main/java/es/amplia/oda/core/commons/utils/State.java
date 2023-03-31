@@ -81,7 +81,7 @@ public class State {
         }
 
         public void removeHistoricStoredValues(long forgetTime, int maxHistoricalData) {
-            long time = System.currentTimeMillis() - forgetTime;
+            long time = System.currentTimeMillis() - (forgetTime * 1000);
 
             List<DatastreamValue> oldValuesByDate = this.storedValues.stream()
                     .filter(value -> value.getAt() <= time)
@@ -279,6 +279,12 @@ public class State {
         List<DatastreamInfo> storedValues = new ArrayList<>();
         this.datastreams.forEach((info, state) -> storedValues.add(info));
         return storedValues;
+    }
+
+    public Map<DatastreamInfo, DatastreamState> getStoredValuesToSendImmediately() {
+        return this.datastreams.entrySet().stream()
+                .filter(datastreamEntry -> datastreamEntry.getValue().sendImmediately)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**

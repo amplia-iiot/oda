@@ -28,13 +28,18 @@ public class Activator implements BundleActivator {
     private static final int NUM_THREADS = 10;
     private static final int MAX_SIZE_THREADS_QUEUE = 1000;
 
+    private Scheduler scheduler;
+    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
     @Override
     public void start(BundleContext bundleContext) {
         LOGGER.info("In Memory State Manager is starting");
 
-        // create threads pool
+        // create threads pool to process events received
         ExecutorService executor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS,
                 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(MAX_SIZE_THREADS_QUEUE));
+        // create scheduler to manage periodic tasks
+        scheduler = new SchedulerImpl(executorService);
         ServiceLocator<DatastreamsSetter> datastreamsSettersLocator =
                 new ServiceLocatorOsgi<>(bundleContext, DatastreamsSetter.class);
         datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
@@ -42,7 +47,7 @@ public class Activator implements BundleActivator {
         ruleEngine = new RuleEngineProxy(bundleContext);
         SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
         InMemoryStateManager inMemoryStateManager =
-                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor);
+                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler);
         ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationUpdateHandler);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);
@@ -59,6 +64,7 @@ public class Activator implements BundleActivator {
         datastreamsSettersFinder.close();
         ruleEngine.close();
         eventDispatcher.close();
+        scheduler.close();
 
         LOGGER.info("In Memory State Manager is stopped");
     }

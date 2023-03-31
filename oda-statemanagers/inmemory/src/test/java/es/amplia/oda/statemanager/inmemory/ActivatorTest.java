@@ -4,9 +4,7 @@ import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
-import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
-import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
+import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfigurationHandler;
@@ -54,6 +52,9 @@ public class ActivatorTest {
     private StateManagerInMemoryConfigurationHandler mockedConfigHandler;
     @Mock
     private ThreadPoolExecutor mockedExecutorService;
+    @Mock
+    private SchedulerImpl mockedScheduler;
+
 
 
     @Test
@@ -67,13 +68,15 @@ public class ActivatorTest {
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedBundle);
         PowerMockito.whenNew(StateManagerInMemoryConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ThreadPoolExecutor.class).withAnyArguments().thenReturn(mockedExecutorService);
+        PowerMockito.whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
         PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSetterLocator));
         PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder),
-                eq(mockedEventDispatcherProxy), eq(mockedRuleEngine), eq(mockedSerializer), eq(mockedExecutorService));
+                eq(mockedEventDispatcherProxy), eq(mockedRuleEngine), eq(mockedSerializer),
+                eq(mockedExecutorService), eq(mockedScheduler));
         PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
         PowerMockito.verifyNew(StateManagerInMemoryConfigurationHandler.class).withArguments(eq(mockedStateManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
@@ -87,6 +90,7 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "ruleEngine", mockedRuleEngine);
         Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcherProxy);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedBundle);
+        Whitebox.setInternalState(testActivator, "scheduler", mockedScheduler);
 
         testActivator.stop(mockedContext);
 
@@ -95,5 +99,6 @@ public class ActivatorTest {
         verify(mockedRegistration).unregister();
         verify(mockedSettersFinder).close();
         verify(mockedRuleEngine).close();
+        verify(mockedScheduler).close();
     }
 }
