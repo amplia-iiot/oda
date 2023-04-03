@@ -37,16 +37,18 @@ public class InMemoryStateManager implements StateManager {
     private DatabaseHandler database;
     private final ExecutorService executor;
 
+    private Scheduler scheduler;
     private int maxHistoricalData;
     private long forgetTime;
 
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
-                         RuleEngine ruleEngine, Serializer serializer, ExecutorService executor) {
+                         RuleEngine ruleEngine, Serializer serializer, ExecutorService executor, Scheduler scheduler) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
         this.ruleEngine = ruleEngine;
         this.serializer = serializer;
         this.executor = executor;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -204,15 +206,21 @@ public class InMemoryStateManager implements StateManager {
         List<Event> eventsToSendImmediately = new ArrayList<>();
         for (Event event : events) {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
+            LOGGER.info("Processing new event {}", dsValue);
+            // apply rules
             this.ruleEngine.engine(this.state, dsValue);
+            // check all datastreams stored in memory
+            // rules can alter any datastream in memory so we have to check all
             List<DatastreamInfo> datastreams = this.state.getStoredValues();
             for (DatastreamInfo dsInfo : datastreams) {
+                // if this combination of datastreamId and deviceID must be sent inmediately
                 if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
                     DatastreamValue toPublishValue = state.getLastValue(dsInfo);
                     event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
                     toPublishValue.setSent(true);
                     eventsToSendImmediately.add(event);
                 }
+                // if this combination of datastreamId and deviceID has been refreshed (modified by rules)
                 if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
                         && this.database != null && this.database.exists()) {
                     try {
@@ -228,7 +236,6 @@ public class InMemoryStateManager implements StateManager {
                 state.removeHistoricStoredValues(dsInfo.getDatastreamId(),dsInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
             }
             this.state.clearRefreshedAndImmediately();
-            LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
         }
         publishValues(eventsToSendImmediately);
     }
@@ -251,7 +258,9 @@ public class InMemoryStateManager implements StateManager {
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
         this.forgetTime = config.getForgetTime();
         this.maxHistoricalData = config.getMaxData();
-        this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
+        this.database = new DatabaseHandler(config.getDatabasePath(), serializer, scheduler,
+                config.getMaxData(), config.getForgetTime(), config.getForgetPeriod());
+        // get from database the datastreams stored and load it into memory
         Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
         this.state.loadData(collectData);
     }

@@ -15,12 +15,15 @@ public class StateManagerInMemoryConfigurationTest {
 	private static final String PATH_FIELD_VALUE = "/country/road/to/home/";
 	private static final int MAX_DATA_FIELD_VALUE = 100;
 	private static final long FORGET_TIME_FIELD_NAME = 2020;
+	private static final long FORGET_PERIOD_FIELD_NAME = 10;
+
 
 	private StateManagerInMemoryConfiguration testConfiguration;
 
 	@Before
 	public void setup() {
-		testConfiguration = new StateManagerInMemoryConfiguration(PATH_FIELD_VALUE, MAX_DATA_FIELD_VALUE, FORGET_TIME_FIELD_NAME);
+		testConfiguration = new StateManagerInMemoryConfiguration(PATH_FIELD_VALUE, MAX_DATA_FIELD_VALUE,
+				FORGET_TIME_FIELD_NAME, FORGET_PERIOD_FIELD_NAME);
 	}
 
 	@Test
@@ -37,4 +40,7 @@ public class StateManagerInMemoryConfigurationTest {
 	public void testGetForgetTime() {
 		assertEquals(FORGET_TIME_FIELD_NAME, testConfiguration.getForgetTime());
 	}
+
+	@Test
+	public void testGetForgetPeriod() {assertEquals(FORGET_PERIOD_FIELD_NAME, testConfiguration.getForgetPeriod());}
 }
