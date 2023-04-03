@@ -1,7 +1,7 @@
 package es.amplia.oda.operation.refreshinfo;
 
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
-import es.amplia.oda.statemanager.api.StateManagerProxy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -2,11 +2,9 @@ package es.amplia.oda.statemanager.realtime;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
-import es.amplia.oda.statemanager.api.EventHandler;
-import es.amplia.oda.statemanager.api.OsgiEventHandler;
-import es.amplia.oda.statemanager.api.StateManager;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -22,7 +20,6 @@ public class Activator implements BundleActivator {
     private DatastreamsGettersFinder datastreamsGettersFinder;
     private DatastreamsSettersFinder datastreamsSettersFinder;
     private EventDispatcherProxy eventDispatcher;
-    private EventHandler eventHandler;
     private ServiceRegistration<StateManager> registration;
 
     @Override
@@ -35,9 +32,8 @@ public class Activator implements BundleActivator {
                 new ServiceLocatorOsgi<>(bundleContext, DatastreamsSetter.class);
         datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
         eventDispatcher = new EventDispatcherProxy(bundleContext);
-        eventHandler = new OsgiEventHandler(bundleContext);
         StateManager stateManager =
-                new RealTimeStateManager(datastreamsGettersFinder, datastreamsSettersFinder, eventHandler, eventDispatcher);
+                new RealTimeStateManager(datastreamsGettersFinder, datastreamsSettersFinder, eventDispatcher);
         registration = bundleContext.registerService(StateManager.class, stateManager, null);
         LOGGER.info("Realtime statemanager bundle started");
     }
@@ -48,7 +44,6 @@ public class Activator implements BundleActivator {
         registration.unregister();
         datastreamsGettersFinder.close();
         datastreamsSettersFinder.close();
-        eventHandler.close();
         eventDispatcher.close();
         LOGGER.info("Realtime statemanager bundle stopped");
     }

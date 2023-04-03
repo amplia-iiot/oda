@@ -1,23 +1,22 @@
 package es.amplia.oda.operation.setclock;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-import es.amplia.oda.statemanager.api.StateManager;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static es.amplia.oda.operation.setclock.OperationSetClockImpl.*;
-
-import static org.junit.Assert.*;
+import static es.amplia.oda.operation.setclock.OperationSetClockImpl.Result;
+import static es.amplia.oda.operation.setclock.OperationSetClockImpl.ResultCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)

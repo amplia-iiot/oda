@@ -83,10 +83,6 @@
             <artifactId>commons</artifactId>
         </dependency>
         <dependency>
-            <groupId>es.amplia.oda.statemanager</groupId>
-            <artifactId>api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>es.amplia.oda.ruleengine</groupId>
             <artifactId>api</artifactId>
         </dependency>

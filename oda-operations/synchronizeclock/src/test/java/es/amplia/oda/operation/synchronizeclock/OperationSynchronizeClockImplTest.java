@@ -1,24 +1,22 @@
 package es.amplia.oda.operation.synchronizeclock;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.StateManager;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static es.amplia.oda.operation.synchronizeclock.OperationSynchronizeClockImpl.*;
-import static es.amplia.oda.core.commons.utils.DatastreamValue.*;
-
+import static es.amplia.oda.core.commons.utils.DatastreamValue.Status;
+import static es.amplia.oda.operation.synchronizeclock.OperationSynchronizeClockImpl.Result;
+import static es.amplia.oda.operation.synchronizeclock.OperationSynchronizeClockImpl.ResultCode;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 

@@ -1,9 +1,9 @@
 package es.amplia.oda.operation.synchronizeclock;
 
+import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-import es.amplia.oda.statemanager.api.StateManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

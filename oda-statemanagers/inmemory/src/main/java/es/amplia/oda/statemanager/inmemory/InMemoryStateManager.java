@@ -2,26 +2,23 @@ package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
-import es.amplia.oda.core.commons.utils.DatastreamInfo;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.Event;
+import es.amplia.oda.core.commons.interfaces.StateManager;
+import es.amplia.oda.core.commons.utils.*;
+import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
-import es.amplia.oda.core.commons.utils.State;
-import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-import es.amplia.oda.statemanager.api.EventHandler;
-import es.amplia.oda.statemanager.api.StateManager;
-
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
 import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,20 +31,22 @@ public class InMemoryStateManager implements StateManager {
 
     private final DatastreamsSettersFinder datastreamsSettersFinder;
     private final EventDispatcher eventDispatcher;
-    private final EventHandler eventHandler;
     private final RuleEngine ruleEngine;
     private final Serializer serializer;
     private final State state = new State();
     private DatabaseHandler database;
+    private final ExecutorService executor;
+
+    private int maxHistoricalData;
+    private long forgetTime;
 
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
-                         EventHandler eventHandler, RuleEngine ruleEngine, Serializer serializer) {
+                         RuleEngine ruleEngine, Serializer serializer, ExecutorService executor) {
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
-        this.eventHandler = eventHandler;
         this.ruleEngine = ruleEngine;
         this.serializer = serializer;
-        registerToEvents(eventHandler);
+        this.executor = executor;
     }
 
     @Override
@@ -105,6 +104,7 @@ public class InMemoryStateManager implements StateManager {
         }
         Map<Long, Boolean> datapoints = database.getDatapointsSentValue(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId());
         state.setSent(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), datapoints);
+        // get values to publish
         Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
         Stream<DatastreamValue> returnStream = supplier.get();
         supplier.get()
@@ -200,13 +200,7 @@ public class InMemoryStateManager implements StateManager {
         );
     }
 
-    @Override
-    public void registerToEvents(EventHandler eventHandler) {
-        eventHandler.registerStateManager(this);
-    }
-
-    @Override
-    public synchronized void onReceivedEvents(List<Event> events) {
+    private synchronized void processEvents(List<Event> events) {
         List<Event> eventsToSendImmediately = new ArrayList<>();
         for (Event event : events) {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
@@ -230,6 +224,8 @@ public class InMemoryStateManager implements StateManager {
                         LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
                     }
                 }
+                // remove old values stored in memory
+                state.removeHistoricStoredValues(dsInfo.getDatastreamId(),dsInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
             }
             this.state.clearRefreshedAndImmediately();
             LOGGER.info("Registered event value {} to datastream {}", dsValue, event.getDatastreamId());
@@ -248,19 +244,27 @@ public class InMemoryStateManager implements StateManager {
     }
 
     @Override
-    public void unregisterToEvents(EventHandler eventHandler) {
-        eventHandler.unregisterStateManager();
-    }
-
-    @Override
     public void close() {
-        unregisterToEvents(eventHandler);
         database.close();
     }
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
+        this.forgetTime = config.getForgetTime();
+        this.maxHistoricalData = config.getMaxData();
         this.database = new DatabaseHandler(config.getDatabasePath(), serializer, config.getMaxData(), config.getForgetTime());
         Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
         this.state.loadData(collectData);
+    }
+
+    @Override
+    public void onReceivedEvents(List<Event> events) {
+        try {
+            executor.execute(() -> processEvents(events));
+            LOGGER.debug("Thread pool queue - pending tasks = {}, remaining capacity = {}",
+                    ((ThreadPoolExecutor) executor).getQueue().size(),
+                    ((ThreadPoolExecutor) executor).getQueue().remainingCapacity());
+        } catch (RejectedExecutionException e) {
+            LOGGER.error("Can't add task to thread pool, reached max size", e);
+        }
     }
 }

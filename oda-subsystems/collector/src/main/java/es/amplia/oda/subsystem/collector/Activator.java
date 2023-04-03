@@ -1,9 +1,9 @@
 package es.amplia.oda.subsystem.collector;
 
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.subsystem.collector.configuration.CollectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
-import es.amplia.oda.statemanager.api.StateManagerProxy;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;

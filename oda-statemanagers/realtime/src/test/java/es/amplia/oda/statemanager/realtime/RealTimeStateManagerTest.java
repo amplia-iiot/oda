@@ -2,13 +2,8 @@ package es.amplia.oda.statemanager.realtime;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
-import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
-import es.amplia.oda.core.commons.utils.DevicePattern;
-import es.amplia.oda.event.api.Event;
+import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcher;
-import es.amplia.oda.core.commons.utils.DatastreamValue;
-import es.amplia.oda.statemanager.api.EventHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -16,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -50,8 +46,6 @@ public class RealTimeStateManagerTest {
     @Mock
     private DatastreamsSettersFinder mockedSettersFinder;
     @Mock
-    private EventHandler mockedEventHandler;
-    @Mock
     private EventDispatcher mockedEventDispatcher;
     @InjectMocks
     private RealTimeStateManager testStateManager;
@@ -71,11 +65,6 @@ public class RealTimeStateManagerTest {
     @Mock
     private DatastreamsSetter mockedSetter4;
 
-
-    @Test
-    public void testConstructor() {
-        verify(mockedEventHandler).registerStateManager(eq(testStateManager));
-    }
 
     @Test
     public void testGetDatastreamInformation() throws ExecutionException, InterruptedException {
@@ -332,21 +321,6 @@ public class RealTimeStateManagerTest {
         verifyZeroInteractions(mockedSetter4);
     }
 
-    @Test
-    public void testRegisterToEvents() {
-        reset(mockedEventHandler);
-
-        testStateManager.registerToEvents(mockedEventHandler);
-
-        verify(mockedEventHandler).registerStateManager(eq(testStateManager));
-    }
-
-    @Test
-    public void testUnregisterToEvents() {
-        testStateManager.unregisterToEvents(mockedEventHandler);
-
-        verify(mockedEventHandler).unregisterStateManager();
-    }
 
     @Test
     public void testOnReceivedEvent() {
@@ -355,12 +329,5 @@ public class RealTimeStateManagerTest {
         testStateManager.onReceivedEvents(Collections.singletonList(event));
 
         verify(mockedEventDispatcher).publish(eq(Collections.singletonList(event)));
-    }
-
-    @Test
-    public void testClose() {
-        testStateManager.close();
-
-        verify(mockedEventHandler).unregisterStateManager();
     }
 }

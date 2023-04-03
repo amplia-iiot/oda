@@ -321,7 +321,7 @@ public class DatabaseHandler {
 
 	private void deleteOldHistoricData() {
 		long time = System.currentTimeMillis();
-		time -= (this.forgetTime * 1000);
+		time -= (this.forgetTime);
 		List<Object> params = new ArrayList<>();
 		params.add(time);
 		preparedUpdate(statements.getDeleteOlderDataFromDatabaseStatement(), params);

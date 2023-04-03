@@ -1,9 +1,8 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.Event;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +16,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 
-import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 

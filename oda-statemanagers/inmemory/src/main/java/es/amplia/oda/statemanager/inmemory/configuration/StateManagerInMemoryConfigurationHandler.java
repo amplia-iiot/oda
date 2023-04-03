@@ -34,7 +34,8 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 				.orElseThrow(() ->  new ConfigurationException("Builder Path is a required Parameter")));
 		builder.maxData(Optional.of(Integer.parseInt((String) props.get(MAX_DATA_PROPERTY_NAME)))
 				.orElseThrow(() ->  new ConfigurationException("Max Data is a required Parameter")));
-		builder.forgetTime(Optional.of(Long.parseLong((String) props.get(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME)))
+		// forget time in config file is in seconds
+		builder.forgetTime(Optional.of(Long.parseLong((String) props.get(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME)) * 1000)
 				.orElseThrow(() ->  new ConfigurationException("Forget Time is a required Parameter")));
 
 		config = builder.build();

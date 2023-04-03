@@ -3,10 +3,10 @@ package es.amplia.oda.dispatcher.opengate.event;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.Event;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +17,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.util.*;
 
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;

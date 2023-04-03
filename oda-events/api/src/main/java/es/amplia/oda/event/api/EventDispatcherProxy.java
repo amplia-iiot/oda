@@ -3,6 +3,7 @@ package es.amplia.oda.event.api;
 import es.amplia.oda.core.commons.osgi.proxies.InterceptorProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 
+import es.amplia.oda.core.commons.utils.Event;
 import org.osgi.framework.BundleContext;
 
 import java.util.List;

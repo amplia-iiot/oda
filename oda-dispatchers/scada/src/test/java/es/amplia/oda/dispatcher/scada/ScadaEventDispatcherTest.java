@@ -5,8 +5,8 @@ import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.DatastreamInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
-import es.amplia.oda.event.api.Event;
 
+import es.amplia.oda.core.commons.utils.Event;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
