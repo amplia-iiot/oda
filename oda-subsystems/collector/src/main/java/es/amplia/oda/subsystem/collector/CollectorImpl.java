@@ -6,12 +6,15 @@ import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 class CollectorImpl implements Collector {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CollectorImpl.class);
 
     private final StateManager stateManager;
     private final EventDispatcher eventDispatcher;
@@ -24,6 +27,9 @@ class CollectorImpl implements Collector {
 
     @Override
     public void collect(DevicePattern devicePattern, Set<String> datastreams) {
+        LOGGER.info("Collecting values for datastreamIds {}",
+                datastreams.stream().map(Object::toString).collect(Collectors.joining(",")));
+
         stateManager.getDatastreamsInformation(devicePattern, datastreams)
                 .thenApply(this::mapToEvents)
                 .thenAccept(this::publishEvents);

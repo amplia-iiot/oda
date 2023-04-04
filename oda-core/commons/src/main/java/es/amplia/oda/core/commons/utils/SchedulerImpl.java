@@ -25,10 +25,18 @@ public class SchedulerImpl implements Scheduler {
 
     @Override
     public void schedule(Runnable task, long initialDelay, long period, TimeUnit timeUnit) {
+        final Runnable taskWithExceptionCatching = () -> {
+            try {
+                task.run();
+            } catch ( Throwable t ) {  // Catch Throwable rather than Exception (a subclass).
+                LOGGER.error("Caught exception in ScheduledExecutorService. StackTrace: ", t);
+            }
+        };
+
         if (period == 0) {
-            tasks.add(executorService.schedule(task, initialDelay, timeUnit));
+            tasks.add(executorService.schedule(taskWithExceptionCatching, initialDelay, timeUnit));
         } else {
-            tasks.add(executorService.scheduleAtFixedRate(task, initialDelay, period, timeUnit));
+            tasks.add(executorService.scheduleAtFixedRate(taskWithExceptionCatching, initialDelay, period, timeUnit));
         }
     }
 

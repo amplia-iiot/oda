@@ -3,7 +3,8 @@ package es.amplia.oda.core.commons.utils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
@@ -12,8 +13,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import static es.amplia.oda.core.commons.utils.SchedulerImpl.*;
-
+import static es.amplia.oda.core.commons.utils.SchedulerImpl.STOP_PENDING_OPERATIONS_TIMEOUT;
+import static es.amplia.oda.core.commons.utils.SchedulerImpl.STOP_PENDING_OPERATIONS_TIME_UNIT;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,7 +55,7 @@ public class SchedulerImplTest {
 
         testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD, TEST_TIME_UNIT);
 
-        verify(mockedExecutor).scheduleAtFixedRate(eq(mockedRunnable), eq(TEST_DELAY), eq(TEST_PERIOD), eq(TEST_TIME_UNIT));
+        verify(mockedExecutor).scheduleAtFixedRate(any(Runnable.class), eq(TEST_DELAY), eq(TEST_PERIOD), eq(TEST_TIME_UNIT));
         verify(spiedTasks).add(eq(mockedScheduledFuture));
     }
 
@@ -66,7 +67,7 @@ public class SchedulerImplTest {
 
         testScheduler.schedule(mockedRunnable, TEST_DELAY, TEST_PERIOD_ONE_SCHEDULE, TEST_TIME_UNIT);
 
-        verify(mockedExecutor).schedule(eq(mockedRunnable), eq(TEST_DELAY), eq(TEST_TIME_UNIT));
+        verify(mockedExecutor).schedule(any(Runnable.class), eq(TEST_DELAY), eq(TEST_TIME_UNIT));
         verify(spiedTasks).add(eq(mockedScheduledFuture));
     }
 
