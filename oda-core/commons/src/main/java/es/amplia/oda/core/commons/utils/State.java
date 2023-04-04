@@ -80,7 +80,30 @@ public class State {
             this.refreshed = false;
         }
 
+        public void clearRefreshed() {
+            this.refreshed = false;
+        }
+
+        public void clearImmediately() {
+            this.sendImmediately = false;
+        }
+
         public void removeHistoricStoredValues(long forgetTime, int maxHistoricalData) {
+            // remove by max number
+            if (this.storedValues.size() > maxHistoricalData) {
+                removeHistoricalValuesByMaxNumber(maxHistoricalData);
+            }
+
+            // remove by date
+            removeHistoricalValuesByDate(forgetTime);
+        }
+
+        private void removeHistoricalValuesByMaxNumber(int maxHistoricalData) {
+            List<DatastreamValue> oldValuesByMaxNumber = this.storedValues.subList(0, this.storedValues.size() - maxHistoricalData);
+            this.storedValues.removeAll(oldValuesByMaxNumber);
+        }
+
+        private void removeHistoricalValuesByDate(long forgetTime) {
             long time = System.currentTimeMillis() - (forgetTime * 1000);
 
             List<DatastreamValue> oldValuesByDate = this.storedValues.stream()
@@ -88,11 +111,6 @@ public class State {
                     .collect(Collectors.toList());
 
             this.storedValues.removeAll(oldValuesByDate);
-
-            if (this.storedValues.size() > maxHistoricalData) {
-                List<DatastreamValue> oldValuesByMaxNumber = this.storedValues.subList(0, this.storedValues.size() - maxHistoricalData);
-                this.storedValues.removeAll(oldValuesByMaxNumber);
-            }
         }
     }
 
@@ -191,6 +209,14 @@ public class State {
         return false;
     }
 
+    public void clearRefreshed(String datastreamId, String deviceId) {
+        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).clearRefreshed();
+    }
+
+    public void clearSendImmediately(String datastreamId, String deviceId) {
+        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).clearImmediately();
+    }
+
     /**
      * Method that get the last value (that is the actual value) of the datastream with the specified id's.
      *
@@ -281,10 +307,14 @@ public class State {
         return storedValues;
     }
 
-    public Map<DatastreamInfo, DatastreamState> getStoredValuesToSendImmediately() {
-        return this.datastreams.entrySet().stream()
-                .filter(datastreamEntry -> datastreamEntry.getValue().sendImmediately)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    public List<DatastreamInfo> getStoredValuesToProcess() {
+        List<DatastreamInfo> list = new ArrayList<>();
+        for (Map.Entry<DatastreamInfo, DatastreamState> datastreamEntry : this.datastreams.entrySet()) {
+            if (datastreamEntry.getValue().sendImmediately || datastreamEntry.getValue().refreshed) {
+                list.add(datastreamEntry.getKey());
+            }
+        }
+        return list;
     }
 
     /**
@@ -326,7 +356,7 @@ public class State {
     /**
      * Method that reset both refreshed and sendImmediately maps
      */
-    public void clearRefreshedAndImmediately() {
+    public void clearAllRefreshedAndImmediately() {
         this.datastreams.forEach((info, state) -> state.clearRefreshedAndImmediately());
     }
 

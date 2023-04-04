@@ -204,41 +204,62 @@ public class InMemoryStateManager implements StateManager {
 
     private synchronized void processEvents(List<Event> events) {
         List<Event> eventsToSendImmediately = new ArrayList<>();
+
+        // for every event received
         for (Event event : events) {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
             LOGGER.info("Processing new event {}", dsValue);
+
             // apply rules
             this.ruleEngine.engine(this.state, dsValue);
-            // check all datastreams stored in memory
-            // rules can alter any datastream in memory so we have to check all
-            List<DatastreamInfo> datastreams = this.state.getStoredValues();
-            for (DatastreamInfo dsInfo : datastreams) {
-                // if this combination of datastreamId and deviceID must be sent inmediately
-                if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isToSendImmediately(dsInfo)) {
-                    DatastreamValue toPublishValue = state.getLastValue(dsInfo);
-                    event = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), event.getPath(), event.getAt(), toPublishValue.getValue());
-                    toPublishValue.setSent(true);
-                    eventsToSendImmediately.add(event);
+
+            // get all values to process (those marked as sendImmediately and/or refreshed)
+            // we need to do this because rules engine can alter everything, not just the event received
+            List<DatastreamInfo> valuesToProcess = this.state.getStoredValuesToProcess();
+            for (DatastreamInfo dsInfo : valuesToProcess) {
+                // get last value stored
+                DatastreamValue lastStoredValue = state.getLastValue(dsInfo);
+                if (state.isToSendImmediately(dsInfo)) {
+                    processEventToSendImmediately(event, lastStoredValue, eventsToSendImmediately);
                 }
-                // if this combination of datastreamId and deviceID has been refreshed (modified by rules)
-                if (state.exists(dsInfo.getDeviceId(), dsInfo.getDatastreamId()) && state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())
-                        && this.database != null && this.database.exists()) {
-                    try {
-                        DatastreamValue value = state.getLastValue(dsInfo);
-                        if (!this.database.insertNewRow(value)) {
-                            LOGGER.error("The value {} couldn't be stored into the database.", value);
-                        }
-                    } catch (IOException e) {
-                        LOGGER.error("Error trying to insert the new value for {} in device {}", dsInfo.getDatastreamId(), dsInfo.getDeviceId());
-                    }
+                if (state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())) {
+                    processEventRefreshed(lastStoredValue);
                 }
                 // remove old values stored in memory
-                state.removeHistoricStoredValues(dsInfo.getDatastreamId(),dsInfo.getDeviceId(), this.forgetTime, this.maxHistoricalData);
+                state.removeHistoricStoredValues(dsInfo.getDatastreamId(), dsInfo.getDeviceId(),
+                        this.forgetTime, this.maxHistoricalData);
             }
-            this.state.clearRefreshedAndImmediately();
         }
+        // publish values marked as sendImmediately
         publishValues(eventsToSendImmediately);
     }
+
+
+    private void processEventToSendImmediately(Event event, DatastreamValue lastStoredValue, List<Event> eventsToSendImmediately) {
+        event = new Event(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId(), event.getPath(),
+                event.getAt(), lastStoredValue.getValue());
+        lastStoredValue.setSent(true);
+        // add event to list to publish
+        eventsToSendImmediately.add(event);
+        // disable sendImmediately mark
+        state.clearSendImmediately(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+    }
+
+    private void processEventRefreshed(DatastreamValue lastStoredValue) {
+        if (this.database != null && this.database.exists()) {
+            try {
+                if (!this.database.insertNewRow(lastStoredValue)) {
+                    LOGGER.error("The value {} couldn't be stored into the database.", lastStoredValue);
+                }
+            } catch (IOException e) {
+                LOGGER.error("Error trying to insert the new value for {} in device {}",
+                        lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+            }
+            // disable refreshed mark
+            state.clearRefreshed(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+        }
+    }
+
 
     @Override
     public void publishValues(List<Event> event) {
