@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandler {
 
@@ -36,9 +35,9 @@ public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandle
 		RuleEngineConfiguration.RuleEngineConfigurationBuilder builder = RuleEngineConfiguration.builder();
 
 		builder.path(Optional.ofNullable((String) props.get(PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Rules path is a required parameter")));
 		builder.utilsPath(Optional.ofNullable((String) props.get(UTILS_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Rules utils path is a required parameter")));
 
 		config = builder.build();
 
@@ -49,9 +48,5 @@ public class RuleEngineConfigurationHandler implements ConfigurationUpdateHandle
 	public void applyConfiguration() {
 		this.scriptTranslator.loadConfiguration(this.config);
 		this.ruleEngine.loadConfiguration(this.config);
-	}
-
-	private Supplier<ConfigurationException> missingPathExceptionSupplier() {
-		return () -> new ConfigurationException("Missing require path for Rule Engine");
 	}
 }

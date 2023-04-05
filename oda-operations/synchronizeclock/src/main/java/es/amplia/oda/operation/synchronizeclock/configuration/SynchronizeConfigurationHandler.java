@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class SynchronizeConfigurationHandler implements ConfigurationUpdateHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizeConfigurationHandler.class);
@@ -29,7 +28,7 @@ public class SynchronizeConfigurationHandler implements ConfigurationUpdateHandl
 		SynchronizeConfiguration.SynchronizeConfigurationBuilder builder = SynchronizeConfiguration.builder();
 
 		builder.clockDatastream(Optional.ofNullable((String) props.get(CLOCK_DATASTREAM_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Clock datastream is a required parameter")));
 
 		config = builder.build();
 
@@ -39,9 +38,5 @@ public class SynchronizeConfigurationHandler implements ConfigurationUpdateHandl
 	@Override
 	public void applyConfiguration() {
 		this.operationSync.loadConfiguration(this.config.clockDatastream);
-	}
-
-	Supplier<ConfigurationException> missingPathExceptionSupplier() {
-		return () -> new ConfigurationException("Missing require path for Rule Engine");
 	}
 }

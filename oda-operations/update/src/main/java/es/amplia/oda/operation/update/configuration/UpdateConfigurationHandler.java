@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 
@@ -35,17 +34,17 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 		UpdateConfiguration.UpdateConfigurationBuilder builder = UpdateConfiguration.builder();
 
 		builder.rulesPath(Optional.ofNullable((String) props.get(RULES_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Rules path is a required parameter")));
 		builder.rulesUtilsPath(Optional.ofNullable((String) props.get(RULES_UTILS_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Rules utils path is a required parameter")));
 		builder.backupPath(Optional.ofNullable((String) props.get(BACKUP_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Backup path is a required parameter")));
 		builder.deployPath(Optional.ofNullable((String) props.get(DEPLOY_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Deploy path is a required parameter")));
 		builder.downloadsPath(Optional.ofNullable((String) props.get(DOWNLOADS_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Downloads path is a required parameter")));
 		builder.configurationPath(Optional.ofNullable((String) props.get(CONFIGURATION_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  missingPathExceptionSupplier().get()));
+				.orElseThrow(() ->  new ConfigurationException("Configuration path is a required parameter")));
 
 		config = builder.build();
 
@@ -57,7 +56,4 @@ public class UpdateConfigurationHandler implements ConfigurationUpdateHandler {
 		this.operationUpdate.loadConfiguration(this.config);
 	}
 
-	Supplier<ConfigurationException> missingPathExceptionSupplier() {
-		return () -> new ConfigurationException("Missing require path for Rule Engine");
-	}
 }
