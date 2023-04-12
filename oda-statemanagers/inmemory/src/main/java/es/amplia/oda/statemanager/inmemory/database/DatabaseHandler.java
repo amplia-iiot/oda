@@ -118,38 +118,6 @@ public class DatabaseHandler {
 		}
 	}
 
-	private int countHistoricalData(String deviceId, String datastreamId) {
-		PreparedStatement prstmt = null;
-		ResultSet result = null;
-		try {
-			String partialStatement = statements.getCountRowsOfADatastreamStatement();
-			prstmt = connection.prepareStatement(partialStatement);
-			datatypesUtils.insertParameter(prstmt, 1, deviceId);
-			datatypesUtils.insertParameter(prstmt, 2, datastreamId);
-			result = prstmt.executeQuery();
-			LOGGER.debug("Executing query {} with parameters {}, {}", partialStatement, deviceId, datastreamId);
-			if(result.next()) {
-				return result.getInt("count");
-			} else {
-				throw new SQLException();
-			}
-		} catch (SQLException e) {
-			throw new DatabaseException("Error trying to execute a query: " + e.getSQLState());
-		} finally {
-			try {
-				if(result != null) {
-					result.close();
-				}
-				if(prstmt != null) {
-					prstmt.close();
-				}
-			} catch (SQLException e) {
-				LOGGER.warn("Couldn't close a statement of the query.");
-			}
-		}
-
-	}
-
 	public Map<Long, Boolean> getDatapointsSentValue(String deviceId, String datastreamId) {
 		PreparedStatement stmt = null;
 		ResultSet result = null;
@@ -241,17 +209,11 @@ public class DatabaseHandler {
 		values.add(value.getStatus().toString());
 		values.add(value.getError());
 		values.add(value.isSent());
-		try {
-			int rows = countHistoricalData(value.getDeviceId(), value.getDatastreamId());
-			if (rows >= maxHistoricalData) {
-				boolean deleted = deleteExcessiveHistoricData(value.getDeviceId(), value.getDatastreamId());
-				if (!deleted) {
-					throw new SQLException();
-				}
-			}
-		} catch (SQLException e) {
-			return false;
-		}
+
+		// remove old values exceeding maxHistoricalData
+		deleteExcessiveHistoricData(value.getDeviceId(), value.getDatastreamId());
+
+		// insert new value
 		int changes = preparedUpdate(statements.getInsertNewDataRowStatement(), values);
 		return changes == 1;
 	}
@@ -309,6 +271,8 @@ public class DatabaseHandler {
 				params.add(datastreamId);
 				params.add(at);
 				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
+				LOGGER.debug("Executing query {} with parameters {}, {}, {},",
+						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, at);
 				return removed >= 1;
 			}
 		} catch (SQLException e) {

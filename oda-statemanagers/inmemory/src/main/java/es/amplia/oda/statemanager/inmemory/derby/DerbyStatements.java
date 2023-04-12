@@ -59,7 +59,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getSelectRowNOfADatastreamStatement() {
-		return "SELECT * FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"at\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY";
+		return "SELECT \"at\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"at\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY";
 	}
 
 	@Override
