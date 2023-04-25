@@ -69,7 +69,7 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getSelectRowNOfADatastreamStatementTest() {
-		assertEquals("SELECT * FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"at\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY",
+		assertEquals("SELECT \"at\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"at\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY",
 				statements.getSelectRowNOfADatastreamStatement());
 	}
 
