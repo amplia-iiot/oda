@@ -37,9 +37,11 @@ public class InMemoryStateManager implements StateManager {
     private DatabaseHandler database;
     private final ExecutorService executor;
 
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
     private int maxHistoricalData;
     private long forgetTime;
+    private long forgetPeriod;
+
 
     InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
                          RuleEngine ruleEngine, Serializer serializer, ExecutorService executor, Scheduler scheduler) {
@@ -226,7 +228,7 @@ public class InMemoryStateManager implements StateManager {
                     processEventRefreshed(lastStoredValue);
                 }
                 // remove old values stored in memory
-                state.removeHistoricStoredValues(dsInfo.getDatastreamId(), dsInfo.getDeviceId(),
+                state.removeHistoricValuesInMemory(dsInfo.getDatastreamId(), dsInfo.getDeviceId(),
                         this.forgetTime, this.maxHistoricalData);
             }
         }
@@ -250,6 +252,10 @@ public class InMemoryStateManager implements StateManager {
             try {
                 if (!this.database.insertNewRow(lastStoredValue)) {
                     LOGGER.error("The value {} couldn't be stored into the database.", lastStoredValue);
+                } else {
+                    // remove old values stored in database
+                    removeHistoricMaxDataInDatabase(lastStoredValue.getDeviceId(), lastStoredValue.getDatastreamId(),
+                            this.forgetPeriod);
                 }
             } catch (IOException e) {
                 LOGGER.error("Error trying to insert the new value for {} in device {}",
@@ -260,6 +266,15 @@ public class InMemoryStateManager implements StateManager {
         }
     }
 
+    private void removeHistoricMaxDataInDatabase(String deviceId, String datastreamId, long forgetPeriod) {
+        if (state.isTimeToCheckHistoricMaxDataInDatabase(new DatastreamInfo(deviceId, datastreamId), forgetPeriod)) {
+            // remove historicMaxData from database
+            this.database.deleteExcessiveHistoricMaxData(deviceId, datastreamId);
+
+            // update last time check maxData date
+            state.refreshLastTimeMaxDataCheck(deviceId, datastreamId);
+        }
+    }
 
     @Override
     public void publishValues(List<Event> event) {
@@ -278,6 +293,7 @@ public class InMemoryStateManager implements StateManager {
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
         this.forgetTime = config.getForgetTime();
+        this.forgetPeriod = config.getForgetPeriod();
         this.maxHistoricalData = config.getMaxData();
         this.database = new DatabaseHandler(config.getDatabasePath(), serializer, scheduler,
                 config.getMaxData(), config.getForgetTime(), config.getForgetPeriod());

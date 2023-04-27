@@ -210,9 +210,6 @@ public class DatabaseHandler {
 		values.add(value.getError());
 		values.add(value.isSent());
 
-		// remove old values exceeding maxHistoricalData
-		deleteExcessiveHistoricData(value.getDeviceId(), value.getDatastreamId());
-
 		// insert new value
 		int changes = preparedUpdate(statements.getInsertNewDataRowStatement(), values);
 		return changes == 1;
@@ -250,7 +247,9 @@ public class DatabaseHandler {
 		preparedUpdate(statements.getUpdateSentData(), params);
 	}
 
-	private boolean deleteExcessiveHistoricData(String deviceId, String datastreamId) {
+	public boolean deleteExcessiveHistoricMaxData(String deviceId, String datastreamId) {
+		LOGGER.debug("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
+
 		PreparedStatement prstmt = null;
 		ResultSet result = null;
 		try {
@@ -301,6 +300,8 @@ public class DatabaseHandler {
 		// delete by datastream datetime
 		// remove datastreams whose datetime it's older than forgettime
 		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
+
+		LOGGER.debug("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
 
 		// prepare and execute query
 		List<Object> params = Collections.singletonList(maxTimeToRetain);

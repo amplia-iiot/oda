@@ -17,17 +17,20 @@ public class State {
         private List<DatastreamValue> storedValues;
         private boolean refreshed;
         private boolean sendImmediately;
+        private long lastTimeHistoricMaxDataCheck;
 
         public DatastreamState() {
             this.storedValues = new ArrayList<>();
             this.refreshed = false;
             this.sendImmediately = false;
+            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
         }
 
         public DatastreamState(List<DatastreamValue> storedValues) {
             this.storedValues = storedValues;
             this.refreshed = false;
             this.sendImmediately = false;
+            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
         }
 
         public List<DatastreamValue> getStoredValues() {
@@ -58,6 +61,10 @@ public class State {
             return this.sendImmediately;
         }
 
+        public long getLastHistoricMaxDataCheck() {
+            return this.lastTimeHistoricMaxDataCheck;
+        }
+
         public Stream<DatastreamValue> getNotSentValues() {
             return this.storedValues.stream()
                     .filter(stored -> !stored.isSent());
@@ -84,33 +91,44 @@ public class State {
             this.refreshed = false;
         }
 
+        public void setLastTimeHistoricMaxDataCheck() {
+            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
+        }
+
         public void clearImmediately() {
             this.sendImmediately = false;
         }
 
-        public void removeHistoricStoredValues(long forgetTime, int maxHistoricalData) {
+        public void removeHistoricValuesInMemory(String datastreamId, String deviceId, long forgetTime, int maxHistoricalData) {
             // remove by max number
             if (this.storedValues.size() > maxHistoricalData) {
-                removeHistoricalValuesByMaxNumber(maxHistoricalData);
+                removeHistoricalValuesInMemoryByMaxNumber(datastreamId, deviceId, maxHistoricalData);
             }
 
             // remove by date
-            removeHistoricalValuesByDate(forgetTime);
+            removeHistoricalValuesInMemoryByDate(datastreamId, deviceId, forgetTime);
         }
 
-        private void removeHistoricalValuesByMaxNumber(int maxHistoricalData) {
+        private void removeHistoricalValuesInMemoryByMaxNumber(String datastreamId, String deviceId, int maxHistoricalData) {
             List<DatastreamValue> oldValuesByMaxNumber = this.storedValues.subList(0, this.storedValues.size() - maxHistoricalData);
-            this.storedValues.removeAll(oldValuesByMaxNumber);
+
+            if (!oldValuesByMaxNumber.isEmpty()) {
+                LOGGER.debug("Erasing historic data in memory for deviceId {} and datastreamId {}, by maxData parameter", deviceId, datastreamId);
+                this.storedValues.removeAll(oldValuesByMaxNumber);
+            }
         }
 
-        private void removeHistoricalValuesByDate(long forgetTime) {
+        private void removeHistoricalValuesInMemoryByDate(String datastreamId, String deviceId, long forgetTime) {
             long time = System.currentTimeMillis() - (forgetTime * 1000);
 
             List<DatastreamValue> oldValuesByDate = this.storedValues.stream()
                     .filter(value -> value.getAt() <= time)
                     .collect(Collectors.toList());
 
-            this.storedValues.removeAll(oldValuesByDate);
+            if (!oldValuesByDate.isEmpty()) {
+                LOGGER.debug("Erasing historic data in memory for deviceId {} and datastreamId {}, by forgetTime parameter", deviceId, datastreamId);
+                this.storedValues.removeAll(oldValuesByDate);
+            }
         }
     }
 
@@ -258,11 +276,11 @@ public class State {
         values.forEach((at, sent) -> this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent));
     }
 
-    public void removeHistoricStoredValues(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {
+    public void removeHistoricValuesInMemory(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {
         DatastreamState state = this.datastreams.get(new DatastreamInfo(deviceId, datastreamId));
 
         if (state != null) {
-            state.removeHistoricStoredValues(forgetTime, maxHistoricData);
+            state.removeHistoricValuesInMemory(datastreamId, deviceId, forgetTime, maxHistoricData);
         }
     }
 
@@ -352,6 +370,35 @@ public class State {
     public boolean isToSendImmediately(DatastreamInfo datastreamInfo) {
         return this.datastreams.get(datastreamInfo).getSendImmediately();
     }
+
+    /**
+     * Method that check if historic data in database needs to be checked
+     * Checks if there are more vales than configuration parameter maxData
+     *
+     * @param datastreamInfo Object with the data of the datastream that we want to check.
+     * @param forgetPeriod seconds that indicate when we have to check the need for historic data erasure
+     * @return true if is time to check historic data in dataabse
+     */
+    public boolean isTimeToCheckHistoricMaxDataInDatabase(DatastreamInfo datastreamInfo, long forgetPeriod) {
+
+        // get lastTime historic data has been checked
+        long lastTimeChecked = this.datastreams.get(datastreamInfo).getLastHistoricMaxDataCheck();
+
+        // if more time than forgetPeriod have passed since last time historic data was checked, check again
+        return System.currentTimeMillis() >= lastTimeChecked + (forgetPeriod * 1000);
+    }
+
+    /**
+     * Method that sets the date of the last time historic data in database was checked
+     * to see if there were more vales than configuration parameter maxData
+     *
+     * @param deviceId String with the identifier of the device to which the datastream we want to mark.
+     * @param datastreamId String with the identifier of the datastream we want to mark.
+     */
+    public void refreshLastTimeMaxDataCheck(String deviceId, String datastreamId) {
+        this.datastreams.get(getKey(deviceId, datastreamId)).setLastTimeHistoricMaxDataCheck();
+    }
+
 
     /**
      * Method that reset both refreshed and sendImmediately maps
