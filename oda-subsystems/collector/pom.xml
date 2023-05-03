@@ -20,6 +20,7 @@
     </properties>
 
     <build>
+        <finalName>${bundle.symbolicName}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
