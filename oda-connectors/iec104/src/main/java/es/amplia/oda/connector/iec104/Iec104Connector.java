@@ -1,5 +1,7 @@
 package es.amplia.oda.connector.iec104;
 
+import es.amplia.oda.comms.iec104.Iec104Cache;
+import es.amplia.oda.comms.iec104.slave.Iec104ServerModule;
 import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfiguration;
 import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;

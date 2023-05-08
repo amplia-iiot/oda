@@ -19,11 +19,12 @@
         <module>adc</module>
         <module>i2c</module>
         <module>lora</module>
+		<module>iec104</module>
     </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.4.1-SNAPSHOT</version>
+        <version>4.4.6-SNAPSHOT</version>
     </parent>
 </project>

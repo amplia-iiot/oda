@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.iec104;
 
+import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;

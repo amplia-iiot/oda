@@ -1,5 +1,7 @@
 package es.amplia.oda.connector.iec104;
 
+import es.amplia.oda.comms.iec104.Iec104Cache;
+import es.amplia.oda.comms.iec104.slave.Iec104ServerModule;
 import es.amplia.oda.connector.iec104.configuration.Iec104ConnectorConfiguration;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 import io.netty.channel.socket.SocketChannel;
@@ -9,7 +11,6 @@ import org.eclipse.neoscada.protocol.iec60870.server.Server;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;

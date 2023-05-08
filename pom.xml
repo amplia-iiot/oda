@@ -4,7 +4,7 @@
 
     <groupId>es.amplia.oda</groupId>
     <artifactId>oda-parent</artifactId>
-    <version>4.4.1-SNAPSHOT</version>
+    <version>4.4.6-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
@@ -160,6 +160,11 @@
             <dependency>
                 <groupId>es.amplia.oda.comms</groupId>
                 <artifactId>mqtt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+			<dependency>
+                <groupId>es.amplia.oda.comms</groupId>
+                <artifactId>iec104</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

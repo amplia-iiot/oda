@@ -12,10 +12,11 @@
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.4.1-SNAPSHOT</version>
+        <version>4.4.6-SNAPSHOT</version>
     </parent>
 
     <modules>
         <module>mqtt</module>
+		<module>iec104</module>
     </modules>
 </project>

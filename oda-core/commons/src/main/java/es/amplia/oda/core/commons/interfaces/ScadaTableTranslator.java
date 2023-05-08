@@ -2,6 +2,8 @@ package es.amplia.oda.core.commons.interfaces;
 
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 
+import java.util.List;
+
 import lombok.Value;
 
 /**
@@ -32,4 +34,7 @@ public interface ScadaTableTranslator {
     }
 
     DatastreamInfo getDatastreamInfo(ScadaInfo info);
+	
+	List<String> getDatastreamsIds();
+
 }
