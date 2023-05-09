@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 
 import org.osgi.framework.BundleContext;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoCloseable {
@@ -30,6 +31,14 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
         return datastreamInfo
                 .orElseThrow(() -> new DataNotFoundException("Datastream info not found for SCADA info " + info));
     }
+	
+	@Override
+	public List<String> getDatastreamsIds() {
+		Optional<List<String>> datastreamsIds =
+                Optional.ofNullable(proxy.callFirst(translator -> translator.getDatastreamsIds()));
+        return datastreamsIds.orElseThrow(() ->
+                new DataNotFoundException(String.format("Datastreams IDs not found")));
+	}
 
     @Override
     public void close() {

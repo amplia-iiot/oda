@@ -19,6 +19,7 @@
         <module>adc</module>
         <module>i2c</module>
         <module>lora</module>
+		<module>iec104</module>
     </modules>
 
     <parent>

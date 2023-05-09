@@ -162,6 +162,11 @@
                 <artifactId>mqtt</artifactId>
                 <version>${project.version}</version>
             </dependency>
+			<dependency>
+                <groupId>es.amplia.oda.comms</groupId>
+                <artifactId>iec104</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>es.amplia.oda.event</groupId>
                 <artifactId>api</artifactId>

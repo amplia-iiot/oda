@@ -17,5 +17,6 @@
 
     <modules>
         <module>mqtt</module>
+		<module>iec104</module>
     </modules>
 </project>
