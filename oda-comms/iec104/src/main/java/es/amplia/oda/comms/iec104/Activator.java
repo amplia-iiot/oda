@@ -22,8 +22,8 @@ public class Activator implements BundleActivator {
 
     @Override
     public void stop(BundleContext bundleContext) {
-        LOGGER.info("Stopping MQTT Comms bundle");
+        LOGGER.info("Stopping IEC104 Comms bundle");
         iec104ServiceRegistration.unregister();
-        LOGGER.info("MQTT Comms bundle stopped");
+        LOGGER.info("IEC104 Comms bundle stopped");
     }
 }

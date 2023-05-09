@@ -16,5 +16,8 @@ buildNumber.properties
 .idea
 **/*.iml
 
+# Visual Studio Code
+.vscode
+
 # Californium (CoAP)
 Californium.properties
