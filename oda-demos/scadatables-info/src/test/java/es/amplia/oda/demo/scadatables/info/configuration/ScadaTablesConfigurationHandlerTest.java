@@ -24,30 +24,30 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ScadaTablesConfigurationHandler.class)
 public class ScadaTablesConfigurationHandlerTest {
-	@Mock
-	ScadaTableInfoService mockedScadaTableInfoService;
-	@Mock
-	ScadaTableEntryConfiguration mockedEntry;
+    @Mock
+    ScadaTableInfoService mockedScadaTableInfoService;
+    @Mock
+    ScadaTableEntryConfiguration mockedEntry;
 
-	ScadaTablesConfigurationHandler testScadaTablesConfigurationHandler;
+    ScadaTablesConfigurationHandler testScadaTablesConfigurationHandler;
 
-	@Before
-	public void setUp() {
-		testScadaTablesConfigurationHandler = new ScadaTablesConfigurationHandler(mockedScadaTableInfoService);
-	}
+    @Before
+    public void setUp() {
+        testScadaTablesConfigurationHandler = new ScadaTablesConfigurationHandler(mockedScadaTableInfoService);
+    }
 
-	@Test
-	public void testLoadConfiguration() throws Exception {
-		whenNew(ScadaTableEntryConfiguration.class).withAnyArguments().thenReturn(mockedEntry);
-		doNothing().when(mockedEntry).setScript(any());
-		Dictionary<String, String> dic = new Hashtable<String, String>() {{
-			put("BinaryInput,10001","datastream:batteryAlarm");
-			put("BinaryInput,10015","datastream:doorAlarm");
-		}};
+    @Test
+    public void testLoadConfiguration() throws Exception {
+        whenNew(ScadaTableEntryConfiguration.class).withAnyArguments().thenReturn(mockedEntry);
+        doNothing().when(mockedEntry).setScript(any());
+        Dictionary<String, String> dic = new Hashtable<String, String>() {{
+            put("BinaryInput,10001", "datastream:batteryAlarm");
+            put("BinaryInput,10015", "datastream:doorAlarm");
+        }};
 
-		testScadaTablesConfigurationHandler.loadConfiguration(dic);
+        testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-		Map<ScadaTableEntryConfiguration, Integer> tableConfig = Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableConfig");
-		assertEquals(2, tableConfig.size());
-	}
+        Map<ScadaTableEntryConfiguration, Integer> tableConfig = Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableConfig");
+        assertEquals(2, tableConfig.size());
+    }
 }

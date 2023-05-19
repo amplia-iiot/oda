@@ -94,9 +94,9 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     @SuppressWarnings("restriction")
-    private Object getValue (ScadaTableEntryConfiguration entryConfig, Object value) {
+    private Object getValue(ScadaTableEntryConfiguration entryConfig, Object value) {
         try {
-            return (entryConfig.getScript() != null?entryConfig.getScript().invokeFunction("run", value):value);
+            return (entryConfig.getScript() != null ? entryConfig.getScript().invokeFunction("run", value) : value);
         } catch (ScriptException | NoSuchMethodException e) {
             LOGGER.error("Scada collected value cannot be transformed, returning value without executing script: {}", value);
             return value;

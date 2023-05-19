@@ -5,8 +5,8 @@
     <artifactId>udp-south</artifactId>
     <packaging>pom</packaging>
 
-    <name>OpenGate Device Agent Demos - MQTT</name>
-    <description>Demo agent with MQTT connector</description>
+    <name>OpenGate Device Agent Demos - UDP</name>
+    <description>Demo agent with UDP connector</description>
 
     <parent>
         <artifactId>oda-demos</artifactId>

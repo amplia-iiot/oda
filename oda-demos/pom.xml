@@ -14,6 +14,7 @@
         <module>coap</module>
         <module>udp-south</module>
 		<module>rules</module>
+        <module>scadatables-info</module>
     </modules>
 
     <parent>

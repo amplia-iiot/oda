@@ -34,7 +34,7 @@ public class Iec104DatastreamsManager implements AutoCloseable {
         // Primero creamos las conexiones para saber el número de dispositivos que tenemos en el sistema
         this.iec104ConnectionsFactory.createConnections(currentModbusDatastreamsConfigurations);
 
-        // Una vez que tenemos ell número de dispositivos en el sistema ya podemos crear los datastreams Getter y Setters correspondientes
+        // Una vez que tenemos el número de dispositivos en el sistema ya podemos crear los datastreams Getter y Setters correspondientes
         this.translator.getDatastreamsIds().forEach(d -> createAndRegisterModbusDatastreams(d));
 
         this.iec104ConnectionsFactory.connect();

@@ -26,52 +26,52 @@ import static org.mockito.Mockito.verify;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
 public class ActivatorTest {
-	private final Activator testActivator = new Activator();
+    private final Activator testActivator = new Activator();
 
-	@Mock
-	private ScadaTableInfoService mockedScadaTableInfoService;
-	@Mock
-	private ScriptEngineManager mockedScriptEngineManager;
-	@Mock
-	private ScadaTablesConfigurationHandler mockedScadaTablesConfigurationHandler;
-	@Mock
-	private ConfigurableBundleImpl mockedConfigurableBundleImpl;
-	@Mock
-	private ServiceRegistration<ScadaTableInfo> mockedServiceRegistrationScadaTableInfo;
-	@Mock
-	private ServiceRegistration<ScadaTableTranslator> mockedServiceRegistrationScadaTableTranslator;
+    @Mock
+    private ScadaTableInfoService mockedScadaTableInfoService;
+    @Mock
+    private ScriptEngineManager mockedScriptEngineManager;
+    @Mock
+    private ScadaTablesConfigurationHandler mockedScadaTablesConfigurationHandler;
+    @Mock
+    private ConfigurableBundleImpl mockedConfigurableBundleImpl;
+    @Mock
+    private ServiceRegistration<ScadaTableInfo> mockedServiceRegistrationScadaTableInfo;
+    @Mock
+    private ServiceRegistration<ScadaTableTranslator> mockedServiceRegistrationScadaTableTranslator;
 
-	@Mock
-	private BundleContext mockedContext;
+    @Mock
+    private BundleContext mockedContext;
 
-	@Test
-	public void testStart() throws Exception {
-		PowerMockito.whenNew(ScadaTableInfoService.class).withAnyArguments()
-				.thenReturn(mockedScadaTableInfoService);
-		PowerMockito.whenNew(ScriptEngineManager.class).withAnyArguments()
-				.thenReturn(mockedScriptEngineManager);
-		PowerMockito.whenNew(ScadaTablesConfigurationHandler.class).withAnyArguments()
-				.thenReturn(mockedScadaTablesConfigurationHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments()
-				.thenReturn(mockedConfigurableBundleImpl);
+    @Test
+    public void testStart() throws Exception {
+        PowerMockito.whenNew(ScadaTableInfoService.class).withAnyArguments()
+                .thenReturn(mockedScadaTableInfoService);
+        PowerMockito.whenNew(ScriptEngineManager.class).withAnyArguments()
+                .thenReturn(mockedScriptEngineManager);
+        PowerMockito.whenNew(ScadaTablesConfigurationHandler.class).withAnyArguments()
+                .thenReturn(mockedScadaTablesConfigurationHandler);
+        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments()
+                .thenReturn(mockedConfigurableBundleImpl);
 
-		testActivator.start(mockedContext);
+        testActivator.start(mockedContext);
 
-		PowerMockito.verifyNew(ScadaTableInfoService.class).withNoArguments();
-		PowerMockito.verifyNew(ScadaTablesConfigurationHandler.class).withArguments(eq(mockedScadaTableInfoService));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedScadaTablesConfigurationHandler), any());
-	}
+        PowerMockito.verifyNew(ScadaTableInfoService.class).withNoArguments();
+        PowerMockito.verifyNew(ScadaTablesConfigurationHandler.class).withArguments(eq(mockedScadaTableInfoService));
+        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedScadaTablesConfigurationHandler), any());
+    }
 
-	@Test
-	public void testStop() {
-		Whitebox.setInternalState(testActivator, "scadaTableInfoServiceRegistration", mockedServiceRegistrationScadaTableInfo);
-		Whitebox.setInternalState(testActivator, "scadaTranslatorServiceRegistration", mockedServiceRegistrationScadaTableTranslator);
-		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundleImpl);
+    @Test
+    public void testStop() {
+        Whitebox.setInternalState(testActivator, "scadaTableInfoServiceRegistration", mockedServiceRegistrationScadaTableInfo);
+        Whitebox.setInternalState(testActivator, "scadaTranslatorServiceRegistration", mockedServiceRegistrationScadaTableTranslator);
+        Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundleImpl);
 
-		testActivator.stop(mockedContext);
+        testActivator.stop(mockedContext);
 
-		verify(mockedServiceRegistrationScadaTableInfo).unregister();
-		verify(mockedServiceRegistrationScadaTableTranslator).unregister();
-		verify(mockedConfigurableBundleImpl).close();
-	}
+        verify(mockedServiceRegistrationScadaTableInfo).unregister();
+        verify(mockedServiceRegistrationScadaTableTranslator).unregister();
+        verify(mockedConfigurableBundleImpl).close();
+    }
 }

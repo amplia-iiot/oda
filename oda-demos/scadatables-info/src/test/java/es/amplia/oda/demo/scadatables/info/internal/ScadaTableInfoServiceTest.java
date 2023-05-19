@@ -22,86 +22,86 @@ import static org.mockito.Mockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ScadaTableInfoService.class)
 public class ScadaTableInfoServiceTest {
-	private ScadaTableInfoService testScadaTableInfoService;
+    private ScadaTableInfoService testScadaTableInfoService;
 
-	@Before
-	public void setUp() {
-		Map<ScadaTableEntryConfiguration, Integer> scadaTablesConfiguration = new HashMap<>();
-		ScadaTableEntryConfiguration entryBox =
-				new BoxEntryConfiguration(
-						ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME,
-						"booxlean"
-				);
-		scadaTablesConfiguration.put(entryBox, 10);
+    @Before
+    public void setUp() {
+        Map<ScadaTableEntryConfiguration, Integer> scadaTablesConfiguration = new HashMap<>();
+        ScadaTableEntryConfiguration entryBox =
+                new BoxEntryConfiguration(
+                        ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME,
+                        "booxlean"
+                );
+        scadaTablesConfiguration.put(entryBox, 10);
 
-		testScadaTableInfoService = new ScadaTableInfoService();
-		testScadaTableInfoService.loadConfiguration(scadaTablesConfiguration);
-	}
+        testScadaTableInfoService = new ScadaTableInfoService();
+        testScadaTableInfoService.loadConfiguration(scadaTablesConfiguration);
+    }
 
-	@Test
-	public void testGetNumBinaryInputs() {
-		int binaryInputs = testScadaTableInfoService.getNumBinaryInputs();
+    @Test
+    public void testGetNumBinaryInputs() {
+        int binaryInputs = testScadaTableInfoService.getNumBinaryInputs();
 
-		assertEquals(1, binaryInputs);
-	}
+        assertEquals(1, binaryInputs);
+    }
 
-	@Test
-	public void testGetNumAnalogInputs() {
-		int analogInputs = testScadaTableInfoService.getNumAnalogInputs();
+    @Test
+    public void testGetNumAnalogInputs() {
+        int analogInputs = testScadaTableInfoService.getNumAnalogInputs();
 
-		assertEquals(0, analogInputs);
-	}
+        assertEquals(0, analogInputs);
+    }
 
-	@Test
-	public void testGetNumDoubleBinaryInputs() {
-		int doubleBinaryInputs = testScadaTableInfoService.getNumDoubleBinaryInputs();
+    @Test
+    public void testGetNumDoubleBinaryInputs() {
+        int doubleBinaryInputs = testScadaTableInfoService.getNumDoubleBinaryInputs();
 
-		assertEquals(0, doubleBinaryInputs);
-	}
+        assertEquals(0, doubleBinaryInputs);
+    }
 
-	@Test
-	public void testGetNumCounters() {
-		int counters = testScadaTableInfoService.getNumCounters();
+    @Test
+    public void testGetNumCounters() {
+        int counters = testScadaTableInfoService.getNumCounters();
 
-		assertEquals(0, counters);
-	}
+        assertEquals(0, counters);
+    }
 
-	@Test
-	public void testGetNumFrozenCounters() {
-		int frozenCounters = testScadaTableInfoService.getNumFrozenCounters();
+    @Test
+    public void testGetNumFrozenCounters() {
+        int frozenCounters = testScadaTableInfoService.getNumFrozenCounters();
 
-		assertEquals(0, frozenCounters);
-	}
+        assertEquals(0, frozenCounters);
+    }
 
-	@Test
-	public void testGetNumBinaryOutputs() {
-		int binaryOutputs = testScadaTableInfoService.getNumBinaryOutputs();
+    @Test
+    public void testGetNumBinaryOutputs() {
+        int binaryOutputs = testScadaTableInfoService.getNumBinaryOutputs();
 
-		assertEquals(0, binaryOutputs);
-	}
+        assertEquals(0, binaryOutputs);
+    }
 
-	@Test
-	public void testGetNumAnalogOutputs() {
-		int analogOutputs = testScadaTableInfoService.getNumAnalogOutputs();
+    @Test
+    public void testGetNumAnalogOutputs() {
+        int analogOutputs = testScadaTableInfoService.getNumAnalogOutputs();
 
-		assertEquals(0, analogOutputs);
-	}
+        assertEquals(0, analogOutputs);
+    }
 
-	@Test
-	public void testTranslateBox() {
-		ScadaTableTranslator.DatastreamInfo dsinfo = new ScadaTableTranslator.DatastreamInfo("", "booxlean", true);
+    @Test
+    public void testTranslateBox() {
+        ScadaTableTranslator.DatastreamInfo dsinfo = new ScadaTableTranslator.DatastreamInfo("", "booxlean", true);
 
-		ScadaTableTranslator.ScadaInfo scinfo = testScadaTableInfoService.translate(dsinfo);
+        ScadaTableTranslator.ScadaInfo scinfo = testScadaTableInfoService.translate(dsinfo);
 
-		assertTrue((Boolean) scinfo.getValue());
-		assertEquals(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, scinfo.getType());
-	}
+        assertTrue((Boolean) scinfo.getValue());
+        assertEquals(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, scinfo.getType());
+    }
 
-	@Test
-	public void testGetDatastremasIds() {
-		List<String> dsIds = testScadaTableInfoService.getDatastreamsIds();
-		String []expected = new String[]{"booxlean"};
-		assertArrayEquals(expected, dsIds.toArray());
-	}
+    @Test
+    public void testGetDatastremasIds() {
+        List<String> dsIds = testScadaTableInfoService.getDatastreamsIds();
+        String[] expected = new String[]{"booxlean"};
+        assertArrayEquals(expected, dsIds.toArray());
+    }
 
 }

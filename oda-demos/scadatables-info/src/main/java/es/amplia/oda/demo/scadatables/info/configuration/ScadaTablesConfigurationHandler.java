@@ -31,7 +31,7 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
      */
     private static final Logger logger = LoggerFactory.getLogger(ScadaTablesConfigurationHandler.class);
 
-    private static final String REVERSE_ENDIAN_FUNCTION =   "var reverseEndian = function(x) {\n\tvar sHex = " +
+    private static final String REVERSE_ENDIAN_FUNCTION = "var reverseEndian = function(x) {\n\tvar sHex = " +
             "'00000000' + parseInt(x, 10).toString(16);\n\tsHex = sHex.slice(-8);\n\treturn " +
             "parseInt(sHex.replace(/^(.(..)*)$/, '0$1').match(/../g).reverse().join(''), 16);\n\t};";
     private static final String DATASTREAM_PROPERTY_NAME = "datastream";
