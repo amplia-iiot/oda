@@ -75,7 +75,7 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getDeleteOverloadDataFromADatastreamStatementTest() {
-		assertEquals("DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\"<=?",
+		assertEquals("DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\" < ?",
 				statements.getDeleteOverloadDataFromADatastreamStatement());
 	}
 
@@ -96,4 +96,15 @@ public class DerbyStatementsTest {
 		assertEquals("SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?",
 				statements.getUpdateIsDataSent());
 	}
+
+	@Test
+	public void getExcessHistoricDataTest() {
+		assertEquals(	"SELECT \"deviceId\", \"datastreamId\" FROM " +
+						" (SELECT \"deviceId\", \"datastreamId\", COUNT(\"datastreamId\") AS numValues FROM STATE " +
+						"GROUP BY \"deviceId\", \"datastreamId\") AS historicData " +
+						"WHERE numValues > ?" ,
+				statements.getExcessHistoricDataFromDatabaseStatement());
+	}
+
+
 }

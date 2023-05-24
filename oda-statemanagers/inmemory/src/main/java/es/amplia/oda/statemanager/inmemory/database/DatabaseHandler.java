@@ -95,6 +95,7 @@ public class DatabaseHandler {
 
 	public synchronized Map<DatastreamInfo, List<DatastreamValue>> collectDataFromDatabase() {
 		deleteOldHistoricData();
+		deleteAllExcessiveHistoricMaxData();
 		Statement stmt = null;
 		try {
 			stmt = connection.createStatement();
@@ -306,6 +307,50 @@ public class DatabaseHandler {
 		// prepare and execute query
 		List<Object> params = Collections.singletonList(maxTimeToRetain);
 		preparedUpdate(statements.getDeleteOlderDataFromDatabaseStatement(), params);
+	}
+
+	private void deleteAllExcessiveHistoricMaxData() {
+		PreparedStatement stmt = null;
+		ResultSet result = null;
+		try {
+			String partialStatement = statements.getExcessHistoricDataFromDatabaseStatement();
+			stmt = connection.prepareStatement(partialStatement);
+			stmt.setInt(1, maxHistoricalData);
+			result = stmt.executeQuery();
+			LOGGER.debug("Executing query {} with parameters {}", partialStatement, maxHistoricalData);
+			// parse SQL results
+			Map<String, List<String>> existingValues = new HashMap<>();
+			while (result.next()) {
+				String deviceId = result.getString("deviceId");
+				String datastreamId = result.getString("datastreamId");
+				existingValues.computeIfAbsent(deviceId, k -> new ArrayList<>()).add(datastreamId);
+			}
+			// erase max data
+			for (Map.Entry<String, List<String>> pair : existingValues.entrySet()) {
+				String deviceId = pair.getKey();
+				List<String> datastreamIds = pair.getValue();
+				datastreamIds.forEach(datastreamId -> deleteExcessiveHistoricMaxData(deviceId, datastreamId));
+			}
+
+		} catch (SQLException e) {
+			throw new DatabaseException("Error trying to execute an update: " + e.getSQLState());
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+				if (stmt != null) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				LOGGER.warn("Couldn't close a statement of the update.");
+				try {
+					stmt.close();
+				} catch (SQLException ignored) {
+					LOGGER.warn("Couldn't close a statement of the update.");
+				}
+			}
+		}
 	}
 
 	public synchronized boolean exists() {
