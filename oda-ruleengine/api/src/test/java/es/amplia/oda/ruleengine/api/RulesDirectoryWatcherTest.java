@@ -69,7 +69,7 @@ public class RulesDirectoryWatcherTest {
 		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
-		TimeUnit.MILLISECONDS.sleep(100);
+		TimeUnit.MILLISECONDS.sleep(500);
 		verify(mockedEngine).createRule(testRoute + "/tempDir.js");
 
 		fileToCreate.delete();
@@ -86,7 +86,7 @@ public class RulesDirectoryWatcherTest {
 		testDirectoryWatcher.start();
 		fileToCreate.delete();
 
-		TimeUnit.MILLISECONDS.sleep(100);
+		TimeUnit.MILLISECONDS.sleep(500);
 		verify(mockedEngine).deleteRule(testRoute + "/tempDir.js");
 	}
 

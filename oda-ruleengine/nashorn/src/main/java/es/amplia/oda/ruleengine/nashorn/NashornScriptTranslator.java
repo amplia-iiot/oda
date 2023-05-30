@@ -69,7 +69,11 @@ public class NashornScriptTranslator implements ScriptTranslator {
             StringBuilder scriptContent = new StringBuilder();
 
             while (script.hasNext()) {
-                scriptContent.append(replaceLoadPath(script.nextLine()));
+                String nextLine = script.nextLine().trim();
+                // ignore lines that starts with //, these are comments
+                if(!nextLine.startsWith("//")) {
+                    scriptContent.append(replaceLoadPath(nextLine));
+                }
             }
 
             return scriptContent.toString();
