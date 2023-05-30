@@ -335,6 +335,34 @@ public class State {
     }
 
     /**
+     * Method that get the number of values of the datastream with the specified id's.
+     *
+     * @param deviceId String with the identifier of the device to which the datastream we want to get values.
+     * @param datastreamId String with the identifier of the datastream we want to get values.
+     * @return number of values stored for the specified id's
+     */
+    public int getNumValues(String deviceId, String datastreamId) {
+        return getNumValues(getKey(deviceId, datastreamId));
+    }
+
+    /**
+     * Method that get the number of values stored of the datastream with the specified id's.
+     *
+     * @param datastreamInfo Object with the information of the wanted datastream
+     * @return number of values stored for the specified id's
+     */
+    public int getNumValues(DatastreamInfo datastreamInfo) {
+        DatastreamState dsState = this.datastreams.get(datastreamInfo);
+        if (dsState != null) {
+            List<DatastreamValue> values = dsState.getStoredValues();
+            if (!values.isEmpty()) {
+                return values.size();
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Method to get all datastreams identifiers.
      *
      * @return List with the identifiers of the datastreams.
