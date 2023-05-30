@@ -142,6 +142,26 @@ public class State {
         this.datastreams = new HashMap<>();
     }
 
+    public void logInfo(String msg, Object...objects) {
+        LOGGER.info(msg, objects);
+    }
+
+    public void logDebug(String msg, Object...objects) {
+        LOGGER.debug(msg, objects);
+    }
+
+    public void logError(String msg, Object...objects) {
+        LOGGER.error(msg, objects);
+    }
+
+    public void logTrace(String msg, Object...objects) {
+        LOGGER.trace(msg, objects);
+    }
+
+    public void logWarn(String msg, Object...objects) {
+        LOGGER.warn(msg, objects);
+    }
+
     /**
      * Method to load the data of a map into the state. This will overwrite all previous data.
      *
