@@ -65,7 +65,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
     }
 
     private String readFile(String file) {
-        try (Scanner script = new Scanner(new File(file))) {
+        try (Scanner script = new Scanner(new File(file), "UTF-8")) {
             StringBuilder scriptContent = new StringBuilder();
 
             while (script.hasNext()) {
