@@ -36,6 +36,10 @@ class EventDispatcherImpl implements EventDispatcher {
     }
 
     public void publish(List<Event> events) {
+        if (events.isEmpty()) {
+            return;
+        }
+
         OutputDatastream outputEvent = parse(events);
         scheduler.schedule(() -> send(outputEvent), 0, 0, TimeUnit.SECONDS);
     }

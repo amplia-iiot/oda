@@ -85,7 +85,7 @@ public class EventCollectorImplTest {
 
         testEventCollector.publish(events);
 
-        verifyZeroInteractions(mockedEventDispatcher);
+        verify(mockedEventDispatcher, never()).parse(events);
         verify(spiedCollectedEvents).merge(eq(TEST_COLLECTED_DATASTREAM_ID_2), any(), any());
         assertEquals(Collections.singletonList(TEST_COLLECTED_EVENT),
                 spiedCollectedEvents.get(TEST_COLLECTED_DATASTREAM_ID));

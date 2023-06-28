@@ -35,6 +35,10 @@ public class EventCollectorImpl implements EventCollector {
 
     @Override
     public void publish(List<Event> events) {
+        if (events.isEmpty()) {
+            return;
+        }
+
         List<Event> eventsToPublish = new ArrayList<>();
         for (Event event : events) {
             if (isEventFromCollectedDatastream(event)) {
@@ -44,8 +48,7 @@ public class EventCollectorImpl implements EventCollector {
                 eventsToPublish.add(event);
             }
         }
-        if(eventsToPublish.size() > 0)
-            eventDispatcher.publish(eventsToPublish);
+        eventDispatcher.publish(eventsToPublish);
     }
 
     private boolean isEventFromCollectedDatastream(Event event) {
