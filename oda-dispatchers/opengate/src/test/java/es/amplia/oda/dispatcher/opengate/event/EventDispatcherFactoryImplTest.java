@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.dispatcher.opengate.EventCollector;
 
 import org.junit.Test;
@@ -47,6 +48,8 @@ public class EventDispatcherFactoryImplTest {
     private EventDispatcherImpl mockedEventDispatcher;
     @Mock
     private EventCollectorImpl mockedEventCollector;
+    @Mock
+    private Scheduler mockedScheduler;
 
 
     @Test
@@ -62,7 +65,7 @@ public class EventDispatcherFactoryImplTest {
         PowerMockito.verifyNew(EventParserImpl.class).withArguments(eq(mockedDeviceInfoProvider));
         verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
         PowerMockito.verifyNew(EventDispatcherImpl.class)
-                .withArguments(eq(mockedEventParser), eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector));
+                .withArguments(eq(mockedEventParser), eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector), eq(mockedScheduler));
         PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
     }
 
@@ -79,7 +82,7 @@ public class EventDispatcherFactoryImplTest {
         PowerMockito.verifyNew(EventParserReducedOutputImpl.class).withArguments(eq(mockedDeviceInfoProvider));
         verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
         PowerMockito.verifyNew(EventDispatcherImpl.class).withArguments(eq(mockedReducedEventParser),
-                eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector));
+                eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector), eq(mockedScheduler));
         PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
     }
 }

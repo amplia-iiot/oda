@@ -76,7 +76,7 @@ public class EventCollectorImpl implements EventCollector {
             }
         }
 
-        outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.publish(outputDatastream));
+        outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.send(outputDatastream));
     }
 
     private OutputDatastream mergeOutputDatastreams(OutputDatastream o1, OutputDatastream o2) {

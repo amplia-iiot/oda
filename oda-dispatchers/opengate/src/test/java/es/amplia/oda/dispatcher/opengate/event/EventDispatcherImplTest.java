@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.Event;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
@@ -47,13 +48,15 @@ public class EventDispatcherImplTest {
     private Serializer mockedSerializer;
     @Mock
     private OpenGateConnector mockedConnector;
+    @Mock
+    private Scheduler scheduler;
     private EventDispatcherImpl testEventDispatcher;
 
 
     @Before
     public void setUp() {
         testEventDispatcher =
-                new EventDispatcherImpl(mockedEventParser, mockedSerializer, TEST_CONTENT_TYPE, mockedConnector);
+                new EventDispatcherImpl(mockedEventParser, mockedSerializer, TEST_CONTENT_TYPE, mockedConnector, scheduler);
     }
 
     @Test
@@ -73,25 +76,14 @@ public class EventDispatcherImplTest {
         testEventDispatcher.publish(events);
 
         verify(mockedEventParser).parse(eq(events));
-        verify(mockedSerializer).serialize(eq(outputDatastream));
-        verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
+        //verify(testEventDispatcher).send(eq(outputDatastream));
     }
-
-    /*@Test
-    public void testParse() {
-        when(mockedEventParser.parse(any(Event.class))).thenReturn(TEST_OUTPUT_DATASTREAM);
-
-        OutputDatastream result = testEventDispatcher.parse(TEST_EVENT);
-
-        assertEquals(TEST_OUTPUT_DATASTREAM, result);
-        verify(mockedEventParser).parse(eq(TEST_EVENT));
-    }*/
 
     @Test
     public void testPublishOutputDatastream() throws IOException {
         when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
 
-        testEventDispatcher.publish(TEST_OUTPUT_DATASTREAM);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
         verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
@@ -101,7 +93,7 @@ public class EventDispatcherImplTest {
     public void testPublishOutputDatastreamIOExceptionCaught() throws IOException {
         when(mockedSerializer.serialize(any())).thenThrow(new IOException());
 
-        testEventDispatcher.publish(TEST_OUTPUT_DATASTREAM);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
     }

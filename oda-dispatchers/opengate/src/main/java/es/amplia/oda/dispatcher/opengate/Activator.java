@@ -48,10 +48,10 @@ public class Activator implements BundleActivator {
                 factory.createOperationProcessor());
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
+        scheduler = new SchedulerImpl(executor);
         connector = new OpenGateConnectorProxy(bundleContext);
         EventDispatcherFactory eventDispatcherFactory =
-                new EventDispatcherFactoryImpl(deviceInfoProvider, serializerProvider, connector);
-        scheduler = new SchedulerImpl(executor);
+                new EventDispatcherFactoryImpl(deviceInfoProvider, serializerProvider, connector, scheduler);
         eventDispatcherServiceRegistrationManager =
                 new ServiceRegistrationManagerOsgi<>(bundleContext, EventDispatcher.class);
         DispatcherConfigurationUpdateHandler configHandler =

@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
+import es.amplia.oda.core.commons.utils.Scheduler;
 import es.amplia.oda.dispatcher.opengate.*;
 
 import java.util.HashMap;
@@ -16,14 +17,17 @@ public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
     private final DeviceInfoProvider deviceInfoProvider;
     private final SerializerProvider serializerProvider;
     private final OpenGateConnector connector;
+    private final Scheduler scheduler;
+
     private final Map<Boolean, Function<DeviceInfoProvider, EventParser>> eventParserCreators = new HashMap<>();
 
 
     public EventDispatcherFactoryImpl(DeviceInfoProvider deviceInfoProvider, SerializerProvider serializerProvider,
-                                      OpenGateConnector connector) {
+                                      OpenGateConnector connector, Scheduler scheduler) {
         this.deviceInfoProvider = deviceInfoProvider;
         this.serializerProvider = serializerProvider;
         this.connector = connector;
+        this.scheduler = scheduler;
         populateEventParserCreators();
     }
 
@@ -45,7 +49,7 @@ public class EventDispatcherFactoryImpl implements EventDispatcherFactory {
         EventParser eventParser = eventParserCreators.get(reducedOutput).apply(deviceInfoProvider);
         Serializer serializer = serializerProvider.getSerializer(contentType);
         EventDispatcherImpl internalEventDispatcher =
-                new EventDispatcherImpl(eventParser, serializer, contentType, connector);
+                new EventDispatcherImpl(eventParser, serializer, contentType, connector, scheduler);
         return new EventCollectorImpl(internalEventDispatcher);
     }
 }

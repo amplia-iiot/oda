@@ -87,9 +87,9 @@ public class ActivatorTest {
         PowerMockito.verifyNew(OpenGateOperationDispatcher.class)
                 .withArguments(eq(mockedSerializerProvider), eq(mockedDeviceInfoProvider), eq(mockedProcessor));
         PowerMockito.verifyNew(OpenGateConnectorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
-                .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializerProvider), eq(mockedConnector));
         PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
+        PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
+                .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializerProvider), eq(mockedConnector), eq(mockedScheduler));
         PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
                 .withArguments(eq(mockedContext), eq(EventDispatcher.class));
         PowerMockito.verifyNew(DispatcherConfigurationUpdateHandler.class)
