@@ -44,6 +44,11 @@ class EventDispatcherImpl implements EventDispatcher {
         scheduler.schedule(() -> send(outputEvent), 0, 0, TimeUnit.SECONDS);
     }
 
+    @Override
+    public void publishImmediately(List<Event> events) {
+        publish(events);
+    }
+
     OutputDatastream parse(List<Event> events) {
         return eventParser.parse(events);
     }

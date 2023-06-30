@@ -400,7 +400,7 @@ public class InMemoryStateManagerTest {
         assertNull(value.getError());
         assertTrue(value.isSent());
         Event event = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        verify(mockedEventDispatcher).publish(Collections.singletonList(event));
+        verify(mockedEventDispatcher).publishImmediately(Collections.singletonList(event));
         verify(mockedDatabase, times(3)).insertNewRow(any());
     }
 

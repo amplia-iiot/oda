@@ -39,4 +39,9 @@ class ScadaEventDispatcher implements EventDispatcher {
             }
         }
     }
+
+    @Override
+    public void publishImmediately(List<Event> events) {
+        publish(events);
+    }
 }

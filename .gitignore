@@ -21,3 +21,6 @@ buildNumber.properties
 
 # Californium (CoAP)
 Californium.properties
+
+# Others
+/oda-ruleengine/api/jacoco.exec

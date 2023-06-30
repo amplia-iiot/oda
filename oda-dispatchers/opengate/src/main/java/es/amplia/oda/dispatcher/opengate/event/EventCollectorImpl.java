@@ -51,6 +51,15 @@ public class EventCollectorImpl implements EventCollector {
         eventDispatcher.publish(eventsToPublish);
     }
 
+    @Override
+    public void publishImmediately(List<Event> events) {
+        if (events.isEmpty()) {
+            return;
+        }
+
+        eventDispatcher.publish(events);
+    }
+
     private boolean isEventFromCollectedDatastream(Event event) {
         return datastreamIdsToCollect.contains(event.getDatastreamId());
     }

@@ -12,7 +12,13 @@ public interface EventDispatcher {
     /**
      * Publish a list of events generated from a source to the dispatcher to process it,
      * cache it or send it through a connector.
-     * @param event List of events to publish.
+     * @param events List of events to publish.
      */
-    void publish(List<Event> event);
+    void publish(List<Event> events);
+
+    /**
+     * Publish a list of events generated from a source to the dispatcher to immediately send it through a connector.
+     * @param events List of events to publish.
+     */
+    void publishImmediately(List<Event> events);
 }

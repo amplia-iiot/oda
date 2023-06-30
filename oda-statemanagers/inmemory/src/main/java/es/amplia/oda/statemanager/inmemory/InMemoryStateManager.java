@@ -278,7 +278,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public void publishValues(List<Event> events) {
-            eventDispatcher.publish(events);
+            eventDispatcher.publishImmediately(events);
     }
 
     private DatastreamValue createDatastreamValueFromEvent(Event event) {

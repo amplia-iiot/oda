@@ -27,6 +27,12 @@ public class EventDispatcherProxy implements EventDispatcher, AutoCloseable {
     }
 
     @Override
+    public void publishImmediately(List<Event> event) {
+        Optional<List<Event>> resultEvent = eventListInterceptorProxy.intercept(Optional.of(event));
+        resultEvent.ifPresent(value -> proxy.consumeAll(eventDispatcher -> eventDispatcher.publishImmediately(value)));
+    }
+
+    @Override
     public void close() {
         proxy.close();
     }
