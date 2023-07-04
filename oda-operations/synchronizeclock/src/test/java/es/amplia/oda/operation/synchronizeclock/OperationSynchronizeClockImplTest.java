@@ -43,7 +43,7 @@ public class OperationSynchronizeClockImplTest {
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
                 CompletableFuture.completedFuture(
                         new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM, System.currentTimeMillis(),
-                                System.currentTimeMillis(), Status.OK, null, false)));
+                                System.currentTimeMillis(), Status.OK, null, false, false)));
 
         CompletableFuture<Result> future = testOperation.synchronizeClock(TEST_DEVICE_ID, TEST_SOURCE);
         Result result = future.get();
@@ -65,7 +65,7 @@ public class OperationSynchronizeClockImplTest {
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
                 CompletableFuture.completedFuture(
                         new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM, System.currentTimeMillis(), null,
-                                Status.PROCESSING_ERROR, error, false)));
+                                Status.PROCESSING_ERROR, error, false, false)));
 
         CompletableFuture<Result> future = testOperation.synchronizeClock(TEST_DEVICE_ID, TEST_SOURCE);
         Result result = future.get();

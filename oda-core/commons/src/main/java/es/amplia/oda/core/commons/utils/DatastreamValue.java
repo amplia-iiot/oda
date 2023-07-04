@@ -30,4 +30,5 @@ public class DatastreamValue {
     private final Status status;
     private final String error;
     private boolean sent;
+    private boolean processed;
 }

@@ -159,7 +159,7 @@ public class InMemoryStateManager implements StateManager {
 
     private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR, false);
+                Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR, false, false);
     }
 
     private Set<CompletableFuture<DatastreamValue>> setValues(String deviceId, Map<String, Object> datastreamValues,
@@ -181,17 +181,18 @@ public class InMemoryStateManager implements StateManager {
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                            Status.PROCESSING_ERROR, error.getMessage(), false);
+                            Status.PROCESSING_ERROR, error.getMessage(), false, false);
                 } else {
                     state.put(new DatastreamInfo(deviceId, datastreamId),
-                            new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value, Status.OK, null, false));
+                            new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
+                                    Status.OK, null, false, false));
                     return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
-                            Status.OK, null, false);
+                            Status.OK, null, false, false);
                 }
             });
         } catch (Exception e) {
             return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
-                    System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage(), false));
+                    System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage(), false, false));
         }
     }
 
@@ -219,17 +220,23 @@ public class InMemoryStateManager implements StateManager {
             // we need to do this because rules engine can alter everything, not just the event received
             List<DatastreamInfo> valuesToProcess = this.state.getStoredValuesToProcess();
             for (DatastreamInfo dsInfo : valuesToProcess) {
-                // get last value stored
-                DatastreamValue lastStoredValue = state.getLastValue(dsInfo);
+                // get not processed values
+                List<DatastreamValue> notProcessedValues = state.getNotProcessedValues(dsInfo);
+
                 if (state.isToSendImmediately(dsInfo)) {
-                    processEventToSendImmediately(event, lastStoredValue, eventsToSendImmediately);
+                    processEventsToSendImmediately(dsInfo, event, notProcessedValues, eventsToSendImmediately);
                 }
                 if (state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())) {
-                    processEventRefreshed(lastStoredValue);
+                    processEventsRefreshed(dsInfo, notProcessedValues);
                 }
                 // remove old values stored in memory
                 state.removeHistoricValuesInMemory(dsInfo.getDatastreamId(), dsInfo.getDeviceId(),
                         this.forgetTime, this.maxHistoricalData);
+
+                // mark values as processed
+                for(DatastreamValue notProcessedValue :notProcessedValues) {
+                    notProcessedValue.setProcessed(true);
+                }
             }
         }
         // publish values marked as sendImmediately
@@ -237,32 +244,51 @@ public class InMemoryStateManager implements StateManager {
     }
 
 
-    private void processEventToSendImmediately(Event event, DatastreamValue lastStoredValue, List<Event> eventsToSendImmediately) {
-        event = new Event(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId(), event.getPath(),
-                event.getAt(), lastStoredValue.getValue());
-        lastStoredValue.setSent(true);
-        // add event to list to publish
-        eventsToSendImmediately.add(event);
+    private void processEventsToSendImmediately(DatastreamInfo dsInfo, Event event, List<DatastreamValue> notProcessedValues,
+                                                List<Event> eventsToSendImmediately) {
+        Event eventToSendImmediately;
+
+        if (!notProcessedValues.isEmpty()) {
+            for (DatastreamValue notProcessedValue : notProcessedValues) {
+
+                eventToSendImmediately = new Event(notProcessedValue.getDatastreamId(), notProcessedValue.getDeviceId(),
+                        event.getPath(), notProcessedValue.getAt(), notProcessedValue.getValue());
+
+                // add event to list to publish
+                eventsToSendImmediately.add(eventToSendImmediately);
+
+                // mark value in memory as sent
+                notProcessedValue.setSent(true);
+            }
+        }
+
         // disable sendImmediately mark
-        state.clearSendImmediately(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+        state.clearSendImmediately(dsInfo.getDatastreamId(), dsInfo.getDeviceId());
     }
 
-    private void processEventRefreshed(DatastreamValue lastStoredValue) {
+    private void processEventsRefreshed(DatastreamInfo dsInfo, List<DatastreamValue> notProcessedValues) {
         if (this.database != null && this.database.exists()) {
-            try {
-                if (!this.database.insertNewRow(lastStoredValue)) {
-                    LOGGER.error("The value {} couldn't be stored into the database.", lastStoredValue);
-                } else {
-                    // remove old values stored in database
-                    removeHistoricMaxDataInDatabase(lastStoredValue.getDeviceId(), lastStoredValue.getDatastreamId(),
-                            this.forgetPeriod);
+
+            if(!notProcessedValues.isEmpty()) {
+                for (DatastreamValue notProcessedValue : notProcessedValues) {
+                    try {
+                        // if event was marked as send immediately, value will be inserted in database with sent = true
+                        // if it was not marked as send immediately, value will be inserted in database with sent = false
+                        if (!this.database.insertNewRow(notProcessedValue)) {
+                            LOGGER.error("The value {} couldn't be stored into the database.", notProcessedValue);
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error("Error trying to insert the new value for {} in device {}",
+                                dsInfo.getDatastreamId(), dsInfo.getDeviceId());
+                    }
                 }
-            } catch (IOException e) {
-                LOGGER.error("Error trying to insert the new value for {} in device {}",
-                        lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+
+                // remove old values stored in database
+                removeHistoricMaxDataInDatabase(dsInfo.getDeviceId(), dsInfo.getDatastreamId(), this.forgetPeriod);
             }
+
             // disable refreshed mark
-            state.clearRefreshed(lastStoredValue.getDatastreamId(), lastStoredValue.getDeviceId());
+            state.clearRefreshed(dsInfo.getDatastreamId(), dsInfo.getDeviceId());
         }
     }
 
@@ -278,12 +304,16 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public void publishValues(List<Event> events) {
-            eventDispatcher.publishImmediately(events);
+        if (events.isEmpty()) {
+            return;
+        }
+
+        eventDispatcher.publishImmediately(events);
     }
 
     private DatastreamValue createDatastreamValueFromEvent(Event event) {
         return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getAt(), event.getValue(),
-                Status.OK, null, false);
+                Status.OK, null, false, false);
     }
 
     @Override

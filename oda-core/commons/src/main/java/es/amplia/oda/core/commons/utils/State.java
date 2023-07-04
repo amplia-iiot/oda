@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Collections;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,6 +71,12 @@ public class State {
                     .filter(stored -> !stored.isSent());
         }
 
+        public List<DatastreamValue> getNotProcessedValues() {
+            return this.storedValues.stream()
+                    .filter(stored -> !stored.isProcessed())
+                    .collect(Collectors.toList());
+        }
+
         public void setSent(long at, boolean sent) {
             this.storedValues.forEach(datastreamValue -> {
                 if (datastreamValue.getAt() == at) {
@@ -134,7 +141,6 @@ public class State {
 
     /**
      * Default constructor.
-     *
      * Initialize all Maps of this class to a new empty HashMap.
      * With this constructor, State is initialized without datastreams
      */
@@ -142,29 +148,53 @@ public class State {
         this.datastreams = new HashMap<>();
     }
 
+    /**
+     * Function used from rules to log messages in INFO level
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     */
     public void logInfo(String msg, Object...objects) {
         LOGGER.info(msg, objects);
     }
 
+    /**
+     * Function used from rules to log messages in DEBUG level
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     */
     public void logDebug(String msg, Object...objects) {
         LOGGER.debug(msg, objects);
     }
 
+    /**
+     * Function used from rules to log messages in ERROR level
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     */
     public void logError(String msg, Object...objects) {
         LOGGER.error(msg, objects);
     }
 
+    /**
+     * Function used from rules to log messages in TRACE level
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     */
     public void logTrace(String msg, Object...objects) {
         LOGGER.trace(msg, objects);
     }
 
+    /**
+     * Function used from rules to log messages in WARN level
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     */
     public void logWarn(String msg, Object...objects) {
         LOGGER.warn(msg, objects);
     }
 
     /**
      * Method to load the data of a map into the state. This will overwrite all previous data.
-     *
      * Initialize all Maps of this class, inserting all datastreams with their values and putting to false their
      * refreshed and sendImmediately attribute.
      *
@@ -186,7 +216,6 @@ public class State {
     /**
      * Method that put a new datastream on the state object, creating a new array that contains the specified value and
      * setting to false its others attributes.
-     *
      * This method must be used to add the datastream to the State and not to change the value of a datastream. If the
      * datastreams already exists, this method will do nothing.
      *
@@ -257,7 +286,6 @@ public class State {
 
     /**
      * Method that get the last value (that is the actual value) of the datastream with the specified id's.
-     *
      * Used in utils.js.
      *
      * @param deviceId String with the identifier of the device to which the datastream we want to get the last value.
@@ -284,6 +312,24 @@ public class State {
             }
         }
         return createNotFoundValue(datastreamInfo);
+    }
+
+    /**
+     * Method that get all values not processed (in State Manager) of the datastream with the specified data.
+     *
+     * @param datastreamInfo Object with the information of the wanted datastream
+     * @return Object with the list of not processed values.
+     */
+    public List<DatastreamValue> getNotProcessedValues(DatastreamInfo datastreamInfo) {
+        DatastreamState dsState = this.datastreams.get(datastreamInfo);
+
+        if (dsState != null) {
+            List<DatastreamValue> dsValues = dsState.getNotProcessedValues();
+            if (!dsValues.isEmpty()) {
+                return dsValues;
+            }
+        }
+        return Collections.emptyList();
     }
 
     public Supplier<Stream<DatastreamValue>> getNotSentValuesToSend(DatastreamInfo datastreamInfo) {
@@ -397,7 +443,6 @@ public class State {
     /**
      * Method that mark the datastream specified by parameters for the State Manager send the last value when it receives
      * the state.
-     *
      * Used in utils.js.
      *
      * @param deviceId String with the identifier of the device to which the datastream we want to mark.
@@ -457,7 +502,6 @@ public class State {
 
     /**
      * Create an Object DatastreamValue with the value val and the metadata specified by dsInfo.
-     *
      * Used in utils.js.
      *
      * @param dsInfo Object that contains device and datastream that we are going to associate the value.
@@ -479,7 +523,7 @@ public class State {
      */
     public DatastreamValue createValue(String deviceId, String datastreamId, Object val) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), val,
-                DatastreamValue.Status.OK, "", false);
+                DatastreamValue.Status.OK, "", false, false);
     }
 
     /**
@@ -492,7 +536,7 @@ public class State {
      * @return Object DatastreamValue with the value and its metadata
      */
     public DatastreamValue createValue(String deviceId, String datastreamId, long at, Object val) {
-        return new DatastreamValue(deviceId, datastreamId, at, val, DatastreamValue.Status.OK, "", false);
+        return new DatastreamValue(deviceId, datastreamId, at, val, DatastreamValue.Status.OK, "", false, false);
     }
 
     /**
@@ -543,6 +587,6 @@ public class State {
      */
     public DatastreamValue createNotFoundValue(String deviceId, String datastreamId) {
         return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
-                DatastreamValue.Status.NOT_FOUND, "Datastream not found", false);
+                DatastreamValue.Status.NOT_FOUND, "Datastream not found", false, false);
     }
 }

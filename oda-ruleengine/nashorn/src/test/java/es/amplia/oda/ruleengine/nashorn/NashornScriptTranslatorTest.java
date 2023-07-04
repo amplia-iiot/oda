@@ -109,7 +109,7 @@ public class NashornScriptTranslatorTest {
 		ScriptEngine engine = manager.getEngineByName("nashorn");
 		engine.eval("function nothing(a, b) {return a}");
 		map.put("rule.js", engine);
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
 		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
@@ -124,7 +124,7 @@ public class NashornScriptTranslatorTest {
 		ScriptEngine engine = manager.getEngineByName("nashorn");
 		engine.eval("function nothing(a, b) {throw new ScriptException(\"Jej\")}");
 		map.put("rule.js", engine);
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
 		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
@@ -139,7 +139,7 @@ public class NashornScriptTranslatorTest {
 		ScriptEngine engine = manager.getEngineByName("nashorn");
 		engine.eval("");
 		map.put("rule.js", engine);
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
 		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);

@@ -44,10 +44,10 @@ public class OperationGetDeviceParametersImplTest {
     private static final String TEST_ERROR = "Error!";
     private static final Set<DatastreamValue> TEST_DATASTREAM_VALUES = new HashSet<>(
             Arrays.asList(
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, DatastreamValue.Status.OK, null, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, DatastreamValue.Status.OK, null, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT_3, null, DatastreamValue.Status.NOT_FOUND, null, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT_4, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false)
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT_3, null, DatastreamValue.Status.NOT_FOUND, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT_4, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false, false)
             )
     );
 

@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
@@ -32,8 +33,12 @@ public class InMemoryStateManagerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String TEST_DEVICE_ID_2 = "testDevice2";
+    private static final String TEST_DEVICE_ID_3 = "testDevice3";
+
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
+    private static final String TEST_DATASTREAM_ID_3 = "testDatastream3";
+
     private static final Object TEST_VALUE_NEW = "test";
     private static final Object TEST_VALUE_OLD = "oldValueTest";
     private static final long TEST_AT_NEW = 2L;
@@ -74,18 +79,18 @@ public class InMemoryStateManagerTest {
         testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEngine, mockedSerializer, executor, scheduler);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2),
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_OLD, TEST_VALUE_2_OLD, Status.OK, null, true));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_OLD, TEST_VALUE_2_OLD, Status.OK, null, true, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID),
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
 
         testState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_NEW, TEST_VALUE_2_NEW, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, TEST_AT_NEW, TEST_VALUE_2_NEW, Status.OK, null, false, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false, false));
 
         Whitebox.setInternalState(testStateManager, "state", testState);
         Whitebox.setInternalState(testStateManager, "database", mockedDatabase);
@@ -347,15 +352,19 @@ public class InMemoryStateManagerTest {
     }
 
     @Test
-    public void testOnReceivedEvent() throws IOException, InterruptedException {
+    public void testOnReceivedEvent() throws IOException, InterruptedException, ExecutionException {
         when(mockedDatabase.exists()).thenReturn(true);
         when(mockedDatabase.insertNewRow(any())).thenReturn(true);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
         Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        State newState = Whitebox.getInternalState(testStateManager, "state");
+
+        State newState = new State();
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
-                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false, false));
+
+        Whitebox.setInternalState(testStateManager, "state", newState);
+
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
@@ -363,27 +372,95 @@ public class InMemoryStateManagerTest {
         // sleep to let threads execute the code
         Thread.sleep(500);
 
-        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID, TEST_DATASTREAM_ID).get();
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
-        verify(mockedDatabase, times(3)).insertNewRow(any());
+
+        verify(mockedDatabase, times(1)).insertNewRow(any());
     }
 
     @Test
-    public void testOnReceivedEventToSendImmediately() throws IOException, InterruptedException {
+    public void testMultipleEventsCreatedInRules() throws IOException, InterruptedException {
+        when(mockedDatabase.exists()).thenReturn(true);
+        when(mockedDatabase.insertNewRow(any())).thenReturn(true);
+        long newAt = System.currentTimeMillis();
+
+        // event that will trigger the process
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, "value1");
+
+        State newState = new State();
+        // create two new values for the same datastreamId and deviceId
+        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(),"value1", Status.OK, null, false, false));
+        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), "value2", Status.OK, null, false, false));
+
+        // get number of notProcessedValues before process
+        List<DatastreamValue> notProcessedValues = newState.getNotProcessedValues(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(2, notProcessedValues.size());
+        assertEquals(2, notProcessedValues.size());
+        assertEquals(TEST_DEVICE_ID, notProcessedValues.get(0).getDeviceId());
+        assertEquals(TEST_DEVICE_ID, notProcessedValues.get(1).getDeviceId());
+        assertEquals(TEST_DATASTREAM_ID, notProcessedValues.get(0).getDatastreamId());
+        assertEquals(TEST_DATASTREAM_ID, notProcessedValues.get(1).getDatastreamId());
+        assertEquals(newAt, notProcessedValues.get(0).getAt());
+        assertEquals(newAt, notProcessedValues.get(1).getAt());
+        assertEquals("value1", notProcessedValues.get(0).getValue());
+        assertEquals("value2", notProcessedValues.get(1).getValue());
+
+        // check that processed mark is true
+        List<DatastreamValue> storedValues = newState.getAllValues(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(false, storedValues.get(0).isProcessed());
+        assertEquals(false, storedValues.get(1).isProcessed());
+
+        // check that sent mark is false
+        assertEquals(false, storedValues.get(0).isSent());
+        assertEquals(false, storedValues.get(1).isSent());
+
+        Whitebox.setInternalState(testStateManager, "state", newState);
+
+        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+
+        // process events
+        testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
+
+        // sleep to let threads execute the code
+        Thread.sleep(500);
+
+        // there must have been two inserts in the database
+        verify(mockedDatabase, times(2)).insertNewRow(any());
+        verify(mockedDatabase).insertNewRow(notProcessedValues.get(0));
+        verify(mockedDatabase).insertNewRow(notProcessedValues.get(1));
+
+        // check that processed mark is true
+        storedValues = newState.getAllValues(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        assertEquals(true, storedValues.get(0).isProcessed());
+        assertEquals(true, storedValues.get(1).isProcessed());
+
+        // check that sent mark is false
+        assertEquals(false, storedValues.get(0).isSent());
+        assertEquals(false, storedValues.get(1).isSent());
+    }
+
+
+    @Test
+    public void testOnReceivedEventToSendImmediately() throws IOException, InterruptedException, ExecutionException {
         when(mockedDatabase.exists()).thenReturn(true);
         when(mockedDatabase.insertNewRow(any())).thenReturn(true);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
-        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        State newState = Whitebox.getInternalState(testStateManager, "state");
-        newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
-                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
-        newState.sendImmediately(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+        Event testEvent = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, newAt, newValue);
+
+        State newState = new State();
+        newState.refreshValue(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false, false));
+        newState.sendImmediately(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3);
+        Whitebox.setInternalState(testStateManager, "state", newState);
+
         when(mockedEngine.engine(any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
@@ -391,71 +468,73 @@ public class InMemoryStateManagerTest {
         // sleep to let threads execute the code
         Thread.sleep(500);
 
-        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
-        assertEquals(TEST_DEVICE_ID, value.getDeviceId());
-        assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3).get();
+        assertEquals(TEST_DEVICE_ID_3, value.getDeviceId());
+        assertEquals(TEST_DATASTREAM_ID_3, value.getDatastreamId());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
         assertTrue(value.isSent());
-        Event event = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
+        Event event = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, newAt, newValue);
         verify(mockedEventDispatcher).publishImmediately(Collections.singletonList(event));
-        verify(mockedDatabase, times(3)).insertNewRow(any());
+        verify(mockedDatabase, times(1)).insertNewRow(any());
     }
 
     @Test
-    public void testOnReceivedEventButCantBeStored() throws IOException, InterruptedException {
+    public void testOnReceivedEventButCantBeStored() throws IOException, InterruptedException, ExecutionException {
         when(mockedDatabase.exists()).thenReturn(true);
         when(mockedDatabase.insertNewRow(any())).thenReturn(false);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
         Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        State newState = Whitebox.getInternalState(testStateManager, "state");
+
+        State newState = new State();
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
-                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
-        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false, false));
+        Whitebox.setInternalState(testStateManager, "state", newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         // sleep to let threads execute the code
         Thread.sleep(500);
 
-        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID, TEST_DATASTREAM_ID).get();
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
-        verify(mockedDatabase, times(3)).insertNewRow(any());
+        verify(mockedDatabase, times(1)).insertNewRow(any());
     }
 
     @Test
-    public void testOnReceivedEventException() throws IOException, InterruptedException {
+    public void testOnReceivedEventException() throws IOException, InterruptedException, ExecutionException {
         when(mockedDatabase.exists()).thenReturn(true);
         when(mockedDatabase.insertNewRow(any())).thenThrow( new IOException());
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
         Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, newAt, newValue);
-        State newState = Whitebox.getInternalState(testStateManager, "state");
+
+        State newState = new State();
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
-                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false));
-        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+                testEvent.getAt(), testEvent.getValue(), Status.OK, null, false, false));
+        Whitebox.setInternalState(testStateManager, "state", newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
         // sleep to let threads execute the code
         Thread.sleep(500);
 
-        DatastreamValue value = testState.getLastValue(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID));
+        DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID, TEST_DATASTREAM_ID).get();
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
-        verify(mockedDatabase, times(3)).insertNewRow(any());
+        verify(mockedDatabase, times(1)).insertNewRow(any());
     }
 
     @Test
@@ -464,7 +543,7 @@ public class InMemoryStateManagerTest {
         Map<DatastreamInfo, List<DatastreamValue>> collectData = new HashMap<>();
         DatastreamInfo dsInfo = new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
         DatastreamValue dsValue = new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                System.currentTimeMillis(), true, Status.OK, null, false);
+                System.currentTimeMillis(), true, Status.OK, null, false, false);
         List<DatastreamValue> dsValues = new ArrayList<>();
         dsValues.add(dsValue);
         collectData.put(dsInfo, dsValues);
@@ -492,19 +571,19 @@ public class InMemoryStateManagerTest {
 
         // insert three new events for TEST_DEVICE_ID and TEST_DATASTREAM_ID
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 100, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 100, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt - 2000000, 200, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt - 2000000, 200, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt - 3000000, 300, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt - 3000000, 300, Status.OK, null, false, false));
 
         // insert three new events for TEST_DEVICE_ID_2 and TEST_DATASTREAM_ID_2
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 400, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 400, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt - 2000000, 500, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt - 2000000, 500, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt - 3000000, 600, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt - 3000000, 600, Status.OK, null, false, false));
 
         // check there are three events in state for each combination of datastreamId and deviceId
         assertEquals(3, newState.getAllValues(TEST_DEVICE_ID, TEST_DATASTREAM_ID).size());
@@ -545,19 +624,19 @@ public class InMemoryStateManagerTest {
 
         // insert three new events
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 100, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 100, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 200, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 200, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 300, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, eventAt, 300, Status.OK, null, false, false));
 
         // insert three new events for TEST_DEVICE_ID_2 and TEST_DATASTREAM_ID_2
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 400, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 400, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 500, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 500, Status.OK, null, false, false));
         newState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
-                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 600, Status.OK, null, false));
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, eventAt, 600, Status.OK, null, false, false));
 
         // check there are three events in state for each combination of datastreamId and deviceId
         assertEquals(3, newState.getAllValues(TEST_DEVICE_ID, TEST_DATASTREAM_ID).size());
