@@ -31,6 +31,33 @@ class TypeHelperExt extends TypeHelper {
 		return new Value<>(value, timestamp, qualityInformation);
 	}
 
+	public static Value<Byte> parseByteValue(final ProtocolOptions options, final ByteBuf data, final boolean withTimestamp)
+	{
+		final byte value = data.readByte();
+		final byte qds = data.readByte ();
+
+		final QualityInformation qualityInformation = QualityInformation.parse ( qds );
+		final boolean overflow = ( qds & 0b00000001 ) > 0;
+
+		final long timestamp = withTimestamp ? TypeHelperExt.parseTimestamp ( options, data ) : System.currentTimeMillis ();
+
+		return new Value<> ( value, timestamp, qualityInformation, overflow );
+	}
+
+	public static void encodeByteValue ( final ProtocolOptions options, final ByteBuf out, final Value<Byte> value, final boolean withTimestamp )
+	{
+		final byte qds = (byte) ( value.isOverflow () ? 0b00000001 : 0b00000000 );
+		final byte siq = value.getQualityInformation ().apply ( qds );
+
+		out.writeByte ( value.getValue () );
+		out.writeByte ( siq );
+
+		if ( withTimestamp )
+		{
+			TypeHelperExt.encodeTimestamp ( options, out, value.getTimestamp () );
+		}
+	}
+
 	@SuppressWarnings("all")
 	private static long parseTimestamp(ProtocolOptions options, ByteBuf data) {
 		int ms = data.readUnsignedShort();

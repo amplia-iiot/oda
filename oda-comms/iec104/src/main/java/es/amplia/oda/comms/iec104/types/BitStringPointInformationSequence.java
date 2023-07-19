@@ -22,6 +22,14 @@ public class BitStringPointInformationSequence extends AbstractMessage {
 		this.values = values;
 	}
 
+	public InformationObjectAddress getStartAddress() {
+		return this.startAddress;
+	}
+
+	public List<Value<byte[]>> getValues() {
+		return this.values;
+	}
+
 	public static BitStringPointInformationSequence parse (final ProtocolOptions options, final byte length, final ASDUHeader header, final ByteBuf data) {
 		final InformationObjectAddress startAddress = InformationObjectAddress.parse ( options, data );
 

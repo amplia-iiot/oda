@@ -1,5 +1,7 @@
 package es.amplia.oda.comms.iec104.master;
 
+import es.amplia.oda.comms.iec104.codecs.*;
+import es.amplia.oda.comms.iec104.types.*;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
@@ -22,23 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
-import es.amplia.oda.comms.iec104.codecs.BitStringCommandCodec;
-import es.amplia.oda.comms.iec104.codecs.BitStringPointSequenceCodec;
-import es.amplia.oda.comms.iec104.codecs.BitStringPointSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.DoublePointInformationSequenceCodec;
-import es.amplia.oda.comms.iec104.codecs.InterrogationCommandCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueFloatingPointSequenceCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueFloatingPointSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueFloatingPointTimeSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueScaledSequenceCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueScaledSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.MeasuredValueScaledTimeSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.SinglePointSequenceCodec;
-import es.amplia.oda.comms.iec104.codecs.DoublePointInformationSingleCodec;
-import es.amplia.oda.comms.iec104.codecs.DoublePointInformationTimeSingleCodec;
-import es.amplia.oda.comms.iec104.types.BitStringCommand;
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSequence;
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSingle;
 import io.netty.channel.socket.SocketChannel;
 
 public class Iec104ClientModule implements ClientModule {
@@ -95,7 +80,7 @@ public class Iec104ClientModule implements ClientModule {
         this.messageManager.registerCodec(MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledTimeSingleCodec());
-        
+
         this.messageManager.registerCodec(MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).id(),
                 MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueFloatingPointSingleCodec());
@@ -112,6 +97,14 @@ public class Iec104ClientModule implements ClientModule {
 		this.messageManager.registerCodec(BitStringCommand.class.getAnnotation(ASDU.class).id(),
 				BitStringCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringCommandCodec());
+
+		this.messageManager.registerCodec(StepPositionSingle.class.getAnnotation(ASDU.class).id(),
+				StepPositionSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionSingleCodec());
+		this.messageManager.registerCodec(StepPositionSequence.class.getAnnotation(ASDU.class).id(),
+				StepPositionSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionSequenceCodec());
+
         LOGGER.info("Initialized IEC104 client");
     }
 

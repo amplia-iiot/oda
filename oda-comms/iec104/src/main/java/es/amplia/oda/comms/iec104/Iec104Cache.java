@@ -23,8 +23,7 @@ public class Iec104Cache {
 
 
 	public <T> void add(String typeId, T value, int index) {
-		LOGGER.info("Adding data to cache");
-		LOGGER.debug("Adding data with SCADA type {} with index {} and value {} to cache", typeId, index, value);
+		LOGGER.debug("Adding data to cache with SCADA type {} with index {} and value {} to cache", typeId, index, value);
 		Map<Integer, Object> contain = cache.get(typeId);
 
 		if(contain == null) {
@@ -40,6 +39,7 @@ public class Iec104Cache {
 		CauseOfTransmission cot = new CauseOfTransmission(StandardCause.SPONTANEOUS);
 		ASDUAddress address = ASDUAddress.valueOf(commonAddress);
 		ASDUHeader header = new ASDUHeader(cot, address);
+		LOGGER.debug("ASDU type {}, value {}, index {}, timestamp {}, commonAddress {}", type, value, index, timestamp, commonAddress);
 		switch (type) {
 			case "M_SP_NA_1":
 				return getSinglePointInformation(value, header, index, timestamp);

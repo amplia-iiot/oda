@@ -44,14 +44,15 @@ class Iec104ReadOperatorProcessor {
 
     public void updateGetterPolling(int polling) {
         LOGGER.info("Update polling time {}", polling);
-        if (timer!= null) {
+        if (timer != null) {
             timer.cancel();
         }
         timer = new Timer("IEC104 InterrogationCommand");
-        timer.schedule(new TimerTask() {
-            @Override
+
+        TimerTask taskWithExceptionCatching = new TimerTask() {
             public void run() {
-                for (String deviceId: connectionsFactory.getDeviceList()) {
+            try {
+                for (String deviceId : connectionsFactory.getDeviceList()) {
                     LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
                     Iec104ClientModule client = connectionsFactory.getConnection(deviceId);
                     int commonAddress = connectionsFactory.getCommonAddress(deviceId);
@@ -59,8 +60,12 @@ class Iec104ReadOperatorProcessor {
                     if (client.isConnected()) client.send(cmd);
                     else LOGGER.warn("Could not send command due to no client connected for device {}", deviceId);
                 }
+            } catch (Throwable t) {  // Catch Throwable rather than Exception (a subclass).
+                LOGGER.error("Caught exception in IEC104 TimerTask. StackTrace: ", t);
             }
-        }, polling, polling);
+        }};
+
+        timer.schedule(taskWithExceptionCatching, polling, polling);
     }
 
 }

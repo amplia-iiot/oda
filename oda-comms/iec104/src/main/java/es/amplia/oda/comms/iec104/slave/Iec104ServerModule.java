@@ -2,9 +2,7 @@ package es.amplia.oda.comms.iec104.slave;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.codecs.*;
-import es.amplia.oda.comms.iec104.types.BitStringCommand;
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSequence;
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSingle;
+import es.amplia.oda.comms.iec104.types.*;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 
 import io.netty.channel.socket.SocketChannel;
@@ -66,6 +64,12 @@ public class Iec104ServerModule implements ServerModule {
 		this.messageManager.registerCodec(BitStringCommand.class.getAnnotation(ASDU.class).id(),
 				BitStringCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringCommandCodec());
+		this.messageManager.registerCodec(StepPositionSingle.class.getAnnotation(ASDU.class).id(),
+				StepPositionSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionSingleCodec());
+		this.messageManager.registerCodec(StepPositionSequence.class.getAnnotation(ASDU.class).id(),
+				StepPositionSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionSequenceCodec());
 		LOGGER.info("Initialized IEC104 server");
 	}
 
