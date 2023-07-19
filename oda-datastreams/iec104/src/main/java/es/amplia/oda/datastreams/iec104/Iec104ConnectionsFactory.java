@@ -58,26 +58,31 @@ public class Iec104ConnectionsFactory {
         HashMap<SocketAddress, List<ClientModule>> newConnections = new HashMap<>();
 
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
-        optionsBuilder.setTimeout1(100000);
-        optionsBuilder.setTimeout2(100000);
-        optionsBuilder.setTimeout3(100000);
+        optionsBuilder.setTimeout1(10000);
+        optionsBuilder.setTimeout2(10000);
+        optionsBuilder.setTimeout3(10000);
         ProtocolOptions options = optionsBuilder.build();
 
         configuration.forEach(c -> createNewConnection(c, newConnections, options));
 
-        newConnections.entrySet().forEach(e -> {Client client = new Client(e.getKey(), new ConnectionStateListener() {
+        newConnections.entrySet().forEach(e -> {
+            Client client = new Client(e.getKey(), new ConnectionStateListener() {
 
-            @Override
-            public void connected(Channel channel) {
-                LOGGER.info("Client connected {}", channel.remoteAddress());
-            }
+                @Override
+                public void connected(Channel channel) {
+                    LOGGER.info("Client connected {}", channel.remoteAddress());
+                }
 
-            @Override
-            public void disconnected(Throwable e) {
-                LOGGER.error("Client disconnect", e);
-            }
-            
-        }, options, e.getValue());clients.add(client);});
+                @Override
+                public void disconnected(Throwable e) {
+                    LOGGER.error("Client disconnect", e);
+                    LOGGER.error("Reconnecting...", e);
+                    connect();
+                }
+
+            }, options, e.getValue());
+            clients.add(client);
+        });
     }
 
     private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress, List<ClientModule>> newConnections, ProtocolOptions options) {
@@ -101,7 +106,7 @@ public class Iec104ConnectionsFactory {
             clientModules.add(createClientModule(deviceId, options, commonAddress));
             LOGGER.info("Configured IEC104 client {} to {} at port:{}", deviceId, remoteAddress, port);
         } catch (IOException e) {
-            LOGGER.error("Error creating IEC104 connection {}");
+            LOGGER.error("Error creating IEC104 connection {}", e.getMessage());
         }
     }
 
