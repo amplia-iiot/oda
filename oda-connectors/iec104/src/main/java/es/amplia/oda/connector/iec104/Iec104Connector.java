@@ -68,7 +68,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 			this.commonAddress = currentConfiguration.getCommonAddress();
 			InetSocketAddress socketAddress = new InetSocketAddress(address, port);
 			ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
-			optionsBuilder.setTimeout1(10000);
+			optionsBuilder.setTimeout1(15000);
 			optionsBuilder.setTimeout2(10000);
 			optionsBuilder.setTimeout3(10000);
 			ProtocolOptions options = optionsBuilder.build();

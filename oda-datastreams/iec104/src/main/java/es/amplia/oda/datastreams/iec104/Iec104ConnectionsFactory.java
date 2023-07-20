@@ -58,7 +58,7 @@ public class Iec104ConnectionsFactory {
         HashMap<SocketAddress, List<ClientModule>> newConnections = new HashMap<>();
 
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
-        optionsBuilder.setTimeout1(10000);
+        optionsBuilder.setTimeout1(15000);
         optionsBuilder.setTimeout2(10000);
         optionsBuilder.setTimeout3(10000);
         ProtocolOptions options = optionsBuilder.build();
