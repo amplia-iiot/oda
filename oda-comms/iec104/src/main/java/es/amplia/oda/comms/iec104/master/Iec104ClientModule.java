@@ -47,13 +47,15 @@ public class Iec104ClientModule implements ClientModule {
         this.client = client;
         this.messageManager = messageManager;
 
+		// SinglePointInformation
         this.messageManager.registerCodec(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new DoublePointInformationSingleCodec());
 		this.messageManager.registerCodec(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new SinglePointSequenceCodec());
-        
+
+		// DoublePointInformation
         this.messageManager.registerCodec(DoublePointInformationSingle.class.getAnnotation(ASDU.class).id(),
                 DoublePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new DoublePointInformationSingleCodec());
@@ -64,6 +66,7 @@ public class Iec104ClientModule implements ClientModule {
 				DoublePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new DoublePointInformationSequenceCodec());
 
+		// BitStringPointInformation
 		this.messageManager.registerCodec(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				BitStringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringPointSingleCodec());
@@ -71,6 +74,7 @@ public class Iec104ClientModule implements ClientModule {
 				BitStringPointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringPointSequenceCodec());
 
+		// MeasuredValueScaled
 		this.messageManager.registerCodec(MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledSingleCodec());
@@ -81,6 +85,7 @@ public class Iec104ClientModule implements ClientModule {
 				MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledTimeSingleCodec());
 
+		// MeasuredValueFloatingPoint
         this.messageManager.registerCodec(MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).id(),
                 MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueFloatingPointSingleCodec());
@@ -91,6 +96,7 @@ public class Iec104ClientModule implements ClientModule {
                 MeasuredValueShortFloatingPointTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueFloatingPointTimeSingleCodec());
 
+		// Commands
 		this.messageManager.registerCodec(InterrogationCommand.class.getAnnotation(ASDU.class).id(),
 				InterrogationCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new InterrogationCommandCodec());
@@ -98,12 +104,29 @@ public class Iec104ClientModule implements ClientModule {
 				BitStringCommand.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringCommandCodec());
 
+		// Step position
 		this.messageManager.registerCodec(StepPositionSingle.class.getAnnotation(ASDU.class).id(),
 				StepPositionSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new StepPositionSingleCodec());
 		this.messageManager.registerCodec(StepPositionSequence.class.getAnnotation(ASDU.class).id(),
 				StepPositionSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new StepPositionSequenceCodec());
+
+		// MeasureValueNormalized
+		this.messageManager.registerCodec(MeasuredValueNormalizedSingle.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedSingleCodec());
+		this.messageManager.registerCodec(MeasuredValueNormalizedSequence.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedSequenceCodec());
+
+		// MeasureValueNormalizedNoQuality
+		this.messageManager.registerCodec(MeasuredValueNormalizedNoQualitySingle.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedNoQualitySingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedNoQualitySingleCodec());
+		this.messageManager.registerCodec(MeasuredValueNormalizedNoQualitySequence.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedNoQualitySequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedNoQualitySequenceCodec());
 
         LOGGER.info("Initialized IEC104 client");
     }

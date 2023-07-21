@@ -58,6 +58,28 @@ class TypeHelperExt extends TypeHelper {
 		}
 	}
 
+	public static void encodeScaledValueNoQuality ( final ProtocolOptions options, final ByteBuf out, final Value<Short> value, final boolean withTimestamp )
+	{
+		out.writeShort ( value.getValue () );
+
+		if ( withTimestamp )
+		{
+			encodeTimestamp ( options, out, value.getTimestamp () );
+		}
+	}
+
+	/**
+	 * Parse Short integer number without quality descriptor
+	 */
+	public static Value<Short> parseScaledValueNoQuality ( final ProtocolOptions options, final ByteBuf data, final boolean withTimestamp )
+	{
+		final short value = data.readShort ();
+
+		final long timestamp = withTimestamp ? parseTimestamp ( options, data ) : System.currentTimeMillis ();
+
+		return new Value<> ( value, timestamp, null, false );
+	}
+
 	@SuppressWarnings("all")
 	private static long parseTimestamp(ProtocolOptions options, ByteBuf data) {
 		int ms = data.readUnsignedShort();

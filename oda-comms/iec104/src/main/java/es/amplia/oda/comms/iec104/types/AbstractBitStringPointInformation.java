@@ -25,6 +25,11 @@ public abstract class AbstractBitStringPointInformation extends AbstractMessage 
 		this.entries = entries;
 	}
 
+	public List<InformationEntry<byte[]>> getEntries ()
+	{
+		return this.entries;
+	}
+
 	@Override
 	public void encode(ProtocolOptions protocolOptions, ByteBuf byteBuf) {
 		EncodeHelper.encodeHeader(this, protocolOptions, this.entries.size(), this.header, byteBuf);
