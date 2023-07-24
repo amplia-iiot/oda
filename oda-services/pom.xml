@@ -18,5 +18,6 @@
     <modules>
         <module>cborserializer</module>
         <module>jsonserializer</module>
+        <module>scadatables</module>
     </modules>
 </project>
