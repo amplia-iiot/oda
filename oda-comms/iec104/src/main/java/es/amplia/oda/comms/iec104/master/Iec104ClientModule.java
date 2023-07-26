@@ -50,10 +50,10 @@ public class Iec104ClientModule implements ClientModule {
 		// SinglePointInformation
         this.messageManager.registerCodec(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
-				new DoublePointInformationSingleCodec());
+				new SinglePointInformationSingleCodec());
 		this.messageManager.registerCodec(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
-				new SinglePointSequenceCodec());
+				new SinglePointInformationSequenceCodec());
 
 		// DoublePointInformation
         this.messageManager.registerCodec(DoublePointInformationSingle.class.getAnnotation(ASDU.class).id(),

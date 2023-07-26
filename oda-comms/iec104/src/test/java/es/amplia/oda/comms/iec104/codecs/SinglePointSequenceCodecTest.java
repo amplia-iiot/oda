@@ -19,14 +19,14 @@ import java.util.TimeZone;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(SinglePointSequenceCodec.class)
+@PrepareForTest(SinglePointInformationSequenceCodec.class)
 public class SinglePointSequenceCodecTest {
 
 	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private final SinglePointSequenceCodec codec = new SinglePointSequenceCodec();
+	private final SinglePointInformationSequenceCodec codec = new SinglePointInformationSequenceCodec();
 
 	@Test
 	public void testParse() {

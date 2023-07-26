@@ -42,10 +42,10 @@ public class Iec104ServerModule implements ServerModule {
 		this.messageManager = messageManager;
 		this.messageManager.registerCodec(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
-				new SinglePointSingleCodec());
+				new SinglePointInformationSingleCodec());
 		this.messageManager.registerCodec(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
-				new SinglePointSequenceCodec());
+				new SinglePointInformationSequenceCodec());
 		this.messageManager.registerCodec(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				BitStringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringPointSingleCodec());

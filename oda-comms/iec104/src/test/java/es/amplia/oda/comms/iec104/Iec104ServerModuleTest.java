@@ -67,10 +67,10 @@ public class Iec104ServerModuleTest {
 
 		verify(mockedManager).registerCodec(eq(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id()),
 				eq(SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure()),
-				any(SinglePointSingleCodec.class));
+				any(SinglePointInformationSingleCodec.class));
 		verify(mockedManager).registerCodec(eq(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id()),
 				eq(SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure()),
-				any(SinglePointSequenceCodec.class));
+				any(SinglePointInformationSequenceCodec.class));
 		verify(mockedManager).registerCodec(eq(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).id()),
 				eq(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure()),
 				any(BitStringPointSingleCodec.class));

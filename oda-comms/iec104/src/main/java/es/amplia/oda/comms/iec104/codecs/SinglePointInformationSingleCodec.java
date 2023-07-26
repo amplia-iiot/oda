@@ -6,7 +6,7 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageCodec;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformationSingle;
 
-public class SinglePointSingleCodec implements MessageCodec {
+public class SinglePointInformationSingleCodec implements MessageCodec {
 
 	@Override
 	public Object parse(ProtocolOptions protocolOptions, byte b, ASDUHeader asduHeader, ByteBuf byteBuf) {
