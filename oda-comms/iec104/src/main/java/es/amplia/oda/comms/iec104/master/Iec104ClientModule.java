@@ -36,10 +36,12 @@ public class Iec104ClientModule implements ClientModule {
 	private MessageChannel messageChannel;
     private final ProtocolOptions options;
     private Iec104Cache cache;
+	private final String deviceId;
 
-    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options) {
+    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId) {
         this.cache = cache;
         this.options = options;
+		this.deviceId = deviceId;
     }
 
     @Override
@@ -135,7 +137,7 @@ public class Iec104ClientModule implements ClientModule {
     public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
         this.messageChannel = new Iec104MessageChannelHandler(this.options,
 				this.messageManager);
-		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache);
+		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId);
 		socketChannel.pipeline().removeLast();
 		socketChannel.pipeline().addLast(this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);

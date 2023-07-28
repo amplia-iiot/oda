@@ -1,6 +1,7 @@
 package es.amplia.oda.datastreams.iec104.internal;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
+import es.amplia.oda.comms.iec104.Iec104CacheValue;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.DatastreamInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
@@ -35,9 +36,19 @@ class Iec104ReadOperatorProcessor {
         Iec104Cache ret = this.connectionsFactory.getCache(deviceId);
         if (ret != null) {
             ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId, null));
-            Object value = ret.getValue(info.getType().toString(), info.getIndex());
-            LOGGER.debug("Value returned {} for device {} and datastream {}", value, deviceId, datastreamId);
-            if (value != null) return new CollectedValue(System.currentTimeMillis(), value);
+            Iec104CacheValue valueFromCache = ret.getValue(info.getType().toString(), info.getIndex());
+            if (valueFromCache != null) {
+                // if value is not null and if it hasn't been processed already
+                if (valueFromCache.getValue() != null && !valueFromCache.isProcessed()) {
+                    LOGGER.debug("Value returned {} for device {} and datastream {}", valueFromCache.getValue(), deviceId, datastreamId);
+                    // mark value as already processed to avoid generating an event with the same value more than once
+                    ret.markValueAsProcessed(info.getType().toString(), info.getIndex());
+                    return new CollectedValue(valueFromCache.getValueTime(), valueFromCache.getValue());
+                }
+                else {
+                    LOGGER.debug("Value from cache is null or has already been read");
+                }
+            }
         }
         return null;
     }

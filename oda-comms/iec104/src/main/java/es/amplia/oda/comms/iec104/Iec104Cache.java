@@ -18,20 +18,29 @@ public class Iec104Cache {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Iec104Cache.class);
 
-
-	private final Map<String, Map<Integer, Object>> cache = new HashMap<>();
+	// map is <Type(ASDU), Map<Index(IECAddress), Value>>
+	private final Map<String, Map<Integer, Iec104CacheValue>> cache = new HashMap<>();
 
 
 	public <T> void add(String typeId, T value, int index) {
-		LOGGER.debug("Adding data to cache with SCADA type {} with index {} and value {} to cache", typeId, index, value);
-		Map<Integer, Object> contain = cache.get(typeId);
+		LOGGER.info("Adding data to cache with SCADA type {} with index {} and value {}", typeId, index, value);
 
-		if(contain == null) {
+		// get from cache the Map associated to the type(ASDU) indicated
+		Map<Integer, Iec104CacheValue> contain = cache.get(typeId);
+
+		// create new value with current time
+		Iec104CacheValue newValueInCache = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+
+		// if cache doesn't contain a map for the ASDU indicated, create a new Map and add it to cache
+		if (contain == null) {
 			contain = new HashMap<>();
-			contain.put(index, value);
+			contain.put(index, newValueInCache);
+			// add new map to cache
 			cache.put(typeId, contain);
-		} else {
-			contain.put(index, value);
+		}
+		// if cache already contains a map for the ASDU indicated, add new value to map
+		else {
+			contain.put(index, newValueInCache);
 		}
 	}
 
@@ -111,13 +120,13 @@ public class Iec104Cache {
 
 	public List<Object> getASDUS(int commonAddress) {
 		List<Object> ret = new ArrayList<>();
-		for (Map.Entry<String, Map<Integer, Object>> entry: cache.entrySet()) {
+		for (Map.Entry<String, Map<Integer, Iec104CacheValue>> entry: cache.entrySet()) {
 			String key = entry.getKey();
-			Map<Integer, Object> info = entry.getValue();
+			Map<Integer, Iec104CacheValue> info = entry.getValue();
 
 			try {
-				for (Map.Entry<Integer, Object> value: info.entrySet()) {
-					Object asdu = getAsdu(key, value.getValue(), value.getKey(), System.currentTimeMillis(), commonAddress);
+				for (Map.Entry<Integer, Iec104CacheValue> value: info.entrySet()) {
+					Object asdu = getAsdu(key, value.getValue().getValue(), value.getKey(), value.getValue().getValueTime(), commonAddress);
 					if (asdu != null) {
 						ret.add(asdu);
 					}
@@ -129,11 +138,18 @@ public class Iec104Cache {
 		return ret;
 	}
 
-	public Object getValue(String type, int index) {
-		Map<Integer, Object> ret = cache.get(type);
+	public Iec104CacheValue getValue(String type, int index) {
+		Map<Integer, Iec104CacheValue> ret = cache.get(type);
 		if (ret != null)
 			return ret.get(index);
 		return null;
+	}
+
+	public void markValueAsProcessed(String type, int index) {
+		Map<Integer, Iec104CacheValue> ret = cache.get(type);
+		if (ret != null) {
+			ret.get(index).setProcessed(true);
+		}
 	}
 
 	private int[] getLowestAndHighestIndex(Map<Integer, Object> info) {

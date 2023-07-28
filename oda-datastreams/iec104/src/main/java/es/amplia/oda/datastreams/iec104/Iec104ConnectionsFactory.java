@@ -112,7 +112,7 @@ public class Iec104ConnectionsFactory {
 
     private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
         Iec104Cache cache = new Iec104Cache();
-        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options);
+        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId);
 
         caches.put(deviceId, cache);
         connections.put(deviceId, clientModule);

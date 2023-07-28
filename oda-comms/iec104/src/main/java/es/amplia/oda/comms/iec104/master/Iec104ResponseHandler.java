@@ -17,8 +17,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 
 	private final Iec104Cache cache;
 
-	public Iec104ResponseHandler(Iec104Cache cache) {
+	private final String deviceId;
+
+	public Iec104ResponseHandler(Iec104Cache cache, String deviceId) {
 		this.cache = cache;
+		this.deviceId = deviceId;
 	}
 
 	@Override
@@ -40,7 +43,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		String type = msg.getClass().getAnnotation(ASDU.class).name();
 		InformationStructure msgInfoStruct = msg.getClass().getAnnotation(ASDU.class).informationStructure();
 		String translatedASDU = translateASDULogging(type);
-		LOGGER.info("ASDU received type: {} {}, informationStructure: {}", type, translatedASDU, msgInfoStruct);
+		LOGGER.info("ASDU received type: {} {}, informationStructure: {} for deviceId {}", type, translatedASDU, msgInfoStruct, this.deviceId);
 
 		if (!(msgInfoStruct.equals(InformationStructure.SINGLE) || msgInfoStruct.equals(InformationStructure.SEQUENCE))) {
 			LOGGER.error("Unknown ASDU informationStructure {}", msgInfoStruct);

@@ -1,8 +1,11 @@
 package es.amplia.oda.core.commons.utils;
 
+import lombok.ToString;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@ToString
 public class DevicePattern {
     @Override
     public int hashCode() {
