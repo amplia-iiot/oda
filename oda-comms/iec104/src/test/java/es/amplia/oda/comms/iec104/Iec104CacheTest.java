@@ -1,7 +1,5 @@
 package es.amplia.oda.comms.iec104;
 
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSequence;
-
 import es.amplia.oda.comms.iec104.types.BitStringPointInformationSingle;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
@@ -11,8 +9,8 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformatio
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.QualityInformation;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -28,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
@@ -36,10 +35,10 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @PrepareForTest(Iec104CacheTest.class)
 public class Iec104CacheTest {
 	private final Iec104Cache testCache = new Iec104Cache();
-	private static Map<String, Map<Integer, Object>> cache;
+	private static Map<String, Map<Integer, Iec104CacheValue>> cache;
 
 	@Mock
-	private Map<String, Map<Integer, Object>> mockedCache;
+	private Map<String, Map<Integer, Iec104CacheValue>> mockedCache;
 	@Mock
 	private CauseOfTransmission mockedCOT;
 	@Mock
@@ -49,37 +48,60 @@ public class Iec104CacheTest {
 	@Before
 	public void prepareForTest() {
 		cache = new HashMap<>();
-		Map<Integer, Object> value = new HashMap<>();
-		Map<Integer, Object> valueBytes = new HashMap<>();
+		Map<Integer, Iec104CacheValue> value = new HashMap<>();
+		Map<Integer, Iec104CacheValue> valueBytes = new HashMap<>();
 		long longVal = 1984;
-		value.put(1, true);
-		value.put(2, false);
-		valueBytes.put(14, longVal);
+		value.put(1, new Iec104CacheValue(true, System.currentTimeMillis(), false));
+		value.put(2, new Iec104CacheValue(false, System.currentTimeMillis(), false));
+		valueBytes.put(14, new Iec104CacheValue(longVal, System.currentTimeMillis(), false));
 		cache.put("M_SP_NA_1", value);
 		cache.put("M_BO_NA_1", valueBytes);
 	}
 
+
 	@Test
 	public void testAddCreate() {
-		Whitebox.setInternalState(testCache, "cache", mockedCache);
-		String typeId = "ASDU", value = "Testing value";
+		String typeId = "ASDU";
+		String value = "Testing value";
 		int index = 1;
-		Map<Integer, Object> cacheValue = new HashMap<>();
-		cacheValue.put(index, value);
-		Mockito.when(mockedCache.get(eq(typeId))).thenReturn(null);
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
+		cacheValue.put(index, iec104Value);
+
+		Whitebox.setInternalState(testCache, "cache", mockedCache);
+		Mockito.when(mockedCache.get(typeId)).thenReturn(null);
 
 		testCache.add(typeId, value, index);
 
-		verify(mockedCache).put(eq(typeId), eq(cacheValue));
+		verify(mockedCache, times(1)).put(any(), any());
+	}
+
+	@Test
+	public void testAddValue() {
+		String typeId = "ASDU";
+		String value = "Testing value";
+		int index = 1;
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
+		cacheValue.put(index, iec104Value);
+
+		testCache.add(typeId, value, index);
+
+		Map<String, Map<Integer, Iec104CacheValue>> internalCache = (Map<String, Map<Integer, Iec104CacheValue>>) Whitebox.getInternalState(testCache, "cache");
+		Iec104CacheValue internalIEC104Value = internalCache.get(typeId).get(index);
+		Assert.assertEquals(internalIEC104Value.getValue(), cacheValue.get(index).getValue());
+		Assert.assertEquals(internalIEC104Value.isProcessed(), cacheValue.get(index).isProcessed());
 	}
 
 	@Test
 	public void testAddUpdate() {
 		Whitebox.setInternalState(testCache, "cache", mockedCache);
-		String typeId = "ASDU", value = "Testing value";
+		String typeId = "ASDU";
+		String value = "Testing value";
 		int index = 1;
-		Map<Integer, Object> cacheValue = new HashMap<>();
-		cacheValue.put(index, value);
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
+		cacheValue.put(index, iec104Value);
 		Mockito.when(mockedCache.get(eq(typeId))).thenReturn(cacheValue);
 
 		testCache.add(typeId, value, index);
