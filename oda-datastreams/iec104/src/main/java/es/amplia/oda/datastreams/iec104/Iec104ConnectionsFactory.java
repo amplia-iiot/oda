@@ -7,7 +7,6 @@ import io.netty.channel.Channel;
 
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.client.Client;
-import org.eclipse.neoscada.protocol.iec60870.client.ClientModule;
 import org.eclipse.neoscada.protocol.iec60870.client.ConnectionStateListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +54,7 @@ public class Iec104ConnectionsFactory {
     public void createConnections (List<Iec104DatastreamsConfiguration> configuration) {
         disconnect();
         deleteConnections();
-        HashMap<SocketAddress, List<ClientModule>> newConnections = new HashMap<>();
+        HashMap<SocketAddress, List<Iec104ClientModule>> newConnections = new HashMap<>();
 
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
         optionsBuilder.setTimeout1(15000);
@@ -71,21 +70,24 @@ public class Iec104ConnectionsFactory {
                 @Override
                 public void connected(Channel channel) {
                     LOGGER.info("Client connected {}", channel.remoteAddress());
+                    e.getValue().forEach(client -> client.setConnected(true));
                 }
 
                 @Override
-                public void disconnected(Throwable e) {
-                    LOGGER.error("Client disconnect", e);
-                    LOGGER.error("Reconnecting...", e);
-                    connect();
+                public void disconnected(Throwable error) {
+                    LOGGER.error("Client disconnect", error);
+                    e.getValue().forEach(client -> client.setConnected(false));
+
+                 /*   LOGGER.error("Reconnecting...", e);
+                    connect();*/
                 }
 
-            }, options, e.getValue());
+            }, options, new ArrayList<>(e.getValue()));
             clients.add(client);
         });
     }
 
-    private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress, List<ClientModule>> newConnections, ProtocolOptions options) {
+    private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress, List<Iec104ClientModule>> newConnections, ProtocolOptions options) {
         String deviceId = currentConfiguration.getDeviceId();
         String remoteAddress = currentConfiguration.getIpAddress();
         int port = currentConfiguration.getIpPort();
@@ -97,7 +99,7 @@ public class Iec104ConnectionsFactory {
             InetAddress address = InetAddress.getByName(remoteAddress);
             InetSocketAddress socketAddress = new InetSocketAddress(address, port);
 
-            List<ClientModule> clientModules = newConnections.get(socketAddress);
+            List<Iec104ClientModule> clientModules = newConnections.get(socketAddress);
 
             if (clientModules == null) {
                 clientModules = new ArrayList<>();
@@ -125,9 +127,12 @@ public class Iec104ConnectionsFactory {
         LOGGER.info("Establishing IEC104 connections");
         clients.forEach(c -> {
             ListenableFuture<Void> ret = c.connect();
-            if (ret.isDone()) LOGGER.info("Client connected");
-            else LOGGER.warn("Client not connected");
-            });
+            if (ret.isDone()) {
+                LOGGER.info("Client connected");
+            } else {
+                LOGGER.warn("Client not connected");
+            }
+        });
     }
 
     public void disconnect() {

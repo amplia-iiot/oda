@@ -38,10 +38,13 @@ public class Iec104ClientModule implements ClientModule {
     private Iec104Cache cache;
 	private final String deviceId;
 
+	private boolean connected;
+
     public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId) {
         this.cache = cache;
         this.options = options;
 		this.deviceId = deviceId;
+		this.connected = false;
     }
 
     @Override
@@ -145,22 +148,25 @@ public class Iec104ClientModule implements ClientModule {
 		LOGGER.info("Initialized IEC104 channel");
     }
 
-    public boolean isConnected() {
-		return this.messageChannel != null &&
-				this.messageManager != null &&
-				this.client != null;
+	public boolean isConnected() {
+		return this.connected;
 	}
 
-    @Override
-    public void dispose() {
-        this.client = null;
+	public void setConnected(boolean connected) {
+		this.connected = connected;
+	}
+
+	@Override
+	public void dispose() {
+		this.client = null;
 		this.messageManager = null;
 		//this.socketChannel = null;
 		this.messageChannel = null;
-    }
+		this.connected = false;
+	}
 
     public void send(Object asdu) {
-        if (this.client != null) {
+        if (this.connected) {
             this.client.writeCommand(asdu);
             /*try {
                 this.messageChannel.write(this.socketChannel.pipeline().context(this.messageChannel), asdu,

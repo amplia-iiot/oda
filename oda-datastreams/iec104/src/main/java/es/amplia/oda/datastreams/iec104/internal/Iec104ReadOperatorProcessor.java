@@ -62,19 +62,23 @@ class Iec104ReadOperatorProcessor {
 
         TimerTask taskWithExceptionCatching = new TimerTask() {
             public void run() {
-            try {
-                for (String deviceId : connectionsFactory.getDeviceList()) {
-                    LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
-                    Iec104ClientModule client = connectionsFactory.getConnection(deviceId);
-                    int commonAddress = connectionsFactory.getCommonAddress(deviceId);
-                    InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(commonAddress)), (short) 20);
-                    if (client.isConnected()) client.send(cmd);
-                    else LOGGER.warn("Could not send command due to no client connected for device {}", deviceId);
+                try {
+                    for (String deviceId : connectionsFactory.getDeviceList()) {
+                        Iec104ClientModule client = connectionsFactory.getConnection(deviceId);
+                        int commonAddress = connectionsFactory.getCommonAddress(deviceId);
+                        InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(commonAddress)), (short) 20);
+                        if (client.isConnected()) {
+                            LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
+                            client.send(cmd);
+                        } else {
+                            LOGGER.warn("Could not send InterrogationCommand due to no client connected for device {}", deviceId);
+                        }
+                    }
+                } catch (Throwable t) {  // Catch Throwable rather than Exception (a subclass).
+                    LOGGER.error("Caught exception in IEC104 TimerTask. StackTrace: ", t);
                 }
-            } catch (Throwable t) {  // Catch Throwable rather than Exception (a subclass).
-                LOGGER.error("Caught exception in IEC104 TimerTask. StackTrace: ", t);
             }
-        }};
+        };
 
         timer.schedule(taskWithExceptionCatching, polling, polling);
     }
