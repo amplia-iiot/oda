@@ -14,15 +14,15 @@ import java.util.List;
 
 public abstract class AbstractBitStringPointInformation extends AbstractMessage {
 
-	private static final boolean WITH_TIMESTAMP = false;
-
+	private final boolean withTimestamp;
 
 	private final List<InformationEntry<byte[]>> entries;
 
 
-	AbstractBitStringPointInformation(ASDUHeader header, List<InformationEntry<byte[]>> entries) {
+	AbstractBitStringPointInformation(ASDUHeader header, List<InformationEntry<byte[]>> entries, final boolean withTimestamp ) {
 		super(header);
 		this.entries = entries;
+		this.withTimestamp = withTimestamp;
 	}
 
 	public List<InformationEntry<byte[]>> getEntries ()
@@ -36,16 +36,16 @@ public abstract class AbstractBitStringPointInformation extends AbstractMessage 
 
 		for (InformationEntry<byte[]> entry : this.entries) {
 			entry.getAddress().encode(protocolOptions, byteBuf);
-			TypeHelperExt.encodeBitStringValue(protocolOptions, byteBuf, entry.getValue(), WITH_TIMESTAMP);
+			TypeHelperExt.encodeBitStringValue(protocolOptions, byteBuf, entry.getValue(), this.withTimestamp);
 		}
 	}
 
-	static List<InformationEntry<byte[]>> parseEntries (ProtocolOptions options, byte length, ByteBuf data) {
+	static List<InformationEntry<byte[]>> parseEntries (ProtocolOptions options, byte length, ByteBuf data, final boolean withTimestamp ) {
 		final List<InformationEntry<byte[]>> values = new ArrayList<>(length);
 
 		for (int i = 0; i < length; i++) {
 			final InformationObjectAddress address = InformationObjectAddress.parse(options, data);
-			final Value<byte[]> value = TypeHelperExt.parseBitStringValue(options, data, WITH_TIMESTAMP);
+			final Value<byte[]> value = TypeHelperExt.parseBitStringValue(options, data, withTimestamp);
 			values.add(new InformationEntry<>(address, value));
 		}
 		return values;

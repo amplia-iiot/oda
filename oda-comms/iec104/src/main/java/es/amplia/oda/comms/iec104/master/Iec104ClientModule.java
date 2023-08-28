@@ -5,18 +5,7 @@ import es.amplia.oda.comms.iec104.types.*;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.DoublePointInformationSequence;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.DoublePointInformationSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.DoublePointInformationTimeSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.InterrogationCommand;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSequence;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueScaledTimeSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueShortFloatingPointSequence;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueShortFloatingPointSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueShortFloatingPointTimeSingle;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformationSequence;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformationSingle;
+import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDU;
 import org.eclipse.neoscada.protocol.iec60870.client.Client;
 import org.eclipse.neoscada.protocol.iec60870.client.ClientModule;
@@ -32,10 +21,9 @@ public class Iec104ClientModule implements ClientModule {
     
     private Client client;
     private MessageManager messageManager;
-	//private SocketChannel socketChannel;
 	private MessageChannel messageChannel;
     private final ProtocolOptions options;
-    private Iec104Cache cache;
+    private final Iec104Cache cache;
 	private final String deviceId;
 
 	private boolean connected;
@@ -56,9 +44,15 @@ public class Iec104ClientModule implements ClientModule {
         this.messageManager.registerCodec(SinglePointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new SinglePointInformationSingleCodec());
+		this.messageManager.registerCodec(SinglePointInformationTimeSingle.class.getAnnotation(ASDU.class).id(),
+				SinglePointInformationTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new SinglePointInformationTimeSingleCodec());
 		this.messageManager.registerCodec(SinglePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				SinglePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new SinglePointInformationSequenceCodec());
+		this.messageManager.registerCodec(SinglePointInformationTimeSequence.class.getAnnotation(ASDU.class).id(),
+				SinglePointInformationTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new SinglePointInformationTimeSequenceCodec());
 
 		// DoublePointInformation
         this.messageManager.registerCodec(DoublePointInformationSingle.class.getAnnotation(ASDU.class).id(),
@@ -70,36 +64,51 @@ public class Iec104ClientModule implements ClientModule {
 		this.messageManager.registerCodec(DoublePointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				DoublePointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new DoublePointInformationSequenceCodec());
+		this.messageManager.registerCodec(DoublePointInformationTimeSequence.class.getAnnotation(ASDU.class).id(),
+				DoublePointInformationTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new DoublePointInformationTimeSequenceCodec());
 
 		// BitStringPointInformation
 		this.messageManager.registerCodec(BitStringPointInformationSingle.class.getAnnotation(ASDU.class).id(),
 				BitStringPointInformationSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringPointSingleCodec());
+		this.messageManager.registerCodec(BitStringPointInformationTimeSingle.class.getAnnotation(ASDU.class).id(),
+				BitStringPointInformationTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new BitStringPointTimeSingleCodec());
 		this.messageManager.registerCodec(BitStringPointInformationSequence.class.getAnnotation(ASDU.class).id(),
 				BitStringPointInformationSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new BitStringPointSequenceCodec());
+		this.messageManager.registerCodec(BitStringPointInformationTimeSequence.class.getAnnotation(ASDU.class).id(),
+				BitStringPointInformationTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new BitStringPointTimeSequenceCodec());
 
 		// MeasuredValueScaled
 		this.messageManager.registerCodec(MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueScaledSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledSingleCodec());
+		this.messageManager.registerCodec(MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueScaledTimeSingleCodec());
 		this.messageManager.registerCodec(MeasuredValueScaledSequence.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueScaledSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueScaledSequenceCodec());
-        this.messageManager.registerCodec(MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).id(),
-				MeasuredValueScaledTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
-				new MeasuredValueScaledTimeSingleCodec());
+		this.messageManager.registerCodec(MeasuredValueScaledTimeSequence.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueScaledTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueScaledTimeSequenceCodec());
 
 		// MeasuredValueFloatingPoint
         this.messageManager.registerCodec(MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).id(),
                 MeasuredValueShortFloatingPointSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueFloatingPointSingleCodec());
+		this.messageManager.registerCodec(MeasuredValueShortFloatingPointTimeSingle.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueShortFloatingPointTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueFloatingPointTimeSingleCodec());
 		this.messageManager.registerCodec(MeasuredValueShortFloatingPointSequence.class.getAnnotation(ASDU.class).id(),
         MeasuredValueShortFloatingPointSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueFloatingPointSequenceCodec());
-        this.messageManager.registerCodec(MeasuredValueShortFloatingPointTimeSingle.class.getAnnotation(ASDU.class).id(),
-                MeasuredValueShortFloatingPointTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
-				new MeasuredValueFloatingPointTimeSingleCodec());
+        this.messageManager.registerCodec(MeasuredValueShortFloatingPointTimeSequence.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueShortFloatingPointTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueFloatingPointTimeSequenceCodec());
 
 		// Commands
 		this.messageManager.registerCodec(InterrogationCommand.class.getAnnotation(ASDU.class).id(),
@@ -113,17 +122,29 @@ public class Iec104ClientModule implements ClientModule {
 		this.messageManager.registerCodec(StepPositionSingle.class.getAnnotation(ASDU.class).id(),
 				StepPositionSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new StepPositionSingleCodec());
+		this.messageManager.registerCodec(StepPositionTimeSingle.class.getAnnotation(ASDU.class).id(),
+				StepPositionTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionTimeSingleCodec());
 		this.messageManager.registerCodec(StepPositionSequence.class.getAnnotation(ASDU.class).id(),
 				StepPositionSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new StepPositionSequenceCodec());
+		this.messageManager.registerCodec(StepPositionTimeSequence.class.getAnnotation(ASDU.class).id(),
+				StepPositionTimeSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new StepPositionTimeSequenceCodec());
 
 		// MeasureValueNormalized
 		this.messageManager.registerCodec(MeasuredValueNormalizedSingle.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueNormalizedSingle.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueNormalizedSingleCodec());
+		this.messageManager.registerCodec(MeasuredValueNormalizedTimeSingle.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedTimeSingle.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedTimeSingleCodec());
 		this.messageManager.registerCodec(MeasuredValueNormalizedSequence.class.getAnnotation(ASDU.class).id(),
 				MeasuredValueNormalizedSequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueNormalizedSequenceCodec());
+		this.messageManager.registerCodec(MeasuredValueNormalizedTimeSequence.class.getAnnotation(ASDU.class).id(),
+				MeasuredValueNormalizedSequence.class.getAnnotation(ASDU.class).informationStructure(),
+				new MeasuredValueNormalizedTimeSequenceCodec());
 
 		// MeasureValueNormalizedNoQuality
 		this.messageManager.registerCodec(MeasuredValueNormalizedNoQualitySingle.class.getAnnotation(ASDU.class).id(),
@@ -144,7 +165,6 @@ public class Iec104ClientModule implements ClientModule {
 		socketChannel.pipeline().removeLast();
 		socketChannel.pipeline().addLast(this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);
-		//this.socketChannel = socketChannel;
 		LOGGER.info("Initialized IEC104 channel");
     }
 
@@ -160,7 +180,6 @@ public class Iec104ClientModule implements ClientModule {
 	public void dispose() {
 		this.client = null;
 		this.messageManager = null;
-		//this.socketChannel = null;
 		this.messageChannel = null;
 		this.connected = false;
 	}
@@ -168,13 +187,6 @@ public class Iec104ClientModule implements ClientModule {
     public void send(Object asdu) {
         if (this.connected) {
             this.client.writeCommand(asdu);
-            /*try {
-                this.messageChannel.write(this.socketChannel.pipeline().context(this.messageChannel), asdu,
-                                this.socketChannel.newPromise());
-                LOGGER.debug("ASDU sent to Slave SCADA: {}", asdu);
-            } catch (Exception e) {
-                LOGGER.error("Error sending ASDU to Slave SCADA", e);
-            }*/
         }
     }
     

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@ASDU ( id = 3, name = "M_DP_TB_1", informationStructure = InformationStructure.SEQUENCE )
+@ASDU ( id = 31, name = "M_DP_TB_1", informationStructure = InformationStructure.SEQUENCE )
 public class DoublePointInformationTimeSequence extends AbstractMessage
 {
     private final InformationObjectAddress startAddress;

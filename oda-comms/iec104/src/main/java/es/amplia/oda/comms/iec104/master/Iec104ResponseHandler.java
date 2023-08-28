@@ -63,20 +63,38 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 				case "M_ME_NC_1":
 					parseMeasuredValueFloatingPoint(type, msgInfoStruct, msg);
 					break;
+				case "M_ME_TF_1":
+					parseMeasuredValueFloatingPointTime(type, msgInfoStruct, msg);
+					break;
 				case "M_ME_NB_1":
 					parseMeasuredValueScaled(type, msgInfoStruct, msg);
+					break;
+				case "M_ME_TE_1":
+					parseMeasuredValueScaledTime(type, msgInfoStruct, msg);
 					break;
 				case "M_SP_NA_1":
 					parseSinglePointInformation(type, msgInfoStruct, msg);
 					break;
+				case "M_SP_TB_1":
+					parseSinglePointInformationTime(type, msgInfoStruct, msg);
+					break;
 				case "M_BO_NA_1":
 					parseBitstring(type, msgInfoStruct, msg);
+					break;
+				case "M_BO_TB_1":
+					parseBitstringTime(type, msgInfoStruct, msg);
 					break;
 				case "M_ST_NA_1":
 					parseStepPosition(type, msgInfoStruct, msg);
 					break;
+				case "M_ST_TB_1":
+					parseStepPositionTime(type, msgInfoStruct, msg);
+					break;
 				case "M_ME_NA_1":
 					parseMeasureValueNormalized(type, msgInfoStruct, msg);
+					break;
+				case "M_ME_TD_1":
+					parseMeasureValueNormalizedTime(type, msgInfoStruct, msg);
 					break;
 				case "M_ME_ND_1":
 					parseMeasureValueNormalizedNoQuality(type, msgInfoStruct, msg);
@@ -95,21 +113,33 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 			case "C_IC_NA_1":
 				return "(Interrogation Command)";
 			case "M_DP_TB_1":
-				return "(DoublePointInformationTime)";
+				return "(DoublePointInformation with seven octets time)";
 			case "M_DP_NA_1":
 				return "(DoublePointInformation)";
 			case "M_ME_NC_1":
 				return "(MeasuredValueFloatingPoint)";
+			case "M_ME_TF_1":
+				return "(MeasuredValueFloatingPoint with seven octets time)";
 			case "M_ME_NB_1":
 				return "(MeasuredValueScaled)";
+			case "M_ME_TE_1":
+				return "(MeasuredValueScaled with seven octets time)";
 			case "M_SP_NA_1":
 				return "(SinglePointInformation)";
+			case "M_SP_TB_1":
+				return "(SinglePointInformation with seven octets time)";
 			case "M_BO_NA_1":
 				return "(Bitstring)";
+			case "M_BO_TB_1":
+				return "(Bitstring with seven octets time)";
 			case "M_ST_NA_1":
 				return "(StepPosition)";
+			case "M_ST_TB_1":
+				return "(StepPositionTime with seven octets time)";
 			case "M_ME_NA_1":
 				return "(MeasuredValueNormalized)";
+			case "M_ME_TD_1":
+				return "(MeasuredValueNormalized with seven octets time)";
 			case "M_ME_ND_1":
 				return "(MeasuredValueNormalizedNoQuality)";
 			default:
@@ -120,11 +150,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 	private void parseDoublePointInformationTime(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("DoublePointInformationTimeSingle received.");
+			LOGGER.debug("DoublePointInformation single with seven octets time received.");
 			DoublePointInformationTimeSingle dataDPIT = (DoublePointInformationTimeSingle) msg;
 			dataDPIT.getEntries().forEach(e -> cache.add(type, e.getValue().getValue().toString(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("DoublePointInformationTimeSequence received.");
+			LOGGER.debug("DoublePointInformation sequence with seven octets time received.");
 			DoublePointInformationTimeSequence dataDPITSeq = (DoublePointInformationTimeSequence) msg;
 			int addressMVNNQSeq = dataDPITSeq.getStartAddress().getAddress();
 			for (Value<DoublePoint> v : dataDPITSeq.getValues())
@@ -135,11 +165,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 	private void parseDoublePointInformation(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("DoublePointInformationSingle received.");
+			LOGGER.debug("DoublePointInformation single received.");
 			DoublePointInformationSingle dataDPIS = (DoublePointInformationSingle) msg;
 			dataDPIS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue().toString(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("DoublePointInformationSequence received.");
+			LOGGER.debug("DoublePointInformation sequence received.");
 			DoublePointInformationSequence dataDPISeq = (DoublePointInformationSequence) msg;
 			int addressDPISeq = dataDPISeq.getStartAddress().getAddress();
 			for (Value<DoublePoint> v : dataDPISeq.getValues())
@@ -150,11 +180,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 	private void parseMeasuredValueFloatingPoint(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("MeasuredValueFloatingPointSingle received.");
+			LOGGER.debug("MeasuredValueFloatingPoint single received.");
 			MeasuredValueShortFloatingPointSingle dataMVSFPS = (MeasuredValueShortFloatingPointSingle) msg;
 			dataMVSFPS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("MeasuredValueFloatingPointSequence received.");
+			LOGGER.debug("MeasuredValueFloatingPoint sequence received.");
 			MeasuredValueShortFloatingPointSequence dataMVSFPSeq = (MeasuredValueShortFloatingPointSequence) msg;
 			int addressMVSFPSeq = dataMVSFPSeq.getStartAddress().getAddress();
 			for (Value<Float> v : dataMVSFPSeq.getValues())
@@ -162,14 +192,29 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	private void parseMeasuredValueFloatingPointTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("MeasuredValueFloatingPoint single with seven octets time received.");
+			MeasuredValueShortFloatingPointTimeSingle dataMVSFPTS = (MeasuredValueShortFloatingPointTimeSingle) msg;
+			dataMVSFPTS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("MeasuredValueFloatingPoint sequence with seven octets time received.");
+			MeasuredValueShortFloatingPointTimeSequence dataMVSFPTSeq = (MeasuredValueShortFloatingPointTimeSequence) msg;
+			int addressMVSFPTSeq = dataMVSFPTSeq.getStartAddress().getAddress();
+			for (Value<Short> v : dataMVSFPTSeq.getValues())
+				cache.add(type, v.getValue(), addressMVSFPTSeq++);
+		}
+	}
+
 	private void parseMeasuredValueScaled(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("MeasuredValueScaledSingle received.");
+			LOGGER.debug("MeasuredValueScaled single received.");
 			MeasuredValueScaledSingle dataMVSS = (MeasuredValueScaledSingle) msg;
 			dataMVSS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("MeasuredValueScaledSequence received.");
+			LOGGER.debug("MeasuredValueScaled sequence received.");
 			MeasuredValueScaledSequence dataMVSSeq = (MeasuredValueScaledSequence) msg;
 			int addressMVSSeq = dataMVSSeq.getStartAddress().getAddress();
 			for (Value<Short> v : dataMVSSeq.getValues())
@@ -177,18 +222,48 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	private void parseMeasuredValueScaledTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("MeasuredValueScaled single with seven octets time received.");
+			MeasuredValueScaledTimeSingle dataMVSTS = (MeasuredValueScaledTimeSingle) msg;
+			dataMVSTS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("MeasuredValueScaled sequence with seven octets time received.");
+			MeasuredValueScaledSequence dataMVSTSeq = (MeasuredValueScaledSequence) msg;
+			int addressMVSTSeq = dataMVSTSeq.getStartAddress().getAddress();
+			for (Value<Short> v : dataMVSTSeq.getValues())
+				cache.add(type, v.getValue(), addressMVSTSeq++);
+		}
+	}
+
 	private void parseSinglePointInformation(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("SinglePointInformationSingle received.");
+			LOGGER.debug("SinglePointInformation single received.");
 			SinglePointInformationSingle dataSPIS = (SinglePointInformationSingle) msg;
 			dataSPIS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("SinglePointInformationSequence received.");
+			LOGGER.debug("SinglePointInformation sequence received.");
 			SinglePointInformationSequence dataSPISeq = (SinglePointInformationSequence) msg;
 			int addressSPISeq = dataSPISeq.getStartAddress().getAddress();
 			for (Value<Boolean> v : dataSPISeq.getValues())
 				cache.add(type, v.getValue(), addressSPISeq++);
+		}
+	}
+
+	private void parseSinglePointInformationTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("SinglePointInformation single with seven octets time received.");
+			SinglePointInformationTimeSingle dataSPITS = (SinglePointInformationTimeSingle) msg;
+			dataSPITS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("SinglePointInformation sequence with seven octets time received.");
+			SinglePointInformationTimeSequence dataSPITSeq = (SinglePointInformationTimeSequence) msg;
+			int addressSPITSeq = dataSPITSeq.getStartAddress().getAddress();
+			for (Value<Boolean> v : dataSPITSeq.getValues())
+				cache.add(type, v.getValue(), addressSPITSeq++);
 		}
 	}
 
@@ -207,6 +282,21 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	private void parseBitstringTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("Bitstring single with seven octets time received.");
+			BitStringPointInformationTimeSingle dataBSTS = (BitStringPointInformationTimeSingle) msg;
+			dataBSTS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("Bitstring sequence with seven octets time received.");
+			BitStringPointInformationTimeSequence dataBSTSeq = (BitStringPointInformationTimeSequence) msg;
+			int addressBSTSeq = dataBSTSeq.getStartAddress().getAddress();
+			for (Value<byte[]> v: dataBSTSeq.getValues())
+				cache.add(type, v.getValue(), addressBSTSeq++);
+		}
+	}
+
 	private void parseStepPosition(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
@@ -222,14 +312,29 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	private void parseStepPositionTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("Step position single with seven octets time received.");
+			StepPositionTimeSingle dataSPTS = (StepPositionTimeSingle) msg;
+			dataSPTS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("Step position sequence with seven octets time received.");
+			StepPositionTimeSequence dataSPTSeq = (StepPositionTimeSequence) msg;
+			int addressSPTSeq = dataSPTSeq.getStartAddress().getAddress();
+			for (Value<Byte> v: dataSPTSeq.getValues())
+				cache.add(type, v.getValue(), addressSPTSeq++);
+		}
+	}
+
 	private void parseMeasureValueNormalized(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("MeasuredValueNormalizedSingle received.");
+			LOGGER.debug("MeasuredValueNormalized single received.");
 			MeasuredValueNormalizedSingle dataMVNS = (MeasuredValueNormalizedSingle) msg;
 			dataMVNS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("MeasuredValueNormalizedSequence received.");
+			LOGGER.debug("MeasuredValueNormalized sequence received.");
 			MeasuredValueNormalizedSequence dataMVNSeq = (MeasuredValueNormalizedSequence) msg;
 			int addressMVNSeq = dataMVNSeq.getStartAddress().getAddress();
 			for (Value<Short> v: dataMVNSeq.getValues())
@@ -237,14 +342,29 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	private void parseMeasureValueNormalizedTime(String type, InformationStructure msgInfoStruct, final Object msg) {
+
+		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
+			LOGGER.debug("MeasuredValueNormalized single with seven octets time received.");
+			MeasuredValueNormalizedTimeSingle dataMVNTS = (MeasuredValueNormalizedTimeSingle) msg;
+			dataMVNTS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
+		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
+			LOGGER.debug("MeasuredValueNormalized sequence with seven octets time received.");
+			MeasuredValueNormalizedTimeSequence dataMVNTSeq = (MeasuredValueNormalizedTimeSequence) msg;
+			int addressMVNTSeq = dataMVNTSeq.getStartAddress().getAddress();
+			for (Value<Short> v: dataMVNTSeq.getValues())
+				cache.add(type, v.getValue(), addressMVNTSeq++);
+		}
+	}
+
 	private void parseMeasureValueNormalizedNoQuality(String type, InformationStructure msgInfoStruct, final Object msg) {
 
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
-			LOGGER.debug("MeasuredValueNormalizedNoQualitySingle received.");
+			LOGGER.debug("MeasuredValueNormalized NoQuality single received.");
 			MeasuredValueNormalizedNoQualitySingle dataMVNNQS = (MeasuredValueNormalizedNoQualitySingle) msg;
 			dataMVNNQS.getEntries().forEach(e -> cache.add(type, e.getValue().getValue(), e.getAddress().getAddress()));
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
-			LOGGER.debug("MeasuredValueNormalizedNoQualitySequence received.");
+			LOGGER.debug("MeasuredValueNormalized NoQuality sequence received.");
 			MeasuredValueNormalizedNoQualitySequence dataMVNNQSeq = (MeasuredValueNormalizedNoQualitySequence) msg;
 			int addressMVNNQSeq = dataMVNNQSeq.getStartAddress().getAddress();
 			for (Value<Short> v: dataMVNNQSeq.getValues())
