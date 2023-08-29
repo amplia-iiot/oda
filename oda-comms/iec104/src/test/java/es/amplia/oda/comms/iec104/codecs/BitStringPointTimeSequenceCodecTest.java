@@ -1,7 +1,6 @@
 package es.amplia.oda.comms.iec104.codecs;
 
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSingle;
-
+import es.amplia.oda.comms.iec104.types.BitStringPointInformationTimeSequence;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -16,19 +15,21 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BitStringPointSingleCodec.class)
-public class BitStringPointSingleCodecTest {
+@PrepareForTest(BitStringPointTimeSequenceCodec.class)
+public class BitStringPointTimeSequenceCodecTest {
 
-	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private final BitStringPointSingleCodec codec = new BitStringPointSingleCodec();
+	private final BitStringPointTimeSequenceCodec codec = new BitStringPointTimeSequenceCodec();
 
 	@Test
 	public void testParse() {
@@ -36,9 +37,9 @@ public class BitStringPointSingleCodecTest {
 				InformationObjectAddressType.SIZE_1, CauseOfTransmissionType.SIZE_1, (short) 0, (short) 0,
 				TimeZone.getDefault(), true);
 
-		Object o = codec.parse(options, (byte) 0x01, null, bytebuf);
+		Object o = codec.parse(options, (byte) 0x00, null, bytebuf);
 
-		assertTrue(o instanceof BitStringPointInformationSingle);
+		assertTrue(o instanceof BitStringPointInformationTimeSequence);
 	}
 
 	@Test
@@ -49,8 +50,9 @@ public class BitStringPointSingleCodecTest {
 		ByteBuf buffer = Unpooled.buffer();
 
 		Value<Long> v = new Value<>(new BigInteger(bytes).longValue(), System.currentTimeMillis(), QualityInformation.OK);
+		List <Value<Long>> l = Collections.singletonList(v);
 
-		codec.encode(options, BitStringPointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
+		codec.encode(options, BitStringPointInformationTimeSequence.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, l), buffer);
 
 		assertTrue(buffer.readableBytes() > 0);
 	}

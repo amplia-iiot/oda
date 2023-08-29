@@ -57,4 +57,23 @@ public class StepPositionSequence extends AbstractMessage {
             TypeHelperExt.encodeByteValue( options, out, value, false );
         }
     }
+
+    public static StepPositionSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final Value<Byte> value )
+    {
+        return createInternal ( startAddress, header, Collections.singletonList ( value ) );
+    }
+
+    public static StepPositionSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Byte>> values )
+    {
+        if ( values.size () > MAX_INFORMATION_ENTRIES )
+        {
+            throw new IllegalArgumentException ( String.format ( "A maximum of %s values can be transmitted", MAX_INFORMATION_ENTRIES ) );
+        }
+        return createInternal ( startAddress, header, new ArrayList<> ( values ) );
+    }
+
+    private static StepPositionSequence createInternal (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Byte>> values )
+    {
+        return new StepPositionSequence( header, startAddress, values );
+    }
 }

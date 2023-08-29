@@ -202,7 +202,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 			LOGGER.debug("MeasuredValueFloatingPoint sequence with seven octets time received.");
 			MeasuredValueShortFloatingPointTimeSequence dataMVSFPTSeq = (MeasuredValueShortFloatingPointTimeSequence) msg;
 			int addressMVSFPTSeq = dataMVSFPTSeq.getStartAddress().getAddress();
-			for (Value<Short> v : dataMVSFPTSeq.getValues())
+			for (Value<Float> v : dataMVSFPTSeq.getValues())
 				cache.add(type, v.getValue(), addressMVSFPTSeq++);
 		}
 	}

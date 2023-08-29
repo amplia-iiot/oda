@@ -16,16 +16,16 @@ public class MeasuredValueShortFloatingPointTimeSequence extends AbstractMessage
 {
     private final InformationObjectAddress startAddress;
 
-    private final List<Value<Short>> values;
+    private final List<Value<Float>> values;
 
-    private MeasuredValueShortFloatingPointTimeSequence(final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<Short>> values )
+    private MeasuredValueShortFloatingPointTimeSequence(final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<Float>> values )
     {
         super ( header );
         this.startAddress = startAddress;
         this.values = values;
     }
 
-    public List<Value<Short>> getValues ()
+    public List<Value<Float>> getValues ()
     {
         return this.values;
     }
@@ -39,10 +39,10 @@ public class MeasuredValueShortFloatingPointTimeSequence extends AbstractMessage
     {
         final InformationObjectAddress startAddress = InformationObjectAddress.parse ( options, data );
 
-        final List<Value<Short>> values = new ArrayList<> ( length );
+        final List<Value<Float>> values = new ArrayList<> ( length );
         for ( int i = 0; i < length; i++ )
         {
-            values.add ( TypeHelper.parseScaledValue ( options, data, true ) );
+            values.add ( TypeHelper.parseFloatValue( options, data, true ) );
         }
 
         return new MeasuredValueShortFloatingPointTimeSequence( header, startAddress, values );
@@ -55,18 +55,18 @@ public class MeasuredValueShortFloatingPointTimeSequence extends AbstractMessage
 
         this.startAddress.encode ( options, out );
 
-        for ( final Value<Short> value : this.values )
+        for ( final Value<Float> value : this.values )
         {
-            TypeHelper.encodeScaledValue ( options, out, value, true );
+            TypeHelper.encodeFloatValue( options, out, value, true );
         }
     }
 
-    public static MeasuredValueShortFloatingPointTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final Value<Short> value )
+    public static MeasuredValueShortFloatingPointTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final Value<Float> value )
     {
         return createInternal ( startAddress, header, Collections.singletonList ( value ) );
     }
 
-    public static MeasuredValueShortFloatingPointTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Short>> values )
+    public static MeasuredValueShortFloatingPointTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Float>> values )
     {
         if ( values.size () > MAX_INFORMATION_ENTRIES )
         {
@@ -75,7 +75,7 @@ public class MeasuredValueShortFloatingPointTimeSequence extends AbstractMessage
         return createInternal ( startAddress, header, new ArrayList<> ( values ) );
     }
 
-    private static MeasuredValueShortFloatingPointTimeSequence createInternal (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Short>> values )
+    private static MeasuredValueShortFloatingPointTimeSequence createInternal (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Float>> values )
     {
         return new MeasuredValueShortFloatingPointTimeSequence( header, startAddress, values );
     }

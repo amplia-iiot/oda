@@ -1,7 +1,6 @@
 package es.amplia.oda.comms.iec104.codecs;
 
-import es.amplia.oda.comms.iec104.types.BitStringPointInformationSingle;
-
+import es.amplia.oda.comms.iec104.types.MeasuredValueShortFloatingPointTimeSequence;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
@@ -15,20 +14,19 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.math.BigInteger;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BitStringPointSingleCodec.class)
-public class BitStringPointSingleCodecTest {
+@PrepareForTest(MeasuredValueFloatingPointTimeSequenceCodec.class)
+public class MeasuredValueFloatingPointTimeSequenceCodecTest {
 
-	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};
 	private static final ByteBuf bytebuf = Unpooled.copiedBuffer(bytes);
 
 
-	private final BitStringPointSingleCodec codec = new BitStringPointSingleCodec();
+	private final MeasuredValueFloatingPointTimeSequenceCodec codec = new MeasuredValueFloatingPointTimeSequenceCodec();
 
 	@Test
 	public void testParse() {
@@ -36,9 +34,9 @@ public class BitStringPointSingleCodecTest {
 				InformationObjectAddressType.SIZE_1, CauseOfTransmissionType.SIZE_1, (short) 0, (short) 0,
 				TimeZone.getDefault(), true);
 
-		Object o = codec.parse(options, (byte) 0x01, null, bytebuf);
+		Object o = codec.parse(options, (byte) 0x00, null, bytebuf);
 
-		assertTrue(o instanceof BitStringPointInformationSingle);
+		assertTrue(o instanceof MeasuredValueShortFloatingPointTimeSequence);
 	}
 
 	@Test
@@ -48,9 +46,10 @@ public class BitStringPointSingleCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<Long> v = new Value<>(new BigInteger(bytes).longValue(), System.currentTimeMillis(), QualityInformation.OK);
+		Value<Float> v = new Value<>(Float.parseFloat("10"), System.currentTimeMillis(), QualityInformation.OK);
 
-		codec.encode(options, BitStringPointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
+		codec.encode(options, MeasuredValueShortFloatingPointTimeSequence.create(InformationObjectAddress.DEFAULT,
+				new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), v), buffer);
 
 		assertTrue(buffer.readableBytes() > 0);
 	}

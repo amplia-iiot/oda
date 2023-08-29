@@ -11,6 +11,7 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.InformationStructure;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @ASDU( id = 32, name = "M_ST_TB_1", informationStructure = InformationStructure.SEQUENCE )
@@ -61,5 +62,24 @@ public class StepPositionTimeSequence extends AbstractMessage {
         {
             TypeHelperExt.encodeByteValue( options, out, value, true );
         }
+    }
+
+    public static StepPositionTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final Value<Byte> value )
+    {
+        return createInternal ( startAddress, header, Collections.singletonList ( value ) );
+    }
+
+    public static StepPositionTimeSequence create (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Byte>> values )
+    {
+        if ( values.size () > MAX_INFORMATION_ENTRIES )
+        {
+            throw new IllegalArgumentException ( String.format ( "A maximum of %s values can be transmitted", MAX_INFORMATION_ENTRIES ) );
+        }
+        return createInternal ( startAddress, header, new ArrayList<> ( values ) );
+    }
+
+    private static StepPositionTimeSequence createInternal (final InformationObjectAddress startAddress, final ASDUHeader header, final List<Value<Byte>> values )
+    {
+        return new StepPositionTimeSequence( header, startAddress, values );
     }
 }
