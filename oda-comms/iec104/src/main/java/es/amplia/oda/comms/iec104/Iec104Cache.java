@@ -77,7 +77,7 @@ public class Iec104Cache {
 
 	private <T> Object getBitStringPointInformation(T value, ASDUHeader header, int index, long timestamp){
 		if(value instanceof ArrayList) {
-			List<Value<byte[]>> result = new ArrayList<>();
+			List<Value<Long>> result = new ArrayList<>();
 			for (Object val: ((ArrayList) value).toArray()) {
 				result.add(new Value(transformValueToBitString(val), timestamp, QualityInformation.OK));
 			}
@@ -85,7 +85,7 @@ public class Iec104Cache {
 		}
 
 		return BitStringPointInformationSingle.create(header, InformationObjectAddress.valueOf(index),
-				new Value<>(transformValueToBitString(value),
+				new Value(transformValueToBitString(value),
 						timestamp, QualityInformation.OK));
 	}
 

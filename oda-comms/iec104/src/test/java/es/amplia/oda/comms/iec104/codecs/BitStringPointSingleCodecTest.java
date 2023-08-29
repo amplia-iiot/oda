@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.math.BigInteger;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
@@ -47,7 +48,7 @@ public class BitStringPointSingleCodecTest {
 				TimeZone.getDefault(), true);
 		ByteBuf buffer = Unpooled.buffer();
 
-		Value<byte[]> v = new Value<>(bytes, System.currentTimeMillis(), QualityInformation.OK);
+		Value<Long> v = new Value<>(new BigInteger(bytes).longValue(), System.currentTimeMillis(), QualityInformation.OK);
 
 		codec.encode(options, BitStringPointInformationSingle.create(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(1)), InformationObjectAddress.DEFAULT, v), buffer);
 

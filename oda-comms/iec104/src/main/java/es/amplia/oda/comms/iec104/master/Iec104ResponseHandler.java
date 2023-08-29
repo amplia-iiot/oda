@@ -277,7 +277,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 			LOGGER.debug("Bitstring sequence received.");
 			BitStringPointInformationSequence dataBSSeq = (BitStringPointInformationSequence) msg;
 			int addressBSSeq = dataBSSeq.getStartAddress().getAddress();
-			for (Value<byte[]> v: dataBSSeq.getValues())
+			for (Value<Long> v: dataBSSeq.getValues())
 				cache.add(type, v.getValue(), addressBSSeq++);
 		}
 	}
@@ -292,7 +292,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 			LOGGER.debug("Bitstring sequence with seven octets time received.");
 			BitStringPointInformationTimeSequence dataBSTSeq = (BitStringPointInformationTimeSequence) msg;
 			int addressBSTSeq = dataBSTSeq.getStartAddress().getAddress();
-			for (Value<byte[]> v: dataBSTSeq.getValues())
+			for (Value<Long> v: dataBSTSeq.getValues())
 				cache.add(type, v.getValue(), addressBSTSeq++);
 		}
 	}

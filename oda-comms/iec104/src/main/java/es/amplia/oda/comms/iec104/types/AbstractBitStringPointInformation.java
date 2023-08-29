@@ -16,17 +16,16 @@ public abstract class AbstractBitStringPointInformation extends AbstractMessage 
 
 	private final boolean withTimestamp;
 
-	private final List<InformationEntry<byte[]>> entries;
+	private final List<InformationEntry<Long>> entries;
 
 
-	AbstractBitStringPointInformation(ASDUHeader header, List<InformationEntry<byte[]>> entries, final boolean withTimestamp ) {
+	AbstractBitStringPointInformation(ASDUHeader header, List<InformationEntry<Long>> entries, final boolean withTimestamp ) {
 		super(header);
 		this.entries = entries;
 		this.withTimestamp = withTimestamp;
 	}
 
-	public List<InformationEntry<byte[]>> getEntries ()
-	{
+	public List<InformationEntry<Long>> getEntries() {
 		return this.entries;
 	}
 
@@ -34,18 +33,18 @@ public abstract class AbstractBitStringPointInformation extends AbstractMessage 
 	public void encode(ProtocolOptions protocolOptions, ByteBuf byteBuf) {
 		EncodeHelper.encodeHeader(this, protocolOptions, this.entries.size(), this.header, byteBuf);
 
-		for (InformationEntry<byte[]> entry : this.entries) {
+		for (InformationEntry<Long> entry : this.entries) {
 			entry.getAddress().encode(protocolOptions, byteBuf);
 			TypeHelperExt.encodeBitStringValue(protocolOptions, byteBuf, entry.getValue(), this.withTimestamp);
 		}
 	}
 
-	static List<InformationEntry<byte[]>> parseEntries (ProtocolOptions options, byte length, ByteBuf data, final boolean withTimestamp ) {
-		final List<InformationEntry<byte[]>> values = new ArrayList<>(length);
+	static List<InformationEntry<Long>> parseEntries (ProtocolOptions options, byte length, ByteBuf data, final boolean withTimestamp ) {
+		final List<InformationEntry<Long>> values = new ArrayList<>(length);
 
 		for (int i = 0; i < length; i++) {
 			final InformationObjectAddress address = InformationObjectAddress.parse(options, data);
-			final Value<byte[]> value = TypeHelperExt.parseBitStringValue(options, data, withTimestamp);
+			final Value<Long> value = TypeHelperExt.parseBitStringValue(options, data, withTimestamp);
 			values.add(new InformationEntry<>(address, value));
 		}
 		return values;

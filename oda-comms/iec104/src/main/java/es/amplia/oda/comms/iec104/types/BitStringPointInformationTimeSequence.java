@@ -17,9 +17,9 @@ import java.util.List;
 public class BitStringPointInformationTimeSequence extends AbstractMessage {
 	private final InformationObjectAddress startAddress;
 
-	private final List<Value<byte[]>> values;
+	private final List<Value<Long>> values;
 
-	private BitStringPointInformationTimeSequence(final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<byte[]>> values) {
+	private BitStringPointInformationTimeSequence(final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<Long>> values) {
 		super(header);
 		this.startAddress = startAddress;
 		this.values = values;
@@ -29,14 +29,14 @@ public class BitStringPointInformationTimeSequence extends AbstractMessage {
 		return this.startAddress;
 	}
 
-	public List<Value<byte[]>> getValues() {
+	public List<Value<Long>> getValues() {
 		return this.values;
 	}
 
 	public static BitStringPointInformationTimeSequence parse (final ProtocolOptions options, final byte length, final ASDUHeader header, final ByteBuf data) {
 		final InformationObjectAddress startAddress = InformationObjectAddress.parse ( options, data );
 
-		final List<Value<byte[]>> values = new ArrayList<> ( length );
+		final List<Value<Long>> values = new ArrayList<> ( length );
 		for ( int i = 0; i < length; i++ ) {
 			values.add ( TypeHelperExt.parseBitStringValue( options, data, true ) );
 		}
@@ -50,19 +50,19 @@ public class BitStringPointInformationTimeSequence extends AbstractMessage {
 
 		this.startAddress.encode ( protocolOptions, byteBuf );
 
-		for ( final Value<byte[]> value : this.values ) {
+		for ( final Value<Long> value : this.values ) {
 			TypeHelperExt.encodeBitStringValue( protocolOptions, byteBuf, value, true );
 		}
 	}
 
-	public static BitStringPointInformationTimeSequence create (final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<byte[]>> values) {
+	public static BitStringPointInformationTimeSequence create (final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<Long>> values) {
 		if ( values.size () > MAX_INFORMATION_ENTRIES ) {
 			throw new IllegalArgumentException( String.format ( "A maximum of %s values can be transmitted", MAX_INFORMATION_ENTRIES ) );
 		}
 		return createInternal (header, startAddress, values);
 	}
 
-	private static BitStringPointInformationTimeSequence createInternal (final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<byte[]>> values) {
+	private static BitStringPointInformationTimeSequence createInternal (final ASDUHeader header, final InformationObjectAddress startAddress, final List<Value<Long>> values) {
 		return new BitStringPointInformationTimeSequence(header, startAddress, values);
 	}
 }

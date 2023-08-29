@@ -11,7 +11,7 @@ import java.util.List;
 @ASDU (id = 33, name = "M_BO_TB_1", informationStructure = InformationStructure.SINGLE)
 public class BitStringPointInformationTimeSingle extends AbstractBitStringPointInformation {
 
-	private BitStringPointInformationTimeSingle(ASDUHeader header, List<InformationEntry<byte[]>> entries) {
+	private BitStringPointInformationTimeSingle(ASDUHeader header, List<InformationEntry<Long>> entries) {
 		super(header, entries, true);
 	}
 
@@ -19,7 +19,7 @@ public class BitStringPointInformationTimeSingle extends AbstractBitStringPointI
 		return new BitStringPointInformationTimeSingle(header, parseEntries(options, length, data, true));
 	}
 
-	public static BitStringPointInformationTimeSingle create (final ASDUHeader header, final InformationObjectAddress address, final Value<byte[]> value) {
+	public static BitStringPointInformationTimeSingle create (final ASDUHeader header, final InformationObjectAddress address, final Value<Long> value) {
 		return new BitStringPointInformationTimeSingle(header, Collections.singletonList(new InformationEntry<>(address, value)));
 	}
 }
