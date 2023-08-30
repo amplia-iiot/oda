@@ -53,8 +53,8 @@ class Iec104ReadOperatorProcessor {
         return null;
     }
 
-    public void updateGetterPolling(int polling) {
-        LOGGER.info("Update polling time {}", polling);
+    public void updateGetterPolling(int initialPolling, int polling) {
+        LOGGER.info("Update polling time. Initial delay {}, next executions every {} milliseconds", initialPolling, polling);
         if (timer != null) {
             timer.cancel();
         }
@@ -80,7 +80,7 @@ class Iec104ReadOperatorProcessor {
             }
         };
 
-        timer.schedule(taskWithExceptionCatching, polling, polling);
+        timer.schedule(taskWithExceptionCatching, initialPolling, polling);
     }
 
 }

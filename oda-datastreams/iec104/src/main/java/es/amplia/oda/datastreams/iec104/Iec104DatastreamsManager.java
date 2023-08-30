@@ -27,9 +27,9 @@ public class Iec104DatastreamsManager implements AutoCloseable {
         this.translator = translator;
     }
 
-    public void loadConfiguration(List<Iec104DatastreamsConfiguration> currentIEC104DatastreamsConfigurations, int polling) {
-        datastreamsGetterRegistrationManager.unregister();
-        datastreamsSetterRegistrationManager.unregister();
+    public void loadConfiguration(List<Iec104DatastreamsConfiguration> currentIEC104DatastreamsConfigurations,
+                                  int initialPolling, int polling) {
+        close();
 
         // Primero creamos las conexiones para saber el número de dispositivos que tenemos en el sistema
         this.iec104ConnectionsFactory.createConnections(currentIEC104DatastreamsConfigurations);
@@ -38,7 +38,7 @@ public class Iec104DatastreamsManager implements AutoCloseable {
         this.translator.getDatastreamsIds().forEach(this::createAndRegisterIEC104Datastreams);
 
         this.iec104ConnectionsFactory.connect();
-        this.iec104DatastreamsFactory.updateGetterPolling(polling);
+        this.iec104DatastreamsFactory.updateGetterPolling(initialPolling, polling);
     }
 
     private void createAndRegisterIEC104Datastreams(String datastreamId) {

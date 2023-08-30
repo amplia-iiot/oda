@@ -28,8 +28,8 @@ public class Iec104DatastreamsFactoryImpl implements Iec104DatastreamsFactory {
     }
 
     @Override
-    public void updateGetterPolling(int polling) {
-        readOperatorProcessor.updateGetterPolling(polling);
+    public void updateGetterPolling(int initialPolling, int polling) {
+        readOperatorProcessor.updateGetterPolling(initialPolling, polling);
     }
 
 }

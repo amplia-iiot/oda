@@ -28,6 +28,7 @@ public class Iec104DatastreamsConfigurationUpdateHandlerTest {
     public void testLoadConfiguration() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put("pollingTime", "10000");
+        props.put("initialPollingTime", "1000");
         props.put("device1", "127.0.0.1;2404;1");
         props.put("device2", "127.0.0.1;2404;2");
         props.put("device3", "127.0.0.2;2404;1");
@@ -59,9 +60,28 @@ public class Iec104DatastreamsConfigurationUpdateHandlerTest {
         List<Iec104DatastreamsConfiguration> currentConfiguration = new ArrayList<>();
         Whitebox.setInternalState(testConfigHandler, "currentIec104DatastreamsConfigurations", currentConfiguration);
         Whitebox.setInternalState(testConfigHandler, "iec104Polling", 10000);
+        Whitebox.setInternalState(testConfigHandler, "iec104PollingInitialDelay", 1000);
+
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedIec104DatastreamsManager).loadConfiguration(eq(currentConfiguration), eq(10000));
+        verify(mockedIec104DatastreamsManager).loadConfiguration(currentConfiguration, 1000, 10000);
+    }
+
+    @Test
+    public void testWrongConfig(){
+        Dictionary<String, String> props = new Hashtable<>();
+        props.put("pollingTime", "10000");
+        props.put("initialPollingTime", "1000");
+        props.put("device1", "127.0.0.1;2404;1;1");
+
+        List<Iec104DatastreamsConfiguration> spiedConfiguration = spy(new ArrayList<>());
+
+        Whitebox.setInternalState(testConfigHandler, "currentIec104DatastreamsConfigurations", spiedConfiguration);
+
+        testConfigHandler.loadConfiguration(props);
+
+        verify(spiedConfiguration).clear();
+        verify(spiedConfiguration, times(0)).add(any(Iec104DatastreamsConfiguration.class));
     }
 }
