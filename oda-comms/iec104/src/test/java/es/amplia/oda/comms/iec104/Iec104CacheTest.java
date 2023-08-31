@@ -62,9 +62,9 @@ public class Iec104CacheTest {
 	@Test
 	public void testAddCreate() {
 		String typeId = "ASDU";
-		String value = "Testing value";
+		Value<String> value = new Value<>("Testing value", System.currentTimeMillis(), null);
 		int index = 1;
-		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value.getValue(), value.getTimestamp(), false);
 		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
 		cacheValue.put(index, iec104Value);
 
@@ -79,9 +79,9 @@ public class Iec104CacheTest {
 	@Test
 	public void testAddValue() {
 		String typeId = "ASDU";
-		String value = "Testing value";
+		Value<String> value = new Value<>("Testing value", System.currentTimeMillis(), null);
 		int index = 1;
-		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value.getValue(), value.getTimestamp(), false);
 		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
 		cacheValue.put(index, iec104Value);
 
@@ -97,9 +97,9 @@ public class Iec104CacheTest {
 	public void testAddUpdate() {
 		Whitebox.setInternalState(testCache, "cache", mockedCache);
 		String typeId = "ASDU";
-		String value = "Testing value";
+		Value<String> value = new Value<>("Testing value", System.currentTimeMillis(), null);
 		int index = 1;
-		Iec104CacheValue iec104Value = new Iec104CacheValue(value, System.currentTimeMillis(), false);
+		Iec104CacheValue iec104Value = new Iec104CacheValue(value.getValue(), value.getTimestamp(), false);
 		Map<Integer, Iec104CacheValue> cacheValue = new HashMap<>();
 		cacheValue.put(index, iec104Value);
 		Mockito.when(mockedCache.get(eq(typeId))).thenReturn(cacheValue);
