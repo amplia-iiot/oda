@@ -8,6 +8,7 @@ import es.amplia.oda.core.commons.osgi.proxies.ScadaDispatcherProxy;
 import io.netty.channel.socket.SocketChannel;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
+import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
 import org.eclipse.neoscada.protocol.iec60870.server.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,8 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 	public <T, S> void uplink(int index, T value, S type, long timestamp) {
 		String iec104Type = (String) type;
 
-		cache.add(iec104Type, value, index);
+		Value<T> newValue = new Value<>(value, System.currentTimeMillis(), null);
+		cache.add(iec104Type, newValue, index);
 
 		if (spontaneousEnabled || Iec104Cache.isSpontaneous(iec104Type)) {
 			if (isConnected()) {

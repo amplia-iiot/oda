@@ -4,6 +4,7 @@ import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.Iec104ConnectionsFactory;
+import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +43,8 @@ public class Iec104ReadOperatorProcessorTest {
 
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1", null);
         Iec104Cache cache = new Iec104Cache();
-        cache.add("M_ME_NC_1", 1, 106001);
+        Value<Integer> value = new Value<>(1, System.currentTimeMillis(), null);
+        cache.add("M_ME_NC_1", value, 106001);
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
