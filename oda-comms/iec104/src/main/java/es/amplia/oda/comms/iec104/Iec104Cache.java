@@ -28,7 +28,7 @@ public class Iec104Cache {
 		// get from cache the Map associated to the type(ASDU) indicated
 		Map<Integer, Iec104CacheValue> contain = cache.get(typeId);
 
-		// create new value with current time
+		// create new value
 		Iec104CacheValue newValueInCache = new Iec104CacheValue(value.getValue(), value.getTimestamp(), false);
 
 		// if cache doesn't contain a map for the ASDU indicated, create a new Map and add it to cache

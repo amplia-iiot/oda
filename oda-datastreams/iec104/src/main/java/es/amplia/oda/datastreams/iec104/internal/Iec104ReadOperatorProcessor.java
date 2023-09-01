@@ -36,6 +36,7 @@ class Iec104ReadOperatorProcessor {
         Iec104Cache ret = this.connectionsFactory.getCache(deviceId);
         if (ret != null) {
             ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId, null));
+            //LOGGER.info("Scada info for datastreamId {} - type {}, index {}", datastreamId, info.getType(), info.getIndex());
             Iec104CacheValue valueFromCache = ret.getValue(info.getType().toString(), info.getIndex());
             if (valueFromCache != null) {
                 // if value is not null and if it hasn't been processed already
@@ -48,6 +49,9 @@ class Iec104ReadOperatorProcessor {
                 else {
                     LOGGER.debug("Value from cache is null or has already been read");
                 }
+            }
+            else{
+                LOGGER.warn("No value retrieved from cache for datastreamId {}", datastreamId);
             }
         }
         return null;

@@ -152,13 +152,21 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
 			LOGGER.debug("DoublePointInformation single with seven octets time received.");
 			DoublePointInformationTimeSingle dataDPIT = (DoublePointInformationTimeSingle) msg;
-			dataDPIT.getEntries().forEach(e -> cache.add(type, e.getValue() , e.getAddress().getAddress()));
+			dataDPIT.getEntries().forEach(e -> {
+				// transform enum value to string for ODA to be able to store it in database
+				Value<String> value = new Value<>(e.getValue().getValue().toString(),
+						e.getValue().getTimestamp(), e.getValue().getQualityInformation());
+				cache.add(type, value, e.getAddress().getAddress());
+			});
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
 			LOGGER.debug("DoublePointInformation sequence with seven octets time received.");
 			DoublePointInformationTimeSequence dataDPITSeq = (DoublePointInformationTimeSequence) msg;
 			int addressMVNNQSeq = dataDPITSeq.getStartAddress().getAddress();
-			for (Value<DoublePoint> v : dataDPITSeq.getValues())
-				cache.add(type, v, addressMVNNQSeq++);
+			for (Value<DoublePoint> v : dataDPITSeq.getValues()) {
+				// transform enum value to string for ODA to be able to store it
+				Value<String> value = new Value<>(v.getValue().toString(), v.getTimestamp(), v.getQualityInformation());
+				cache.add(type, value, addressMVNNQSeq++);
+			}
 		}
 	}
 
@@ -167,13 +175,21 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 		if (msgInfoStruct.equals(InformationStructure.SINGLE)) {
 			LOGGER.debug("DoublePointInformation single received.");
 			DoublePointInformationSingle dataDPIS = (DoublePointInformationSingle) msg;
-			dataDPIS.getEntries().forEach(e -> cache.add(type, e.getValue(), e.getAddress().getAddress()));
+			dataDPIS.getEntries().forEach(e -> {
+				// transform enum value to string for ODA to be able to store it in database
+				Value<String> value = new Value<>(e.getValue().getValue().toString(),
+						e.getValue().getTimestamp(), e.getValue().getQualityInformation());
+				cache.add(type, value, e.getAddress().getAddress());
+			});
 		} else if (msgInfoStruct.equals(InformationStructure.SEQUENCE)) {
 			LOGGER.debug("DoublePointInformation sequence received.");
 			DoublePointInformationSequence dataDPISeq = (DoublePointInformationSequence) msg;
 			int addressDPISeq = dataDPISeq.getStartAddress().getAddress();
-			for (Value<DoublePoint> v : dataDPISeq.getValues())
-				cache.add(type, v, addressDPISeq++);
+			for (Value<DoublePoint> v : dataDPISeq.getValues()) {
+				// transform enum value to string for ODA to be able to store it
+				Value<String> value = new Value<>(v.getValue().toString(), v.getTimestamp(), v.getQualityInformation());
+				cache.add(type, value, addressDPISeq++);
+			}
 		}
 	}
 
