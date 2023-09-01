@@ -17,10 +17,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.ZoneId;
+import java.util.*;
 
 public class Iec104ConnectionsFactory {
 
@@ -60,6 +58,7 @@ public class Iec104ConnectionsFactory {
         optionsBuilder.setTimeout1(15000);
         optionsBuilder.setTimeout2(10000);
         optionsBuilder.setTimeout3(10000);
+        optionsBuilder.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
         ProtocolOptions options = optionsBuilder.build();
 
         configuration.forEach(c -> createNewConnection(c, newConnections, options));
