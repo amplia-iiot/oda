@@ -41,10 +41,12 @@ class Iec104ReadOperatorProcessor {
             if (valueFromCache != null) {
                 // if value is not null and if it hasn't been processed already
                 if (valueFromCache.getValue() != null && !valueFromCache.isProcessed()) {
+                    // transform value, scada tables can have scripts associated
+                    Object transformedValue = translator.transformValue(info.getScript(), valueFromCache.getValue());
                     LOGGER.debug("Value returned {} for device {} and datastream {}", valueFromCache.getValue(), deviceId, datastreamId);
                     // mark value as already processed to avoid generating an event with the same value more than once
                     ret.markValueAsProcessed(info.getType().toString(), info.getIndex());
-                    return new CollectedValue(valueFromCache.getValueTime(), valueFromCache.getValue());
+                    return new CollectedValue(valueFromCache.getValueTime(), transformedValue);
                 }
                 else {
                     LOGGER.debug("Value from cache is null or has already been read");

@@ -6,6 +6,8 @@ import java.util.List;
 
 import lombok.Value;
 
+import javax.script.Invocable;
+
 /**
  * SCADA translator to translate from Datastream info {device id, datastream id} to SCADA info {index, SCADA type).
  */
@@ -16,6 +18,7 @@ public interface ScadaTableTranslator {
         private int index;
         private Object type;
         private Object value;
+        private Invocable script;
     }
     
     /**
@@ -25,6 +28,14 @@ public interface ScadaTableTranslator {
      * @throws DataNotFoundException Data with the given parameters was not found.
      */
     ScadaInfo translate(DatastreamInfo info);
+
+    /**
+     * Transform value using the indicated script
+     * @param script script to apply to value
+     * @param value value to apply script to
+     * @return value transformed
+     */
+    Object transformValue(Invocable script, Object value);
 
     @Value
     class DatastreamInfo {

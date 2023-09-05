@@ -41,7 +41,7 @@ public class Iec104ReadOperatorProcessorTest {
     @Test
     public void testRead(){
 
-        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1", null);
+        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1", null, null);
         Iec104Cache cache = new Iec104Cache();
         Value<Integer> value = new Value<>(1, System.currentTimeMillis(), null);
         cache.add("M_ME_NC_1", value, 106001);
@@ -49,6 +49,7 @@ public class Iec104ReadOperatorProcessorTest {
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
         when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
+        when(mockScadaTranslator.transformValue(any(), any())).thenReturn(1);
 
         CollectedValue readValue = readOperatorProcessor.read("deviceId1", "datastreamId1");
 

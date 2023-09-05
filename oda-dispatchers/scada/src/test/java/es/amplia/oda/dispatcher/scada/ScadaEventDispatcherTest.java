@@ -38,7 +38,7 @@ public class ScadaEventDispatcherTest {
         Object value = 10;
         long timestamp = System.currentTimeMillis();
         Event event = new Event(datastreamId, deviceId, null, timestamp, value);
-        ScadaInfo returnedInfo = new ScadaInfo(1, 1, value);
+        ScadaInfo returnedInfo = new ScadaInfo(1, 1, value, null);
         DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId, value);
 
         when(mockedTranslator.translate(any())).thenReturn(returnedInfo);

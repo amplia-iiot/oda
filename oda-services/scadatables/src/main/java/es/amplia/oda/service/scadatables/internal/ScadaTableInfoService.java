@@ -9,6 +9,7 @@ import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfigurat
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.script.Invocable;
 import javax.script.ScriptException;
 
 import java.util.ArrayList;
@@ -84,7 +85,8 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
                 .filter(entry -> !isOutputType(entry.getKey()))
                 .filter(entry -> entry.getKey().getDatastreamId().equals(datastreamId))
                 .findFirst()
-                .map(entry -> new ScadaInfo(entry.getValue(), entry.getKey().getDataType(), getValue(entry.getKey(), datastreamInfo.getValue())))
+                .map(entry -> new ScadaInfo(entry.getValue(), entry.getKey().getDataType(),
+                        datastreamInfo.getValue(), entry.getKey().getScript()))
                 .orElseThrow(() -> new DataNotFoundException(datastreamId + " not found in SCADA tables"));
     }
 
@@ -93,10 +95,9 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
                 || entryConfiguration.getDataType().equals(ScadaTableEntryConfiguration.ANALOG_OUTPUT_TYPE_NAME);
     }
 
-    @SuppressWarnings("restriction")
-    private Object getValue(ScadaTableEntryConfiguration entryConfig, Object value) {
+    public Object transformValue(Invocable script, Object value) {
         try {
-            return (entryConfig.getScript() != null ? entryConfig.getScript().invokeFunction("run", value) : value);
+            return (script != null ? script.invokeFunction("run", value) : value);
         } catch (ScriptException | NoSuchMethodException e) {
             LOGGER.error("Scada collected value cannot be transformed, returning value without executing script: {}", value);
             return value;

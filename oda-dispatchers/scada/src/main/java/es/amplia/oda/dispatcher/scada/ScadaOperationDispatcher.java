@@ -34,7 +34,7 @@ class ScadaOperationDispatcher implements ScadaDispatcher {
     public <T, S> CompletableFuture<ScadaOperationResult> process(ScadaOperation operation, int index, T value, S type) {
         DatastreamInfo datastreamInfo;
         try {
-            datastreamInfo = translator.getDatastreamInfo(new ScadaInfo(index, type, value));
+            datastreamInfo = translator.getDatastreamInfo(new ScadaInfo(index, type, value, null));
         } catch (DataNotFoundException exception) {
             LOGGER.warn("Can not process SCADA operation: Datastream with SCADA index {} not found.", index);
             return CompletableFuture.completedFuture(ScadaOperationResult.ERROR);
