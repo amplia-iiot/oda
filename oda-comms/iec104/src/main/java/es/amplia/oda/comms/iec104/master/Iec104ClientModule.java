@@ -1,7 +1,10 @@
 package es.amplia.oda.comms.iec104.master;
 
+import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.codecs.*;
 import es.amplia.oda.comms.iec104.types.*;
+import io.netty.channel.socket.SocketChannel;
+import lombok.Getter;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
@@ -12,9 +15,6 @@ import org.eclipse.neoscada.protocol.iec60870.client.ClientModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.amplia.oda.comms.iec104.Iec104Cache;
-import io.netty.channel.socket.SocketChannel;
-
 public class Iec104ClientModule implements ClientModule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ClientModule.class);
@@ -24,15 +24,21 @@ public class Iec104ClientModule implements ClientModule {
 	private MessageChannel messageChannel;
     private final ProtocolOptions options;
     private final Iec104Cache cache;
+
+	@Getter
 	private final String deviceId;
 
+	private final int commonAddress;
+
+	@Getter
 	private boolean connected;
 
-    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId) {
+    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId, int commonAddress) {
         this.cache = cache;
         this.options = options;
 		this.deviceId = deviceId;
 		this.connected = false;
+		this.commonAddress = commonAddress;
     }
 
     @Override
@@ -161,16 +167,12 @@ public class Iec104ClientModule implements ClientModule {
     public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
         this.messageChannel = new Iec104MessageChannelHandler(this.options,
 				this.messageManager);
-		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId);
-		socketChannel.pipeline().removeLast();
-		socketChannel.pipeline().addLast(this.messageChannel);
+		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId, this.commonAddress);
+		// we replace the message channel introduced by neoscada library in Client class (handleInitChannel) with our message channel
+		socketChannel.pipeline().replace(MessageChannel.class, this.messageChannel.toString(), this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);
 		LOGGER.info("Initialized IEC104 channel");
     }
-
-	public boolean isConnected() {
-		return this.connected;
-	}
 
 	public void setConnected(boolean connected) {
 		this.connected = connected;

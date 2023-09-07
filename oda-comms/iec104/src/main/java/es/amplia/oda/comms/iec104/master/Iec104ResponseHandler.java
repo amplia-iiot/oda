@@ -4,6 +4,7 @@ import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.types.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import lombok.Getter;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDU;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.DoublePoint;
@@ -17,11 +18,15 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 
 	private final Iec104Cache cache;
 
+	@Getter
 	private final String deviceId;
 
-	public Iec104ResponseHandler(Iec104Cache cache, String deviceId) {
+	private final int commonAddress;
+
+	public Iec104ResponseHandler(Iec104Cache cache, String deviceId, int commonAddress) {
 		this.cache = cache;
 		this.deviceId = deviceId;
+		this.commonAddress = commonAddress;
 	}
 
 	@Override
@@ -36,6 +41,20 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
 
 		if (!msg.getClass().isAnnotationPresent(ASDU.class)) {
 			LOGGER.warn("Unknown message received: {}", msg);
+			return;
+		}
+
+		// to this point we know it is an ASDU
+		// cast to AbstractMessage to extract the commonAddres of the message
+		AbstractMessage message = (AbstractMessage) msg;
+		int commonAddressReceived = message.getHeader().getAsduAddress().getAddress();
+
+		// if the common address of the message received is not the same as the responseHandler, pass message to next responseHandler
+		// we will have as much responseHandlers as remote devices with the same IP and port
+		if (commonAddressReceived != this.commonAddress) {
+			LOGGER.debug("Common address received {} is different to commonAddress of handler {}", commonAddressReceived, this.commonAddress);
+			// pass message to next responseHandler registered in socket pipeline
+			ctx.fireChannelRead(msg);
 			return;
 		}
 

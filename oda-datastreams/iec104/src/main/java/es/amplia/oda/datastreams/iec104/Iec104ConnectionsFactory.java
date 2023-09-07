@@ -69,13 +69,21 @@ public class Iec104ConnectionsFactory {
                 @Override
                 public void connected(Channel channel) {
                     LOGGER.info("Client connected {}", channel.remoteAddress());
-                    e.getValue().forEach(client -> client.setConnected(true));
+                    e.getValue().forEach(client ->
+                    {
+                        LOGGER.info("DeviceId {} connected ", client.getDeviceId());
+                        client.setConnected(true);
+                    });
                 }
 
                 @Override
                 public void disconnected(Throwable error) {
                     LOGGER.error("Client disconnect", error);
-                    e.getValue().forEach(client -> client.setConnected(false));
+                    e.getValue().forEach(client ->
+                    {
+                        LOGGER.info("DeviceId {} disconnected ", client.getDeviceId());
+                        client.setConnected(false);
+                    });
 
                  /*   LOGGER.error("Reconnecting...", e);
                     connect();*/
@@ -113,7 +121,7 @@ public class Iec104ConnectionsFactory {
 
     private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
         Iec104Cache cache = new Iec104Cache();
-        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId);
+        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId, commonAddress);
 
         caches.put(deviceId, cache);
         connections.put(deviceId, clientModule);
