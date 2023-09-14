@@ -140,3 +140,15 @@ function exists(state, deviceId, datastream) {
 function sendImmediately(state, deviceId, datastreamId) {
     state.sendImmediately(deviceId, datastreamId);
 }
+
+// READ FILE
+
+// reads the content of the file indicated
+// the content is returned as a string
+function readFile(filePath){
+	var pathObj = java.nio.file.Paths.get(filePath);
+	var bytesObj = java.nio.file.Files.readAllBytes(pathObj);
+	var bytes = Java.from(bytesObj);
+	var content = String.fromCharCode.apply(null, bytes);
+	return content;
+}
