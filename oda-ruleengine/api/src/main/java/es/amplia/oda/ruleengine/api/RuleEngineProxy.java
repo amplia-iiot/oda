@@ -34,6 +34,11 @@ public class RuleEngineProxy implements RuleEngine, AutoCloseable {
 	}
 
 	@Override
+	public void modifyRule(String nameRule) {
+		proxy.consumeFirst(ruleEngine -> ruleEngine.modifyRule(nameRule));
+	}
+
+	@Override
 	public void deleteRule(String nameRule) {
 		proxy.consumeFirst(ruleEngine -> ruleEngine.deleteRule(nameRule));
 	}

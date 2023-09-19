@@ -12,6 +12,8 @@ public interface RuleEngine {
 
 	void createRule(String nameRule);
 
+	void modifyRule(String nameRule);
+
 	void deleteRule(String nameRule);
 
 	void reloadAllRules();

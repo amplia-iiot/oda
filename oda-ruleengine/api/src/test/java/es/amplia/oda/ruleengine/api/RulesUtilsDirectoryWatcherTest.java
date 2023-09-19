@@ -55,7 +55,8 @@ public class RulesUtilsDirectoryWatcherTest {
 
 		testDirectoryWatcher.start();
 
-		verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE), eq(StandardWatchEventKinds.ENTRY_DELETE));
+		verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE),
+				eq(StandardWatchEventKinds.ENTRY_DELETE), eq(StandardWatchEventKinds.ENTRY_MODIFY));
 		verify(mockedThread).start();
 	}
 

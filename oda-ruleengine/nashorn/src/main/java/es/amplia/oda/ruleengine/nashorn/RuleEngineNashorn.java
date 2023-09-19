@@ -82,21 +82,39 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     @Override
     public void deleteDatastreamDirectory(String datastreamId) {
         String fullPath = this.path + datastreamId;
+        LOGGER.info("Deleted directory {}", fullPath);
+
         if (this.watcher.get(fullPath) != null) {
             this.watcher.get(fullPath).stop();
             this.watcher.remove(fullPath);
             List<String> keys = new ArrayList<>(this.rules.keySet());
             for (String key : keys) {
                 if (key.contains(fullPath)) {
-                    this.rules.remove(key);
+                    deleteRule(key);
                 }
             }
-            LOGGER.info("Deleted rules for datastream {}", datastreamId);
         }
     }
 
     @Override
     public void createRule(String nameRule) {
+        initRule(nameRule);
+        LOGGER.info("Created rule {}", nameRule);
+    }
+
+    public void modifyRule(String nameRule){
+        //  init rule
+        initRule(nameRule);
+        LOGGER.info("Modified rule {}", nameRule);
+    }
+
+    @Override
+    public void deleteRule(String nameRule) {
+        this.rules.remove(nameRule);
+        LOGGER.info("Deleted rule {}", nameRule);
+    }
+
+    private void initRule(String nameRule) {
         File f = new File(nameRule);
         if (f.isFile()) {
             int index = nameRule.lastIndexOf(FileSystems.getDefault().getSeparator());
@@ -107,13 +125,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
             }
 
             initRuleScript(dirName, nameRule);
-            LOGGER.info("Created rule {}", nameRule);
         }
-    }
-
-    @Override
-    public void deleteRule(String nameRule) {
-        this.rules.remove(nameRule);
     }
 
     private void prepareMainDirectory() {
@@ -136,19 +148,20 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
     private void prepareDatastreamDirectory(String dir) {
 
+        LOGGER.info("Created directory {} for a new datastream", dir);
         this.watcher.put(dir, new RulesDirectoryWatcher(Paths.get(dir), this));
         try (Stream<Path> pathStreamFiles = Files.list(Paths.get(dir)).filter(filePath -> filePath.toFile().isFile())) {
             List<String> files = pathStreamFiles.map(Path::toString).filter(file -> file.endsWith(".js")).collect(Collectors.toList());
 
             for (String file : files) {
                 initRuleScript(dir, file);
+                LOGGER.info("Created rule {}", file);
             }
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
 
         this.watcher.get(dir).start();
-        LOGGER.info("Created directory {} for a new datastream", dir);
     }
 
     private void prepareJsUtilsDirectory() {

@@ -9,8 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 public class RulesUtilsDirectoryWatcher implements DirectoryWatcher {
 
@@ -32,11 +31,18 @@ public class RulesUtilsDirectoryWatcher implements DirectoryWatcher {
 	public void start() {
 		try {
 			creatingWatcher = FileSystems.getDefault().newWatchService();
-			path.register(creatingWatcher, ENTRY_CREATE, ENTRY_DELETE);
+			path.register(creatingWatcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 			creatingWatcherThread = new Thread(() -> {
 				try {
 					while (true) {
 						WatchKey key = creatingWatcher.take();
+
+						// Prevent receiving two separate ENTRY_MODIFY events: file modified
+						// and timestamp updated. Instead, receive one ENTRY_MODIFY event
+						// with two counts.
+						// If it still happens, sleep time might have to be bigger
+						Thread.sleep( 50 );
+
 						key.pollEvents().forEach(event -> {
 							// only check files ending with .js (javascript files)
 							// in linux, when a file is modified, a temporal file called goutputstream is created

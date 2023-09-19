@@ -71,7 +71,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
             while (script.hasNext()) {
                 String nextLine = script.nextLine().trim();
                 // ignore lines that starts with //, these are comments
-                if(!nextLine.startsWith("//")) {
+                if (!nextLine.startsWith("//")) {
                     scriptContent.append(replaceLoadPath(nextLine));
                 }
             }
@@ -79,7 +79,6 @@ public class NashornScriptTranslator implements ScriptTranslator {
             return scriptContent.toString();
         } catch (FileNotFoundException e) {
             LOGGER.error("File not found {}", file);
-
         }
         return "";
     }
