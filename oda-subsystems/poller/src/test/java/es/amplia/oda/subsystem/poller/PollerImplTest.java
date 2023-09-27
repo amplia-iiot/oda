@@ -28,6 +28,7 @@ public class PollerImplTest {
     private static final String DEVICE_ID_2 = "Device2";
     private static final String ID1 = "id1";
     private static final String ID2 = "id2";
+    private static final String FEED_1 = "feed1";
     private static final Set<String> ID1_AND_ID2 = asSet(ID1, ID2);
     private static final String  VALUE_FOR_ID1 = "id1_value";
     private static final Integer VALUE_FOR_ID2 = 12;
@@ -109,5 +110,38 @@ public class PollerImplTest {
         
         verify(getterForId1, never()).get(isA(String.class));
         verify(getterForId2, never()).get(isA(String.class));
+    }
+
+
+    @Test
+    public void testCollectedValueWithFeed(){
+
+        // create collected value with field feed
+        CollectedValue value = new CollectedValue(AT_FOR_ID1, VALUE_FOR_ID1,null, FEED_1);
+        futureForId1.complete(value);
+
+        // value to be published
+        Map<String, Map<String, Map<Long, Object>>> eventToBePublished = new HashMap<>();
+        Map<String, Map<Long, Object>> feedMap = new HashMap<>();
+        Map<Long, Object> datapointMap = new HashMap<>();
+        datapointMap.put(AT_FOR_ID1, VALUE_FOR_ID1);
+        // fill feedMap
+        feedMap.put(FEED_1, datapointMap);
+        // fill Datastream map
+        eventToBePublished.put(ID1, feedMap);
+
+        // conditions
+        Set<String> listWithId1Only = asSet(ID1);
+
+        when(datastreamsGettersFinder.getGettersSatisfying(DEVICE_ID_PATTERN, listWithId1Only))
+                .thenReturn(new DatastreamsGettersFinder.Return(Collections.singletonList(getterForId1), asSet()));
+
+        // call poller method
+        collector.poll(DEVICE_ID_PATTERN, listWithId1Only);
+
+        // verifications
+        verify(getterForId1).get(DEVICE_ID_1);
+        verify(datastreamsEvent).publish(DEVICE_ID_1, null, eventToBePublished);
+
     }
 }

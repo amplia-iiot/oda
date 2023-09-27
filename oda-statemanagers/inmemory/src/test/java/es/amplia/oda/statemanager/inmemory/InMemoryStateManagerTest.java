@@ -39,6 +39,8 @@ public class InMemoryStateManagerTest {
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final String TEST_DATASTREAM_ID_3 = "testDatastream3";
 
+    private static final String TEST_FEED = "testFeed";
+
     private static final Object TEST_VALUE_NEW = "test";
     private static final Object TEST_VALUE_OLD = "oldValueTest";
     private static final long TEST_AT_NEW = 2L;
@@ -79,14 +81,14 @@ public class InMemoryStateManagerTest {
         testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEngine, mockedSerializer, executor, scheduler);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, null, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2),
                 new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, null, TEST_AT_OLD, TEST_VALUE_2_OLD, Status.OK, null, true, true));
         testState.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID),
                 new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, null, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
 
         testState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID,
-                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, null, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false, false));
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2,
                 new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_2, null, TEST_AT_NEW, TEST_VALUE_2_NEW, Status.OK, null, false, false));
         testState.refreshValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID,
@@ -109,11 +111,13 @@ public class InMemoryStateManagerTest {
 
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        assertEquals(TEST_FEED, value.getFeed());
         assertEquals(TEST_AT_NEW, value.getAt());
         assertEquals(TEST_VALUE_NEW, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
     }
+
 
     @Test
     public void testGetDatastreamInformationNotFound() throws ExecutionException, InterruptedException {
@@ -357,7 +361,7 @@ public class InMemoryStateManagerTest {
         when(mockedDatabase.insertNewRow(any())).thenReturn(true);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
-        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, newAt, newValue);
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, TEST_FEED, newAt, newValue);
 
         State newState = new State();
         newState.refreshValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, new DatastreamValue(testEvent.getDeviceId(), testEvent.getDatastreamId(),
@@ -375,6 +379,7 @@ public class InMemoryStateManagerTest {
         DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID, TEST_DATASTREAM_ID).get();
         assertEquals(TEST_DEVICE_ID, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID, value.getDatastreamId());
+        assertEquals(TEST_FEED, value.getFeed());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
@@ -390,7 +395,7 @@ public class InMemoryStateManagerTest {
         long newAt = System.currentTimeMillis();
 
         // event that will trigger the process
-        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, newAt, "value1");
+        Event testEvent = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, TEST_FEED, newAt, "value1");
 
         State newState = new State();
         // create two new values for the same datastreamId and deviceId
@@ -453,7 +458,7 @@ public class InMemoryStateManagerTest {
         when(mockedDatabase.insertNewRow(any())).thenReturn(true);
         long newAt = System.currentTimeMillis();
         Object newValue = "newTest";
-        Event testEvent = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, null, newAt, newValue);
+        Event testEvent = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, TEST_FEED, newAt, newValue);
 
         State newState = new State();
         newState.refreshValue(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3, new DatastreamValue(testEvent.getDeviceId(),
@@ -472,12 +477,13 @@ public class InMemoryStateManagerTest {
         DatastreamValue value = testStateManager.getDatastreamInformation(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3).get();
         assertEquals(TEST_DEVICE_ID_3, value.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID_3, value.getDatastreamId());
+        assertEquals(TEST_FEED, value.getFeed());
         assertEquals(newAt, value.getAt());
         assertEquals(newValue, value.getValue());
         assertEquals(Status.OK, value.getStatus());
         assertNull(value.getError());
         assertTrue(value.isSent());
-        Event event = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, null, newAt, newValue);
+        Event event = new Event(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3, null, TEST_FEED, newAt, newValue);
         verify(mockedEventDispatcher).publishImmediately(Collections.singletonList(event));
         verify(mockedDatabase, times(1)).insertNewRow(any());
     }

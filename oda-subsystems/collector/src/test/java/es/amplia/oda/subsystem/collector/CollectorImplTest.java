@@ -29,6 +29,7 @@ public class CollectorImplTest {
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream";
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final String TEST_DATASTREAM_ID_3 = "testDatastream3";
+    private static final String TEST_FEED_1 = "testFeed";
     private static final long TEST_AT_1 = 1L;
     private static final long TEST_AT_2 = 2L;
     private static final long TEST_AT_3 = 3L;
@@ -80,5 +81,25 @@ public class CollectorImplTest {
             fail("No event published with deviceId " + deviceId + ", datastreamId " + datastreamId + ", at " + at +
                     "and value" + value);
         }
+    }
+
+    @Test
+    public void testCollectWithFeed() {
+        DatastreamValue dv1 =
+                new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_FEED_1, TEST_AT_1, TEST_VALUE_1,
+                        Status.OK, null, false, true);
+
+        when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySetOf(String.class)))
+                .thenReturn(CompletableFuture.completedFuture(new HashSet<>(Collections.singletonList(dv1))));
+
+        testCollector.collect(TEST_DEVICE_PATTERN, TEST_DATASTREAMS);
+
+        verify(mockedStateManager).getDatastreamsInformation(eq(TEST_DEVICE_PATTERN), eq(TEST_DATASTREAMS));
+        verify(mockedEventDispatcher, times(1)).publish(eventCaptor.capture());
+        List<Event> events = eventCaptor.getValue();
+        assertPublishedEvent(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, events);
+
+        assertEquals(1, events.size());
+        assertEquals(TEST_FEED_1, events.get(0).getFeed());
     }
 }
