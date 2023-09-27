@@ -29,7 +29,7 @@ class EventParserReducedOutputImpl implements EventParser {
 
         for(Event event: events) {
             Datapoint datapoint = new Datapoint(null, event.getValue());
-            Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
+            Datastream datastream = new Datastream(event.getDatastreamId(), event.getFeed(), Collections.singleton(datapoint));
 
             datastreams.add(datastream);
         }
@@ -40,7 +40,7 @@ class EventParserReducedOutputImpl implements EventParser {
     private String getDeviceId(Event event) {
         String hostId = deviceInfoProvider.getDeviceId();
         String deviceId = event.getDeviceId();
-        String inferredDeviceId = "".equals(deviceId) ? hostId : deviceId;
+        String inferredDeviceId = deviceId.isEmpty() ? hostId : deviceId;
         return inferredDeviceId.equals(hostId) ? null : inferredDeviceId;
     }
 }

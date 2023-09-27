@@ -102,7 +102,8 @@ public class RuleEngineNashornTest {
 
 	@Test
 	public void testEngineNotStartedNotRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
+				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(false);
 
 		State state = testRuleEngine.engine(mockedState, value);
@@ -113,7 +114,8 @@ public class RuleEngineNashornTest {
 
 	@Test
 	public void testEngineNotStartedRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
+				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 
 		State state = testRuleEngine.engine(mockedState, value);
@@ -125,7 +127,7 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineStarted() throws ScriptException {
 		String path = "origin/path/";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream",
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
@@ -149,7 +151,8 @@ public class RuleEngineNashornTest {
 	@Test
 	public void testEngineStartedException() throws ScriptException {
 		String path = "origin/path";
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
+				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		HashMap<String, Rule> rules = new HashMap<>();
 		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
 		Rule rule = new Rule(path + "testDatastream", Collections.singletonList("testDatastream"), mockedScriptTranslator);
@@ -253,7 +256,7 @@ public class RuleEngineNashornTest {
 		String datastreamId = "tenA";
 
 		// datastream value that will trigger the rules
-		DatastreamValue value = new DatastreamValue("testDevice", datastreamId,
+		DatastreamValue value = new DatastreamValue("testDevice", datastreamId, "testFeed",
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 
 		// create directory watcher

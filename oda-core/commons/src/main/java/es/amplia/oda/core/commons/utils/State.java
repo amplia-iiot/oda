@@ -505,12 +505,13 @@ public class State {
      * Used in utils.js.
      *
      * @param dsInfo Object that contains device and datastream that we are going to associate the value.
+     * @param feed String with the identifier of the feed we want to assign to the value.
      * @param val Object that is being associated to the datastream.
      * @return Object DatastreamValue with the value and its metadata.
      */
     @SuppressWarnings("unused")
-    public DatastreamValue createValue(DatastreamInfo dsInfo, Object val) {
-        return createValue(dsInfo.getDeviceId(), dsInfo.getDatastreamId(), val);
+    public DatastreamValue createValue(DatastreamInfo dsInfo, String feed, Object val) {
+        return createValue(dsInfo.getDeviceId(), dsInfo.getDatastreamId(), feed, val);
     }
 
     /**
@@ -518,11 +519,12 @@ public class State {
      *
      * @param deviceId String with the identifier of the device to which the datastream we want to assign to the value.
      * @param datastreamId String with the identifier of the datastream we want to assign to the value.
+     * @param feed String with the identifier of the feed we want to assign to the value.
      * @param val Object that is being associated to the datastream.
      * @return Object DatastreamValue with the value and its metadata
      */
-    public DatastreamValue createValue(String deviceId, String datastreamId, Object val) {
-        return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), val,
+    public DatastreamValue createValue(String deviceId, String datastreamId, String feed, Object val) {
+        return new DatastreamValue(deviceId, datastreamId, feed, System.currentTimeMillis(), val,
                 DatastreamValue.Status.OK, "", false, false);
     }
 
@@ -531,12 +533,13 @@ public class State {
      *
      * @param deviceId String with the identifier of the device to which the datastream we want to assign to the value.
      * @param datastreamId String with the identifier of the datastream we want to assign to the value.
+     * @param feed String with the identifier of the feed we want to assign to the value.
      * @param at date of the datastream
      * @param val Object that is being associated to the datastream.
      * @return Object DatastreamValue with the value and its metadata
      */
-    public DatastreamValue createValue(String deviceId, String datastreamId, long at, Object val) {
-        return new DatastreamValue(deviceId, datastreamId, at, val, DatastreamValue.Status.OK, "", false, false);
+    public DatastreamValue createValue(String deviceId, String datastreamId, String feed, long at, Object val) {
+        return new DatastreamValue(deviceId, datastreamId, feed, at, val, DatastreamValue.Status.OK, "", false, false);
     }
 
     /**
@@ -586,7 +589,7 @@ public class State {
      * @return Object DatastreamValue with value null and Status NOT_FOUND.
      */
     public DatastreamValue createNotFoundValue(String deviceId, String datastreamId) {
-        return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+        return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), null,
                 DatastreamValue.Status.NOT_FOUND, "Datastream not found", false, false);
     }
 }

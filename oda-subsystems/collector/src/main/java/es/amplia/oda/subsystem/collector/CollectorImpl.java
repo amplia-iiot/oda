@@ -48,7 +48,7 @@ class CollectorImpl implements Collector {
 
     private Event mapToEvent(DatastreamValue datastreamValue) {
         return new Event(datastreamValue.getDatastreamId(), datastreamValue.getDeviceId(), null,
-                datastreamValue.getAt(), datastreamValue.getValue());
+                datastreamValue.getFeed(), datastreamValue.getAt(), datastreamValue.getValue());
     }
 
     private void publishEvents(List<Event> events) {

@@ -33,7 +33,7 @@ public class StateManagerProxyTest {
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final Object TEST_VALUE = "testValue";
     private static final Object TEST_VALUE_2 = 99.99;
-    private static final Event TEST_EVENT = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, TEST_VALUE);
+    private static final Event TEST_EVENT = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, null, TEST_VALUE);
 
 
     @Mock

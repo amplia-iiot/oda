@@ -32,13 +32,13 @@ public class EventParserImplTest {
     private static final String[] TEST_PATH = new String[] { "path", "to", "device"};
     private static final String TEST_VALUE = "test";
     private static final Event TEST_EVENT =
-            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE);
     private static final Event TEST_EVENT_NULL_PATH =
-            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, TEST_AT, TEST_VALUE);
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, TEST_AT, TEST_VALUE);
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final int TEST_VALUE_2 = 782;
     private static final Event TEST_EVENT_2 =
-            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, TEST_VALUE_2);
+            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, null, TEST_VALUE_2);
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;

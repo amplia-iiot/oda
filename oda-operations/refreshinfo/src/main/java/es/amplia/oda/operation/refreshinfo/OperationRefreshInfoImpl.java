@@ -33,7 +33,7 @@ class OperationRefreshInfoImpl implements OperationRefreshInfo {
             for (Map.Entry<String, List<RefreshInfoValue>> entry: result.entrySet()){
                 List<Event> events = new ArrayList<>();
                 for (RefreshInfoValue item : entry.getValue()) {
-                    Event event = new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue());
+                    Event event = new Event(item.getDatastreamId(), deviceId, null, item.getFeed(), item.getAt(), item.getValue());
                     events.add(event);
                 }
                 stateManager.publishValues(events);
@@ -54,12 +54,13 @@ class OperationRefreshInfoImpl implements OperationRefreshInfo {
                 .filter(datastreamValue -> DatastreamValue.Status.OK.equals(datastreamValue.getStatus()))
                 .collect(Collectors.groupingBy(DatastreamValue::getDatastreamId,
                         Collectors.mapping(datastreamValue ->
-                                new RefreshInfoValue(
-                                    datastreamValue.getDatastreamId(),
-                                    Status.OK,
-                                    datastreamValue.getAt(),
-                                    datastreamValue.getValue(),
-                                    datastreamValue.getError()),
+                                        new RefreshInfoValue(
+                                                datastreamValue.getDatastreamId(),
+                                                datastreamValue.getFeed(),
+                                                Status.OK,
+                                                datastreamValue.getAt(),
+                                                datastreamValue.getValue(),
+                                                datastreamValue.getError()),
                                 Collectors.toList())));
     }
 }

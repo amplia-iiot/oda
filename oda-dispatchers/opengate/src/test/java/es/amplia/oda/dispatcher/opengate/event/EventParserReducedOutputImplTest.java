@@ -31,10 +31,10 @@ public class EventParserReducedOutputImplTest {
     private static final String[] TEST_PATH = new String[] { "testGateway" };
     private static final long TEST_AT = System.currentTimeMillis();
     private static final Object TEST_VALUE = 111;
-    private static final Event TEST_EVENT = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_AT, TEST_VALUE);
+    private static final Event TEST_EVENT = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE);
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final Object TEST_VALUE_2 = 42;
-    private static final Event TEST_EVENT_2 = new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, TEST_VALUE_2);
+    private static final Event TEST_EVENT_2 = new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null,null, TEST_VALUE_2);
 
 
     @Mock

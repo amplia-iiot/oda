@@ -49,11 +49,13 @@ class GpioDatastreamsEvent extends AbstractDatastreamsEvent {
     }
 
     void publishValue(boolean value) {
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
         Map<String, Map<Long, Object>> event = new HashMap<>();
         Map<Long, Object> data = new HashMap<>();
         data.put(System.currentTimeMillis(), value);
-        event.put(datastreamId, data);
-        publish("", null, event);
+        event.put(null, data);
+        events.put(datastreamId, event);
+        publish("", null, events);
     }
 
     @Override

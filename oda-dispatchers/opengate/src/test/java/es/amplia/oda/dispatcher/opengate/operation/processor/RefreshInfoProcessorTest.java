@@ -30,7 +30,7 @@ public class RefreshInfoProcessorTest {
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final RequestGeneralOperation TEST_REQUEST = new RequestGeneralOperation();
     private static final String TEST_DATASTREAM = "testDatastream";
-    private static final OperationRefreshInfo.RefreshInfoValue TEST_VALUE = new OperationRefreshInfo.RefreshInfoValue(TEST_DATASTREAM, OperationRefreshInfo.Status.OK, System.currentTimeMillis(), "Hello", null);
+    private static final OperationRefreshInfo.RefreshInfoValue TEST_VALUE = new OperationRefreshInfo.RefreshInfoValue(TEST_DATASTREAM, null, OperationRefreshInfo.Status.OK, System.currentTimeMillis(), "Hello", null);
     private static final Map<String, List<OperationRefreshInfo.RefreshInfoValue>> TEST_OBTAINED = new HashMap<>();
     static {
         TEST_OBTAINED.put(TEST_DATASTREAM, Collections.singletonList(TEST_VALUE));

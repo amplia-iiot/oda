@@ -29,12 +29,13 @@ public class GetDeviceParametersProcessorTest {
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] {"path", "to", "device"};
     private static final String TEST_DATASTREAM = "testDatastream";
+    private static final String TEST_FEED = "testFeed";
     private static final long TEST_AT = System.currentTimeMillis();
     private static final ParameterGetOperation TEST_PARAMETER = new ParameterGetOperation(Collections.singletonList(TEST_DATASTREAM));
     private static final RequestGetOperation TEST_REQUEST = new RequestGetOperation(TEST_PARAMETER);
     private static final Set<String> TEST_PARAMS = Collections.singleton(TEST_DATASTREAM);
     private static final String TEST_VALUE = "test";
-    private static final GetValue TEST_GET_VALUE = new GetValue(TEST_DATASTREAM, Status.OK, TEST_AT, TEST_VALUE, null);
+    private static final GetValue TEST_GET_VALUE = new GetValue(TEST_DATASTREAM, TEST_FEED, Status.OK, TEST_AT, TEST_VALUE, null);
     private static final Result TEST_RESULT = new Result(Collections.singletonList(TEST_GET_VALUE));
 
 
@@ -125,8 +126,8 @@ public class GetDeviceParametersProcessorTest {
 
     @Test
     public void testTranslateToOutputErrorResults() {
-        GetValue errorGetValue = new GetValue("errorDatastream", Status.PROCESSING_ERROR, TEST_AT, null, "error description");
-        GetValue notFoundGetValue = new GetValue("notFoundDatastream", NOT_FOUND, TEST_AT, null, "error description");
+        GetValue errorGetValue = new GetValue("errorDatastream", null, Status.PROCESSING_ERROR, TEST_AT, null, "error description");
+        GetValue notFoundGetValue = new GetValue("notFoundDatastream", null, NOT_FOUND, TEST_AT, null, "error description");
         Result resultWithErrors = new Result(Arrays.asList(errorGetValue, notFoundGetValue));
 
         Output output = testProcessor.translateToOutput(resultWithErrors, TEST_ID, TEST_DEVICE_ID, TEST_PATH);

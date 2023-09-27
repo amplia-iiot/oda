@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 public class OperationRefreshInfoImplTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_FEED = "testFeed";
     private static final String TEST_DATASTREAM_ID_1 = "d1";
     private static final String TEST_VALUE_1 = "Hello";
     private static final String TEST_DATASTREAM_ID_2 = "d2";
@@ -34,15 +35,16 @@ public class OperationRefreshInfoImplTest {
     private static final String TEST_ERROR = "Error!";
     private static final Set<DatastreamValue> TEST_DATASTREAM_VALUES = new HashSet<>(
             Arrays.asList(
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT, TEST_VALUE_1, DatastreamValue.Status.OK, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT, TEST_VALUE_2, DatastreamValue.Status.OK, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT, null, DatastreamValue.Status.NOT_FOUND, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false, false)
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_FEED, TEST_AT, TEST_VALUE_1, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_FEED, TEST_AT, TEST_VALUE_2, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, null, TEST_AT, null, DatastreamValue.Status.NOT_FOUND, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, null, TEST_AT, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false, false)
             )
     );
     private static final OperationRefreshInfo.RefreshInfoValue TEST_REFRESH_INFO_1 =
             new OperationRefreshInfo.RefreshInfoValue(
                     TEST_DATASTREAM_ID_1,
+                    TEST_FEED,
                     OperationRefreshInfo.Status.OK,
                     TEST_AT, TEST_VALUE_1,
                     null
@@ -50,6 +52,7 @@ public class OperationRefreshInfoImplTest {
     private static final OperationRefreshInfo.RefreshInfoValue TEST_REFRESH_INFO_2 =
             new OperationRefreshInfo.RefreshInfoValue(
                     TEST_DATASTREAM_ID_2,
+                    TEST_FEED,
                     OperationRefreshInfo.Status.OK,
                     TEST_AT,
                     TEST_VALUE_2,

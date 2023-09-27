@@ -30,16 +30,17 @@ public class EventDispatcherImplTest {
     private static final long TEST_AT = System.currentTimeMillis();
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_FEED = "testFeed";
     private static final int TEST_VALUE = 9;
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final int TEST_VALUE_2 = 53;
     private static final Event TEST_EVENT =
-            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, System.currentTimeMillis(), TEST_VALUE);
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, System.currentTimeMillis(), TEST_VALUE);
     private static final Event TEST_EVENT_2 =
-            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, null, System.currentTimeMillis(), TEST_VALUE_2);
+            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, null, null, System.currentTimeMillis(), TEST_VALUE_2);
     private static final OutputDatastream TEST_OUTPUT_DATASTREAM =
             new OutputDatastream("8.0", TEST_DEVICE_ID, null, Collections.singleton(
-                    new Datastream(TEST_DATASTREAM_ID, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
+                    new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
     private static final byte[] TEST_BYTE_STREAM = new byte[] {1,2,3,4};
 
     @Mock
@@ -62,8 +63,8 @@ public class EventDispatcherImplTest {
     @Test
     public void testPublishGroup() throws IOException {
         Set<Datastream> datastreams = new HashSet<>();
-        datastreams.add(new Datastream(TEST_DATASTREAM_ID, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
-        datastreams.add(new Datastream(TEST_DATASTREAM_ID_2, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
+        datastreams.add(new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
+        datastreams.add(new Datastream(TEST_DATASTREAM_ID_2, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2))));
         OutputDatastream outputDatastream =
                 new OutputDatastream("8.0", TEST_DEVICE_ID, null, datastreams);
         List<Event> events = new ArrayList<>();

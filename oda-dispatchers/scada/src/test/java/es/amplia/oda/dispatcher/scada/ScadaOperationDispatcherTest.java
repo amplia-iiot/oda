@@ -50,7 +50,7 @@ public class ScadaOperationDispatcherTest {
 
     @Test
     public void testProcessSelectOperation() throws ExecutionException, InterruptedException {
-        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.OK, TEST_AT, TEST_VALUE, null);
+        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, null, Status.OK, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
@@ -70,7 +70,7 @@ public class ScadaOperationDispatcherTest {
 
     @Test
     public void testProcessSelectOperationGetError() throws ExecutionException, InterruptedException {
-        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, Status.PROCESSING_ERROR, TEST_AT, TEST_VALUE, null);
+        GetValue getValue =  new GetValue(TEST_DATASTREAM_ID, null, Status.PROCESSING_ERROR, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
@@ -92,7 +92,7 @@ public class ScadaOperationDispatcherTest {
     @Test
     public void testProcessSelectOperationGetResultWithoutRequestedDatastreamId() throws ExecutionException,
             InterruptedException {
-        GetValue getValue =  new GetValue("otherDatastream", Status.OK, TEST_AT, TEST_VALUE, null);
+        GetValue getValue =  new GetValue("otherDatastream", null, Status.OK, TEST_AT, TEST_VALUE, null);
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 

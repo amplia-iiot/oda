@@ -27,6 +27,7 @@ public class DerbyStatementsTest {
 		assertEquals("CREATE TABLE state (" +
 				"\"deviceId\" varchar(255), " +
 				"\"datastreamId\" varchar(255), " +
+				"\"feed\" varchar(255), " +
 				"\"at\" bigint, " +
 				"\"value\" varchar(5000), " +
 				"\"type\" varchar(255), " +
@@ -57,7 +58,7 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getInsertNewDataRowStatementTest() {
-		assertEquals("INSERT INTO state (\"deviceId\", \"datastreamId\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?)",
+		assertEquals("INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?)",
 				statements.getInsertNewDataRowStatement());
 	}
 

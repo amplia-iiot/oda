@@ -25,6 +25,7 @@ public class DatastreamValue {
 
     private final String deviceId;
     private final String datastreamId;
+    private final String feed;
     private final long at;
     private final Object value;
     private final Status status;

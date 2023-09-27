@@ -324,7 +324,7 @@ public class RealTimeStateManagerTest {
 
     @Test
     public void testOnReceivedEvent() {
-        Event event = new Event(TEST_DATASTREAM_ID_1, TEST_DEVICE_ID, null, TEST_AT_1, TEST_VALUE_1);
+        Event event = new Event(TEST_DATASTREAM_ID_1, TEST_DEVICE_ID, null, null, TEST_AT_1, TEST_VALUE_1);
 
         testStateManager.onReceivedEvents(Collections.singletonList(event));
 

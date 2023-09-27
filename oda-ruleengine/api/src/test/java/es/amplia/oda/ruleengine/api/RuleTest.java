@@ -43,7 +43,9 @@ public class RuleTest {
 	public void testWhen() throws ScriptException {
 		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(true);
 		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
-		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream",
+				"feed", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "",
+				false, false);
 
 		boolean result = testRule.when(mockedState, testDatastreamValue);
 
@@ -54,7 +56,9 @@ public class RuleTest {
 	public void testThen() throws ScriptException {
 		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(mockedState);
 		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
-		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream",
+				"feed", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "",
+				false, false);
 
 		State result = testRule.then(mockedState, testDatastreamValue);
 

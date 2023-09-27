@@ -37,7 +37,8 @@ class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
             for (String datastreamId : dataStreamIds) {
                 for (GetValue item : result) {
                     if (item.getDatastreamId().equals(datastreamId) && item.getStatus() == Status.OK) {
-                        stateManager.publishValues(Collections.singletonList(new Event(item.getDatastreamId(), deviceId, null, item.getAt(), item.getValue())));
+                        stateManager.publishValues(Collections.singletonList(
+                                new Event(item.getDatastreamId(), deviceId, null, item.getFeed(), item.getAt(), item.getValue())));
                     }
                 }
             }
@@ -60,6 +61,7 @@ class OperationGetDeviceParametersImpl implements OperationGetDeviceParameters {
 
     private GetValue toGetValue(DatastreamValue datastreamValue) {
         return new GetValue(datastreamValue.getDatastreamId(),
+                datastreamValue.getFeed(),
                 toGetValueStatus(datastreamValue.getStatus()),
                 datastreamValue.getAt(),
                 datastreamValue.getValue(),

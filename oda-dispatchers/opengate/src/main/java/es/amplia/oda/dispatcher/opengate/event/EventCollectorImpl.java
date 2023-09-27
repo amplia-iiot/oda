@@ -5,13 +5,10 @@ import es.amplia.oda.dispatcher.opengate.EventCollector;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class EventCollectorImpl implements EventCollector {
 
@@ -78,10 +75,11 @@ public class EventCollectorImpl implements EventCollector {
     public void publishCollectedEvents(Collection<String> datastreamIds) {
         Map<String, OutputDatastream> outputDatastreamPerDevice = new HashMap<>();
 
-        for(String datastreamId : datastreamIds) {
+        for (String datastreamId : datastreamIds) {
             List<Event> events = collectedEvents.remove(datastreamId);
             if (events != null) {
-                events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(), eventDispatcher.parse(Collections.singletonList(event)),
+                events.forEach(event -> outputDatastreamPerDevice.merge(event.getDeviceId(),
+                        eventDispatcher.parse(Collections.singletonList(event)),
                         this::mergeOutputDatastreams));
             } else {
                 LOGGER.info("No events collected for {}", datastreamId);
@@ -91,22 +89,81 @@ public class EventCollectorImpl implements EventCollector {
         outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.send(outputDatastream));
     }
 
+
     private OutputDatastream mergeOutputDatastreams(OutputDatastream o1, OutputDatastream o2) {
-        Map<String, Datastream> datastreams1 = o1.getDatastreams().stream()
-                .collect(Collectors.toMap(Datastream::getId, Function.identity()));
-        Map<String, Datastream> datastreams2 = o2.getDatastreams().stream()
-                .collect(Collectors.toMap(Datastream::getId, Function.identity()));
+        // <datastreamId, <feed, datapoints>>
+        Map<String, Map<String, Set<Datapoint>>> datastreams1 = buildMap(o1.getDatastreams());
+        Map<String, Map<String, Set<Datapoint>>> datastreams2 = buildMap(o2.getDatastreams());
 
-        Map<String, Datastream> datastreams = new HashMap<>(datastreams1);
-        datastreams2.forEach((key,value) ->
-                datastreams.merge(key, value, this::mergeDatastreams));
+        // initialize final map with the map from datastreams1
+        Map<String, Map<String, Set<Datapoint>>> datastreams = new HashMap<>(datastreams1);
 
-        return new OutputDatastream(o1.getVersion(), o1.getDevice(), o1.getPath(), new HashSet<>(datastreams.values()));
+        // traverse trough datastreams2 map
+        datastreams2.forEach((datastreamId, feedMapDatapoints2) -> {
+
+            // get <feed, datapoints> map from final map corresponding to this datastreamId
+            Map<String, Set<Datapoint>> feedMapDatapoints1 = datastreams.get(datastreamId);
+
+            // there is data for the same datastreamId in both maps
+            // now we have to check if feed is the same
+            if(feedMapDatapoints1 != null)
+            {
+                // key is datastreamId, value is map <feed, datapoints>
+                // for every value in feedMapDatapoints2 (for every different feed)
+                feedMapDatapoints2.forEach((feedDatastream2, datapointsDatastream2) -> {
+
+                    // get from datastreams1, the datapoints corresponding to that feed
+                    Set<Datapoint> datapointsDatastream1 = feedMapDatapoints1.get(feedDatastream2);
+
+                    // if both maps have datapoints for the same feed, merge datapoints
+                    if(datapointsDatastream1 != null)
+                    {
+                        feedMapDatapoints1.put(feedDatastream2, mergeDatapoints(datapointsDatastream1, datapointsDatastream2));
+                    }
+                    // if feedDatastream2 doesn't exist in final datastreams map, include it
+                    else {
+                        feedMapDatapoints1.put(feedDatastream2, datapointsDatastream2);
+                    }
+                });
+            }
+            // there is no map in final map for this datastreamId, so we include it
+            else {
+                datastreams.put(datastreamId, feedMapDatapoints2);
+            }
+        });
+
+        return new OutputDatastream(o1.getVersion(), o1.getDevice(), o1.getPath(), translateMap(datastreams));
     }
 
-    private Datastream mergeDatastreams(Datastream d1, Datastream d2) {
-        Set<Datapoint> datapoints = new HashSet<>(d1.getDatapoints());
-        datapoints.addAll(d2.getDatapoints());
-        return new Datastream(d1.getId(), datapoints);
+    private Map<String, Map<String, Set<Datapoint>>> buildMap(Set<Datastream> datastreams) {
+        Map<String, Map<String, Set<Datapoint>>> datastreamsMap = new HashMap<>();
+        datastreams.forEach(value -> {
+            Map<String, Set<Datapoint>> feedMap = datastreamsMap.get(value.getId());
+
+            if (feedMap != null) {
+                feedMap.putIfAbsent(value.getFeed(), value.getDatapoints());
+            } else {
+                feedMap = new HashMap<>();
+                feedMap.put(value.getFeed(), value.getDatapoints());
+                datastreamsMap.put(value.getId(), feedMap);
+            }
+        });
+
+        return datastreamsMap;
+    }
+
+    private Set<Datastream> translateMap(Map<String, Map<String, Set<Datapoint>>> datastreamsMap) {
+        Set<Datastream> datastreamsSet = new HashSet<>();
+        datastreamsMap.forEach((datastreamId, feedMap) ->
+                feedMap.forEach((feed, datapoints) ->
+                        datastreamsSet.add(new Datastream(datastreamId, feed, datapoints))));
+
+        return datastreamsSet;
+    }
+
+    private Set<Datapoint> mergeDatapoints(Set<Datapoint> d1, Set<Datapoint> d2){
+        Set<Datapoint> datapoints = new HashSet<>(d1);
+        datapoints.addAll(d2);
+        return datapoints;
     }
 }

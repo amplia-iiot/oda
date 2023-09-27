@@ -24,7 +24,7 @@ class EventParserImpl implements EventParser {
     public OutputDatastream parse(List<Event> events) {
         String hostId = deviceInfoProvider.getDeviceId();
         String deviceId = events.get(0).getDeviceId();
-        deviceId = "".equals(deviceId) ? hostId : deviceId;
+        deviceId = deviceId.isEmpty() ? hostId : deviceId;
         String[] path = getPath(hostId, deviceId, events.get(0).getPath());
         Set<Datastream> datastreams = new HashSet<>();
 
@@ -32,7 +32,7 @@ class EventParserImpl implements EventParser {
             Long at = event.getAt();
 
             Datapoint datapoint = new Datapoint(at, event.getValue());
-            Datastream datastream = new Datastream(event.getDatastreamId(), Collections.singleton(datapoint));
+            Datastream datastream = new Datastream(event.getDatastreamId(), event.getFeed(), Collections.singleton(datapoint));
 
             datastreams.add(datastream);
         }

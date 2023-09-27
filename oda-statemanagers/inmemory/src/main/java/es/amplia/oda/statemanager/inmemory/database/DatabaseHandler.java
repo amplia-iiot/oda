@@ -162,7 +162,11 @@ public class DatabaseHandler {
 		while (!result.isClosed() && result.next()) {
 			try {
 				// during DatastreamValue process, it is saved in the database, so if it exists in the database it means it has been processed
-				DatastreamValue value = new DatastreamValue(result.getString(1), result.getString(2), result.getLong(3), datatypesUtils.parseStoredData(result.getString(4), result.getString(5)), parseStatus(result.getString(6)), result.getString(7), result.getBoolean(8), true);
+				DatastreamValue value = new DatastreamValue(result.getString(1), result.getString(2),
+						result.getString(3), result.getLong(3),
+						datatypesUtils.parseStoredData(result.getString(4), result.getString(5)),
+						parseStatus(result.getString(6)), result.getString(7),
+						result.getBoolean(8), true);
 				DatastreamInfo info = new DatastreamInfo(result.getString(1), result.getString(2));
 				List<DatastreamValue> values = map.get(info);
 				if (values == null) {
@@ -227,7 +231,7 @@ public class DatabaseHandler {
 			LOGGER.debug("Executing query {} with parameters {}", sql, parameters);
 			return prstmt.executeUpdate();
 		} catch (SQLException throwables) {
-			LOGGER.error("Impossible execute the update: {}", sql);
+			LOGGER.error("Impossible execute the update: {} with values {}", sql, parameters);
 			throw new DatabaseException("Error trying to execute a query. It's possible that the selected table " +
 					"doesn't exists or the specified fields aren't present in the table");
 		} finally {

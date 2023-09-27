@@ -35,7 +35,7 @@ public class OperationSetClockImplTest {
     public void testSetClock() throws ExecutionException, InterruptedException {
         Whitebox.setInternalState(testOperation, "clockDatastream", TEST_CLOCK_DATASTREAM);
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
-                CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM,
+                CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM, null,
                         System.currentTimeMillis(), TEST_TIMESTAMP, Status.OK, null, false, false)));
 
         CompletableFuture<Result> future = testOperation.setClock(TEST_DEVICE_ID, TEST_TIMESTAMP);
@@ -52,7 +52,7 @@ public class OperationSetClockImplTest {
         String error = "Error setting value " + TEST_TIMESTAMP + " for " + TEST_CLOCK_DATASTREAM;
 
         when(mockedStateManager.setDatastreamValue(anyString(), anyString(), any())).thenReturn(
-                CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM,
+                CompletableFuture.completedFuture(new DatastreamValue(TEST_DEVICE_ID, TEST_CLOCK_DATASTREAM, null,
                         System.currentTimeMillis(), TEST_TIMESTAMP, Status.PROCESSING_ERROR, error, false, false)));
 
         CompletableFuture<Result> future = testOperation.setClock(TEST_DEVICE_ID, TEST_TIMESTAMP);

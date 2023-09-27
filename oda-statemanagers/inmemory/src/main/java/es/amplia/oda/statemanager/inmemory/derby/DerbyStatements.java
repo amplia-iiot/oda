@@ -23,6 +23,7 @@ public class DerbyStatements implements SQLStatements {
 		return "CREATE TABLE state (" +
 				"\"deviceId\" varchar(255), " +
 				"\"datastreamId\" varchar(255), " +
+				"\"feed\" varchar(255), " +
 				"\"at\" bigint, " +
 				"\"value\" varchar(5000), " +
 				"\"type\" varchar(255), " +
@@ -49,7 +50,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getInsertNewDataRowStatement() {
-		return "INSERT INTO state (\"deviceId\", \"datastreamId\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?)";
+		return "INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?)";
 	}
 
 	@Override

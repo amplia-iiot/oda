@@ -16,6 +16,7 @@ public interface OperationGetDeviceParameters {
     @Value
     class GetValue {
         String datastreamId;
+        String feed;
         Status status;
         long at;
         Object value; //null if status != OK

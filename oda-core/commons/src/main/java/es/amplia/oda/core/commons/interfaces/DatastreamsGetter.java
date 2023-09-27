@@ -15,18 +15,20 @@ public interface DatastreamsGetter {
     
     @Value
     class CollectedValue {
-        private long at;
-        private Object value;
-        private List<String> path;
+        long at;
+        Object value;
+        List<String> path;
+        String feed;
 
         public CollectedValue(long at, Object value) {
-            this(at, value, Collections.emptyList());
+            this(at, value, Collections.emptyList(), null);
         }
 
-        public CollectedValue(long at, Object value, List<String> path) {
+        public CollectedValue(long at, Object value, List<String> path, String feed) {
             this.at = at;
             this.value = value;
             this.path = path;
+            this.feed = feed;
         }
     }
     

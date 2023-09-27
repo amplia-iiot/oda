@@ -80,11 +80,14 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 		try {
 			LoraStatusPacket loraStayAlive = serializer.deserialize(data, LoraStatusPacket.class);
 			if(loraStayAlive != null && loraStayAlive.getStat() != null) {
+				Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
 				Map<String, Map<Long, Object>> event = new HashMap<>();
 				Map<Long, Object> eventData = new HashMap<>();
+
 				eventData.put(System.currentTimeMillis(), loraStayAlive);
-				event.put("lora", eventData);
-				this.publish(deviceId, null, event);
+				event.put(null, eventData);
+				events.put("lora", event);
+				this.publish(deviceId, null, events);
 				LOGGER.info("Sent LoRa status message at: {}", System.currentTimeMillis());
 				if(LOGGER.isDebugEnabled()) {
 					LOGGER.debug("LoRa packet content: {}", loraStayAlive.toShortString());
@@ -101,11 +104,14 @@ public class LoraDatastreamsEvent extends AbstractDatastreamsEvent {
 		try {
 			LoraDataPacket loraPacket = serializer.deserialize(data, LoraDataPacket.class);
 			if(loraPacket != null && loraPacket.getRxpk() != null) {
+
+				Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
 				Map<String, Map<Long, Object>> event = new HashMap<>();
 				Map<Long, Object> eventData = new HashMap<>();
 				eventData.put(System.currentTimeMillis(), loraPacket);
-				event.put("lora", eventData);
-				this.publish(deviceId, null, event);
+				event.put(null, eventData);
+				events.put("lora", event);
+				this.publish(deviceId, null, events);
 				LOGGER.info("Sent LoRa data message");
 				if(LOGGER.isDebugEnabled()) {
 					LOGGER.debug("LoRa packet content: {}", loraPacket.toShortString());

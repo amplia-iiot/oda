@@ -158,7 +158,7 @@ public class InMemoryStateManager implements StateManager {
     }
 
     private DatastreamValue createValueNotFound(String deviceId, String datastreamId) {
-        return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+        return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), null,
                 Status.PROCESSING_ERROR, VALUE_NOT_FOUND_ERROR, false, false);
     }
 
@@ -180,18 +180,18 @@ public class InMemoryStateManager implements StateManager {
             CompletableFuture<Void> setFuture = datastreamsSetter.set(deviceId, value);
             return setFuture.handle((ok,error)-> {
                 if (error != null) {
-                    return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), null,
+                    return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), null,
                             Status.PROCESSING_ERROR, error.getMessage(), false, false);
                 } else {
                     state.put(new DatastreamInfo(deviceId, datastreamId),
-                            new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
+                            new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), value,
                                     Status.OK, null, false, false));
-                    return new DatastreamValue(deviceId, datastreamId, System.currentTimeMillis(), value,
+                    return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), value,
                             Status.OK, null, false, false);
                 }
             });
         } catch (Exception e) {
-            return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId,
+            return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId, null,
                     System.currentTimeMillis(), null, Status.PROCESSING_ERROR, e.getMessage(), false, false));
         }
     }
@@ -252,7 +252,7 @@ public class InMemoryStateManager implements StateManager {
             for (DatastreamValue notProcessedValue : notProcessedValues) {
 
                 eventToSendImmediately = new Event(notProcessedValue.getDatastreamId(), notProcessedValue.getDeviceId(),
-                        event.getPath(), notProcessedValue.getAt(), notProcessedValue.getValue());
+                        event.getPath(), event.getFeed(), notProcessedValue.getAt(), notProcessedValue.getValue());
 
                 // add event to list to publish
                 eventsToSendImmediately.add(eventToSendImmediately);
@@ -312,8 +312,8 @@ public class InMemoryStateManager implements StateManager {
     }
 
     private DatastreamValue createDatastreamValueFromEvent(Event event) {
-        return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getAt(), event.getValue(),
-                Status.OK, null, false, false);
+        return new DatastreamValue(event.getDeviceId(), event.getDatastreamId(), event.getFeed(), event.getAt(),
+                event.getValue(), Status.OK, null, false, false);
     }
 
     @Override

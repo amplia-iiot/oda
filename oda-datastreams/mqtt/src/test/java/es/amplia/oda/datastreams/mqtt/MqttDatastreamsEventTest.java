@@ -79,13 +79,18 @@ public class MqttDatastreamsEventTest {
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
         MqttDatastreamsEvent.InnerDatastreamEvent event2 =
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID_2, null, TEST_VALUE_2);
-        Map<String, Map<Long, Object>> events = new HashMap<>();
+
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
+        Map<String, Map<Long, Object>> eventsByFeed = new HashMap<>();
+
         Map<Long, Object> datastream1 = new HashMap<>();
         datastream1.put(event1.getAt(), event1.getValue());
         Map<Long, Object> datastream2 = new HashMap<>();
         datastream2.put(event2.getAt(), event2.getValue());
-        events.put(event1.getDatastreamId(), datastream1);
-        events.put(event2.getDatastreamId(), datastream2);
+        eventsByFeed.put(null, datastream1);
+        events.put(event1.getDatastreamId(), eventsByFeed);
+        eventsByFeed.put(null, datastream2);
+        events.put(event2.getDatastreamId(), eventsByFeed);
         MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
                 new MqttDatastreamsEvent.DeviceEventMessage(Arrays.asList(gateway1, gateway1_1),
                         Arrays.asList(event1, event2));
@@ -132,11 +137,13 @@ public class MqttDatastreamsEventTest {
         verify(mockedSerializer)
                 .deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
         Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
         Map<Long, Object> dataToCompare = new HashMap<>();
         dataToCompare.put(TEST_AT, TEST_VALUE);
-        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
-        verify(mockedEventPublisher).publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(eventToCompare));
+        eventToCompare.put(null, dataToCompare);
+        events.put(TEST_DATASTREAM_ID, eventToCompare);
+        verify(mockedEventPublisher).publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(events));
     }
 
     @Test
@@ -148,13 +155,16 @@ public class MqttDatastreamsEventTest {
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID, TEST_AT, TEST_VALUE);
         MqttDatastreamsEvent.InnerDatastreamEvent event2 =
                 new MqttDatastreamsEvent.InnerDatastreamEvent(TEST_DATASTREAM_ID_2, null, TEST_VALUE_2);
-        Map<String, Map<Long, Object>> events = new HashMap<>();
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
+        Map<String, Map<Long, Object>> eventsByFeed = new HashMap<>();
         Map<Long, Object> datastream1 = new HashMap<>();
         datastream1.put(event1.getAt(), event1.getValue());
         Map<Long, Object> datastream2 = new HashMap<>();
         datastream2.put(event2.getAt(), event2.getValue());
-        events.put(event1.getDatastreamId(), datastream1);
-        events.put(event2.getDatastreamId(), datastream2);
+        eventsByFeed.put(null, datastream1);
+        events.put(event1.getDatastreamId(), eventsByFeed);
+        eventsByFeed.put(null, datastream2);
+        events.put(event2.getDatastreamId(), eventsByFeed);
         MqttDatastreamsEvent.DeviceEventMessage testDeviceEventMessage =
                 new MqttDatastreamsEvent.DeviceEventMessage(null, Arrays.asList(event1, event2));
 
@@ -194,12 +204,14 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DeviceEventMessage.class));
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
         Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
         Map<Long, Object> dataToCompare = new HashMap<>();
         dataToCompare.put(TEST_AT, TEST_VALUE);
-        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
+        eventToCompare.put(null, dataToCompare);
+        events.put(TEST_DATASTREAM_ID, eventToCompare);
         verify(mockedEventPublisher)
-                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(eventToCompare));
+                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(events));
     }
 
     @Test
@@ -269,12 +281,14 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DatastreamEvent.class));
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
         Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
         Map<Long, Object> dataToCompare = new HashMap<>();
         dataToCompare.put(TEST_AT, TEST_VALUE);
-        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
+        eventToCompare.put(null, dataToCompare);
+        events.put(TEST_DATASTREAM_ID, eventToCompare);
         verify(mockedEventPublisher)
-                .publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(eventToCompare));
+                .publishEvents(eq(TEST_DEVICE_ID), aryEq(expectedPath), eq(events));
     }
 
     @Test
@@ -296,12 +310,14 @@ public class MqttDatastreamsEventTest {
 
         verify(mockedPermissionManager).hasReadPermission(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_ID));
         verify(mockedSerializer).deserialize(aryEq(TEST_PAYLOAD), eq(MqttDatastreamsEvent.DatastreamEvent.class));
+        Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
         Map<String, Map<Long, Object>> eventToCompare = new HashMap<>();
         Map<Long, Object> dataToCompare = new HashMap<>();
         dataToCompare.put(TEST_AT, TEST_VALUE);
-        eventToCompare.put(TEST_DATASTREAM_ID, dataToCompare);
+        eventToCompare.put(null, dataToCompare);
+        events.put(TEST_DATASTREAM_ID, eventToCompare);
         verify(mockedEventPublisher)
-                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(eventToCompare));
+                .publishEvents(eq(TEST_DEVICE_ID), eq(null), eq(events));
     }
 
     @Test

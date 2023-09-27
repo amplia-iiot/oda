@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface EventPublisher extends AutoCloseable {
 
-    void publishEvents(String deviceId, String[] path, Map<String, Map<Long,Object>> events);
+    void publishEvents(String deviceId, String[] path, Map<String, Map<String, Map<Long,Object>>> events);
     @Override
     void close();
 }

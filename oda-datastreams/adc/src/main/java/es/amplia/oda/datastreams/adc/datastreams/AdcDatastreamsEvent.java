@@ -49,10 +49,12 @@ class AdcDatastreamsEvent extends AbstractDatastreamsEvent {
 
 	private void publishEvent(AdcEvent event) {
 		float value = (float) (((max - min) * event.getScaledValue()) + min);
-		Map<String, Map<Long, Object>> events = new HashMap<>();
+		Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
+		Map<String, Map<Long, Object>> eventsByFeed = new HashMap<>();
 		Map<Long, Object> data = new HashMap<>();
 		data.put(event.getEpochTime(), value);
-		events.put(datastreamId, data);
+		eventsByFeed.put(null, data);
+		events.put(datastreamId, eventsByFeed);
 		publish("", Collections.emptyList(), events);
 	}
 

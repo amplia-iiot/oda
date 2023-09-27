@@ -65,7 +65,9 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
-            Map<String,Map<Long,Object>> events = new HashMap<>();
+
+            Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
+            Map<String,Map<Long,Object>> eventsByFeed = new HashMap<>();
             try {
                 LOGGER.info("Message arrived to the {} topic", topic);
                 String deviceId = extractDeviceIdFromTopic(topic);
@@ -76,7 +78,8 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                         .forEach(event -> {
                             Map<Long, Object> entry = new HashMap<>();
                             entry.put(event.getAt(), event.getValue());
-                            events.put(event.getDatastreamId(), entry);
+                            eventsByFeed.put(null, entry);
+                            events.put(event.getDatastreamId(), eventsByFeed);
                         });
                 if(events.size() > 0)
                     publish(deviceId, deviceEvent.getPath(), events);
@@ -101,7 +104,8 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
-            Map<String,Map<Long,Object>> events = new HashMap<>();
+            Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
+            Map<String,Map<Long,Object>> eventsByFeed = new HashMap<>();
             Map<Long,Object> eventInfo = new HashMap<>();
             try {
                 LOGGER.info("Message arrived to the {} topic", topic);
@@ -110,7 +114,8 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                     DatastreamEvent event =
                             serializer.deserialize(mqttMessage.getPayload(), DatastreamEvent.class);
                     eventInfo.put(event.getAt(), event.getValue());
-                    events.put(datastreamInfo.getDatastreamId(), eventInfo);
+                    eventsByFeed.put(null, eventInfo);
+                    events.put(datastreamInfo.getDatastreamId(), eventsByFeed);
                     publish(datastreamInfo.getDeviceId(), event.getPath(), events);
                 }
 

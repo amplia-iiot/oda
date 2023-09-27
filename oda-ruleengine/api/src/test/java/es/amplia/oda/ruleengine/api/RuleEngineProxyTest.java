@@ -27,7 +27,7 @@ public class RuleEngineProxyTest {
 
 	private static final String TEST_NAME_RULE = "nameRule";
 	private static final DatastreamValue TEST_DATASTREAM_VALUE =
-			new DatastreamValue("testDevice", "testDatastream", System.currentTimeMillis(),
+			new DatastreamValue("testDevice", "testDatastream", "feed", System.currentTimeMillis(),
 					true, DatastreamValue.Status.OK, "", false, false);
 
 	@Mock

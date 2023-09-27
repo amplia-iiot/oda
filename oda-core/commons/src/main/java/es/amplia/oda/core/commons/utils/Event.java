@@ -12,6 +12,7 @@ public class Event {
     @NonNull
     private String deviceId;
     private String[] path;
+    private String feed;
     private Long at;
     @NonNull
     private Object value;

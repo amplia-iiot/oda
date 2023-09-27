@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 public class OperationGetDeviceParametersImplTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_FEED = "testFeed";
     private static final String TEST_DATASTREAM_ID_1 = "d1";
     private static final String TEST_VALUE_1 = "Hello";
     private static final long TEST_AT_1 = System.currentTimeMillis();
@@ -44,10 +45,10 @@ public class OperationGetDeviceParametersImplTest {
     private static final String TEST_ERROR = "Error!";
     private static final Set<DatastreamValue> TEST_DATASTREAM_VALUES = new HashSet<>(
             Arrays.asList(
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, TEST_AT_1, TEST_VALUE_1, DatastreamValue.Status.OK, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, TEST_AT_2, TEST_VALUE_2, DatastreamValue.Status.OK, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_AT_3, null, DatastreamValue.Status.NOT_FOUND, null, false, false),
-                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_AT_4, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false, false)
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_1, null, TEST_AT_1, TEST_VALUE_1, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_2, null, TEST_AT_2, TEST_VALUE_2, DatastreamValue.Status.OK, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_3, TEST_FEED, TEST_AT_3, null, DatastreamValue.Status.NOT_FOUND, null, false, false),
+                    new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID_4, TEST_FEED, TEST_AT_4, null, DatastreamValue.Status.PROCESSING_ERROR, TEST_ERROR, false, false)
             )
     );
 
@@ -60,13 +61,13 @@ public class OperationGetDeviceParametersImplTest {
     @Test
     public void testGetDeviceParameters() throws ExecutionException, InterruptedException {
         OperationGetDeviceParameters.GetValue expectedValue1 =
-                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_1, OperationGetDeviceParameters.Status.OK, TEST_AT_1, TEST_VALUE_1, null);
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_1, null, OperationGetDeviceParameters.Status.OK, TEST_AT_1, TEST_VALUE_1, null);
         OperationGetDeviceParameters.GetValue expectedValue2 =
-                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_2, OperationGetDeviceParameters.Status.OK, TEST_AT_2, TEST_VALUE_2, null);
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_2, null, OperationGetDeviceParameters.Status.OK, TEST_AT_2, TEST_VALUE_2, null);
         OperationGetDeviceParameters.GetValue expectedValue3 =
-                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_3, OperationGetDeviceParameters.Status.NOT_FOUND, TEST_AT_3, null, null);
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_3, TEST_FEED, OperationGetDeviceParameters.Status.NOT_FOUND, TEST_AT_3, null, null);
         OperationGetDeviceParameters.GetValue expectedValue4 =
-                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_4, OperationGetDeviceParameters.Status.PROCESSING_ERROR, TEST_AT_4, null, TEST_ERROR);
+                new OperationGetDeviceParameters.GetValue(TEST_DATASTREAM_ID_4, TEST_FEED, OperationGetDeviceParameters.Status.PROCESSING_ERROR, TEST_AT_4, null, TEST_ERROR);
 
         when(mockedStateManager.getDatastreamsInformation(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(TEST_DATASTREAM_VALUES));
