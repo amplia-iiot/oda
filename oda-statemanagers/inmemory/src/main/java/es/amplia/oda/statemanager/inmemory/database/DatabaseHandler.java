@@ -204,6 +204,7 @@ public class DatabaseHandler {
 		List<Object> values = new ArrayList<>();
 		values.add(value.getDeviceId());
 		values.add(value.getDatastreamId());
+		values.add(value.getFeed());
 		values.add(value.getAt());
 		String className = datatypesUtils.getClassNameOf(value.getValue());
 		if(className == null) {
