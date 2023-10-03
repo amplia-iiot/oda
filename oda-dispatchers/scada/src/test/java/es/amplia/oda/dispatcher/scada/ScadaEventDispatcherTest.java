@@ -3,9 +3,9 @@ package es.amplia.oda.dispatcher.scada;
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.ScadaConnector;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
-import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.DatastreamInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.Event;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,10 +38,11 @@ public class ScadaEventDispatcherTest {
         Object value = 10;
         long timestamp = System.currentTimeMillis();
         Event event = new Event(datastreamId, deviceId, null, null, timestamp, value);
-        ScadaInfo returnedInfo = new ScadaInfo(1, 1, value, null);
-        DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId, value);
+        ScadaInfo returnedInfo = new ScadaInfo(1, 1);
+        DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId);
 
         when(mockedTranslator.translate(any())).thenReturn(returnedInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(value);
 
         testDispatcher.publish(Collections.singletonList(event));
 
@@ -56,7 +57,7 @@ public class ScadaEventDispatcherTest {
         Object value = 10;
         long timestamp = System.currentTimeMillis();
         Event event = new Event(datastreamId, deviceId, null, null, timestamp, value);
-        DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId, value);
+        DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId);
 
         when(mockedTranslator.translate(any())).thenThrow(new DataNotFoundException(""));
 

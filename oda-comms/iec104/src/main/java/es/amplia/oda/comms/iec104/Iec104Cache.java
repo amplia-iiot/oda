@@ -23,7 +23,7 @@ public class Iec104Cache {
 
 
 	public <T> void add(String typeId, Value<T> value, int index) {
-		LOGGER.info("Adding data to cache with SCADA type {} with index {} and value {}", typeId, index, value.getValue());
+		LOGGER.debug("Adding data to cache with SCADA type {} with index {} and value {}", typeId, index, value.getValue());
 		LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
 		// get from cache the Map associated to the type(ASDU) indicated
 		Map<Integer, Iec104CacheValue> contain = cache.get(typeId);

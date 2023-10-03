@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
-import static es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.DatastreamInfo;
 
 class ScadaOperationDispatcher implements ScadaDispatcher {
 
@@ -32,16 +31,16 @@ class ScadaOperationDispatcher implements ScadaDispatcher {
 
     @Override
     public <T, S> CompletableFuture<ScadaOperationResult> process(ScadaOperation operation, int index, T value, S type) {
-        DatastreamInfo datastreamInfo;
+        ScadaTableTranslator.ScadaTranslationInfo translationInfo;
         try {
-            datastreamInfo = translator.getDatastreamInfo(new ScadaInfo(index, type, value, null));
+            translationInfo = translator.getTranslationInfo(new ScadaInfo(index, type));
         } catch (DataNotFoundException exception) {
             LOGGER.warn("Can not process SCADA operation: Datastream with SCADA index {} not found.", index);
             return CompletableFuture.completedFuture(ScadaOperationResult.ERROR);
         }
 
-        String deviceId = datastreamInfo.getDeviceId();
-        String datastreamId = datastreamInfo.getDatastreamId();
+        String deviceId = translationInfo.getDeviceId();
+        String datastreamId = translationInfo.getDatastreamId();
 
         switch (operation) {
             case SELECT:
@@ -54,8 +53,10 @@ class ScadaOperationDispatcher implements ScadaDispatcher {
                                 .orElse(ScadaOperationResult.ERROR));
             case DIRECT_OPERATE:
             case DIRECT_OPERATE_NO_ACK:
+                // apply script to value (if it has a script assigned)
+                Object transformedValue = translator.transformValue(index, type, value);
                 OperationSetDeviceParameters.VariableValue variableValue =
-                        new OperationSetDeviceParameters.VariableValue(datastreamId, datastreamInfo.getValue());
+                        new OperationSetDeviceParameters.VariableValue(datastreamId, transformedValue);
                 return setDeviceParameters.setDeviceParameters(deviceId, Collections.singletonList(variableValue))
                         .thenApply(setResult -> setResult.getVariables().stream()
                                 .filter(datastreamIdResult -> datastreamIdResult.getIdentifier().equals(datastreamId))

@@ -130,5 +130,9 @@
             <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.event</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
     </dependencies>
 </project>

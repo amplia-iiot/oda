@@ -4,21 +4,18 @@ import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 
 import java.util.List;
 
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import lombok.Value;
 
-import javax.script.Invocable;
-
 /**
- * SCADA translator to translate from Datastream info {device id, datastream id} to SCADA info {index, SCADA type).
+ * SCADA translator to translate from Datastream info {device id, datastream id} to SCADA info {index, SCADA type}.
  */
 public interface ScadaTableTranslator {
 
     @Value
     class ScadaInfo {
-        private int index;
-        private Object type;
-        private Object value;
-        private Invocable script;
+        int index;
+        Object type;
     }
     
     /**
@@ -30,21 +27,22 @@ public interface ScadaTableTranslator {
     ScadaInfo translate(DatastreamInfo info);
 
     /**
-     * Transform value using the indicated script
-     * @param script script to apply to value
+     * Transform value using the associated script
+     * @param address address info
+     * @param type type info
      * @param value value to apply script to
      * @return value transformed
      */
-    Object transformValue(Invocable script, Object value);
+    Object transformValue(int address, Object type, Object value);
 
     @Value
-    class DatastreamInfo {
-        private String deviceId;
-        private String datastreamId;
-        private Object value;
+    class ScadaTranslationInfo {
+        String deviceId;
+        String datastreamId;
+        String feed;
     }
 
-    DatastreamInfo getDatastreamInfo(ScadaInfo info);
+    ScadaTranslationInfo getTranslationInfo(ScadaInfo info);
 	
 	List<String> getDatastreamsIds();
 

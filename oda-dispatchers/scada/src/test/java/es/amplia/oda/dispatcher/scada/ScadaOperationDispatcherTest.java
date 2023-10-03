@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.core.commons.interfaces.ScadaDispatcher.ScadaOperation;
 import static es.amplia.oda.core.commons.interfaces.ScadaDispatcher.ScadaOperationResult;
-import static es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.DatastreamInfo;
 import static es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
 import static es.amplia.oda.operation.api.OperationGetDeviceParameters.GetValue;
 import static es.amplia.oda.operation.api.OperationGetDeviceParameters.Status;
@@ -34,6 +33,7 @@ public class ScadaOperationDispatcherTest {
     private static final double TEST_VALUE = 18.95;
     private static final long TEST_AT = System.currentTimeMillis();
     private static final Object TEST_TYPE = null;
+    private static final String TEST_FEED = "feed";
     private static final String TEST_DEVICE_ID = "";
     private static final String TEST_DATASTREAM_ID = "testDatastream";
 
@@ -46,7 +46,8 @@ public class ScadaOperationDispatcherTest {
     @InjectMocks
     private ScadaOperationDispatcher testOperationDispatcher;
 
-    private final DatastreamInfo datastreamInfo = new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_VALUE);
+    private final ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = new ScadaTableTranslator.ScadaTranslationInfo(
+            TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED);
 
     @Test
     public void testProcessSelectOperation() throws ExecutionException, InterruptedException {
@@ -54,7 +55,7 @@ public class ScadaOperationDispatcherTest {
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
         when(mockedGetDeviceParameters.getDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(getResult));
 
@@ -62,7 +63,7 @@ public class ScadaOperationDispatcherTest {
             testOperationDispatcher.process(ScadaOperation.SELECT, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.SUCCESS, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verifyZeroInteractions(mockedSetDeviceParameters);
@@ -74,7 +75,7 @@ public class ScadaOperationDispatcherTest {
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
         when(mockedGetDeviceParameters.getDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(getResult));
 
@@ -82,7 +83,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.SELECT, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verifyZeroInteractions(mockedSetDeviceParameters);
@@ -96,7 +97,7 @@ public class ScadaOperationDispatcherTest {
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.singletonList(getValue));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
         when(mockedGetDeviceParameters.getDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(getResult));
 
@@ -104,7 +105,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.SELECT, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verifyZeroInteractions(mockedSetDeviceParameters);
@@ -116,7 +117,8 @@ public class ScadaOperationDispatcherTest {
         OperationGetDeviceParameters.Result getResult =
                 new OperationGetDeviceParameters.Result(Collections.emptyList());
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(null);
         when(mockedGetDeviceParameters.getDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(getResult));
 
@@ -124,7 +126,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.SELECT, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
         verifyZeroInteractions(mockedSetDeviceParameters);
@@ -138,7 +140,8 @@ public class ScadaOperationDispatcherTest {
                 new OperationSetDeviceParameters.Result(OperationSetDeviceParameters.ResultCode.SUCCESSFUL,
                         "", Collections.singletonList(variableResult));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
         when(mockedSetDeviceParameters.setDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(setResult));
 
@@ -146,7 +149,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.DIRECT_OPERATE, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.SUCCESS, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
         verifyZeroInteractions(mockedGetDeviceParameters);
@@ -160,7 +163,8 @@ public class ScadaOperationDispatcherTest {
                 new OperationSetDeviceParameters.Result(OperationSetDeviceParameters.ResultCode.SUCCESSFUL,
                         "", Collections.singletonList(variableResult));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
         when(mockedSetDeviceParameters.setDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(setResult));
 
@@ -168,7 +172,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.DIRECT_OPERATE, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
         verifyZeroInteractions(mockedGetDeviceParameters);
@@ -184,7 +188,8 @@ public class ScadaOperationDispatcherTest {
                 new OperationSetDeviceParameters.Result(OperationSetDeviceParameters.ResultCode.SUCCESSFUL,
                         "", Collections.singletonList(variableResult));
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
         when(mockedSetDeviceParameters.setDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(setResult));
 
@@ -192,7 +197,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.DIRECT_OPERATE, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
         verifyZeroInteractions(mockedGetDeviceParameters);
@@ -206,7 +211,8 @@ public class ScadaOperationDispatcherTest {
                 new OperationSetDeviceParameters.Result(OperationSetDeviceParameters.ResultCode.SUCCESSFUL,
                         "", Collections.emptyList());
 
-        when(mockedTranslator.getDatastreamInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.getTranslationInfo(any())).thenReturn(datastreamInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
         when(mockedSetDeviceParameters.setDeviceParameters(anyString(), any()))
                 .thenReturn(CompletableFuture.completedFuture(setResult));
 
@@ -214,7 +220,7 @@ public class ScadaOperationDispatcherTest {
                 testOperationDispatcher.process(ScadaOperation.DIRECT_OPERATE, TEST_INDEX, TEST_VALUE, TEST_TYPE);
 
         assertEquals(ScadaOperationResult.ERROR, future.get());
-        verify(mockedTranslator).getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null)));
+        verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
         verifyZeroInteractions(mockedGetDeviceParameters);
@@ -222,7 +228,7 @@ public class ScadaOperationDispatcherTest {
 
     @Test
     public void testProcessIndexNotFound() throws ExecutionException, InterruptedException {
-        when(mockedTranslator.getDatastreamInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE, TEST_VALUE, null))))
+        when(mockedTranslator.getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE))))
                 .thenThrow(new DataNotFoundException(""));
 
         CompletableFuture<ScadaOperationResult> future =

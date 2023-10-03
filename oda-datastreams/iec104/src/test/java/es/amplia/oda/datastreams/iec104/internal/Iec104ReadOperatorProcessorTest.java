@@ -18,8 +18,7 @@ import java.util.Collections;
 import java.util.Timer;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -41,7 +40,7 @@ public class Iec104ReadOperatorProcessorTest {
     @Test
     public void testRead(){
 
-        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1", null, null);
+        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
         Iec104Cache cache = new Iec104Cache();
         Value<Integer> value = new Value<>(1, System.currentTimeMillis(), null);
         cache.add("M_ME_NC_1", value, 106001);
@@ -49,7 +48,7 @@ public class Iec104ReadOperatorProcessorTest {
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
         when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
-        when(mockScadaTranslator.transformValue(any(), any())).thenReturn(1);
+        when(mockScadaTranslator.transformValue(anyInt(), any(), any())).thenReturn(1);
 
         CollectedValue readValue = readOperatorProcessor.read("deviceId1", "datastreamId1");
 

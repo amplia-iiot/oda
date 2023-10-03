@@ -2,10 +2,9 @@ package es.amplia.oda.core.commons.osgi.proxies;
 
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
-
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import org.osgi.framework.BundleContext;
 
-import javax.script.Invocable;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,14 +25,14 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     }
 
     @Override
-    public Object transformValue(Invocable script, Object value) {
-        return proxy.callFirst(translator -> translator.transformValue(script, value));
+    public Object transformValue(int address, Object type, Object value) {
+        return proxy.callFirst(translator -> translator.transformValue(address, type, value));
     }
 
     @Override
-    public DatastreamInfo getDatastreamInfo(ScadaInfo info) {
-        Optional<DatastreamInfo> datastreamInfo =
-                Optional.ofNullable(proxy.callFirst(translator -> translator.getDatastreamInfo(info)));
+    public ScadaTranslationInfo getTranslationInfo(ScadaInfo info) {
+        Optional<ScadaTranslationInfo> datastreamInfo =
+                Optional.ofNullable(proxy.callFirst(translator -> translator.getTranslationInfo(info)));
         return datastreamInfo
                 .orElseThrow(() -> new DataNotFoundException("Datastream info not found for SCADA info " + info));
     }

@@ -2,7 +2,9 @@ package es.amplia.oda.datastreams.iec104;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
+import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfiguration;
+import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.Channel;
 
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
@@ -29,8 +31,14 @@ public class Iec104ConnectionsFactory {
     private final Map<String, Integer> commonAddresses = new HashMap<>();
     private final List<Client> clients = new ArrayList<>();
 
-    Iec104ConnectionsFactory()
+    private final EventDispatcher eventDispatcher;
+    private final ScadaTableTranslator scadaTables;
+
+
+    Iec104ConnectionsFactory(EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables)
     {
+        this.eventDispatcher = eventDispatcher;
+        this.scadaTables = scadaTables;
     }
 
     public Iec104ClientModule getConnection(String deviceId) {
@@ -121,7 +129,8 @@ public class Iec104ConnectionsFactory {
 
     private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
         Iec104Cache cache = new Iec104Cache();
-        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId, commonAddress);
+        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId, commonAddress,
+                this.eventDispatcher, this.scadaTables);
 
         caches.put(deviceId, cache);
         connections.put(deviceId, clientModule);

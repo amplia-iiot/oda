@@ -1,6 +1,8 @@
 package es.amplia.oda.service.scadatables.configuration;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.script.Invocable;
 
@@ -9,6 +11,8 @@ import javax.script.Invocable;
  */
 @SuppressWarnings("restriction")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ScadaTableEntryConfiguration {
     public static final String BINARY_INPUT_TYPE_NAME = "BinaryInput";
     public static final String DOUBLE_BINARY_INPUT_TYPE_NAME = "DoubleBinaryInput";
@@ -21,11 +25,19 @@ public class ScadaTableEntryConfiguration {
     /**
      * Data type.
      */
-    private final String dataType;
+    private String dataType;
     /**
      * Datastream identifier.
      */
-    private final String datastreamId;
+    private String datastreamId;
+    /**
+     * Device identifier.
+     */
+    private String deviceId;
+    /**
+     * Feed identifier.
+     */
+    private String feed;
     /**
      * Initial value for entry
      */

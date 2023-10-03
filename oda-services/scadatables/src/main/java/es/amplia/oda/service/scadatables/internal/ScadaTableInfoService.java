@@ -3,7 +3,7 @@ package es.amplia.oda.service.scadatables.internal;
 import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
-import es.amplia.oda.service.scadatables.configuration.BoxEntryConfiguration;
+import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfiguration;
 
 import org.slf4j.Logger;
@@ -12,22 +12,19 @@ import org.slf4j.LoggerFactory;
 import javax.script.Invocable;
 import javax.script.ScriptException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScadaTableInfoService.class);
 
-    private Map<ScadaTableEntryConfiguration, Integer> scadaTablesConfiguration = new HashMap<>();
+    private Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesConfiguration = new HashMap<>();
 
 
     public ScadaTableInfoService() {
     }
 
-    public void loadConfiguration(Map<ScadaTableEntryConfiguration, Integer> scadaTablesConfiguration) {
+    public void loadConfiguration(Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesConfiguration) {
         this.scadaTablesConfiguration = scadaTablesConfiguration;
     }
 
@@ -37,10 +34,16 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     private int getNumberOfEntriesOfDataType(String dataType) {
-        return (int) scadaTablesConfiguration.keySet()
-                .stream()
-                .filter(entry -> entry.getDataType().equals(dataType))
-                .count();
+
+        int numberOfEntries = 0;
+
+        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesConfiguration.entrySet()) {
+            if (map.getValue().getDataType().equals(dataType)) {
+                numberOfEntries++;
+            }
+        }
+
+        return numberOfEntries;
     }
 
     @Override
@@ -79,15 +82,16 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     private ScadaInfo getBoxIndex(DatastreamInfo datastreamInfo) {
-        String datastreamId = datastreamInfo.getDatastreamId();
-        return scadaTablesConfiguration.entrySet().stream()
-                .filter(entry -> entry.getKey() instanceof BoxEntryConfiguration)
-                .filter(entry -> !isOutputType(entry.getKey()))
-                .filter(entry -> entry.getKey().getDatastreamId().equals(datastreamId))
-                .findFirst()
-                .map(entry -> new ScadaInfo(entry.getValue(), entry.getKey().getDataType(),
-                        datastreamInfo.getValue(), entry.getKey().getScript()))
-                .orElseThrow(() -> new DataNotFoundException(datastreamId + " not found in SCADA tables"));
+        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesConfiguration.entrySet()) {
+            ScadaTableEntryConfiguration entry = map.getValue();
+            for (Map.Entry<Integer, String> addressAsduMap : map.getKey().entrySet()) {
+                if (entry.getDatastreamId().equals(datastreamInfo.getDatastreamId())) {
+                    return new ScadaInfo(addressAsduMap.getKey(), entry.getDataType());
+                }
+            }
+        }
+
+        throw new DataNotFoundException(datastreamInfo.getDatastreamId() + " not found in SCADA tables");
     }
 
     private boolean isOutputType(ScadaTableEntryConfiguration entryConfiguration) {
@@ -95,7 +99,16 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
                 || entryConfiguration.getDataType().equals(ScadaTableEntryConfiguration.ANALOG_OUTPUT_TYPE_NAME);
     }
 
-    public Object transformValue(Invocable script, Object value) {
+    public Object transformValue(int address, Object type, Object value) {
+        Invocable script = null;
+
+        Map<Integer, String> addressAsduMap = Collections.singletonMap(address, type.toString());
+        ScadaTableEntryConfiguration scadaEntry = scadaTablesConfiguration.get(addressAsduMap);
+
+        if (scadaEntry != null) {
+            script = scadaEntry.getScript();
+        }
+
         try {
             return (script != null ? script.invokeFunction("run", value) : value);
         } catch (ScriptException | NoSuchMethodException e) {
@@ -105,19 +118,24 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     @Override
-    public DatastreamInfo getDatastreamInfo(ScadaInfo scadaInfo) {
-        return scadaTablesConfiguration.entrySet().stream()
-                .filter(entry -> isOutputType(entry.getKey()))
-                .filter(entry -> entry.getValue() == scadaInfo.getIndex())
-                .map(entry -> new DatastreamInfo("", entry.getKey().getDatastreamId(), scadaInfo.getValue()))
-                .findFirst()
-                .orElseThrow(() -> new DataNotFoundException("Can not found Analog Output with index " + scadaInfo.getIndex()));
+    public ScadaTranslationInfo getTranslationInfo(ScadaInfo scadaInfo) {
+
+        ScadaTableEntryConfiguration scadaEntry = scadaTablesConfiguration.get(
+                Collections.singletonMap(scadaInfo.getIndex(), scadaInfo.getType()));
+
+        if (scadaEntry != null) {
+            return new ScadaTranslationInfo(scadaEntry.getDeviceId(), scadaEntry.getDatastreamId(),
+                    scadaEntry.getFeed());
+        }
+
+        throw new DataNotFoundException("Can not found Analog Output with index " + scadaInfo.getIndex());
     }
+
 
     @Override
     public List<String> getDatastreamsIds() {
         List<String> ret = new ArrayList<>();
-        scadaTablesConfiguration.entrySet().stream().forEach(entry -> ret.add(entry.getKey().getDatastreamId()));
+        scadaTablesConfiguration.forEach((key, value) -> ret.add(value.getDatastreamId()));
         return ret;
     }
 }

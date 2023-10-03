@@ -3,6 +3,8 @@ package es.amplia.oda.comms.iec104.master;
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.codecs.*;
 import es.amplia.oda.comms.iec104.types.*;
+import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.socket.SocketChannel;
 import lombok.Getter;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
@@ -25,6 +27,10 @@ public class Iec104ClientModule implements ClientModule {
     private final ProtocolOptions options;
     private final Iec104Cache cache;
 
+	private final EventDispatcher eventDispatcher;
+	private final ScadaTableTranslator scadaTables;
+
+
 	@Getter
 	private final String deviceId;
 
@@ -33,13 +39,16 @@ public class Iec104ClientModule implements ClientModule {
 	@Getter
 	private boolean connected;
 
-    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId, int commonAddress) {
+    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId, int commonAddress,
+							   EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables) {
         this.cache = cache;
         this.options = options;
 		this.deviceId = deviceId;
 		this.connected = false;
 		this.commonAddress = commonAddress;
-    }
+		this.eventDispatcher = eventDispatcher;
+		this.scadaTables = scadaTables;
+	}
 
     @Override
     public void initializeClient(Client client, MessageManager messageManager) {
@@ -165,9 +174,9 @@ public class Iec104ClientModule implements ClientModule {
 
     @Override
     public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
-        this.messageChannel = new Iec104MessageChannelHandler(this.options,
-				this.messageManager);
-		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId, this.commonAddress);
+        this.messageChannel = new Iec104MessageChannelHandler(this.options, this.messageManager);
+		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId, this.commonAddress,
+				this.eventDispatcher, this.scadaTables);
 		// we replace the message channel introduced by neoscada library in Client class (handleInitChannel) with our message channel
 		socketChannel.pipeline().replace(MessageChannel.class, this.messageChannel.toString(), this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);

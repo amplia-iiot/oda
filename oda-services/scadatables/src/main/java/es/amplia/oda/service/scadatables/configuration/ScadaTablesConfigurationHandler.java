@@ -31,10 +31,12 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
      */
     private static final Logger logger = LoggerFactory.getLogger(ScadaTablesConfigurationHandler.class);
 
-    private static final String REVERSE_ENDIAN_FUNCTION = "var reverseEndian = function(x) {\n\tvar sHex = " +
+    public static final String REVERSE_ENDIAN_FUNCTION = "var reverseEndian = function(x) {\n\tvar sHex = " +
             "'00000000' + parseInt(x, 10).toString(16);\n\tsHex = sHex.slice(-8);\n\treturn " +
             "parseInt(sHex.replace(/^(.(..)*)$/, '0$1').match(/../g).reverse().join(''), 16);\n\t};";
     private static final String DATASTREAM_PROPERTY_NAME = "datastream";
+    private static final String DEVICE_PROPERTY_NAME = "device";
+    private static final String FEED_PROPERTY_NAME = "feed";
     private static final String TRANSFORMATION_PROPERTY_NAME = "transformation";
     private static final String NASHORN_ENGINE_NAME = "nashorn";
 
@@ -46,7 +48,9 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
     /**
      * Current configuration.
      */
-    private final Map<ScadaTableEntryConfiguration, Integer> currentScadaTableConfig = new HashMap<>();
+    // map is <<address,asdu>, config>
+    private final Map< Map<Integer,String>, ScadaTableEntryConfiguration> currentScadaTableConfig = new HashMap<>();
+
 
     /**
      * Constructor.
@@ -74,19 +78,26 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
                 String datastreamId = getValueByToken(DATASTREAM_PROPERTY_NAME, propertyTokens)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATASTREAM_PROPERTY_NAME));
 
-                ScadaTableEntryConfiguration newConfig = new BoxEntryConfiguration(dataType, datastreamId);
+                String deviceId = getValueByToken(DEVICE_PROPERTY_NAME, propertyTokens).orElse(null);
+
+                String feed = getValueByToken(FEED_PROPERTY_NAME, propertyTokens).orElse(null);
+
+                // create scada table config entry
+                ScadaTableEntryConfiguration newConfig = new BoxEntryConfiguration(dataType, datastreamId, deviceId, feed);
 
                 Optional<String> script = getValueByToken(TRANSFORMATION_PROPERTY_NAME, propertyTokens);
                 if (script.isPresent()) {
                     registerScript(newConfig, script.get(), datastreamId, index);
                 } else newConfig.setScript(null);
 
-                logger.info("Adding translate info: {}, {}, {}", dataType, index, datastreamId);
-                currentScadaTableConfig.put(newConfig, index);
+                logger.info("Adding translate info: {}, {}, {}, {}, {}", dataType, index, datastreamId, deviceId, feed);
+                Map<Integer,String> pairAsduAddress = java.util.Collections.singletonMap(index, dataType);
+                currentScadaTableConfig.put(pairAsduAddress, newConfig);
+
             } catch (IndexOutOfBoundsException | NumberFormatException exception) {
                 logInvalidConfigurationWarning(entry.getKey(), "The entry format is not valid");
             } catch (IllegalArgumentException exception) {
-                logInvalidConfigurationWarning(entry.getKey(), "Unrecognized property value \"device\"");
+                logInvalidConfigurationWarning(entry.getKey(), "Unrecognized property value");
             } catch (ConfigurationException exception) {
                 logInvalidConfigurationWarning(entry.getKey(), exception.getMessage());
             }

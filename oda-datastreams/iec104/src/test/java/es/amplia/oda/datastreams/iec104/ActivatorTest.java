@@ -9,6 +9,7 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.iec104.internal.Iec104DatastreamsFactoryImpl;
 
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -45,7 +46,7 @@ public class ActivatorTest {
     @Mock
     private ServiceListenerBundle<ScadaTableInfo> mockedServiceListenerBundle;
     @Mock
-    private ScadaTableTranslator mockedScadaTranslator;
+    private EventDispatcherProxy mockedEventDispatcher;
 
     @Test
     public void testStart() throws Exception {
@@ -58,6 +59,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(Iec104DatastreamsConfigurationUpdateHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
 
         testActivator.start(mockedContext);
 
@@ -89,6 +91,8 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "iec104DatastreamsManager", mockedIec104DatastreamsManager);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "serviceListenerBundle", mockedServiceListenerBundle);
+        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
+
 
         testActivator.stop(mockedContext);
 
