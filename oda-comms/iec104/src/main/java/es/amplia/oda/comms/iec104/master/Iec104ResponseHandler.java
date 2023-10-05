@@ -24,14 +24,14 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private final EventDispatcher eventDispatcher;
     private final ScadaTableTranslator scadaTables;
 
-    private final Iec104Cache cache;
+    private final Map<String, Iec104Cache> caches;
     @Getter
     private final String deviceId;
     private final int commonAddress;
 
-    public Iec104ResponseHandler(Iec104Cache cache, String deviceId, int commonAddress,
+    public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress,
                                  EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables) {
-        this.cache = cache;
+        this.caches = caches;
         this.deviceId = deviceId;
         this.commonAddress = commonAddress;
         this.eventDispatcher = eventDispatcher;
@@ -68,66 +68,70 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         }
 
         // get cause of transmission
+        // spontaneous messages must be published right away
         short causeOfTransmission = message.getHeader().getCauseOfTransmission().getCause().getValue();
+        boolean sendImmediately = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
 
         // get ASDU information
-        String type = msg.getClass().getAnnotation(ASDU.class).name();
+        String valuesType = msg.getClass().getAnnotation(ASDU.class).name();
         InformationStructure msgInfoStruct = msg.getClass().getAnnotation(ASDU.class).informationStructure();
         LOGGER.info("ASDU received - {} {}, {}, {} from device {}",
-                type, translateASDU(type), msgInfoStruct, translateCauseOfTransmission(causeOfTransmission), this.deviceId);
+                valuesType, translateASDU(valuesType), msgInfoStruct, translateCauseOfTransmission(causeOfTransmission), this.deviceId);
 
         if (!(msgInfoStruct.equals(InformationStructure.SINGLE) || msgInfoStruct.equals(InformationStructure.SEQUENCE))) {
             LOGGER.error("Unknown ASDU informationStructure {}", msgInfoStruct);
         }
 
-        // parse ASDU value
-        Map<Integer, Value<?>> valuesParsed = parseASDU(type, msgInfoStruct, msg);
+        // parse ASDU values
+        Map<Integer, Value<?>> valuesParsed = parseASDU(valuesType, msgInfoStruct, msg);
 
+        // process values parsed
+        processValuesParsed(valuesType, valuesParsed, sendImmediately);
+    }
+
+    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean sendImmediately)
+    {
         if (!valuesParsed.isEmpty()) {
 
+            List<Event> eventsToPublishImmediately = new ArrayList<>();
+
             valuesParsed.forEach((address, value) -> {
-                LOGGER.info("Value received - type {}, address {} and value {}", type, address, value.getValue());
+                LOGGER.info("Value parsed - type {}, address {} and value {}", valuesType, address, value.getValue());
                 LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
+
+                // get datastreamId, deviceId and feed from scada tables
+                ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(new ScadaTableTranslator.ScadaInfo(address, valuesType));
+
+                if (datastreamInfo == null) {
+                    LOGGER.error("There is not translation info for address {} and type {}. Ignoring value", address, valuesType);
+                    return;
+                }
+
+                // transform value, scada tables can have scripts associated
+                Value<?> transformedValue = new Value<>(scadaTables.transformValue(address, valuesType, value.getValue()),
+                        value.getTimestamp(), value.getQualityInformation());
+
+                // if no deviceId assigned in scadaTables, use the deviceId of the IEC104 connection
+                String finalDeviceId = datastreamInfo.getDeviceId() != null ? datastreamInfo.getDeviceId() : this.deviceId;
+
+                // if values must be sent immediately, add to list
+                if (sendImmediately) {
+                    eventsToPublishImmediately.add(new Event(datastreamInfo.getDatastreamId(), finalDeviceId, null,
+                            datastreamInfo.getFeed(), transformedValue.getTimestamp(), transformedValue.getValue()));
+                }
+                // else, add it to the corresponding cache
+                else {
+                    // get cache corresponding to the signal deviceId
+                    Iec104Cache valuesCache = caches.get(finalDeviceId);
+                    // add value to this cache
+                    valuesCache.add(valuesType, transformedValue, address);
+                }
             });
 
-            // spontaneous messages must be published right away
-            if (causeOfTransmission == StandardCause.SPONTANEOUS.getValue()) {
-                sendImmediately(type, valuesParsed, this.deviceId);
-            }
-            // else, add it to the cache
-            else {
-                valuesParsed.forEach((address, value) -> cache.add(type, value, address));
+            if (!eventsToPublishImmediately.isEmpty()) {
+                eventDispatcher.publishImmediately(eventsToPublishImmediately);
             }
         }
-    }
-
-    private void sendImmediately(String type, Map<Integer, Value<?>> valuesParsed, String connectionDeviceId)
-    {
-        // parse to ODA events
-        List<Event> eventsToPublish = new ArrayList<>();
-
-        valuesParsed.forEach((address, value) -> {
-            Event event = parseEvent(type, value, address, connectionDeviceId);
-            eventsToPublish.add(event);
-        });
-
-        eventDispatcher.publishImmediately(eventsToPublish);
-    }
-
-    private Event parseEvent(String type, Value<?> value, int address,  String connectionDeviceId) {
-
-        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(address, type);
-
-        // get datastreamId, deviceId and feed from scada tables
-        ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(scadaInfo);
-
-        // transform value, scada tables can have scripts associated
-        Object transformedValue = scadaTables.transformValue(address, type, value.getValue());
-
-        String deviceId = datastreamInfo.getDeviceId() != null ? datastreamInfo.getDeviceId() : connectionDeviceId;
-
-        return new Event(datastreamInfo.getDatastreamId(), deviceId, null, datastreamInfo.getFeed(),
-                value.getTimestamp(), transformedValue);
     }
 
     private Map<Integer, Value<?>> parseASDU(String type, InformationStructure msgInfoStruct, final Object msg) {

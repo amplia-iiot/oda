@@ -1,6 +1,5 @@
 package es.amplia.oda.service.scadatables.internal;
 
-import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
@@ -91,7 +90,8 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
             }
         }
 
-        throw new DataNotFoundException(datastreamInfo.getDatastreamId() + " not found in SCADA tables");
+        LOGGER.debug("DatasteamId {} not found in SCADA tables", datastreamInfo.getDatastreamId());
+        return null;
     }
 
     private boolean isOutputType(ScadaTableEntryConfiguration entryConfiguration) {
@@ -128,14 +128,29 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
                     scadaEntry.getFeed());
         }
 
-        throw new DataNotFoundException("Can not found Analog Output with index " + scadaInfo.getIndex());
+        return null;
     }
 
 
     @Override
     public List<String> getDatastreamsIds() {
         List<String> ret = new ArrayList<>();
-        scadaTablesConfiguration.forEach((key, value) -> ret.add(value.getDatastreamId()));
+        scadaTablesConfiguration.forEach((key, value) -> {
+            if (value.getDatastreamId() != null) {
+                ret.add(value.getDatastreamId());
+            }
+        });
+        return ret;
+    }
+
+    @Override
+    public List<String> getDeviceIds() {
+        List<String> ret = new ArrayList<>();
+        scadaTablesConfiguration.forEach((key, value) -> {
+            if (value.getDeviceId() != null) {
+                ret.add(value.getDeviceId());
+            }
+        });
         return ret;
     }
 }

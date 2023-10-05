@@ -46,4 +46,5 @@ public interface ScadaTableTranslator {
 	
 	List<String> getDatastreamsIds();
 
+    List<String> getDeviceIds();
 }

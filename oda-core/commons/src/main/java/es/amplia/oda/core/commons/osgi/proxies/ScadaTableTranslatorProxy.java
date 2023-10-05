@@ -46,6 +46,14 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
 	}
 
     @Override
+    public List<String> getDeviceIds() {
+        Optional<List<String>> deviceIds =
+                Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getDeviceIds));
+        return deviceIds.orElseThrow(() ->
+                new DataNotFoundException("Device IDs not found"));
+    }
+
+    @Override
     public void close() {
         proxy.close();
     }

@@ -61,8 +61,6 @@ public class Activator implements BundleActivator {
     }
 
     public void onServiceChanged() {
-        connectionsFactory.disconnect();
-        connectionsFactory.deleteConnections(); // Eliminamos todas las conexiones antiguas antes de aplicara la nueva configuración
         configHandler.applyConfiguration();
         connectionsFactory.connect();
     }

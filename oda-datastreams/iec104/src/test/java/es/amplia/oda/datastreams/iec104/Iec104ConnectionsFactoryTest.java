@@ -1,6 +1,8 @@
 package es.amplia.oda.datastreams.iec104;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import es.amplia.oda.comms.iec104.Iec104Cache;
+import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfiguration;
 import org.eclipse.neoscada.protocol.iec60870.client.Client;
 import org.junit.Assert;
@@ -11,9 +13,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +27,8 @@ public class Iec104ConnectionsFactoryTest {
     private Client mockedClient;
     @Mock
     private ListenableFuture<Void> mockedFuture;
+    @Mock
+    private ScadaTableTranslator mockedScadaTables;
 
     @InjectMocks
     private Iec104ConnectionsFactory testIec104ConnectionsFactory;
@@ -44,11 +46,32 @@ public class Iec104ConnectionsFactoryTest {
 
         List<Iec104DatastreamsConfiguration> configurations = Arrays.asList(conf1, conf2);
 
+        // condition
+        when(mockedScadaTables.getDeviceIds()).thenReturn(Arrays.asList("testDeviceIdSignal1", "testDeviceIdSignal2"));
         testIec104ConnectionsFactory.createConnections(configurations);
 
         // checks
         List<Client> clients = (List<Client>) Whitebox.getInternalState(testIec104ConnectionsFactory,"clients");
         Assert.assertEquals(configurations.size(), clients.size());
+        Assert.assertEquals(2, testIec104ConnectionsFactory.getConnectionsDeviceList().size());
+        Map<String, Iec104Cache> caches = (Map<String, Iec104Cache>) Whitebox.getInternalState(testIec104ConnectionsFactory,"caches");
+        // there must be four caches, one for each connection and two for the deviceIds of scadaTables
+        Assert.assertEquals(4, caches.keySet().size());
+        Assert.assertEquals(4, testIec104ConnectionsFactory.getDeviceList().size());
+        Assert.assertTrue(caches.containsKey("testDeviceIdSignal1"));
+        Assert.assertTrue(caches.containsKey("testDeviceIdSignal2"));
+        Assert.assertTrue(caches.containsKey("testDevice1"));
+        Assert.assertTrue(caches.containsKey("testDevice2"));
+
+        // get cache for one of the signal deviceIds
+        Assert.assertNotNull(testIec104ConnectionsFactory.getCache("testDeviceIdSignal1"));
+
+        // check connection for testDevice1 has been created
+        Assert.assertNotNull(testIec104ConnectionsFactory.getConnection("testDevice1"));
+
+        // check commonAddress
+        Assert.assertEquals(Integer.valueOf(1), testIec104ConnectionsFactory.getCommonAddress("testDevice1"));
+        Assert.assertEquals(Integer.valueOf(80), testIec104ConnectionsFactory.getCommonAddress("testDevice2"));
 
     }
 
@@ -81,4 +104,5 @@ public class Iec104ConnectionsFactoryTest {
         // assertions
         verify(mockedClient, times(1)).close();
     }
+
 }

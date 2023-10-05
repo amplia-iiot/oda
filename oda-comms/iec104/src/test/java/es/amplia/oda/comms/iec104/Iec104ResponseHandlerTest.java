@@ -21,7 +21,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -43,7 +45,7 @@ public class Iec104ResponseHandlerTest {
 
     Iec104ResponseHandler responseHandler;
 
-    Iec104Cache cache = new Iec104Cache();
+    Map<String, Iec104Cache> cache = new HashMap<>();
     String TEST_DEVICE_CONNECTION = "testDevice";
     String TEST_DEVICE = "testDevice";
     String TEST_DATASTREAM_ID = "testDatastreamId";
@@ -69,6 +71,9 @@ public class Iec104ResponseHandlerTest {
         ByteBuf buffer =  Unpooled.buffer();
         buffer.writeShort(TEST_COMMON_ADDRESS); // commonAddress
         commonAddress = ASDUAddress.parse(protocolOptions, buffer);
+
+        // ini caches
+        cache.put(TEST_DEVICE, new Iec104Cache());
     }
 
     @Test
@@ -149,11 +154,48 @@ public class Iec104ResponseHandlerTest {
         valuesList.add(entry);
         Object asduReceived = MeasuredValueNormalizedSingle.create(asduHeader, valuesList);
 
+        // conditions
+        ScadaTableTranslator.ScadaTranslationInfo translationInfo =
+                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+
         // call function
         responseHandler.channelRead(mockedChannelCtx, asduReceived);
 
         Iec104CacheValue expectedValue = new Iec104CacheValue(TEST_VALUE, asduTime, true);
-        Iec104CacheValue valueFromCache = cache.getValue("M_ME_NA_1", TEST_ASDU_ADDRRES);
+        Iec104Cache deviceCache = cache.get(TEST_DEVICE);
+        Iec104CacheValue valueFromCache = deviceCache.getValue("M_ME_NA_1", TEST_ASDU_ADDRRES);
+        Assert.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
+        Assert.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
+    }
+
+    @Test
+    public void testChannelReadInterrogationCommandNoDeviceId(){
+        CauseOfTransmission transmissionCause = new CauseOfTransmission(() -> (short) 20); // 20 is interrogation command
+        ASDUHeader asduHeader = new ASDUHeader(transmissionCause, commonAddress);
+
+        // create ASDU message
+        List<InformationEntry<Short>> valuesList = new ArrayList<>();
+        InformationObjectAddress entryAddress = new InformationObjectAddress(TEST_ASDU_ADDRRES);
+        long asduTime = System.currentTimeMillis();
+        Value<Short> value = new Value<>(TEST_VALUE, asduTime, null);
+        InformationEntry<Short> entry = new InformationEntry<>(entryAddress, value);
+        valuesList.add(entry);
+        Object asduReceived = MeasuredValueNormalizedSingle.create(asduHeader, valuesList);
+
+        // conditions
+        ScadaTableTranslator.ScadaTranslationInfo translationInfo =
+                new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+
+        // call function
+        responseHandler.channelRead(mockedChannelCtx, asduReceived);
+
+        Iec104CacheValue expectedValue = new Iec104CacheValue(TEST_VALUE, asduTime, true);
+        Iec104Cache deviceCache = cache.get(TEST_DEVICE_CONNECTION);
+        Iec104CacheValue valueFromCache = deviceCache.getValue("M_ME_NA_1", TEST_ASDU_ADDRRES);
         Assert.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
         Assert.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
     }

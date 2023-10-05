@@ -57,11 +57,19 @@ public class Iec104ConnectionsFactory {
         return new ArrayList<>(caches.keySet());
     }
 
+    public List<String> getConnectionsDeviceList() {
+        return new ArrayList<>(connections.keySet());
+    }
+
     public void createConnections (List<Iec104DatastreamsConfiguration> configuration) {
         disconnect();
         deleteConnections();
         HashMap<SocketAddress, List<Iec104ClientModule>> newConnections = new HashMap<>();
 
+        // create caches for every device in scada tables and connections
+        createCaches(configuration, scadaTables.getDeviceIds());
+
+        // set protocol options
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
         optionsBuilder.setTimeout1(15000);
         optionsBuilder.setTimeout2(10000);
@@ -69,6 +77,7 @@ public class Iec104ConnectionsFactory {
         optionsBuilder.setTimeZone(TimeZone.getTimeZone(ZoneId.systemDefault()));
         ProtocolOptions options = optionsBuilder.build();
 
+        // create connection
         configuration.forEach(c -> createNewConnection(c, newConnections, options));
 
         newConnections.entrySet().forEach(e -> {
@@ -102,7 +111,8 @@ public class Iec104ConnectionsFactory {
         });
     }
 
-    private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress, List<Iec104ClientModule>> newConnections, ProtocolOptions options) {
+    private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress,
+            List<Iec104ClientModule>> newConnections, ProtocolOptions options) {
         String deviceId = currentConfiguration.getDeviceId();
         String remoteAddress = currentConfiguration.getIpAddress();
         int port = currentConfiguration.getIpPort();
@@ -128,11 +138,9 @@ public class Iec104ConnectionsFactory {
     }
 
     private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
-        Iec104Cache cache = new Iec104Cache();
-        Iec104ClientModule clientModule = new Iec104ClientModule(cache, options, deviceId, commonAddress,
+        Iec104ClientModule clientModule = new Iec104ClientModule(caches, options, deviceId, commonAddress,
                 this.eventDispatcher, this.scadaTables);
 
-        caches.put(deviceId, cache);
         connections.put(deviceId, clientModule);
         commonAddresses.put(deviceId, commonAddress);
 
@@ -164,9 +172,23 @@ public class Iec104ConnectionsFactory {
 
     public void deleteConnections() {
         connections.clear();
-        caches.clear();
         commonAddresses.clear();
         clients.clear();
     }
 
+    private void createCaches(List<Iec104DatastreamsConfiguration> configuration, List<String> signalsDeviceIds)
+    {
+        // clear map
+        caches.clear();
+
+        for (String signalsDeviceId : signalsDeviceIds) {
+            caches.put(signalsDeviceId, new Iec104Cache());
+        }
+
+        // add the deviceIds of the IEC104 connections to the caches
+        // signals without deviceId registered will be assigned to these caches
+        for (Iec104DatastreamsConfiguration connectionData : configuration) {
+            caches.put(connectionData.getDeviceId(), new Iec104Cache());
+        }
+    }
 }

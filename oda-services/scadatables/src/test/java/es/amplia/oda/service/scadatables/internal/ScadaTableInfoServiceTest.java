@@ -6,6 +6,7 @@ import es.amplia.oda.service.scadatables.configuration.BoxEntryConfiguration;
 import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfiguration;
 
 import es.amplia.oda.service.scadatables.configuration.ScadaTablesConfigurationHandler;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -108,6 +109,11 @@ public class ScadaTableInfoServiceTest {
 
         assertEquals(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, scinfo.getType());
         assertEquals(10, scinfo.getIndex());
+
+        DatastreamInfo dsinfoNull = new DatastreamInfo("notExists", "notExists");
+        ScadaTableTranslator.ScadaInfo scinfoNull = testScadaTableInfoService.translate(dsinfoNull);
+        Assert.assertNull(scinfoNull);
+
     }
 
     @Test
@@ -119,6 +125,10 @@ public class ScadaTableInfoServiceTest {
         assertEquals("deviceId", scinfo.getDeviceId());
         assertEquals("feed", scinfo.getFeed());
 
+        ScadaTableTranslator.ScadaInfo scadaInfoNull = new ScadaTableTranslator.ScadaInfo(36, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
+        ScadaTableTranslator.ScadaTranslationInfo scinfoNull = testScadaTableInfoService.getTranslationInfo(scadaInfoNull);
+        Assert.assertNull(scinfoNull);
+
     }
 
     @Test
@@ -128,6 +138,15 @@ public class ScadaTableInfoServiceTest {
         assertEquals(2, dsIds.size());
         assertTrue(dsIds.contains("booxlean"));
         assertTrue(dsIds.contains("testDatastreamId"));
+    }
+
+    @Test
+    public void testGetDeviceIds() {
+        List<String> deviceIds = testScadaTableInfoService.getDeviceIds();
+
+        assertEquals(1, deviceIds.size());
+        assertTrue(deviceIds.contains("deviceId"));
+        assertFalse(deviceIds.contains(null));
     }
 
     @Test

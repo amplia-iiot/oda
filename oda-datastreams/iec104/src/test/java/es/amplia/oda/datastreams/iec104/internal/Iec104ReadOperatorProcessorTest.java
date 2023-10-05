@@ -19,7 +19,7 @@ import java.util.Timer;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Iec104ReadOperatorProcessor.class)
@@ -34,40 +34,113 @@ public class Iec104ReadOperatorProcessorTest {
     @InjectMocks
     private Iec104ReadOperatorProcessor readOperatorProcessor;
 
-    private final CollectedValue expectedValue = new CollectedValue(System.currentTimeMillis(), 1);
-
+    String TEST_FEED = "testFeed";
+    String TEST_DEVICE_ID = "testDeviceId";
+    String TEST_DATASTREAM_ID = "testDatastreamId";
 
     @Test
     public void testRead(){
 
+        long valueAt = System.currentTimeMillis();
+        CollectedValue expectedValue = new CollectedValue(valueAt, 1, null, TEST_FEED);
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
+        ScadaTableTranslator.ScadaTranslationInfo scadaTranslationInfo =
+                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED);
         Iec104Cache cache = new Iec104Cache();
-        Value<Integer> value = new Value<>(1, System.currentTimeMillis(), null);
+        Value<Integer> value = new Value<>(1, valueAt, null);
         cache.add("M_ME_NC_1", value, 106001);
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
         when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
         when(mockScadaTranslator.transformValue(anyInt(), any(), any())).thenReturn(1);
+        when(mockScadaTranslator.getTranslationInfo(any())).thenReturn(scadaTranslationInfo);
 
-        CollectedValue readValue = readOperatorProcessor.read("deviceId1", "datastreamId1");
+
+        CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
         Assert.assertEquals(expectedValue.getValue(), readValue.getValue());
+        Assert.assertEquals(expectedValue.getAt(), readValue.getAt());
+        Assert.assertEquals(expectedValue.getFeed(), readValue.getFeed());
+
+        // test value in cache already processed is not obtained again
+        CollectedValue readValue2 = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+        Assert.assertNull(readValue2);
     }
 
     @Test
     public void testUpdateGetterPolling(){
-        readOperatorProcessor.updateGetterPolling(100, 200);
+
+        Whitebox.setInternalState(readOperatorProcessor,"timer", new Timer());
+
+        // call function
+        readOperatorProcessor.updateGetterPolling(100, 2000);
 
         // conditions
-        when(mockedConnectionsFactory.getDeviceList()).thenReturn(Collections.singletonList("deviceId1"));
-        when(mockedConnectionsFactory.getConnection("deviceId1")).thenReturn(mockClient);
-        when(mockedConnectionsFactory.getCommonAddress("deviceId1")).thenReturn(1);
+        when(mockedConnectionsFactory.getConnectionsDeviceList()).thenReturn(Collections.singletonList(TEST_DEVICE_ID));
+        when(mockedConnectionsFactory.getConnection(TEST_DEVICE_ID)).thenReturn(mockClient);
+        when(mockedConnectionsFactory.getCommonAddress(TEST_DEVICE_ID)).thenReturn(1);
         when(mockClient.isConnected()).thenReturn(true);
-
 
         Timer timer = (Timer) Whitebox.getInternalState(readOperatorProcessor,"timer");
         Assert.assertNotNull(timer);
     }
 
+    @Test
+    public void testReadNoInfoInScadaTables(){
+
+        long valueAt = System.currentTimeMillis();
+        Iec104Cache cache = new Iec104Cache();
+        Value<Integer> value = new Value<>(1, valueAt, null);
+        cache.add("M_ME_NC_1", value, 106001);
+
+        // conditions
+        when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
+        when(mockScadaTranslator.translate(any())).thenReturn(null);
+
+        CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+
+        verify(mockScadaTranslator, never()).transformValue(anyInt(), any(), any());
+        verify(mockScadaTranslator, never()).getTranslationInfo(any());
+
+        Assert.assertNull(readValue);
+    }
+
+    @Test
+    public void testReadNoScadaTablesTranslation(){
+
+        long valueAt = System.currentTimeMillis();
+        CollectedValue expectedValue = new CollectedValue(valueAt, 1, null, TEST_FEED);
+        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
+        Iec104Cache cache = new Iec104Cache();
+        Value<Integer> value = new Value<>(1, valueAt, null);
+        cache.add("M_ME_NC_1", value, 106001);
+
+        // conditions
+        when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
+        when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
+        when(mockScadaTranslator.transformValue(anyInt(), any(), any())).thenReturn(1);
+        when(mockScadaTranslator.getTranslationInfo(any())).thenReturn(null);
+
+        CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+
+        Assert.assertEquals(expectedValue.getValue(), readValue.getValue());
+        Assert.assertEquals(expectedValue.getAt(), readValue.getAt());
+        Assert.assertNull(readValue.getFeed());
+    }
+
+    @Test
+    public void testReadNoValueInCache(){
+
+        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
+        Iec104Cache cache = new Iec104Cache();
+
+        // conditions
+        when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
+        when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
+
+        CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
+
+        Assert.assertNull(readValue);
+    }
 }

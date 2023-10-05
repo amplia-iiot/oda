@@ -17,6 +17,8 @@ import org.eclipse.neoscada.protocol.iec60870.client.ClientModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class Iec104ClientModule implements ClientModule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ClientModule.class);
@@ -25,8 +27,7 @@ public class Iec104ClientModule implements ClientModule {
     private MessageManager messageManager;
 	private MessageChannel messageChannel;
     private final ProtocolOptions options;
-    private final Iec104Cache cache;
-
+    private final Map<String, Iec104Cache> cache;
 	private final EventDispatcher eventDispatcher;
 	private final ScadaTableTranslator scadaTables;
 
@@ -39,9 +40,9 @@ public class Iec104ClientModule implements ClientModule {
 	@Getter
 	private boolean connected;
 
-    public Iec104ClientModule (Iec104Cache cache, ProtocolOptions options, String deviceId, int commonAddress,
+    public Iec104ClientModule (Map<String, Iec104Cache> caches, ProtocolOptions options, String deviceId, int commonAddress,
 							   EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables) {
-        this.cache = cache;
+        this.cache = caches;
         this.options = options;
 		this.deviceId = deviceId;
 		this.connected = false;

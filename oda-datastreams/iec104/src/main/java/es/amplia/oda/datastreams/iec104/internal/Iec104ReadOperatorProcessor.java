@@ -34,27 +34,37 @@ class Iec104ReadOperatorProcessor {
 
     CollectedValue read(String deviceId, String datastreamId) {
         Iec104Cache ret = this.connectionsFactory.getCache(deviceId);
-        if (ret != null) {
-            ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId));
-            //LOGGER.info("Scada info for datastreamId {} - type {}, index {}", datastreamId, info.getType(), info.getIndex());
-            Iec104CacheValue valueFromCache = ret.getValue(info.getType().toString(), info.getIndex());
-            if (valueFromCache != null) {
-                // if value is not null and if it hasn't been processed already
-                if (valueFromCache.getValue() != null && !valueFromCache.isProcessed()) {
-                    // transform value, scada tables can have scripts associated
-                    Object transformedValue = translator.transformValue(info.getIndex(), info.getType(), valueFromCache.getValue());
-                    LOGGER.debug("Value returned {} for device {} and datastream {}", valueFromCache.getValue(), deviceId, datastreamId);
-                    // mark value as already processed to avoid generating an event with the same value more than once
-                    ret.markValueAsProcessed(info.getType().toString(), info.getIndex());
-                    return new CollectedValue(valueFromCache.getValueTime(), transformedValue);
-                }
-                else {
-                    LOGGER.debug("Value from cache is null or has already been read");
-                }
-            }
-            else{
-                LOGGER.warn("No value retrieved from cache for datastreamId {}", datastreamId);
-            }
+
+        if (ret == null) {
+            return null;
+        }
+
+        // get ASDU and address assigned to datastreamId
+        ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId));
+
+        if (info == null) {
+            return null;
+        }
+
+        //LOGGER.info("Scada info for datastreamId {} - type {}, index {}", datastreamId, info.getType(), info.getIndex());
+        Iec104CacheValue valueFromCache = ret.getValue(info.getType().toString(), info.getIndex());
+
+        if (valueFromCache == null) {
+            LOGGER.debug("No value retrieved from cache for datastreamId {} for deviceId {}", datastreamId, deviceId);
+            return null;
+        }
+
+        // if value is not null and if it hasn't been processed already
+        if (valueFromCache.getValue() != null && !valueFromCache.isProcessed()) {
+            LOGGER.debug("Value returned {} for device {} and datastream {}", valueFromCache.getValue(), deviceId, datastreamId);
+            // mark value as already processed to avoid generating an event with the same value more than once
+            ret.markValueAsProcessed(info.getType().toString(), info.getIndex());
+            // get scadaTranslation info to get feed
+            ScadaTableTranslator.ScadaTranslationInfo scadaTranslation = translator.getTranslationInfo(info);
+            return new CollectedValue(valueFromCache.getValueTime(), valueFromCache.getValue(), null,
+                    scadaTranslation != null ? scadaTranslation.getFeed(): null);
+        } else {
+            LOGGER.debug("Value from cache is null or has already been read");
         }
         return null;
     }
@@ -69,9 +79,17 @@ class Iec104ReadOperatorProcessor {
         TimerTask taskWithExceptionCatching = new TimerTask() {
             public void run() {
                 try {
-                    for (String deviceId : connectionsFactory.getDeviceList()) {
+                    for (String deviceId : connectionsFactory.getConnectionsDeviceList()) {
                         Iec104ClientModule client = connectionsFactory.getConnection(deviceId);
-                        int commonAddress = connectionsFactory.getCommonAddress(deviceId);
+                        if (client == null) {
+                            continue;
+                        }
+
+                        Integer commonAddress = connectionsFactory.getCommonAddress(deviceId);
+                        if (commonAddress == null) {
+                            continue;
+                        }
+
                         InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(commonAddress)), (short) 20);
                         if (client.isConnected()) {
                             LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
