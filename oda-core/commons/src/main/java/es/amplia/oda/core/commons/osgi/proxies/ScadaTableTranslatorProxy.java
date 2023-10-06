@@ -1,6 +1,5 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
-import es.amplia.oda.core.commons.exceptions.DataNotFoundException;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import org.osgi.framework.BundleContext;
@@ -20,8 +19,7 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     public ScadaInfo translate(DatastreamInfo info) {
         Optional<ScadaInfo> scadaInfo =
                 Optional.ofNullable(proxy.callFirst(translator -> translator.translate(info)));
-        return scadaInfo.orElseThrow(() ->
-                new DataNotFoundException(String.format("SCADA info for (%s) not found", info)));
+        return scadaInfo.orElse(null);
     }
 
     @Override
@@ -33,24 +31,21 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     public ScadaTranslationInfo getTranslationInfo(ScadaInfo info) {
         Optional<ScadaTranslationInfo> datastreamInfo =
                 Optional.ofNullable(proxy.callFirst(translator -> translator.getTranslationInfo(info)));
-        return datastreamInfo
-                .orElseThrow(() -> new DataNotFoundException("Datastream info not found for SCADA info " + info));
+        return datastreamInfo.orElse(null);
     }
 	
 	@Override
 	public List<String> getDatastreamsIds() {
 		Optional<List<String>> datastreamsIds =
                 Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getDatastreamsIds));
-        return datastreamsIds.orElseThrow(() ->
-                new DataNotFoundException("Datastreams IDs not found"));
+        return datastreamsIds.orElse(null);
 	}
 
     @Override
     public List<String> getDeviceIds() {
         Optional<List<String>> deviceIds =
                 Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getDeviceIds));
-        return deviceIds.orElseThrow(() ->
-                new DataNotFoundException("Device IDs not found"));
+        return deviceIds.orElse(null);
     }
 
     @Override
