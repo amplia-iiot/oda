@@ -52,7 +52,7 @@ public class Iec104DatastreamsManagerTest {
         List<Iec104DatastreamsConfiguration> configurations = Arrays.asList(conf1, conf2);
 
         // conditions
-        when(mockedScadaTables.getDatastreamsIds()).thenReturn(Arrays.asList("datastreamId1", "datastreamId2"));
+        when(mockedScadaTables.getRecollectionDatastreamsIds()).thenReturn(Arrays.asList("datastreamId1", "datastreamId2"));
         when(mockedDatastreamsFactory.createIec104DatastreamsGetter(anyString())).thenReturn(mockedDatastreamsGetter);
         when(mockedDatastreamsFactory.createIec104DatastreamsSetter(anyString())).thenReturn(mockedDatastreamsSetter);
 

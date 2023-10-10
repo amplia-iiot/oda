@@ -52,9 +52,9 @@ public class Iec104ReadOperatorProcessorTest {
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
-        when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
-        when(mockScadaTranslator.transformValue(anyInt(), any(), any())).thenReturn(1);
-        when(mockScadaTranslator.getTranslationInfo(any())).thenReturn(scadaTranslationInfo);
+        when(mockScadaTranslator.translate(any(), anyBoolean())).thenReturn(scadaInfo);
+        when(mockScadaTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(1);
+        when(mockScadaTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(scadaTranslationInfo);
 
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
@@ -96,12 +96,12 @@ public class Iec104ReadOperatorProcessorTest {
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
-        when(mockScadaTranslator.translate(any())).thenReturn(null);
+        when(mockScadaTranslator.translate(any(), anyBoolean())).thenReturn(null);
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
-        verify(mockScadaTranslator, never()).transformValue(anyInt(), any(), any());
-        verify(mockScadaTranslator, never()).getTranslationInfo(any());
+        verify(mockScadaTranslator, never()).transformValue(anyInt(), any(), anyBoolean(), any());
+        verify(mockScadaTranslator, never()).getTranslationInfo(any(), anyBoolean());
 
         Assert.assertNull(readValue);
     }
@@ -118,9 +118,9 @@ public class Iec104ReadOperatorProcessorTest {
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
-        when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
-        when(mockScadaTranslator.transformValue(anyInt(), any(), any())).thenReturn(1);
-        when(mockScadaTranslator.getTranslationInfo(any())).thenReturn(null);
+        when(mockScadaTranslator.translate(any(), anyBoolean())).thenReturn(scadaInfo);
+        when(mockScadaTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(1);
+        when(mockScadaTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(null);
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
@@ -137,7 +137,7 @@ public class Iec104ReadOperatorProcessorTest {
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);
-        when(mockScadaTranslator.translate(any())).thenReturn(scadaInfo);
+        when(mockScadaTranslator.translate(any(), anyBoolean())).thenReturn(scadaInfo);
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 

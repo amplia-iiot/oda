@@ -70,7 +70,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         // get cause of transmission
         // spontaneous messages must be published right away
         short causeOfTransmission = message.getHeader().getCauseOfTransmission().getCause().getValue();
-        boolean sendImmediately = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
+        boolean isEvent = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
 
         // get ASDU information
         String valuesType = msg.getClass().getAnnotation(ASDU.class).name();
@@ -86,10 +86,10 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         Map<Integer, Value<?>> valuesParsed = parseASDU(valuesType, msgInfoStruct, msg);
 
         // process values parsed
-        processValuesParsed(valuesType, valuesParsed, sendImmediately);
+        processValuesParsed(valuesType, valuesParsed, isEvent);
     }
 
-    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean sendImmediately)
+    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean isEvent)
     {
         if (!valuesParsed.isEmpty()) {
 
@@ -100,7 +100,8 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                 LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
 
                 // get datastreamId, deviceId and feed from scada tables
-                ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(new ScadaTableTranslator.ScadaInfo(address, valuesType));
+                ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(
+                        new ScadaTableTranslator.ScadaInfo(address, valuesType), isEvent);
 
                 if (datastreamInfo == null) {
                     LOGGER.error("There is not translation info for address {} and type {}. Ignoring value", address, valuesType);
@@ -108,14 +109,14 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                 }
 
                 // transform value, scada tables can have scripts associated
-                Value<?> transformedValue = new Value<>(scadaTables.transformValue(address, valuesType, value.getValue()),
+                Value<?> transformedValue = new Value<>(scadaTables.transformValue(address, valuesType, isEvent, value.getValue()),
                         value.getTimestamp(), value.getQualityInformation());
 
                 // if no deviceId assigned in scadaTables, use the deviceId of the IEC104 connection
                 String finalDeviceId = datastreamInfo.getDeviceId() != null ? datastreamInfo.getDeviceId() : this.deviceId;
 
                 // if values must be sent immediately, add to list
-                if (sendImmediately) {
+                if (isEvent) {
                     eventsToPublishImmediately.add(new Event(datastreamInfo.getDatastreamId(), finalDeviceId, null,
                             datastreamInfo.getFeed(), transformedValue.getTimestamp(), transformedValue.getValue()));
                 }

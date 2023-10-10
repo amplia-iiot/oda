@@ -39,8 +39,11 @@ class Iec104ReadOperatorProcessor {
             return null;
         }
 
+        // signals read from the cache are not events
+        boolean isEvent = false;
+
         // get ASDU and address assigned to datastreamId
-        ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId));
+        ScadaInfo info = translator.translate(new DatastreamInfo(deviceId, datastreamId), isEvent);
 
         if (info == null) {
             return null;
@@ -60,7 +63,7 @@ class Iec104ReadOperatorProcessor {
             // mark value as already processed to avoid generating an event with the same value more than once
             ret.markValueAsProcessed(info.getType().toString(), info.getIndex());
             // get scadaTranslation info to get feed
-            ScadaTableTranslator.ScadaTranslationInfo scadaTranslation = translator.getTranslationInfo(info);
+            ScadaTableTranslator.ScadaTranslationInfo scadaTranslation = translator.getTranslationInfo(info, isEvent);
             return new CollectedValue(valueFromCache.getValueTime(), valueFromCache.getValue(), null,
                     scadaTranslation != null ? scadaTranslation.getFeed(): null);
         } else {
@@ -90,7 +93,8 @@ class Iec104ReadOperatorProcessor {
                             continue;
                         }
 
-                        InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED, ASDUAddress.valueOf(commonAddress)), (short) 20);
+                        InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED,
+                                ASDUAddress.valueOf(commonAddress)), (short) 20);
                         if (client.isConnected()) {
                             LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
                             client.send(cmd);

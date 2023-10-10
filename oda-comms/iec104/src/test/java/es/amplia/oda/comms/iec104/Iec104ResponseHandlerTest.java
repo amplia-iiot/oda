@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +92,8 @@ public class Iec104ResponseHandlerTest {
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
                 new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED);
-        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
-        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
 
         // call function
@@ -126,8 +125,8 @@ public class Iec104ResponseHandlerTest {
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
                 new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED);
-        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
-        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
 
         // call function
@@ -157,8 +156,8 @@ public class Iec104ResponseHandlerTest {
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
                 new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED);
-        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
-        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
         // call function
         responseHandler.channelRead(mockedChannelCtx, asduReceived);
@@ -187,8 +186,8 @@ public class Iec104ResponseHandlerTest {
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
                 new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED);
-        when(mockedScadaTablesTranslator.getTranslationInfo(any())).thenReturn(translationInfo);
-        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), any())).thenReturn(TEST_VALUE);
+        when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
+        when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
         // call function
         responseHandler.channelRead(mockedChannelCtx, asduReceived);

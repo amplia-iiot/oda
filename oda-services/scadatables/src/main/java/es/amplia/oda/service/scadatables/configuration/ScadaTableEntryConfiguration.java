@@ -46,4 +46,8 @@ public class ScadaTableEntryConfiguration {
      * Transformation script for recollected value
      */
     private Invocable script;
+    /**
+     * Indicates if the signal is an event or a normal recollected value
+     */
+    private boolean event;
 }

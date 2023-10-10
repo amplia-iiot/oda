@@ -31,10 +31,10 @@ class ScadaEventDispatcher implements EventDispatcher {
             try {
                 LOGGER.info("Publishing events {}", event);
                 DatastreamInfo datastreamInfo = new DatastreamInfo(event.getDeviceId(), event.getDatastreamId());
-                ScadaInfo info = translator.translate(datastreamInfo);
-                // apply script to value (if it has a script assigned)
-                Object transformedValue = translator.transformValue(info.getIndex(), info.getType(), event.getValue());
-                connector.uplink(info.getIndex(), transformedValue, info.getType(), event.getAt());
+                // for the moment only check values that are not catalogued as events in scada tables
+                boolean isEvent = false;
+                ScadaInfo info = translator.translate(datastreamInfo, isEvent);
+                connector.uplink(info.getIndex(), event.getValue(), info.getType(), event.getAt());
             } catch (DataNotFoundException exception) {
                 LOGGER.warn("Can not publish event {}: SCADA index not found", event);
             }

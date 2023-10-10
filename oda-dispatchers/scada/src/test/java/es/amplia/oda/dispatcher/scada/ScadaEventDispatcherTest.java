@@ -41,12 +41,12 @@ public class ScadaEventDispatcherTest {
         ScadaInfo returnedInfo = new ScadaInfo(1, 1);
         DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId);
 
-        when(mockedTranslator.translate(any())).thenReturn(returnedInfo);
-        when(mockedTranslator.transformValue(anyInt(), any(), any())).thenReturn(value);
+        when(mockedTranslator.translate(any(), anyBoolean())).thenReturn(returnedInfo);
+        when(mockedTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(value);
 
         testDispatcher.publish(Collections.singletonList(event));
 
-        verify(mockedTranslator).translate(eq(dsInfo));
+        verify(mockedTranslator).translate(eq(dsInfo), eq(false));
         verify(mockedConnector).uplink(eq(returnedInfo.getIndex()), eq(value), eq(returnedInfo.getType()), eq(timestamp));
     }
 
@@ -59,11 +59,11 @@ public class ScadaEventDispatcherTest {
         Event event = new Event(datastreamId, deviceId, null, null, timestamp, value);
         DatastreamInfo dsInfo = new DatastreamInfo(deviceId, datastreamId);
 
-        when(mockedTranslator.translate(any())).thenThrow(new DataNotFoundException(""));
+        when(mockedTranslator.translate(any(), anyBoolean())).thenThrow(new DataNotFoundException(""));
 
         testDispatcher.publish(Collections.singletonList(event));
 
-        verify(mockedTranslator).translate(eq(dsInfo));
+        verify(mockedTranslator).translate(eq(dsInfo), eq(false));
         verify(mockedConnector, never()).uplink(anyInt(), any(), any(), anyLong());
     }
 }

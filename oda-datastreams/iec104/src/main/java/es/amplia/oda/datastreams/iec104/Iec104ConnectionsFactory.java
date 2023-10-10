@@ -67,7 +67,7 @@ public class Iec104ConnectionsFactory {
         HashMap<SocketAddress, List<Iec104ClientModule>> newConnections = new HashMap<>();
 
         // create caches for every device in scada tables and connections
-        createCaches(configuration, scadaTables.getDeviceIds());
+        createCaches(configuration, scadaTables.getRecollectionDeviceIds());
 
         // set protocol options
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
@@ -181,14 +181,18 @@ public class Iec104ConnectionsFactory {
         // clear map
         caches.clear();
 
-        for (String signalsDeviceId : signalsDeviceIds) {
-            caches.put(signalsDeviceId, new Iec104Cache());
+        if(signalsDeviceIds != null) {
+            for (String signalsDeviceId : signalsDeviceIds) {
+                caches.put(signalsDeviceId, new Iec104Cache());
+            }
         }
 
         // add the deviceIds of the IEC104 connections to the caches
         // signals without deviceId registered will be assigned to these caches
-        for (Iec104DatastreamsConfiguration connectionData : configuration) {
-            caches.put(connectionData.getDeviceId(), new Iec104Cache());
+        if(configuration != null) {
+            for (Iec104DatastreamsConfiguration connectionData : configuration) {
+                caches.put(connectionData.getDeviceId(), new Iec104Cache());
+            }
         }
     }
 }

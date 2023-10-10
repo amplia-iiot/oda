@@ -32,10 +32,11 @@ public class ScadaTableInfoServiceTest {
 
     @Before
     public void setUp() throws ScriptException {
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesConfiguration = new HashMap<>();
+        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesRecollection = new HashMap<>();
+        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesEvents = new HashMap<>();
 
         ScadaTableEntryConfiguration entryBox = new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME,
-                "booxlean", "deviceId", "feed");
+                "booxlean", "deviceId", "feed", false);
         // register script
         String script = "x*10";
         final ScriptEngineManager manager = new ScriptEngineManager();
@@ -43,14 +44,18 @@ public class ScadaTableInfoServiceTest {
         engine.eval(ScadaTablesConfigurationHandler.REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
         entryBox.setScript((Invocable) engine);
         // add entry to scadaTables
-        scadaTablesConfiguration.put(Collections.singletonMap(10, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME), entryBox);
+        scadaTablesRecollection.put(Collections.singletonMap(10, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME), entryBox);
 
         ScadaTableEntryConfiguration entryBox2 = new BoxEntryConfiguration("M_ME_NC_1", "testDatastreamId",
-                null, null);
-        scadaTablesConfiguration.put(Collections.singletonMap(11, "M_ME_NC_1"), entryBox2);
+                null, null, false);
+        scadaTablesRecollection.put(Collections.singletonMap(11, "M_ME_NC_1"), entryBox2);
+
+        ScadaTableEntryConfiguration entryBox3 = new BoxEntryConfiguration(ScadaTableEntryConfiguration.ANALOG_INPUT_TYPE_NAME,
+                "testDatastreamId2", null, null, true);
+        scadaTablesEvents.put(Collections.singletonMap(12, ScadaTableEntryConfiguration.ANALOG_INPUT_TYPE_NAME), entryBox3);
 
         testScadaTableInfoService = new ScadaTableInfoService();
-        testScadaTableInfoService.loadConfiguration(scadaTablesConfiguration);
+        testScadaTableInfoService.loadConfiguration(scadaTablesRecollection, scadaTablesEvents);
     }
 
     @Test
@@ -64,7 +69,7 @@ public class ScadaTableInfoServiceTest {
     public void testGetNumAnalogInputs() {
         int analogInputs = testScadaTableInfoService.getNumAnalogInputs();
 
-        assertEquals(0, analogInputs);
+        assertEquals(1, analogInputs);
     }
 
     @Test
@@ -105,35 +110,48 @@ public class ScadaTableInfoServiceTest {
     @Test
     public void testTranslateBox() {
         DatastreamInfo dsinfo = new DatastreamInfo("deviceId", "booxlean");
-        ScadaTableTranslator.ScadaInfo scinfo = testScadaTableInfoService.translate(dsinfo);
+        ScadaTableTranslator.ScadaInfo scinfo = testScadaTableInfoService.translate(dsinfo, false);
 
         assertEquals(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, scinfo.getType());
         assertEquals(10, scinfo.getIndex());
 
-        DatastreamInfo dsinfoNull = new DatastreamInfo("notExists", "notExists");
-        ScadaTableTranslator.ScadaInfo scinfoNull = testScadaTableInfoService.translate(dsinfoNull);
-        Assert.assertNull(scinfoNull);
+        // same datastreamId and deviceId but search for it in events scada table
+        ScadaTableTranslator.ScadaInfo scinfoEvent = testScadaTableInfoService.translate(dsinfo, true);
+        Assert.assertNull(scinfoEvent);
 
+        // datastreamInfo doesn't exist in scada table
+        DatastreamInfo dsinfoNull = new DatastreamInfo("notExists", "notExists");
+        ScadaTableTranslator.ScadaInfo scinfoNull = testScadaTableInfoService.translate(dsinfoNull, false);
+        Assert.assertNull(scinfoNull);
     }
 
     @Test
     public void testGetTranslationInfo() {
-        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(10, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
-        ScadaTableTranslator.ScadaTranslationInfo scinfo = testScadaTableInfoService.getTranslationInfo(scadaInfo);
+        ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(10,
+                ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
+        ScadaTableTranslator.ScadaTranslationInfo scinfo = testScadaTableInfoService.getTranslationInfo(scadaInfo,
+                false);
 
         assertEquals("booxlean", scinfo.getDatastreamId());
         assertEquals("deviceId", scinfo.getDeviceId());
         assertEquals("feed", scinfo.getFeed());
 
-        ScadaTableTranslator.ScadaInfo scadaInfoNull = new ScadaTableTranslator.ScadaInfo(36, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
-        ScadaTableTranslator.ScadaTranslationInfo scinfoNull = testScadaTableInfoService.getTranslationInfo(scadaInfoNull);
+        // same scada info but search in events table
+        ScadaTableTranslator.ScadaTranslationInfo scinfoEvent = testScadaTableInfoService.getTranslationInfo(scadaInfo,
+                true);
+        Assert.assertNull(scinfoEvent);
+
+        // scada info to search for doesn't exist in tables
+        ScadaTableTranslator.ScadaInfo scadaInfoNull = new ScadaTableTranslator.ScadaInfo(36,
+                ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
+        ScadaTableTranslator.ScadaTranslationInfo scinfoNull = testScadaTableInfoService.getTranslationInfo(scadaInfoNull, false);
         Assert.assertNull(scinfoNull);
 
     }
 
     @Test
     public void testGetDatastremasIds() {
-        List<String> dsIds = testScadaTableInfoService.getDatastreamsIds();
+        List<String> dsIds = testScadaTableInfoService.getRecollectionDatastreamsIds();
 
         assertEquals(2, dsIds.size());
         assertTrue(dsIds.contains("booxlean"));
@@ -142,7 +160,7 @@ public class ScadaTableInfoServiceTest {
 
     @Test
     public void testGetDeviceIds() {
-        List<String> deviceIds = testScadaTableInfoService.getDeviceIds();
+        List<String> deviceIds = testScadaTableInfoService.getRecollectionDeviceIds();
 
         assertEquals(1, deviceIds.size());
         assertTrue(deviceIds.contains("deviceId"));
@@ -152,14 +170,19 @@ public class ScadaTableInfoServiceTest {
     @Test
     public void testTransformValue() {
         Object transformedValue = testScadaTableInfoService.transformValue(10,
-                ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, 2);
+                ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, false, 2);
         assertEquals(20.0, transformedValue);
+
+        // same values but search for it in events table
+        Object transformedValueEvent = testScadaTableInfoService.transformValue(10,
+                ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, true, 2);
+        assertEquals(2, transformedValueEvent);
     }
 
     @Test
     public void testTransformValueNoScript() {
         // if there is no script assigned, it must return the same value as input
-        Object transformedValue = testScadaTableInfoService.transformValue(11, "M_ME_NC_1", 2);
+        Object transformedValue = testScadaTableInfoService.transformValue(11, "M_ME_NC_1", false, 2);
         assertEquals(2, transformedValue);
     }
 

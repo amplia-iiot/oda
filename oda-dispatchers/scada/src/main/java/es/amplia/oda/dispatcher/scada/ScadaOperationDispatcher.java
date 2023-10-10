@@ -32,8 +32,9 @@ class ScadaOperationDispatcher implements ScadaDispatcher {
     @Override
     public <T, S> CompletableFuture<ScadaOperationResult> process(ScadaOperation operation, int index, T value, S type) {
         ScadaTableTranslator.ScadaTranslationInfo translationInfo;
+        boolean isEvent = false;
         try {
-            translationInfo = translator.getTranslationInfo(new ScadaInfo(index, type));
+            translationInfo = translator.getTranslationInfo(new ScadaInfo(index, type), isEvent);
         } catch (DataNotFoundException exception) {
             LOGGER.warn("Can not process SCADA operation: Datastream with SCADA index {} not found.", index);
             return CompletableFuture.completedFuture(ScadaOperationResult.ERROR);
@@ -54,7 +55,7 @@ class ScadaOperationDispatcher implements ScadaDispatcher {
             case DIRECT_OPERATE:
             case DIRECT_OPERATE_NO_ACK:
                 // apply script to value (if it has a script assigned)
-                Object transformedValue = translator.transformValue(index, type, value);
+                Object transformedValue = translator.transformValue(index, type, isEvent, value);
                 OperationSetDeviceParameters.VariableValue variableValue =
                         new OperationSetDeviceParameters.VariableValue(datastreamId, transformedValue);
                 return setDeviceParameters.setDeviceParameters(deviceId, Collections.singletonList(variableValue))

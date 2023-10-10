@@ -19,8 +19,9 @@ public class BoxEntryConfiguration extends ScadaTableEntryConfiguration {
      * @param datastreamId Datastream identifier.
      * @param deviceId     Device identifier.
      * @param feed         Feed identifier.
+     * @param isEvent      Indicates if it is an event or an interrogation command recollection response
      */
-    public BoxEntryConfiguration(String dataType, String datastreamId, String deviceId, String feed) {
-        super(dataType, datastreamId, deviceId, feed, null, null);
+    public BoxEntryConfiguration(String dataType, String datastreamId, String deviceId, String feed, boolean isEvent) {
+        super(dataType, datastreamId, deviceId, feed, null, null, isEvent);
     }
 }

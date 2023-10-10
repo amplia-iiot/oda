@@ -21,19 +21,22 @@ public interface ScadaTableTranslator {
     /**
      * translate from the given Datastream info (device id and datastream id) to SCADA info (index and type).
      * @param info Datastream info to translate.
+     * @param isEvent indicates if the signal is an event or not
      * @return Correspondent SCADA info.
      * @throws DataNotFoundException Data with the given parameters was not found.
      */
-    ScadaInfo translate(DatastreamInfo info);
+    ScadaInfo translate(DatastreamInfo info, boolean isEvent);
 
     /**
      * Transform value using the associated script
+     *
      * @param address address info
-     * @param type type info
-     * @param value value to apply script to
+     * @param type    type info
+     * @param isEvent indicates if the signal is an event or not
+     * @param value   value to apply script to
      * @return value transformed
      */
-    Object transformValue(int address, Object type, Object value);
+    Object transformValue(int address, Object type, boolean isEvent, Object value);
 
     @Value
     class ScadaTranslationInfo {
@@ -42,9 +45,9 @@ public interface ScadaTableTranslator {
         String feed;
     }
 
-    ScadaTranslationInfo getTranslationInfo(ScadaInfo info);
-	
-	List<String> getDatastreamsIds();
+    ScadaTranslationInfo getTranslationInfo(ScadaInfo scadaInfo, boolean isEvent);
 
-    List<String> getDeviceIds();
+	List<String> getRecollectionDatastreamsIds();
+
+    List<String> getRecollectionDeviceIds();
 }

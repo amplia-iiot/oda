@@ -47,7 +47,7 @@ public class Iec104ConnectionsFactoryTest {
         List<Iec104DatastreamsConfiguration> configurations = Arrays.asList(conf1, conf2);
 
         // condition
-        when(mockedScadaTables.getDeviceIds()).thenReturn(Arrays.asList("testDeviceIdSignal1", "testDeviceIdSignal2"));
+        when(mockedScadaTables.getRecollectionDeviceIds()).thenReturn(Arrays.asList("testDeviceIdSignal1", "testDeviceIdSignal2"));
         testIec104ConnectionsFactory.createConnections(configurations);
 
         // checks

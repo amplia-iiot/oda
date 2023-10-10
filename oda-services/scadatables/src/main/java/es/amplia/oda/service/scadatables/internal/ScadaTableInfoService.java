@@ -17,14 +17,20 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ScadaTableInfoService.class);
 
-    private Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesConfiguration = new HashMap<>();
-
+    // we will have two scadaTables
+    // one will save the relation between ASDUS and datastream info for signals that are events (spontaneous)
+    // one will save the relation between ASDUS and datastream info for signals that are recollected the normal way (interrogation command)
+    // map is <<address, type>, scadaSignalInfo>
+    private Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesRecollection = new HashMap<>();
+    private Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesEvents = new HashMap<>();
 
     public ScadaTableInfoService() {
     }
 
-    public void loadConfiguration(Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesConfiguration) {
-        this.scadaTablesConfiguration = scadaTablesConfiguration;
+    public void loadConfiguration(Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTablesRecollection
+            , Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTablesEvents) {
+        this.scadaTablesRecollection = scadaTablesRecollection;
+        this.scadaTablesEvents = scadaTablesEvents;
     }
 
     @Override
@@ -36,7 +42,13 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
 
         int numberOfEntries = 0;
 
-        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesConfiguration.entrySet()) {
+        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesRecollection.entrySet()) {
+            if (map.getValue().getDataType().equals(dataType)) {
+                numberOfEntries++;
+            }
+        }
+
+        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesEvents.entrySet()) {
             if (map.getValue().getDataType().equals(dataType)) {
                 numberOfEntries++;
             }
@@ -76,12 +88,21 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     @Override
-    public ScadaInfo translate(DatastreamInfo datastreamInfo) {
-        return getBoxIndex(datastreamInfo);
+    public ScadaInfo translate(DatastreamInfo datastreamInfo, boolean isEvent) {
+        return getBoxIndex(datastreamInfo, isEvent);
     }
 
-    private ScadaInfo getBoxIndex(DatastreamInfo datastreamInfo) {
-        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : scadaTablesConfiguration.entrySet()) {
+    private ScadaInfo getBoxIndex(DatastreamInfo datastreamInfo, boolean isEvent) {
+
+        Set<Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration>> entries;
+
+        if (isEvent) {
+            entries = scadaTablesEvents.entrySet();
+        } else {
+            entries = scadaTablesRecollection.entrySet();
+        }
+
+        for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : entries) {
             ScadaTableEntryConfiguration entry = map.getValue();
             for (Map.Entry<Integer, String> addressAsduMap : map.getKey().entrySet()) {
                 if (entry.getDatastreamId().equals(datastreamInfo.getDatastreamId())) {
@@ -99,11 +120,17 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
                 || entryConfiguration.getDataType().equals(ScadaTableEntryConfiguration.ANALOG_OUTPUT_TYPE_NAME);
     }
 
-    public Object transformValue(int address, Object type, Object value) {
+    public Object transformValue(int address, Object type, boolean isEvent, Object value) {
         Invocable script = null;
 
         Map<Integer, String> addressAsduMap = Collections.singletonMap(address, type.toString());
-        ScadaTableEntryConfiguration scadaEntry = scadaTablesConfiguration.get(addressAsduMap);
+        ScadaTableEntryConfiguration scadaEntry;
+
+        if (isEvent) {
+            scadaEntry = scadaTablesEvents.get(addressAsduMap);
+        } else {
+            scadaEntry = scadaTablesRecollection.get(addressAsduMap);
+        }
 
         if (scadaEntry != null) {
             script = scadaEntry.getScript();
@@ -118,10 +145,14 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     @Override
-    public ScadaTranslationInfo getTranslationInfo(ScadaInfo scadaInfo) {
+    public ScadaTranslationInfo getTranslationInfo(ScadaInfo scadaInfo, boolean isEvent) {
+        ScadaTableEntryConfiguration scadaEntry;
 
-        ScadaTableEntryConfiguration scadaEntry = scadaTablesConfiguration.get(
-                Collections.singletonMap(scadaInfo.getIndex(), scadaInfo.getType()));
+        if (isEvent) {
+            scadaEntry = scadaTablesEvents.get(Collections.singletonMap(scadaInfo.getIndex(), scadaInfo.getType()));
+        } else {
+            scadaEntry = scadaTablesRecollection.get(Collections.singletonMap(scadaInfo.getIndex(), scadaInfo.getType()));
+        }
 
         if (scadaEntry != null) {
             return new ScadaTranslationInfo(scadaEntry.getDeviceId(), scadaEntry.getDatastreamId(),
@@ -131,11 +162,10 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
         return null;
     }
 
-
     @Override
-    public List<String> getDatastreamsIds() {
+    public List<String> getRecollectionDatastreamsIds() {
         List<String> ret = new ArrayList<>();
-        scadaTablesConfiguration.forEach((key, value) -> {
+        scadaTablesRecollection.forEach((key, value) -> {
             if (value.getDatastreamId() != null) {
                 ret.add(value.getDatastreamId());
             }
@@ -144,9 +174,9 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
     }
 
     @Override
-    public List<String> getDeviceIds() {
+    public List<String> getRecollectionDeviceIds() {
         List<String> ret = new ArrayList<>();
-        scadaTablesConfiguration.forEach((key, value) -> {
+        scadaTablesRecollection.forEach((key, value) -> {
             if (value.getDeviceId() != null) {
                 ret.add(value.getDeviceId());
             }

@@ -16,35 +16,35 @@ public class ScadaTableTranslatorProxy implements ScadaTableTranslator, AutoClos
     }
 
     @Override
-    public ScadaInfo translate(DatastreamInfo info) {
+    public ScadaInfo translate(DatastreamInfo info, boolean isEvent) {
         Optional<ScadaInfo> scadaInfo =
-                Optional.ofNullable(proxy.callFirst(translator -> translator.translate(info)));
+                Optional.ofNullable(proxy.callFirst(translator -> translator.translate(info, isEvent)));
         return scadaInfo.orElse(null);
     }
 
     @Override
-    public Object transformValue(int address, Object type, Object value) {
-        return proxy.callFirst(translator -> translator.transformValue(address, type, value));
+    public Object transformValue(int address, Object type, boolean isEvent, Object value) {
+        return proxy.callFirst(translator -> translator.transformValue(address, type, isEvent, value));
     }
 
     @Override
-    public ScadaTranslationInfo getTranslationInfo(ScadaInfo info) {
+    public ScadaTranslationInfo getTranslationInfo(ScadaInfo info, boolean isEvent) {
         Optional<ScadaTranslationInfo> datastreamInfo =
-                Optional.ofNullable(proxy.callFirst(translator -> translator.getTranslationInfo(info)));
+                Optional.ofNullable(proxy.callFirst(translator -> translator.getTranslationInfo(info, isEvent)));
         return datastreamInfo.orElse(null);
     }
 	
 	@Override
-	public List<String> getDatastreamsIds() {
+	public List<String> getRecollectionDatastreamsIds() {
 		Optional<List<String>> datastreamsIds =
-                Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getDatastreamsIds));
+                Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getRecollectionDatastreamsIds));
         return datastreamsIds.orElse(null);
 	}
 
     @Override
-    public List<String> getDeviceIds() {
+    public List<String> getRecollectionDeviceIds() {
         Optional<List<String>> deviceIds =
-                Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getDeviceIds));
+                Optional.ofNullable(proxy.callFirst(ScadaTableTranslator::getRecollectionDeviceIds));
         return deviceIds.orElse(null);
     }
 
