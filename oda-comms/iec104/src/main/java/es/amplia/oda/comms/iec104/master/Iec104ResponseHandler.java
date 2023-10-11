@@ -75,8 +75,8 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         // get ASDU information
         String valuesType = msg.getClass().getAnnotation(ASDU.class).name();
         InformationStructure msgInfoStruct = msg.getClass().getAnnotation(ASDU.class).informationStructure();
-        LOGGER.info("ASDU received - {} {}, {}, {} from device {}",
-                valuesType, translateASDU(valuesType), msgInfoStruct, translateCauseOfTransmission(causeOfTransmission), this.deviceId);
+        LOGGER.debug("ASDU received - {}, {}, {} from device {}",
+                valuesType, msgInfoStruct, translateCauseOfTransmission(causeOfTransmission), this.deviceId);
 
         if (!(msgInfoStruct.equals(InformationStructure.SINGLE) || msgInfoStruct.equals(InformationStructure.SEQUENCE))) {
             LOGGER.error("Unknown ASDU informationStructure {}", msgInfoStruct);
@@ -86,17 +86,18 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         Map<Integer, Value<?>> valuesParsed = parseASDU(valuesType, msgInfoStruct, msg);
 
         // process values parsed
-        processValuesParsed(valuesType, valuesParsed, isEvent);
+        processValuesParsed(valuesType, valuesParsed, isEvent, causeOfTransmission);
     }
 
-    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean isEvent)
+    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean isEvent, short causeOfTransmission)
     {
         if (!valuesParsed.isEmpty()) {
 
             List<Event> eventsToPublishImmediately = new ArrayList<>();
 
             valuesParsed.forEach((address, value) -> {
-                LOGGER.info("Value parsed - type {}, address {} and value {}", valuesType, address, value.getValue());
+                LOGGER.info("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
+                        valuesType, address, value.getValue(), translateCauseOfTransmission(causeOfTransmission), this.deviceId);
                 LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
 
                 // get datastreamId, deviceId and feed from scada tables

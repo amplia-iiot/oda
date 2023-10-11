@@ -44,6 +44,11 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
         mappedProperties.remove(POLLING_TIME_PROPERTY_NAME);
         mappedProperties.remove(INITIAL_POLLING_TIME_PROPERTY_NAME);
 
+        if (this.iec104PollingInitialDelay <= 0 ||  this.iec104Polling <= 0) {
+            LOGGER.error("Initial delay or polling times are not bigger than zero");
+            return;
+        }
+
         for (Map.Entry<String, ?> entry : mappedProperties.entrySet()) {
             String deviceId = entry.getKey();
             String[] keys = ((String) entry.getValue()).split(KEY_FIELDS_DELIMITER);

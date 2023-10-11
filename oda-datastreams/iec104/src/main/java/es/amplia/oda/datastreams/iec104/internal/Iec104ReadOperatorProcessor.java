@@ -74,6 +74,12 @@ class Iec104ReadOperatorProcessor {
 
     public void updateGetterPolling(int initialPolling, int polling) {
         LOGGER.info("Update polling time. Initial delay {}, next executions every {} milliseconds", initialPolling, polling);
+
+        if (initialPolling <= 0 || polling <= 0) {
+            LOGGER.error("Initial delay or polling times are not bigger than zero");
+            return;
+        }
+
         if (timer != null) {
             timer.cancel();
         }
