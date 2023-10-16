@@ -3,6 +3,7 @@ package es.amplia.oda.statemanager.inmemory;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.interfaces.StateManager;
+import es.amplia.oda.core.commons.statemanager.DatabaseException;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
 import es.amplia.oda.event.api.EventDispatcher;
@@ -277,7 +278,7 @@ public class InMemoryStateManager implements StateManager {
                         if (!this.database.insertNewRow(notProcessedValue)) {
                             LOGGER.error("The value {} couldn't be stored into the database.", notProcessedValue);
                         }
-                    } catch (IOException e) {
+                    } catch (DatabaseException | IOException e) {
                         LOGGER.error("Error trying to insert the new value for {} in device {}",
                                 dsInfo.getDatastreamId(), dsInfo.getDeviceId());
                     }
