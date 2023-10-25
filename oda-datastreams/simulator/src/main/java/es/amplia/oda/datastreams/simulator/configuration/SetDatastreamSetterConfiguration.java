@@ -4,6 +4,6 @@ import lombok.Value;
 
 @Value
 public class SetDatastreamSetterConfiguration implements SimulatedDatastreamsGetterConfiguration {
-    private String datastreamId;
-    private String deviceId;
+    String datastreamId;
+    String deviceId;
 }

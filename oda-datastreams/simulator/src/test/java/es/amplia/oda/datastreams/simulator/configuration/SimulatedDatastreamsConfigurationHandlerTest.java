@@ -13,10 +13,7 @@ import org.mockito.Spy;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -48,17 +45,18 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
     public void testLoadConfiguration() {
         String testDatastream1 = "testDatastream1";
         String testDevice1 = "testDevice1";
+        String testFeed1 = "testFeed1";
         String testValue1 = "Hello World!";
         String testDatastream2 = "testDatastream2";
         double testMinValue2 = 100.0;
         double testMaxValue2 = 200.0;
         double testMaxDiff2 = 20.0;
         ConstantDatastreamGetterConfiguration expectedConfiguration1 = new ConstantDatastreamGetterConfiguration(testDatastream1,
-                testDevice1, testValue1);
+                testDevice1, testFeed1, testValue1);
         RandomDatastreamGetterConfiguration expectedConfiguration2 = new RandomDatastreamGetterConfiguration(testDatastream2,
-                "", testMinValue2, testMaxValue2, testMaxDiff2);
+                "", null, testMinValue2, testMaxValue2, testMaxDiff2);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
-        props.put(testDatastream1 + " ; " + testDevice1, "String, " + testValue1);
+        props.put(testDatastream1 + " ; " + testDevice1 + " ; " + testFeed1, "String, " + testValue1);
         props.put(testDatastream2, String.join(",", Arrays.asList(
                 Double.toString(testMinValue2), Double.toString(testMaxValue2), Double.toString(testMaxDiff2))));
 
@@ -75,7 +73,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDatastream = "testDatastream";
         int testValue = 321;
         ConstantDatastreamGetterConfiguration expectedConfiguration = new ConstantDatastreamGetterConfiguration(testDatastream,
-                "", testValue);
+                "", null, testValue);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
         props.put(testDatastream, "  int, " + testValue);
 
@@ -91,7 +89,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDatastream = "testDatastream";
         int testValue = 321;
         ConstantDatastreamGetterConfiguration expectedConfiguration = new ConstantDatastreamGetterConfiguration(testDatastream,
-                "", testValue);
+                "", null, testValue);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
         props.put(testDatastream, " Integer , " + testValue);
 
@@ -107,7 +105,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDatastream = "testDatastream";
         float testValue = 32.10f;
         ConstantDatastreamGetterConfiguration expectedConfiguration = new ConstantDatastreamGetterConfiguration(testDatastream,
-                "", testValue);
+                "", null, testValue);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
         props.put(testDatastream, "float," + testValue);
 
@@ -123,7 +121,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDatastream = "testDatastream";
         double testValue = 54.321;
         ConstantDatastreamGetterConfiguration expectedConfiguration = new ConstantDatastreamGetterConfiguration(testDatastream,
-                "", testValue);
+                "", null, testValue);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
         props.put(testDatastream, "Double, " + testValue);
 
@@ -139,7 +137,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDatastream = "testDatastream";
         double testValue = 54.321;
         ConstantDatastreamGetterConfiguration expectedConfiguration = new ConstantDatastreamGetterConfiguration(testDatastream,
-                "", testValue);
+                "", null,testValue);
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
         props.put(testDatastream, "number, " + testValue);
 
@@ -166,7 +164,7 @@ public class SimulatedDatastreamsConfigurationHandlerTest {
         String testDevice1 = "testDevice1";
         double testValue = 10.0;
         Dictionary<String, String> props = new MapBasedDictionary<>(String.class);
-        props.put(testDatastream1 + ";" + testDevice1, String.join(",", Arrays.asList(
+        props.put(testDatastream1 + ";" + testDevice1, String.join(",", Collections.singletonList(
                 Double.toString(testValue))));
 
         testHandler.loadConfiguration(props);

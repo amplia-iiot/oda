@@ -12,16 +12,18 @@ class RandomDatastreamsGetter implements DatastreamsGetter {
 
     private final String datastreamId;
     private final String deviceId;
+    private final String feed;
     private final double minValue;
     private final double maxValue;
     private final double maxDifference;
 
     private double lastValue;
 
-    RandomDatastreamsGetter(String datastreamId, String deviceId, double minValue, double maxValue,
+    RandomDatastreamsGetter(String datastreamId, String deviceId, String feed, double minValue, double maxValue,
                             double maxDifferenceBetweenMeasurements) {
         this.datastreamId = datastreamId;
         this.deviceId = deviceId;
+        this.feed = feed;
         this.minValue = minValue;
         this.maxValue = maxValue;
         this.maxDifference = maxDifferenceBetweenMeasurements / 100.0 * (maxValue - minValue);
@@ -46,7 +48,7 @@ class RandomDatastreamsGetter implements DatastreamsGetter {
     public CompletableFuture<CollectedValue> get(String device) {
         lastValue = getNextValue();
         double lastValueWithTwoDecimals = Double.parseDouble(String.format(Locale.ENGLISH, "%.2f", lastValue));
-        return CompletableFuture.completedFuture(new CollectedValue(System.currentTimeMillis(), lastValueWithTwoDecimals));
+        return CompletableFuture.completedFuture(new CollectedValue(System.currentTimeMillis(), lastValueWithTwoDecimals, null, feed));
     }
 
     private double getNextValue() {

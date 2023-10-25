@@ -6,5 +6,6 @@ import lombok.Value;
 public class ConstantDatastreamGetterConfiguration implements SimulatedDatastreamsGetterConfiguration {
     private String datastreamId;
     private String deviceId;
+    private String feed;
     private Object value;
 }

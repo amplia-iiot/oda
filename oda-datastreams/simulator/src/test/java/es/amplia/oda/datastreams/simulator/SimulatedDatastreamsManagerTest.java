@@ -27,6 +27,7 @@ public class SimulatedDatastreamsManagerTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream";
     private static final String TEST_DEVICE_ID_1 = "testDevice";
+    private static final String TEST_FEED_1 = "testFeed";
     private static final String TEST_VALUE = "Hello!";
     private static final String TEST_DATASTREAM_ID_2 = "testDatastream";
     private static final double TEST_MIN_VALUE = 10.0;
@@ -36,9 +37,9 @@ public class SimulatedDatastreamsManagerTest {
     private static final String TEST_DATASTREAM_ID_3 = "settingDatastream";
     private static final String TEST_DEVICE_ID_3 = "theDevice";
     private static final ConstantDatastreamGetterConfiguration TEST_CONSTANT_DATASTREAM_CONFIGURATION =
-            new ConstantDatastreamGetterConfiguration(TEST_DATASTREAM_ID_1, TEST_DEVICE_ID_1, TEST_VALUE);
+            new ConstantDatastreamGetterConfiguration(TEST_DATASTREAM_ID_1, TEST_DEVICE_ID_1, TEST_FEED_1, TEST_VALUE);
     private static final RandomDatastreamGetterConfiguration TEST_RANDOM_DATASTREAM_CONFIGURATION =
-            new RandomDatastreamGetterConfiguration(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID_2, TEST_MIN_VALUE, TEST_MAX_VALUE,
+            new RandomDatastreamGetterConfiguration(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID_2, null, TEST_MIN_VALUE, TEST_MAX_VALUE,
                     TEST_MAX_DIFF);
     private static final SetDatastreamSetterConfiguration TEST_CONSTANT_DATASTREAM_CONFIGURATION_SETTER =
             new SetDatastreamSetterConfiguration(TEST_DATASTREAM_ID_3, TEST_DEVICE_ID_3);
@@ -72,9 +73,9 @@ public class SimulatedDatastreamsManagerTest {
 
     @Test
     public void testLoadConfiguration() {
-        when(mockedGetterFactory.createConstantDatastreamsGetter(anyString(), anyString(), any()))
+        when(mockedGetterFactory.createConstantDatastreamsGetter(anyString(), anyString(), anyString(), any()))
                 .thenReturn(mockedGetter);
-        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), anyDouble(), anyDouble(), anyDouble()))
+        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), anyString(), anyDouble(), anyDouble(), anyDouble()))
                 .thenReturn(mockedGetter);
         when(mockedSetterFactory.createSetDatastreamsSetter(anyString(), anyString()))
                 .thenReturn(mockedSetter);
@@ -82,9 +83,9 @@ public class SimulatedDatastreamsManagerTest {
         testDatastreamsManager.loadConfiguration(TEST_CONFIGURATION, TEST_CONFIGURATION_SETTER);
 
         verify(mockedGetterFactory).createConstantDatastreamsGetter(eq(TEST_DATASTREAM_ID_1), eq(TEST_DEVICE_ID_1),
-                eq(TEST_VALUE));
+                eq(TEST_FEED_1), eq(TEST_VALUE));
         verify(mockedGetterFactory).createRandomDatastreamsGetter(eq(TEST_DATASTREAM_ID_2), eq(TEST_DEVICE_ID_2),
-                eq(TEST_MIN_VALUE), eq(TEST_MAX_VALUE), eq(TEST_MAX_DIFF));
+                eq(null), eq(TEST_MIN_VALUE), eq(TEST_MAX_VALUE), eq(TEST_MAX_DIFF));
         verify(mockedSetterFactory).createSetDatastreamsSetter(eq(TEST_DATASTREAM_ID_3), eq(TEST_DEVICE_ID_3));
         verify(mockedRegistrationGetterManager, times(2)).register(eq(mockedGetter));
         verify(mockedRegistrationSetterManager, times(1)).register(eq(mockedSetter));

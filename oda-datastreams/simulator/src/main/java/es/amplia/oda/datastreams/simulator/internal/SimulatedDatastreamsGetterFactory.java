@@ -4,13 +4,14 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
 public class SimulatedDatastreamsGetterFactory {
 
-    public DatastreamsGetter createConstantDatastreamsGetter(String datastreamId, String deviceId, Object value) {
-        return new ConstantDatastreamsGetter(datastreamId, deviceId, value);
+    public DatastreamsGetter createConstantDatastreamsGetter(String datastreamId, String deviceId, String feed, Object value) {
+        return new ConstantDatastreamsGetter(datastreamId, deviceId, feed, value);
     }
 
-    public DatastreamsGetter createRandomDatastreamsGetter(String datastreamId, String deviceId, double minValue,
-                                                           double maxValue, double maxDifferenceBetweenMeasurements) {
-        return new RandomDatastreamsGetter(datastreamId, deviceId, minValue, maxValue,
+    public DatastreamsGetter createRandomDatastreamsGetter(String datastreamId, String deviceId, String feed,
+                                                           double minValue, double maxValue,
+                                                           double maxDifferenceBetweenMeasurements) {
+        return new RandomDatastreamsGetter(datastreamId, deviceId, feed, minValue, maxValue,
                 maxDifferenceBetweenMeasurements);
     }
 }

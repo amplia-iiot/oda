@@ -14,10 +14,11 @@ public class ConstantDatastreamsGetterTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String TEST_DATASTREAM_ID = "testDatastream";
+    private static final String TEST_FEED = "testFeed";
     private static final Object TEST_VALUE = true;
 
     private final ConstantDatastreamsGetter testGetter =
-            new ConstantDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_VALUE);
+            new ConstantDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_VALUE);
 
     @Test
     public void testGetDatastreamIdSatisfied() {

@@ -15,12 +15,13 @@ public class RandomDatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_FEED = "testFeed";
     private static final double TEST_MIN_VALUE = 500;
     private static final double TEST_MAX_VALUE = 1000;
     private static final double TEST_MAX_DIFFERENCE = 10;
 
     private final RandomDatastreamsGetter testGetter =
-            new RandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_MIN_VALUE, TEST_MAX_VALUE,
+            new RandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_MIN_VALUE, TEST_MAX_VALUE,
                     TEST_MAX_DIFFERENCE);
 
     @Test

@@ -6,6 +6,7 @@ import lombok.Value;
 public class RandomDatastreamGetterConfiguration implements SimulatedDatastreamsGetterConfiguration {
     private String datastreamId;
     private String deviceId;
+    private String feed;
     private double minValue;
     private double maxValue;
     private double maxDifferenceBetweenMeasurements;

@@ -49,6 +49,7 @@ public class SimulatedDatastreamsManager implements AutoCloseable {
     }
 
     public void loadConfiguration(List<SimulatedDatastreamsGetterConfiguration> configuration, List<SetDatastreamSetterConfiguration> settersConfigured) {
+        close();
         configuration.stream()
                 .map(this::createDatastreamsGetter)
                 .forEach(this::registerDatastreamsGetter);
@@ -67,13 +68,14 @@ public class SimulatedDatastreamsManager implements AutoCloseable {
 
     private DatastreamsGetter createConstantDatastreamsGetter(SimulatedDatastreamsGetterConfiguration configuration) {
         ConstantDatastreamGetterConfiguration conf = (ConstantDatastreamGetterConfiguration) configuration;
-        return getterFactory.createConstantDatastreamsGetter(conf.getDatastreamId(), conf.getDeviceId(), conf.getValue());
+        return getterFactory.createConstantDatastreamsGetter(conf.getDatastreamId(), conf.getDeviceId(),
+                conf.getFeed(), conf.getValue());
     }
 
     private DatastreamsGetter createRandomDatastreamsGetter(SimulatedDatastreamsGetterConfiguration configuration) {
         RandomDatastreamGetterConfiguration conf = (RandomDatastreamGetterConfiguration) configuration;
-        return getterFactory.createRandomDatastreamsGetter(conf.getDatastreamId(), conf.getDeviceId(), conf.getMinValue(),
-                conf.getMaxValue(), conf.getMaxDifferenceBetweenMeasurements());
+        return getterFactory.createRandomDatastreamsGetter(conf.getDatastreamId(), conf.getDeviceId(), conf.getFeed(),
+                conf.getMinValue(), conf.getMaxValue(), conf.getMaxDifferenceBetweenMeasurements());
     }
 
     private DatastreamsSetter createSetDatastreamsSetter(SimulatedDatastreamsGetterConfiguration configuration) {

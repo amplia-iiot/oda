@@ -10,11 +10,13 @@ class ConstantDatastreamsGetter implements DatastreamsGetter {
 
     private final String datastreamId;
     private final String deviceId;
+    private final String feed;
     private final Object value;
 
-    ConstantDatastreamsGetter(String datastreamId, String deviceId, Object value) {
+    ConstantDatastreamsGetter(String datastreamId, String deviceId, String feed, Object value) {
         this.datastreamId = datastreamId;
         this.deviceId = deviceId;
+        this.feed = feed;
         this.value = value;
     }
 
@@ -30,6 +32,6 @@ class ConstantDatastreamsGetter implements DatastreamsGetter {
 
     @Override
     public CompletableFuture<CollectedValue> get(String device) {
-        return CompletableFuture.completedFuture(new CollectedValue(System.currentTimeMillis(), value));
+        return CompletableFuture.completedFuture(new CollectedValue(System.currentTimeMillis(), value, null, feed));
     }
 }

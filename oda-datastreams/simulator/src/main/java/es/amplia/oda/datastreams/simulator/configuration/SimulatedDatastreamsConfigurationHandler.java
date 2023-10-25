@@ -24,6 +24,9 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+
+        loadDefaultConfiguration();
+
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {
             String key = e.nextElement();
@@ -40,8 +43,13 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
             String datastreamId = keyFields[0].trim();
 
             String deviceId = "";
-            if (keyFields.length == 2) {
+            if (keyFields.length >= 2) {
                 deviceId = keyFields[1];
+            }
+
+            String feed = null;
+            if (keyFields.length == 3) {
+                feed = keyFields[2];
             }
 
             String[] valueFields = value.split("\\s*,\\s*");
@@ -51,14 +59,14 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
             } else if (valueFields.length == 2) {
                 Object datastreamValue = getValue(valueFields[0].trim(), valueFields[1]);
                 gettersConfigured.add(
-                        new ConstantDatastreamGetterConfiguration(datastreamId, deviceId, datastreamValue));
+                        new ConstantDatastreamGetterConfiguration(datastreamId, deviceId, feed, datastreamValue));
             } else if (valueFields.length == 3) {
                 double minValue = Double.parseDouble(valueFields[0].trim());
                 double maxValue = Double.parseDouble(valueFields[1]);
                 double maxDiff = Double.parseDouble(valueFields[2]);
 
                 gettersConfigured.add(
-                        new RandomDatastreamGetterConfiguration(datastreamId, deviceId, minValue, maxValue, maxDiff));
+                        new RandomDatastreamGetterConfiguration(datastreamId, deviceId, feed, minValue, maxValue, maxDiff));
             } else {
                 LOGGER.error("Invalid configuration '{}={}'", key, value);
             }
@@ -88,6 +96,7 @@ public class SimulatedDatastreamsConfigurationHandler implements ConfigurationUp
     @Override
     public void loadDefaultConfiguration() {
         gettersConfigured.clear();
+        settersConfigured.clear();
     }
 
     @Override
