@@ -106,6 +106,11 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     }
 
     @Override
+    public void uplinkResponse(byte[] payload, ContentType contentType) {
+        sendMessage(responseTopic, payload, contentType);
+    }
+
+    @Override
     public boolean isConnected() {
         return client != null && client.isConnected();
     }

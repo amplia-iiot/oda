@@ -2,16 +2,17 @@ package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactoryProxy;
-import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.entities.ContentType;
-import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
+import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
+import es.amplia.oda.event.api.ResponseDispatcher;
+import es.amplia.oda.event.api.ResponseDispatcherProxy;
+
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -29,21 +30,19 @@ public class Activator implements BundleActivator {
     private ConfigurableBundle configurableBundle;
     private ServiceRegistration<MqttDatastreamsService> mqttDatastreamServiceRegistration;
     private ServiceListenerBundle<MqttClientFactory> mqttClientFactoryListener;
-
     private MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator;
+    private DeviceInfoProviderProxy deviceInfoProvider;
+    private ResponseDispatcherProxy responseDispatcher;
 
     @Override
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting MQTT datastreams bundle");
         mqttClientFactory = new MqttClientFactoryProxy(bundleContext);
-        serializer = new SerializerProxy(bundleContext, ContentType.CBOR);
+        serializer = new SerializerProxy(bundleContext, ContentType.JSON);
+        deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
         eventPublisher = new EventPublisherProxy(bundleContext);
-        ServiceRegistrationManagerWithKey<String, DatastreamsGetter> mqttDatastreamsGetterRegistrationManager =
-                new ServiceRegistrationManagerWithKeyOsgi<>(bundleContext, DatastreamsGetter.class);
-        ServiceRegistrationManagerWithKey<String, DatastreamsSetter> mqttDatastreamsSetterRegistrationManager =
-                new ServiceRegistrationManagerWithKeyOsgi<>(bundleContext, DatastreamsSetter.class);
-        mqttDatastreamsOrchestrator = new MqttDatastreamsOrchestrator(mqttClientFactory, serializer, eventPublisher,
-                mqttDatastreamsGetterRegistrationManager, mqttDatastreamsSetterRegistrationManager);
+        responseDispatcher = new ResponseDispatcherProxy(bundleContext);
+        mqttDatastreamsOrchestrator = new MqttDatastreamsOrchestrator(mqttClientFactory, serializer, eventPublisher, deviceInfoProvider, responseDispatcher, bundleContext);
         configHandler = new MqttDatastreamsConfigurationUpdateHandler(mqttDatastreamsOrchestrator);
         mqttDatastreamServiceRegistration = bundleContext.registerService(MqttDatastreamsService.class,
                 mqttDatastreamsOrchestrator, null);
@@ -73,6 +72,8 @@ public class Activator implements BundleActivator {
         mqttClientFactory.close();
         serializer.close();
         eventPublisher.close();
+        deviceInfoProvider.close();
+        responseDispatcher.close();
         LOGGER.info("MQTT datastreams bundle stopped");
     }
 }

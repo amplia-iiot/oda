@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 class EventDispatcherImpl implements EventDispatcher {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventDispatcherImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResponseDispatcherImpl.class);
 
     private final EventParser eventParser;
     private final Serializer serializer;
