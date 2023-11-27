@@ -1,18 +1,14 @@
 package es.amplia.oda.datastreams.mqtt.configuration;
 
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyStoreType;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.SslOptions;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
-import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.datastreams.mqtt.DatastreamInfoWithPermission;
-import es.amplia.oda.datastreams.mqtt.MqttDatastreamPermission;
 import es.amplia.oda.datastreams.mqtt.MqttDatastreamsOrchestrator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
@@ -20,22 +16,25 @@ public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationU
 
     static final String SERVER_URI_PROPERTY_NAME = "brokerURI";
     static final String CLIENT_ID_PROPERTY_NAME = "clientId";
-    static final String ENABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "enableDatastreamTopic";
-    static final String DISABLE_DATASTREAM_TOPIC_PROPERTY_NAME = "disableDatastreamTopic";
+    static final String PASSWORD_PROPERTY_NAME = "password";
     static final String EVENT_TOPIC_PROPERTY_NAME = "eventTopic";
-    static final String READ_REQUEST_TOPIC_PROPERTY_NAME = "readRequestTopic";
-    static final String READ_RESPONSE_TOPIC_PROPERTY_NAME = "readResponseTopic";
-    static final String WRITE_REQUEST_TOPIC_PROPERTY_NAME = "writeRequestTopic";
-    static final String WRITE_RESPONSE_TOPIC_PROPERTY_NAME = "writeResponseTopic";
-    static final String LWT_TOPIC_PROPERTY_NAME = "lwtTopic";
+    static final String REQUEST_TOPIC_PROPERTY_NAME = "requestTopic";
+    static final String RESPONSE_TOPIC_PROPERTY_NAME = "responseTopic";
+    static final String MESSAGE_QOS_PROPERTY_NAME = "message.qos";
+    static final String MESSAGE_RETAINED_PROPERTY_NAME = "message.retained";
+    static final String KEY_STORE_PATH_PROPERTY_NAME = "keyStore.path";
+    static final String KEY_STORE_TYPE_PROPERTY_NAME = "keyStore.type";
+    static final String KEY_STORE_PASS_PROPERTY_NAME = "keyStore.password";
+    static final String TRUST_STORE_PATH_PROPERTY_NAME = "trustStore.path";
+    static final String TRUST_STORE_TYPE_PROPERTY_NAME = "trustStore.type";
+    static final String TRUST_STORE_PASS_PROPERTY_NAME = "trustStore.password";
 
-    private static final String DATASTREAMS_CONFIGURATION_REGEX = "(\\w+);(\\w+)";
-    private static final Pattern DATASTREAMS_CONFIGURATION_PATTERN = Pattern.compile(DATASTREAMS_CONFIGURATION_REGEX);
+    static final int DEFAULT_QOS = 1;
+    static final boolean DEFAULT_RETAINED = false;
 
     private final MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator;
 
     private MqttDatastreamsConfiguration currentConfiguration;
-    private List<DatastreamInfoWithPermission> initialDatastreamsConfiguration = new ArrayList<>();
 
     public MqttDatastreamsConfigurationUpdateHandler(MqttDatastreamsOrchestrator mqttDatastreamsOrchestrator) {
         this.mqttDatastreamsOrchestrator = mqttDatastreamsOrchestrator;
@@ -47,37 +46,45 @@ public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationU
         String brokerURI = getRequiredConfigurationParameter(props, SERVER_URI_PROPERTY_NAME);
         String clientId =
                 Optional.ofNullable((String) props.get(CLIENT_ID_PROPERTY_NAME)).orElse(UUID.randomUUID().toString());
-        String enableTopic = getRequiredConfigurationParameter(props, ENABLE_DATASTREAM_TOPIC_PROPERTY_NAME);
-        String disableTopic = getRequiredConfigurationParameter(props, DISABLE_DATASTREAM_TOPIC_PROPERTY_NAME);
+        String password = getRequiredConfigurationParameter(props, PASSWORD_PROPERTY_NAME);
         String eventTopic = getRequiredConfigurationParameter(props, EVENT_TOPIC_PROPERTY_NAME);
-        String readRequestTopic = getRequiredConfigurationParameter(props, READ_REQUEST_TOPIC_PROPERTY_NAME);
-        String readResponseTopic = getRequiredConfigurationParameter(props, READ_RESPONSE_TOPIC_PROPERTY_NAME);
-        String writeRequestTopic = getRequiredConfigurationParameter(props, WRITE_REQUEST_TOPIC_PROPERTY_NAME);
-        String writeResponseTopic = getRequiredConfigurationParameter(props, WRITE_RESPONSE_TOPIC_PROPERTY_NAME);
-        String lwtTopic = getRequiredConfigurationParameter(props, LWT_TOPIC_PROPERTY_NAME);
+        String requestTopic = getRequiredConfigurationParameter(props, REQUEST_TOPIC_PROPERTY_NAME);
+        String responseTopic = getRequiredConfigurationParameter(props, RESPONSE_TOPIC_PROPERTY_NAME);
+        int qos = Optional.ofNullable((String) props.get(MESSAGE_QOS_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_QOS);
+        boolean retained = Optional.ofNullable((String) props.get(MESSAGE_RETAINED_PROPERTY_NAME))
+                    .map(Boolean::parseBoolean)
+                    .orElse(DEFAULT_RETAINED);
 
-        currentConfiguration = new MqttDatastreamsConfiguration(brokerURI, clientId, enableTopic, disableTopic,
-                eventTopic, readRequestTopic, readResponseTopic, writeRequestTopic, writeResponseTopic, lwtTopic);
+        // SSL Configuration
+        Optional<String> keyStore = Optional.ofNullable((String) props.get(KEY_STORE_PATH_PROPERTY_NAME));
+        Optional<KeyStoreType> keyStoreType =
+                Optional.ofNullable((String) props.get(KEY_STORE_TYPE_PROPERTY_NAME))
+                        .map(KeyStoreType::valueOf);
+        Optional<char[]> keyStorePwd =
+                Optional.ofNullable((String) props.get(KEY_STORE_PASS_PROPERTY_NAME))
+                        .map(String::toCharArray);
+        Optional<String> trustStore = Optional.ofNullable((String) props.get(TRUST_STORE_PATH_PROPERTY_NAME));
+        Optional<KeyStoreType> trustStoreType =
+                Optional.ofNullable((String) props.get(TRUST_STORE_TYPE_PROPERTY_NAME))
+                        .map(KeyStoreType::valueOf);
+        Optional<char[]> trustStorePwd =
+                Optional.ofNullable((String) props.get(TRUST_STORE_PASS_PROPERTY_NAME))
+                        .map(String::toCharArray);
 
-        initialDatastreamsConfiguration = loadInitialDatastreamsConfiguration(props);
+        currentConfiguration = new MqttDatastreamsConfiguration(brokerURI, clientId, password, eventTopic, requestTopic, responseTopic, qos, retained);
+
+        if (keyStore.isPresent() && keyStorePwd.isPresent() && trustStore.isPresent() && trustStorePwd.isPresent()) {
+            currentConfiguration.setKeyStore(keyStore.get());
+            currentConfiguration.setKeyStorePassword(keyStorePwd.get());
+            currentConfiguration.setKeyStoreType(keyStoreType.orElse(SslOptions.DEFAULT_KEY_STORE_TYPE));
+            currentConfiguration.setTrustStore(trustStore.get());
+            currentConfiguration.setTrustStorePassword(trustStorePwd.get());
+            currentConfiguration.setTrustStoreType(trustStoreType.orElse(SslOptions.DEFAULT_KEY_STORE_TYPE));
+        }
+
         LOGGER.info("New configuration loaded");
-    }
-
-    private List<DatastreamInfoWithPermission> loadInitialDatastreamsConfiguration(Dictionary<String, ?> props) {
-        Map<String, ?> mapProperties = Collections.dictionaryToMap(props);
-
-        return mapProperties.entrySet().stream()
-                .map(entry -> {
-                    Matcher matcher = DATASTREAMS_CONFIGURATION_PATTERN.matcher(entry.getKey());
-                    if (matcher.matches()) {
-                        return new DatastreamInfoWithPermission(matcher.group(1), matcher.group(2),
-                                MqttDatastreamPermission.valueOf((String) entry.getValue()));
-                    } else {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
     }
 
     private String getRequiredConfigurationParameter(Dictionary<String, ?> props, String parameterName) {
@@ -87,6 +94,6 @@ public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationU
 
     @Override
     public void applyConfiguration() {
-        mqttDatastreamsOrchestrator.loadConfiguration(currentConfiguration, initialDatastreamsConfiguration);
+        mqttDatastreamsOrchestrator.loadConfiguration(currentConfiguration);
     }
 }

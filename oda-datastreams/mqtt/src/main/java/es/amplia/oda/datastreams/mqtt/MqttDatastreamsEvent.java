@@ -7,139 +7,122 @@ import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 import es.amplia.oda.core.commons.interfaces.AbstractDatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
+import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
+import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
+import es.amplia.oda.dispatcher.opengate.datastreamdomain.*;
+import es.amplia.oda.event.api.ResponseDispatcher;
 
-import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import static es.amplia.oda.datastreams.mqtt.MqttDatastreams.*;
 
 class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MqttDatastreamsEvent.class);
-
+    private static final String TOPIC_SEPARATOR = "/";
 
     private final MqttClient mqttClient;
-    private final MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager;
     private final Serializer serializer;
-    private final String deviceEventTopic;
-    private final String datastreamEventTopic;
+    private final String eventTopic;
+    private final String responseTopic;
+    private final DeviceInfoProviderProxy deviceInfoProvider;
+    private final ResponseDispatcher responseDispatcher;
 
 
-    MqttDatastreamsEvent(EventPublisher eventPublisher, MqttClient mqttClient,
-                         MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager,
-                         Serializer serializer, String eventTopic) {
+    MqttDatastreamsEvent(EventPublisher eventPublisher, MqttClient mqttClient, Serializer serializer, String eventTopic,
+                        DeviceInfoProviderProxy deviceInfoProvider, String responseTopic, ResponseDispatcher respDispatcher) {
         super(eventPublisher);
         this.mqttClient = mqttClient;
-        this.mqttDatastreamsPermissionManager = mqttDatastreamsPermissionManager;
         this.serializer = serializer;
-        this.deviceEventTopic = eventTopic + ONE_TOPIC_LEVEL_WILDCARD;
-        this.datastreamEventTopic = eventTopic + TWO_TOPIC_LEVELS_WILDCARD;
+        this.eventTopic = eventTopic;
+        this.responseTopic = responseTopic;
+        this.responseDispatcher = respDispatcher;
+        this.deviceInfoProvider = deviceInfoProvider;
         registerToEventSource();
     }
 
-    @Override
     public void registerToEventSource() {
-        mqttClient.subscribe(deviceEventTopic, new DeviceEventMessageListener());
-        mqttClient.subscribe(datastreamEventTopic, new DatastreamEventMessageListener());
+        mqttClient.subscribe(eventTopic, new EventMessageListener());
+        mqttClient.subscribe(responseTopic, new ResponseMessageListener());
     }
 
-    @Value
-    static class InnerDatastreamEvent {
-        private String datastreamId;
-        private Long at;
-        private Object value;
-    }
-
-    @Value
-    static class DeviceEventMessage {
-        private List<String> path;
-        private List<InnerDatastreamEvent> datastreams;
-    }
-
-    class DeviceEventMessageListener implements MqttMessageListener {
+    class EventMessageListener implements MqttMessageListener {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
-
             Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
-            Map<String,Map<Long,Object>> eventsByFeed = new HashMap<>();
             try {
                 LOGGER.info("Message arrived to the {} topic", topic);
-                String deviceId = extractDeviceIdFromTopic(topic);
-                DeviceEventMessage deviceEvent =
-                        serializer.deserialize(mqttMessage.getPayload(), DeviceEventMessage.class);
-                deviceEvent.getDatastreams().stream()
-                        .filter(event -> hasPermission(deviceId, event.getDatastreamId()))
-                        .forEach(event -> {
-                            Map<Long, Object> entry = new HashMap<>();
-                            entry.put(event.getAt(), event.getValue());
-                            eventsByFeed.put(null, entry);
-                            events.put(event.getDatastreamId(), eventsByFeed);
-                        });
-                if(events.size() > 0)
-                    publish(deviceId, deviceEvent.getPath(), events);
+                OutputDatastream event =
+                        serializer.deserialize(mqttMessage.getPayload(), OutputDatastream.class);
+                String deviceId = event.getDevice()!=null?event.getDevice():extractDeviceIdFromTopic(topic);
+                long eventAt = System.currentTimeMillis();
+
+                event.getDatastreams().forEach(ds -> {
+                    Map<Long,Object> eventInfo = new HashMap<>();
+                    Map<String,Map<Long,Object>> eventsByFeed = new HashMap<>();
+                    ds.getDatapoints().forEach(dp -> {
+                        long at = dp.getAt()!=null?dp.getAt():eventAt;
+                        eventInfo.put(at, dp.getValue());
+                    });
+                    eventsByFeed.put(ds.getFeed(), eventInfo);
+                    events.put(ds.getId(), eventsByFeed);
+                });
+
+                String[] path = addDeviceIdToPath(event.getPath());
+                LOGGER.info("Sending event {} for device {} and path {}", events, deviceId, path);
+                publish(deviceId, Arrays.asList(path), events); // Añadir deviceId del ODA al path
+
             } catch (Exception e) {
                 LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
             }
         }
 
         private String extractDeviceIdFromTopic(String topic) {
-            return topic.substring(topic.lastIndexOf(TOPIC_LEVEL_SEPARATOR) + 1);
+            String[] topics = topic.split(TOPIC_SEPARATOR);
+            return topics[topics.length-1];
         }
     }
 
-    @Value
-    static class DatastreamEvent {
-        private List<String> path;
-        private Long at;
-        private Object value;
-    }
-
-    class DatastreamEventMessageListener implements MqttMessageListener {
+    class ResponseMessageListener implements MqttMessageListener {
 
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
-            Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
-            Map<String,Map<Long,Object>> eventsByFeed = new HashMap<>();
-            Map<Long,Object> eventInfo = new HashMap<>();
             try {
-                LOGGER.info("Message arrived to the {} topic", topic);
-                DatastreamInfo datastreamInfo = extractDeviceInfoFromTopic(topic);
-                if (hasPermission(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
-                    DatastreamEvent event =
-                            serializer.deserialize(mqttMessage.getPayload(), DatastreamEvent.class);
-                    eventInfo.put(event.getAt(), event.getValue());
-                    eventsByFeed.put(null, eventInfo);
-                    events.put(datastreamInfo.getDatastreamId(), eventsByFeed);
-                    publish(datastreamInfo.getDeviceId(), event.getPath(), events);
-                }
+                LOGGER.info("Response arrived to the {} topic", topic);
+                OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
+
+                String[] path = resp.getOperation().getResponse().getPath();
+                resp.getOperation().getResponse().setPath(addDeviceIdToPath(path));
+                LOGGER.info("Sending response {}", resp);
+                responseDispatcher.publishResponse(resp);
 
             } catch (Exception e) {
-                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
+                LOGGER.error("Error dispatching device response from MQTT message {}: {}", mqttMessage, e);
             }
         }
+    }
 
-        private DatastreamInfo extractDeviceInfoFromTopic(String topic) {
-            String[] topicLevels = topic.split(TOPIC_LEVEL_SEPARATOR);
-            return new DatastreamInfo(topicLevels[topicLevels.length - TWO_LEVELS],
-                    topicLevels[topicLevels.length - ONE_LEVEL]);
+    private String[] addDeviceIdToPath(String[] path) {
+        String[] newPath;
+        String ODAid = deviceInfoProvider.getDeviceId();
+        if ( (path == null) || (path.length == 0) ) {
+            newPath = new String[1];
+        } else {
+            newPath = new String[path.length+1];
+            System.arraycopy(path, 0, newPath, 1, path.length);
         }
+        newPath[0] = ODAid;
+        return newPath;
     }
 
-    private boolean hasPermission(String deviceId, String datastreamId) {
-        return mqttDatastreamsPermissionManager.hasReadPermission(deviceId, datastreamId);
-    }
-
-    @Override
     public void unregisterFromEventSource() {
         try {
-            mqttClient.unsubscribe(deviceEventTopic);
-            mqttClient.unsubscribe(datastreamEventTopic);
+            mqttClient.unsubscribe(eventTopic);
+            mqttClient.unsubscribe(responseTopic);
         } catch (MqttException e) {
             LOGGER.error("Error unsubscribing from MQTT event topics", e);
         }

@@ -1,8 +1,10 @@
 package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
+import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.OperationSenderProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.SerializerProviderOsgi;
 import es.amplia.oda.core.commons.utils.SchedulerImpl;
@@ -10,6 +12,7 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
 import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.event.api.ResponseDispatcher;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,17 +57,22 @@ public class ActivatorTest {
     @Mock
     private ServiceRegistrationManagerOsgi<EventDispatcher> mockedEventDispatcherRegistrationManager;
     @Mock
+    private ServiceRegistration<ResponseDispatcher> mockedResponseDispatcherRegistration;
+    @Mock
     private DispatcherConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private OperationProcessor mockedProcessor;
+    @Mock
+    private OperationSenderProxy mockedOperationSender;
 
 
     @Test
     public void testStart() throws Exception {
         PowerMockito.whenNew(SerializerProviderOsgi.class).withAnyArguments().thenReturn(mockedSerializerProvider);
         PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
+        PowerMockito.whenNew(OperationSenderProxy.class).withAnyArguments().thenReturn(mockedOperationSender);
         PowerMockito.whenNew(OpenGateOperationProcessorFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
         PowerMockito.whenNew(OpenGateOperationDispatcher.class).withAnyArguments().thenReturn(mockedDispatcher);
         PowerMockito.whenNew(OpenGateConnectorProxy.class).withAnyArguments().thenReturn(mockedConnector);
@@ -85,7 +93,7 @@ public class ActivatorTest {
         PowerMockito.verifyNew(OpenGateOperationProcessorFactoryImpl.class)
                 .withArguments(eq(mockedContext));
         PowerMockito.verifyNew(OpenGateOperationDispatcher.class)
-                .withArguments(eq(mockedSerializerProvider), eq(mockedDeviceInfoProvider), eq(mockedProcessor));
+                .withArguments(eq(mockedSerializerProvider), eq(mockedDeviceInfoProvider), eq(mockedProcessor), eq(mockedOperationSender));
         PowerMockito.verifyNew(OpenGateConnectorProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
         PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
@@ -103,6 +111,7 @@ public class ActivatorTest {
     public void testStop() {
         Whitebox.setInternalState(testActivator, "serializerProvider", mockedSerializerProvider);
         Whitebox.setInternalState(testActivator, "deviceInfoProvider", mockedDeviceInfoProvider);
+        Whitebox.setInternalState(testActivator, "opSender", mockedOperationSender);
         Whitebox.setInternalState(testActivator, "factory", mockedFactory);
         Whitebox.setInternalState(testActivator, "connector", mockedConnector);
         Whitebox.setInternalState(testActivator, "scheduler", mockedScheduler);
@@ -110,6 +119,8 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "operationDispatcherRegistration", mockedDispatcherRegistration);
         Whitebox.setInternalState(testActivator, "eventDispatcherServiceRegistrationManager",
                 mockedEventDispatcherRegistrationManager);
+        Whitebox.setInternalState(testActivator, "responseDispatcherRegistration",
+                mockedResponseDispatcherRegistration);
 
         testActivator.stop(mockedContext);
 
@@ -121,5 +132,7 @@ public class ActivatorTest {
         verify(mockedSerializerProvider).close();
         verify(mockedDeviceInfoProvider).close();
         verify(mockedFactory).close();
+        verify(mockedOperationSender).close();
+        verify(mockedResponseDispatcherRegistration).unregister();
     }
 }

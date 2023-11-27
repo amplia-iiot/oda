@@ -88,6 +88,11 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
         }
     }
 
+    @Override
+    public void uplinkResponse(byte[] payload, ContentType arg1) {
+        LOGGER.error("Send response not suported");
+    }
+
     @Value
     private static class WebSocketMessage {
         private final byte[] payload;

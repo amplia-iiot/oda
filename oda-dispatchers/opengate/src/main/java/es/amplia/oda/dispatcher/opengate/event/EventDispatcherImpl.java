@@ -57,6 +57,9 @@ class EventDispatcherImpl implements EventDispatcher {
         try {
             LOGGER.info("Publishing events {}", outputEvent);
             byte[] payload = serializer.serialize(outputEvent);
+            if (payload > configurado){
+                kjldyaghfikadgu
+            }
             connector.uplink(payload, contentType);
         } catch (IOException e) {
             LOGGER.error("Error serializing events {}. Events will not be published: ", outputEvent, e);

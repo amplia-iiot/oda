@@ -125,6 +125,11 @@ public class HttpConnector implements OpenGateConnector {
         }
     }
 
+    @Override
+    public void uplinkResponse(byte[] payload, ContentType arg1) {
+        LOGGER.error("Send response not suported");
+    }
+
     private boolean isConfigured() {
         return hostUrl != null && generalPath != null && collectionPath != null;
     }
@@ -155,4 +160,5 @@ public class HttpConnector implements OpenGateConnector {
         }
         return false;
     }
+
 }

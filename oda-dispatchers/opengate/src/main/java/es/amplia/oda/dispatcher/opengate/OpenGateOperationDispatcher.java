@@ -3,7 +3,9 @@ package es.amplia.oda.dispatcher.opengate;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
+import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
+import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 
 import es.amplia.oda.dispatcher.opengate.domain.custom.InputCustomOperation;
@@ -36,13 +38,15 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private final SerializerProvider serializerProvider;
     private final DeviceInfoProvider deviceInfoProvider;
     private final OperationProcessor operationProcessor;
+    private final OperationSender operationSender;
 
 
     OpenGateOperationDispatcher(SerializerProvider serializerProvider, DeviceInfoProvider deviceInfoProvider,
-                                OperationProcessor operationProcessor) {
+                                OperationProcessor operationProcessor, OperationSender operationSender) {
         this.serializerProvider = serializerProvider;
         this.deviceInfoProvider = deviceInfoProvider;
         this.operationProcessor = operationProcessor;
+        this.operationSender = operationSender;
     }
 
     @Override
@@ -51,6 +55,18 @@ class OpenGateOperationDispatcher implements Dispatcher {
             throw new IllegalArgumentException("Input is null");
         }
 
+        try {
+            OperationRequest<Object> basicOperation = serializerProvider.getSerializer(contentType).deserialize(input, OperationRequest.class);
+            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
+            String[] path = basicOperation.getOperation().getRequest().getPath();
+            if ( (path != null) && (path.length > 0) ) {
+                LOGGER.info("Sending operation to level down: {}", basicOperation);
+                operationSender.downlink((OperationRequest<Object>)basicOperation);
+                return null;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Could not deserialize input as Basic Operation", e);
+        }
         InputUpdateOperation openGateUpdateOperation = null;
         InputSetOrConfigureOperation openGateInputSetOrConfigureOperation = null;
         InputGetOperation openGateInputGetOperation = null;
@@ -121,13 +137,15 @@ class OpenGateOperationDispatcher implements Dispatcher {
             return processCustomOperation(openGateInputCustomOperation, contentType);
         } catch (IOException e) {
             LOGGER.debug("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
+            openGateInputCustomOperation = null;
         }
 
         if (openGateInputSetOrConfigureOperation == null
                 && openGateInputGetOperation == null
                 && openGateInputGeneralOperation == null
                 && openGateUpdateOperation == null
-                && openGateInputSetClockOperation == null) {
+                && openGateInputSetClockOperation == null
+                && openGateInputCustomOperation == null) {
             throw new IllegalArgumentException("Input has wrong format and couldn't be deserialized as any kind of operation");
         }
 
