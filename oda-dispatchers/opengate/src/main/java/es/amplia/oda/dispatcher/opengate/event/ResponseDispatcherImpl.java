@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class ResponseDispatcherImpl implements ResponseDispatcher {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventDispatcherImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResponseDispatcherImpl.class);
 
     private final Serializer serializer;
     private final ContentType contentType;
