@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-datastreams</artifactId>
         <groupId>es.amplia.oda.datastreams</groupId>
-        <version>4.7.0</version>
+        <version>4.7.1-SNAPSHOT</version>
     </parent>
 
     <properties>
