@@ -33,7 +33,7 @@
                         <Bundle-SymbolicName>${bundle.symbolic.name}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>!*</Export-Package>
+                        <Export-Package>es.amplia.oda.dispatcher.opengate.datastreamdomain.*,es.amplia.oda.dispatcher.opengate.domain.interfaces.*,!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                     </instructions>

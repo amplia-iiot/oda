@@ -4,18 +4,19 @@ import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
-import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.MqttConnectOptionsBuilder;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
+import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
-import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerWithKey;
-
+import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
+import es.amplia.oda.event.api.ResponseDispatcher;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, AutoCloseable {
 
@@ -24,67 +25,48 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
     private final MqttClientFactory mqttClientFactory;
     private final Serializer serializer;
     private final EventPublisher eventPublisher;
-    private final ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager;
-    private final ServiceRegistrationManagerWithKey<String, DatastreamsSetter> datastreamsSetterRegistrationManager;
+    private final BundleContext bundleContext;
+    private final DeviceInfoProviderProxy deviceInfoProvider;
+    private final ResponseDispatcher responseDispatcher;
 
     private boolean ready;
     private MqttClient mqttClient;
-    private MqttDatastreamsManager mqttDatastreamsManager;
     private MqttDatastreamsEvent mqttDatastreamsEvent;
-    private MqttDatastreamDiscoveryHandler mqttDatastreamDiscoveryHandler;
-    private MqttDatastreamsLwtHandler mqttDatastreamsLwtHandler;
+
+    private ServiceRegistration<OperationSender> mqttOperationSenderRegistration;
 
     MqttDatastreamsOrchestrator(MqttClientFactory mqttClientFactory, Serializer serializer, EventPublisher eventPublisher,
-                                ServiceRegistrationManagerWithKey<String, DatastreamsGetter> datastreamsGetterRegistrationManager,
-                                ServiceRegistrationManagerWithKey<String, DatastreamsSetter> datastreamsSetterRegistrationManager) {
+                                DeviceInfoProviderProxy deviceInfoProvider, ResponseDispatcher respDispatcher, BundleContext bundleContext) {
         this.mqttClientFactory = mqttClientFactory;
         this.serializer = serializer;
         this.eventPublisher = eventPublisher;
-        this.datastreamsGetterRegistrationManager = datastreamsGetterRegistrationManager;
-        this.datastreamsSetterRegistrationManager = datastreamsSetterRegistrationManager;
+        this.deviceInfoProvider = deviceInfoProvider;
+        this.responseDispatcher = respDispatcher;
+        this.bundleContext = bundleContext;
         this.ready = false;
     }
 
-    public void loadConfiguration(MqttDatastreamsConfiguration configuration,
-                                  List<DatastreamInfoWithPermission> initialDatastreamsConfiguration) {
+    public void loadConfiguration(MqttDatastreamsConfiguration configuration) {
         closeResources();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
-        mqttClient.connect(MqttConnectOptions.builder(null, new char[0]).build());
-        MqttDatastreamsPermissionManager mqttDatastreamsPermissionManager = new MqttDatastreamsPermissionManager();
-        MqttDatastreamsFactory mqttDatastreamsFactory =
-                new MqttDatastreamsFactory(mqttClient, mqttDatastreamsPermissionManager, serializer, eventPublisher,
-                        configuration.getReadRequestTopic(), configuration.getReadResponseTopic(),
-                        configuration.getWriteRequestTopic(), configuration.getWriteResponseTopic(),
-                        configuration.getEventTopic());
-        mqttDatastreamsEvent = mqttDatastreamsFactory.createDatastreamsEvent();
-        mqttDatastreamsManager = new MqttDatastreamsManager(datastreamsGetterRegistrationManager,
-                datastreamsSetterRegistrationManager, mqttDatastreamsFactory);
-        mqttDatastreamDiscoveryHandler = new MqttDatastreamDiscoveryHandler(mqttClient, serializer,
-                mqttDatastreamsManager, mqttDatastreamsPermissionManager, configuration.getEnableDatastreamTopic(),
-                configuration.getDisableDatastreamTopic());
-        mqttDatastreamDiscoveryHandler.init(initialDatastreamsConfiguration);
-        mqttDatastreamsLwtHandler = new MqttDatastreamsLwtHandler(mqttClient, serializer,
-                mqttDatastreamsPermissionManager, mqttDatastreamsManager, configuration.getLwtTopic());
+        MqttConnectOptionsBuilder options = MqttConnectOptions.builder(configuration.getClientId(), configuration.getPassword().toCharArray());
+        if (configuration.getKeyStore() != null) options.ssl(configuration.getKeyStore(), configuration.getKeyStorePassword(), configuration.getTrustStore(), configuration.getTrustStorePassword());
+        mqttClient.connect(options.build());
+        mqttDatastreamsEvent = new MqttDatastreamsEvent(eventPublisher, mqttClient, serializer, configuration.getEventTopic(), deviceInfoProvider, configuration.getResponseTopic(), responseDispatcher);
+        MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained());
+        this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
         this.ready = true;
     }
 
     private void closeResources() {
         try {
-            if (mqttDatastreamsLwtHandler != null) {
-                mqttDatastreamsLwtHandler.close();
-                mqttDatastreamsLwtHandler = null;
-            }
-            if (mqttDatastreamDiscoveryHandler != null) {
-                mqttDatastreamDiscoveryHandler.close();
-                mqttDatastreamDiscoveryHandler = null;
-            }
             if (mqttDatastreamsEvent != null) {
                 mqttDatastreamsEvent.unregisterFromEventSource();
                 mqttDatastreamsEvent = null;
             }
-            if (mqttDatastreamsManager!= null) {
-                mqttDatastreamsManager.close();
-                mqttDatastreamsManager = null;
+            if (mqttOperationSenderRegistration != null) {
+                mqttOperationSenderRegistration.unregister();
+                mqttOperationSenderRegistration = null;
             }
             if (mqttClient != null) {
                 mqttClient.disconnect();

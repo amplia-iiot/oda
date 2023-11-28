@@ -1,17 +1,23 @@
 package es.amplia.oda.datastreams.mqtt.configuration;
 
-import lombok.Value;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyStoreType;
+import lombok.Data;
+import lombok.Setter;
 
-@Value
+@Data
 public class MqttDatastreamsConfiguration {
-    private String serverURI;
-    private String clientId;
-    private String enableDatastreamTopic;
-    private String disableDatastreamTopic;
-    private String eventTopic;
-    private String readRequestTopic;
-    private String readResponseTopic;
-    private String writeRequestTopic;
-    private String writeResponseTopic;
-    private String lwtTopic;
+    private final String serverURI;
+    private final String clientId;
+    private final String password;
+    private final String eventTopic;
+    private final String requestTopic;
+    private final String responseTopic;
+    private final int Qos;
+    private final boolean retained;
+    @Setter private String keyStore = null;
+    @Setter private KeyStoreType keyStoreType = null;
+    @Setter private char[] keyStorePassword = null;
+    @Setter private String trustStore = null;
+    @Setter private KeyStoreType trustStoreType = null;
+    @Setter private char[] trustStorePassword = null;
 }

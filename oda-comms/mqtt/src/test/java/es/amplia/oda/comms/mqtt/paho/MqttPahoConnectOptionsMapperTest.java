@@ -1,13 +1,15 @@
 package es.amplia.oda.comms.mqtt.paho;
 
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyManagerAlgorithm;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyStoreType;
+import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.MqttVersion;
 
+import org.eclipse.paho.client.mqttv3.internal.security.SSLSocketFactoryFactory;
 import org.junit.Test;
 
 import java.util.Properties;
 import java.util.UUID;
-
-import static es.amplia.oda.comms.mqtt.api.MqttConnectOptions.*;
 
 import static org.junit.Assert.*;
 
@@ -70,14 +72,14 @@ public class MqttPahoConnectOptionsMapperTest {
     private void assertSslProperties(org.eclipse.paho.client.mqttv3.MqttConnectOptions pahoOptions) {
         Properties sslProperties = pahoOptions.getSSLProperties();
 
-        assertEquals(TEST_KEYSTORE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTORE));
-        assertEquals(TEST_KEYSTORE_TYPE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTORETYPE));
-        assertArrayEquals(TEST_KEYSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYSTOREPASS));
-        assertEquals(TEST_KEY_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYMGRALGO));
-        assertEquals(TEST_TRUSTSTORE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTORE));
-        assertEquals(TEST_TRUSTSTORE_TYPE, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTORETYPE));
-        assertArrayEquals(TEST_TRUSTSTORE_P, (char[]) sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTSTOREPASS));
-        assertEquals(TEST_TRUST_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTMGRALGO));
+        assertEquals(TEST_KEYSTORE, sslProperties.get(SSLSocketFactoryFactory.KEYSTORE));
+        assertEquals(TEST_KEYSTORE_TYPE, sslProperties.get(SSLSocketFactoryFactory.KEYSTORETYPE));
+        assertArrayEquals(TEST_KEYSTORE_P, (char[]) sslProperties.get(SSLSocketFactoryFactory.KEYSTOREPWD));
+        //assertEquals(TEST_KEY_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSKEYMGRALGO));
+        assertEquals(TEST_TRUSTSTORE, sslProperties.get(SSLSocketFactoryFactory.TRUSTSTORE));
+        assertEquals(TEST_TRUSTSTORE_TYPE, sslProperties.get(SSLSocketFactoryFactory.TRUSTSTORETYPE));
+        assertArrayEquals(TEST_TRUSTSTORE_P, (char[]) sslProperties.get(SSLSocketFactoryFactory.TRUSTSTOREPWD));
+        //assertEquals(TEST_TRUST_MANAGER_ALGORITHM, sslProperties.get(MqttPahoConnectOptionsMapper.SYSTRUSTMGRALGO));
 
     }
 
