@@ -15,4 +15,7 @@ public interface OpenGateConnector {
         uplinkResponse(payload, ContentType.JSON);
     }
 
+    default public boolean hasMaxlength() {return false;}
+    default public int getMaxLength() {return 0;}
+
 }

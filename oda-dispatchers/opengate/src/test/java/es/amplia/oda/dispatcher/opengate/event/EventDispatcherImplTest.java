@@ -20,6 +20,7 @@ import java.util.*;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,10 +39,27 @@ public class EventDispatcherImplTest {
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, System.currentTimeMillis(), TEST_VALUE);
     private static final Event TEST_EVENT_2 =
             new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, null, null, System.currentTimeMillis(), TEST_VALUE_2);
+
     private static final OutputDatastream TEST_OUTPUT_DATASTREAM =
             new OutputDatastream("8.0", TEST_DEVICE_ID, null, Collections.singleton(
                     new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
+    private static final OutputDatastream TEST_OUTPUT_DATASTREAM_VALUE_2 =
+            new OutputDatastream("8.0", TEST_DEVICE_ID, null, Collections.singleton(
+                    new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2)))));
+    private static final OutputDatastream TEST_OUTPUT_DATASTREAM_2 =
+            new OutputDatastream("8.0", TEST_DEVICE_ID, null, Collections.singleton(
+                    new Datastream(TEST_DATASTREAM_ID, TEST_FEED, new HashSet<>(Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT, TEST_VALUE_2))))));
+    private static final OutputDatastream TEST_OUTPUT_DATASTREAM_3 =
+            new OutputDatastream("8.0", TEST_DEVICE_ID, null, new HashSet<>(Arrays.asList(
+                    new Datastream(TEST_DATASTREAM_ID, TEST_FEED, new HashSet<>(Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT, TEST_VALUE_2)))), 
+                    new Datastream(TEST_DATASTREAM_ID_2, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE))))));
+    private static final OutputDatastream TEST_OUTPUT_DATASTREAM_3_VALUE_2 =
+            new OutputDatastream("8.0", TEST_DEVICE_ID, null, new HashSet<>(Arrays.asList(
+                    new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE))), 
+                    new Datastream(TEST_DATASTREAM_ID_2, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE))))));
+
     private static final byte[] TEST_BYTE_STREAM = new byte[] {1,2,3,4};
+    private static final byte[] TEST_BYTE_STREAM8 = new byte[] {1,2,3,4,5,6,7,8};
 
     @Mock
     private EventParser mockedEventParser;
@@ -98,4 +116,44 @@ public class EventDispatcherImplTest {
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
     }
+
+    @Test
+    public void testPublishOutputDatastreamMaxlength() throws IOException {
+        when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM8, TEST_BYTE_STREAM, TEST_BYTE_STREAM);
+        when(mockedConnector.hasMaxlength()).thenReturn(true);
+        when(mockedConnector.getMaxLength()).thenReturn(6);
+
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_2);
+
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_2));
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_VALUE_2));
+        verify(mockedConnector, times(2)).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
+    }
+
+    @Test
+    public void testPublishOutputDatastreamMaxlengthComplex() throws IOException {
+        when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM8, TEST_BYTE_STREAM, TEST_BYTE_STREAM);
+        when(mockedConnector.hasMaxlength()).thenReturn(true);
+        when(mockedConnector.getMaxLength()).thenReturn(6);
+
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_3);
+
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_3));
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_3_VALUE_2));
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_VALUE_2));
+        verify(mockedConnector, times(2)).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
+    }
+
+    @Test
+    public void testPublishOutputDatastreamMaxlengthReached() throws IOException {
+        when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
+        when(mockedConnector.hasMaxlength()).thenReturn(true);
+        when(mockedConnector.getMaxLength()).thenReturn(1);
+
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
+
+        verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
+    }
+
 }

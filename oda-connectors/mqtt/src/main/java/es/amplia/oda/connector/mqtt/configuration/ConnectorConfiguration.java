@@ -15,4 +15,6 @@ public class ConnectorConfiguration {
     boolean retained;
     int initialDelay;
     int retryDelay;
+    boolean hasMaxlength;
+    int maxlength;
 }
