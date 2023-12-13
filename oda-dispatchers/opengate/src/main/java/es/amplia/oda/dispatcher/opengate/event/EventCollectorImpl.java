@@ -92,17 +92,17 @@ public class EventCollectorImpl implements EventCollector {
 
     private OutputDatastream mergeOutputDatastreams(OutputDatastream o1, OutputDatastream o2) {
         // <datastreamId, <feed, datapoints>>
-        Map<String, Map<String, Set<Datapoint>>> datastreams1 = buildMap(o1.getDatastreams());
-        Map<String, Map<String, Set<Datapoint>>> datastreams2 = buildMap(o2.getDatastreams());
+        Map<String, Map<String, List<Datapoint>>> datastreams1 = buildMap(o1.getDatastreams());
+        Map<String, Map<String, List<Datapoint>>> datastreams2 = buildMap(o2.getDatastreams());
 
         // initialize final map with the map from datastreams1
-        Map<String, Map<String, Set<Datapoint>>> datastreams = new HashMap<>(datastreams1);
+        Map<String, Map<String, List<Datapoint>>> datastreams = new HashMap<>(datastreams1);
 
         // traverse trough datastreams2 map
         datastreams2.forEach((datastreamId, feedMapDatapoints2) -> {
 
             // get <feed, datapoints> map from final map corresponding to this datastreamId
-            Map<String, Set<Datapoint>> feedMapDatapoints1 = datastreams.get(datastreamId);
+            Map<String, List<Datapoint>> feedMapDatapoints1 = datastreams.get(datastreamId);
 
             // there is data for the same datastreamId in both maps
             // now we have to check if feed is the same
@@ -113,7 +113,7 @@ public class EventCollectorImpl implements EventCollector {
                 feedMapDatapoints2.forEach((feedDatastream2, datapointsDatastream2) -> {
 
                     // get from datastreams1, the datapoints corresponding to that feed
-                    Set<Datapoint> datapointsDatastream1 = feedMapDatapoints1.get(feedDatastream2);
+                    List<Datapoint> datapointsDatastream1 = feedMapDatapoints1.get(feedDatastream2);
 
                     // if both maps have datapoints for the same feed, merge datapoints
                     if(datapointsDatastream1 != null)
@@ -135,10 +135,10 @@ public class EventCollectorImpl implements EventCollector {
         return new OutputDatastream(o1.getVersion(), o1.getDevice(), o1.getPath(), translateMap(datastreams));
     }
 
-    private Map<String, Map<String, Set<Datapoint>>> buildMap(Set<Datastream> datastreams) {
-        Map<String, Map<String, Set<Datapoint>>> datastreamsMap = new HashMap<>();
+    private Map<String, Map<String, List<Datapoint>>> buildMap(List<Datastream> datastreams) {
+        Map<String, Map<String, List<Datapoint>>> datastreamsMap = new HashMap<>();
         datastreams.forEach(value -> {
-            Map<String, Set<Datapoint>> feedMap = datastreamsMap.get(value.getId());
+            Map<String, List<Datapoint>> feedMap = datastreamsMap.get(value.getId());
 
             if (feedMap != null) {
                 feedMap.putIfAbsent(value.getFeed(), value.getDatapoints());
@@ -152,8 +152,8 @@ public class EventCollectorImpl implements EventCollector {
         return datastreamsMap;
     }
 
-    private Set<Datastream> translateMap(Map<String, Map<String, Set<Datapoint>>> datastreamsMap) {
-        Set<Datastream> datastreamsSet = new HashSet<>();
+    private List<Datastream> translateMap(Map<String, Map<String, List<Datapoint>>> datastreamsMap) {
+        List<Datastream> datastreamsSet = new ArrayList<>();
         datastreamsMap.forEach((datastreamId, feedMap) ->
                 feedMap.forEach((feed, datapoints) ->
                         datastreamsSet.add(new Datastream(datastreamId, feed, datapoints))));
@@ -161,8 +161,8 @@ public class EventCollectorImpl implements EventCollector {
         return datastreamsSet;
     }
 
-    private Set<Datapoint> mergeDatapoints(Set<Datapoint> d1, Set<Datapoint> d2){
-        Set<Datapoint> datapoints = new HashSet<>(d1);
+    private List<Datapoint> mergeDatapoints(List<Datapoint> d1, List<Datapoint> d2){
+        List<Datapoint> datapoints = new ArrayList<>(d1);
         datapoints.addAll(d2);
         return datapoints;
     }

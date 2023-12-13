@@ -5,7 +5,6 @@ import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,10 +14,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +52,7 @@ public class EventParserReducedOutputImplTest {
         assertEquals(TEST_DEVICE_ID, output.getDevice());
         assertNull(output.getPath());
 
-        Set<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.getDatastreams();
         assertNotNull(datastreams);
         assertEquals(1, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()
@@ -64,7 +61,7 @@ public class EventParserReducedOutputImplTest {
             fail("Datastream with id " + TEST_DATASTREAM_ID + " not found");
         }
 
-        Set<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
+        List<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
         assertNotNull(datapoints);
         assertEquals(1, datapoints.size());
         if (datapoints.stream().noneMatch(dp -> dp.getAt() == null && TEST_VALUE.equals(dp.getValue()))) {
@@ -85,7 +82,7 @@ public class EventParserReducedOutputImplTest {
         assertEquals(TEST_DEVICE_ID, output.getDevice());
         assertNull(output.getPath());
 
-        Set<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.getDatastreams();
         assertNotNull(datastreams);
         assertEquals(2, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()
@@ -94,7 +91,7 @@ public class EventParserReducedOutputImplTest {
             fail("Datastream with id " + TEST_DATASTREAM_ID + " not found");
         }
 
-        Set<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
+        List<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
         assertNotNull(datapoints);
         assertEquals(1, datapoints.size());
         if (datapoints.stream().noneMatch(dp -> dp.getAt() == null && TEST_VALUE.equals(dp.getValue()))) {
@@ -126,7 +123,7 @@ public class EventParserReducedOutputImplTest {
         assertNull(output.getDevice());
         assertNull(output.getPath());
 
-        Set<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.getDatastreams();
         assertNotNull(datastreams);
         assertEquals(1, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()
@@ -135,7 +132,7 @@ public class EventParserReducedOutputImplTest {
             fail("Datastream with id " + TEST_DATASTREAM_ID + " not found");
         }
 
-        Set<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
+        List<Datapoint> datapoints = datastreamWithId.get().getDatapoints();
         assertNotNull(datapoints);
         assertEquals(1, datapoints.size());
         if (datapoints.stream().noneMatch(dp -> dp.getAt() == null && TEST_VALUE.equals(dp.getValue()))) {

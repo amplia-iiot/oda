@@ -125,32 +125,32 @@ public class EventCollectorImplTest {
 
         // prepare expected response
         List<Datastream> datastreamList = Arrays.asList(
-                new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE))),
                 new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        new HashSet<>(Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT_2, TEST_VALUE_2)))),
-                new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null, Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2)))
+                        Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT_2, TEST_VALUE_2))),
+                new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE))),
+                new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2)))
                 );
 
         OutputDatastream odReturn = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION,
-                TEST_DEVICE_ID, TEST_PATH, new HashSet<>(datastreamList));
+                TEST_DEVICE_ID, TEST_PATH, datastreamList);
 
 
         // conditions
         OutputDatastream od1 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singleton(new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED,
-                        Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
+                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED,
+                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE)))));
 
         OutputDatastream od2 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singleton(new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null,
-                        Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE_2)))));
+                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null,
+                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2)))));
 
         OutputDatastream od3 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singleton(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        Collections.singleton(new Datapoint(TEST_AT, TEST_VALUE)))));
+                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
+                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE)))));
 
         OutputDatastream od4 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singleton(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        Collections.singleton(new Datapoint(TEST_AT_2, TEST_VALUE_2)))));
+                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
+                        Collections.singletonList(new Datapoint(TEST_AT_2, TEST_VALUE_2)))));
 
         when(mockedEventDispatcher.parse(Collections.singletonList(any(Event.class))))
                 .thenReturn(od1).thenReturn(od2).thenReturn(od3).thenReturn(od4);

@@ -9,16 +9,13 @@ import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import es.amplia.oda.event.api.EventDispatcher;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 class EventDispatcherImpl implements EventDispatcher {
@@ -99,21 +96,21 @@ class EventDispatcherImpl implements EventDispatcher {
 
     private List<OutputDatastream> splitMessage(OutputDatastream event) throws IOException {
         ArrayList<OutputDatastream> ret = new ArrayList<>();
-        Set<Datastream> datastreams = event.getDatastreams();
-        Set<Datastream> ds1 = new HashSet<>();
-        Set<Datastream> ds2 = new HashSet<>();
+        List<Datastream> datastreams = event.getDatastreams();
+        List<Datastream> ds1 = new ArrayList<>();
+        List<Datastream> ds2 = new ArrayList<>();
         if (datastreams.size() == 1) {
             Datastream datastream = datastreams.iterator().next();
-            Set<Datapoint> datapoints = datastream.getDatapoints();
+            List<Datapoint> datapoints = datastream.getDatapoints();
             if (datapoints.size() == 1) throw new IOException("Cannot split message, only 1 datapoint for datastream " + datastreams.iterator().next().getId());
             else splitDatapoints(datastream, ds1, ds2);
         } else {
-            Set<Datastream> actualDatastream = ds1;
+            List<Datastream> actualDatastream = ds1;
             Iterator<Datastream> dsit = datastreams.iterator();
             // Ponemos la mitad de los datapoints de cada datastream en cada SET y si solo hay 1 vamos metiendo cada datapoint en cada SET
             while (dsit.hasNext()) {
                 Datastream datastream = dsit.next();
-                Set<Datapoint> datapoints = datastream.getDatapoints();
+                List<Datapoint> datapoints = datastream.getDatapoints();
                 int size = datapoints.size();
                 if (size == 1) {
                     actualDatastream.add(datastream);
@@ -126,13 +123,13 @@ class EventDispatcherImpl implements EventDispatcher {
         return ret;
     }
 
-    private void splitDatapoints(Datastream ds, Set<Datastream> ds1, Set<Datastream> ds2) {
-        Set<Datapoint> datapoints = ds.getDatapoints();
+    private void splitDatapoints(Datastream ds, List<Datastream> ds1, List<Datastream> ds2) {
+        List<Datapoint> datapoints = ds.getDatapoints();
         Iterator<Datapoint> dpit = datapoints.iterator();
         int dp1size = datapoints.size()/2;
         int i = 0;
-        Set<Datapoint> dp1 = new HashSet<>();
-        Set<Datapoint> dp2 = new HashSet<>();
+        List<Datapoint> dp1 = new ArrayList<>();
+        List<Datapoint> dp2 = new ArrayList<>();
 
         for (;i < dp1size; i++) {dp1.add(dpit.next());}
         for (;i < datapoints.size(); i++) {dp2.add(dpit.next());}

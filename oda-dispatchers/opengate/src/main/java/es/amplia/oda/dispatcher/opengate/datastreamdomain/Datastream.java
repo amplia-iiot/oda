@@ -3,11 +3,11 @@ package es.amplia.oda.dispatcher.opengate.datastreamdomain;
 
 import lombok.Value;
 
-import java.util.Set;
+import java.util.List;
 
 @Value
 public class Datastream {
     String id;
     String feed;
-    Set<Datapoint> datapoints;
+    List<Datapoint> datapoints;
 }

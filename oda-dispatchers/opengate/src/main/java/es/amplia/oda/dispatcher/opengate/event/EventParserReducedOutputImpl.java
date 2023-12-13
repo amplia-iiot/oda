@@ -6,10 +6,7 @@ import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
@@ -25,11 +22,11 @@ class EventParserReducedOutputImpl implements EventParser {
     @Override
     public OutputDatastream parse(List<Event> events) {
         String deviceId = getDeviceId(events.get(0));
-        Set<Datastream> datastreams = new HashSet<>();
+        List<Datastream> datastreams = new ArrayList<>();
 
         for(Event event: events) {
             Datapoint datapoint = new Datapoint(null, event.getValue());
-            Datastream datastream = new Datastream(event.getDatastreamId(), event.getFeed(), Collections.singleton(datapoint));
+            Datastream datastream = new Datastream(event.getDatastreamId(), event.getFeed(), Collections.singletonList(datapoint));
 
             datastreams.add(datastream);
         }

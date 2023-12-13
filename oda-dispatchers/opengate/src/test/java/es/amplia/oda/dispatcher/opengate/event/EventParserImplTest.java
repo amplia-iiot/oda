@@ -5,7 +5,6 @@ import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -14,10 +13,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +54,7 @@ public class EventParserImplTest {
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
         assertArrayEquals(TEST_PATH, outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        List<Datastream> datastreams = outputDatastream.getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(2, datastreams.size());
@@ -74,14 +71,14 @@ public class EventParserImplTest {
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
         assertNull(outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        List<Datastream> datastreams = outputDatastream.getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
         Datastream datastream = datastreams.toArray(new Datastream[0])[0];
         assertNotNull(datastream);
         assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
+        List<Datapoint> datapoints = datastream.getDatapoints();
         assertNotNull(datapoints);
         assertFalse(datapoints.isEmpty());
         assertEquals(1, datapoints.size());
@@ -103,14 +100,14 @@ public class EventParserImplTest {
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
         assertArrayEquals(TEST_PATH, outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        List<Datastream> datastreams = outputDatastream.getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
         Datastream datastream = datastreams.toArray(new Datastream[0])[0];
         assertNotNull(datastream);
         assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
+        List<Datapoint> datapoints = datastream.getDatapoints();
         assertNotNull(datapoints);
         assertFalse(datapoints.isEmpty());
         assertEquals(1, datapoints.size());
@@ -132,14 +129,14 @@ public class EventParserImplTest {
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
         assertArrayEquals(new String[] { TEST_HOST_ID }, outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        List<Datastream> datastreams = outputDatastream.getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
         Datastream datastream = datastreams.toArray(new Datastream[0])[0];
         assertNotNull(datastream);
         assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
+        List<Datapoint> datapoints = datastream.getDatapoints();
         assertNotNull(datapoints);
         assertFalse(datapoints.isEmpty());
         assertEquals(1, datapoints.size());
@@ -165,14 +162,14 @@ public class EventParserImplTest {
         assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
         assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
         assertArrayEquals(expectedPath, outputDatastream.getPath());
-        Set<Datastream> datastreams = outputDatastream.getDatastreams();
+        List<Datastream> datastreams = outputDatastream.getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
         Datastream datastream = datastreams.toArray(new Datastream[0])[0];
         assertNotNull(datastream);
         assertEquals(TEST_DATASTREAM_ID, datastream.getId());
-        Set<Datapoint> datapoints = datastream.getDatapoints();
+        List<Datapoint> datapoints = datastream.getDatapoints();
         assertNotNull(datapoints);
         assertFalse(datapoints.isEmpty());
         assertEquals(1, datapoints.size());
