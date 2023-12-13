@@ -34,4 +34,14 @@ public class OpenGateConnectorProxy implements OpenGateConnector, AutoCloseable 
     public void close() {
         proxy.close();
     }
+
+    @Override
+    public boolean hasMaxlength() {
+        return proxy.callFirst(connector -> connector.hasMaxlength());
+    }
+
+    @Override
+    public int getMaxLength() {
+        return proxy.callFirst(connector -> connector.getMaxLength());
+    }
 }

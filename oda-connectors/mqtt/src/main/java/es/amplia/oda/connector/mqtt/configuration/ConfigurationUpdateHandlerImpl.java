@@ -31,6 +31,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final String CLEAN_SESSION_PROPERTY_NAME = "cleanSession";
     static final String CONNECTION_TIMEOUT_PROPERTY = "connectionTimeout";
     static final String AUTOMATIC_RECONNECT_PROPERTY_NAME = "automaticReconnect";
+    static final String MAX_LENGTH_PROPERTY_NAME = "maxLength";
     static final String LWT_TOPIC_PROPERTY_NAME = "lwt.topic";
     static final String LWT_PAYLOAD_PROPERTY_NAME = "lwt.payload";
     static final String LWT_QOS_PROPERTY_NAME = "lwt.qos";
@@ -56,6 +57,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final int DEFAULT_QOS = 1;
     static final boolean DEFAULT_RETAINED = false;
     static final int DEFAULT_INITIAL_DELAY = 0;
+    static final int DEFAULT_MAX_LENGTH = -1;
     static final int DEFAULT_RETRY_DELAY = 300;
 
     private static final String TCP_URL_PROTOCOL_HEADER = "tcp://";
@@ -125,8 +127,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                     .map(Integer::parseInt)
                     .orElse(DEFAULT_RETRY_DELAY);
 
+            int maxLength = Optional.ofNullable((String) props.get(MAX_LENGTH_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_MAX_LENGTH);
+
             currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
-                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay);
+                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay, maxLength == DEFAULT_MAX_LENGTH?false:true, maxLength);
         } catch (IllegalArgumentException e) {
             throw new ConfigurationException("Error parsing configuration properties: " + e.getMessage());
         }

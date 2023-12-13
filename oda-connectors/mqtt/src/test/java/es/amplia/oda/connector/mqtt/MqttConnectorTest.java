@@ -36,6 +36,8 @@ public class MqttConnectorTest {
     private static final boolean TEST_RETAINED = false;
     private static final int TEST_INITIAL_DELAY = 1;
     private static final int TEST_RETRY_DELAY = 10;
+    private static final boolean TEST_HAS_MAX_LENGTH = false;
+    private static final int TEST_MAX_LENGTH = 10000;
 
     private static final String TEST_TOPIC = "test/topic";
     private static final byte[] TEST_PAYLOAD = new byte[] { 1, 2, 3, 4 };
@@ -75,7 +77,7 @@ public class MqttConnectorTest {
         MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
                 testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
-                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         MqttClient newMockedClient = mock(MqttClient.class);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
@@ -117,7 +119,7 @@ public class MqttConnectorTest {
         MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
                 testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
-                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         MqttClient newMockedClient = mock(MqttClient.class);
 
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
@@ -138,7 +140,7 @@ public class MqttConnectorTest {
         MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
                 testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
-                TEST_INITIAL_DELAY, TEST_RETRY_DELAY);
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         MqttClient newMockedClient = mock(MqttClient.class);
 
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);

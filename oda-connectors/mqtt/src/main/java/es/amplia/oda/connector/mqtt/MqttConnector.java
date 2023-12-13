@@ -23,6 +23,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     private int qos;
     private boolean retained;
     private MqttClient client;
+    private boolean hasMaxlength = false;
+    private int maxLength = 0;
 
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> scheduledFuture;
@@ -43,6 +45,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         this.responseTopic = connectorConfiguration.getResponseTopic();
         this.qos = connectorConfiguration.getQos();
         this.retained = connectorConfiguration.isRetained();
+        this.hasMaxlength = connectorConfiguration.isHasMaxlength();
+        this.maxLength = connectorConfiguration.getMaxlength();
         LOGGER.info("Created and prepared mqtt connection");
     }
 
@@ -132,4 +136,15 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         }
         client = null;
     }
+
+    @Override
+    public boolean hasMaxlength() {
+        return this.hasMaxlength;
+    }
+
+    @Override
+    public int getMaxLength() {
+        return this.maxLength;
+    }
+
 }
