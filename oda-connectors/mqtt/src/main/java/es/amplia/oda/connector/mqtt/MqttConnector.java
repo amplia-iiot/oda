@@ -74,7 +74,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
                 LOGGER.warn("Cannot process message as Dispatcher is not present");
                 return;
             }
-            response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes, contentType))
+            response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes, contentType, qos))
                     .exceptionally(e -> {
                         LOGGER.error("Error processing operation {} with content type {}", message, contentType, e);
                         return null;
@@ -84,7 +84,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         }
     }
 
-    private void sendMessage(String topic, byte[] payload, ContentType contentType) {
+    private void sendMessage(String topic, byte[] payload, ContentType contentType, int qos) {
         if (client == null) {
             LOGGER.warn("Cannot send message as we are disconnected from Mqtt");
         } else if (payload == null) {
@@ -106,12 +106,16 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     @Override
     public void uplink(byte[] payload, ContentType contentType) {
-        sendMessage(iotTopic, payload, contentType);
+        sendMessage(iotTopic, payload, contentType, qos);
+    }
+
+    public void uplinkNoQos(byte[] payload, ContentType contentType) {
+        sendMessage(iotTopic, payload, contentType, 0);
     }
 
     @Override
     public void uplinkResponse(byte[] payload, ContentType contentType) {
-        sendMessage(responseTopic, payload, contentType);
+        sendMessage(responseTopic, payload, contentType, qos);
     }
 
     @Override

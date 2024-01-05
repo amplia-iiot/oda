@@ -21,6 +21,11 @@ public class OpenGateConnectorProxy implements OpenGateConnector, AutoCloseable 
     }
 
     @Override
+    public void uplinkNoQos(byte[] payload, ContentType contentType) {
+        proxy.consumeFirst(connector -> connector.uplinkNoQos(payload, contentType));
+    }
+
+    @Override
     public void uplinkResponse(byte[] payload, ContentType contentType) {
         proxy.consumeFirst(connector -> connector.uplinkResponse(payload, contentType));
     }

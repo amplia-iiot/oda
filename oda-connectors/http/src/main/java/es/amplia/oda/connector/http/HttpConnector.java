@@ -126,6 +126,11 @@ public class HttpConnector implements OpenGateConnector {
     }
 
     @Override
+    public void uplinkNoQos(byte[] payload, ContentType contentType) {
+        uplink(payload, contentType);
+    }
+
+    @Override
     public void uplinkResponse(byte[] payload, ContentType arg1) {
         LOGGER.error("Send response not suported");
     }
@@ -155,7 +160,7 @@ public class HttpConnector implements OpenGateConnector {
                 InetAddress inetAddress = InetAddress.getByName(host);
                 return inetAddress.isReachable(CONNECTION_TIMEOUT * MILLISECONDS_PER_SECOND);
             } catch (Exception e) {
-                LOGGER.error("Error trying to reach \"{}\": {}", host, e);
+                LOGGER.error("Error trying to reach \"{}\": {}", host, e.getMessage());
             }
         }
         return false;

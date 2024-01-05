@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.entities.ContentType;
 
 public interface OpenGateConnector {
     void uplink(byte[] payload, ContentType contentType);
+    void uplinkNoQos(byte[] payload, ContentType contentType);
     void uplinkResponse(byte[] payload, ContentType contentType);
     boolean isConnected();
 

@@ -7,7 +7,6 @@ import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.event.api.EventDispatcher;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +42,11 @@ class ScadaEventDispatcher implements EventDispatcher {
 
     @Override
     public void publishImmediately(List<Event> events) {
+        publish(events);
+    }
+
+    @Override
+    public void publishSameThreadNoQos(List<Event> events) {
         publish(events);
     }
 }

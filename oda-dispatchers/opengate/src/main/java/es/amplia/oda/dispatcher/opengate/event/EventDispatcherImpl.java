@@ -44,7 +44,7 @@ class EventDispatcherImpl implements EventDispatcher {
         }
 
         OutputDatastream outputEvent = parse(events);
-        scheduler.schedule(() -> send(outputEvent), 0, 0, TimeUnit.SECONDS);
+        scheduler.schedule(() -> send(outputEvent, true), 0, 0, TimeUnit.SECONDS);
     }
 
     @Override
@@ -52,33 +52,44 @@ class EventDispatcherImpl implements EventDispatcher {
         publish(events);
     }
 
+    @Override
+    public void publishSameThreadNoQos(List<Event> events) {
+        if (events.isEmpty()) {
+            return;
+        }
+
+        OutputDatastream outputEvent = parse(events);
+        send(outputEvent, false);
+    }
+
     OutputDatastream parse(List<Event> events) {
         return eventParser.parse(events);
     }
 
-    void send(OutputDatastream outputEvent) {
+
+    void send(OutputDatastream outputEvent, boolean useQos) {
         try {
             LOGGER.info("Publishing events {}", outputEvent);
             int maxLength = connector.getMaxLength();
             byte[] payload = serializer.serialize(outputEvent);
             if ( (connector.hasMaxlength()) && (payload.length > maxLength) ) {
-                recalcualtePayload(outputEvent, maxLength);
+                recalcualtePayload(outputEvent, maxLength, useQos);
             } else
-                connector.uplink(payload, contentType);
+                uplinkToConnector(payload, useQos);
         } catch (IOException e) {
             LOGGER.error("Error serializing events {}. Events will not be published: ", outputEvent, e);
         }
     }
 
-    private void recalcualtePayload(OutputDatastream event, int maxLength) throws IOException {
+    private void recalcualtePayload(OutputDatastream event, int maxLength, boolean useQos) throws IOException {
         List<OutputDatastream> events = splitMessage(event);
         
         try {
             byte[] payload1 = serializer.serialize(events.get(0));
             if (payload1.length > maxLength) {
-                recalcualtePayload(events.get(0), maxLength);
+                recalcualtePayload(events.get(0), maxLength, useQos);
             } else
-                connector.uplink(payload1, contentType);
+                uplinkToConnector(payload1, useQos);
         } catch (IOException e) {
             LOGGER.error("Error serializing events {}. Events will not be published: ", events.get(0), e);
         }
@@ -86,11 +97,19 @@ class EventDispatcherImpl implements EventDispatcher {
         try {
             byte[] payload2 = serializer.serialize(events.get(1));
             if (payload2.length > maxLength)  {
-                recalcualtePayload(events.get(1), maxLength);
+                recalcualtePayload(events.get(1), maxLength, useQos);
             } else
-                connector.uplink(payload2, contentType);
+                uplinkToConnector(payload2, useQos);
         } catch (IOException e) {
             LOGGER.error("Error serializing events {}. Events will not be published: ", events.get(1), e);
+        }
+    }
+
+    private void uplinkToConnector(byte[] payload, boolean useQos) {
+        if (useQos) {
+            connector.uplink(payload, contentType);
+        } else {
+            connector.uplinkNoQos(payload, contentType);
         }
     }
 

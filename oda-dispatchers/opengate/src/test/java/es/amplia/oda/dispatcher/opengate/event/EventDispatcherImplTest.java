@@ -102,7 +102,7 @@ public class EventDispatcherImplTest {
     public void testPublishOutputDatastream() throws IOException {
         when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
 
-        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM, true);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
         verify(mockedConnector).uplink(eq(TEST_BYTE_STREAM), eq(TEST_CONTENT_TYPE));
@@ -112,7 +112,7 @@ public class EventDispatcherImplTest {
     public void testPublishOutputDatastreamIOExceptionCaught() throws IOException {
         when(mockedSerializer.serialize(any())).thenThrow(new IOException());
 
-        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM, true);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
     }
@@ -123,7 +123,7 @@ public class EventDispatcherImplTest {
         when(mockedConnector.hasMaxlength()).thenReturn(true);
         when(mockedConnector.getMaxLength()).thenReturn(6);
 
-        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_2);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_2, true);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_2));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
@@ -137,7 +137,7 @@ public class EventDispatcherImplTest {
         when(mockedConnector.hasMaxlength()).thenReturn(true);
         when(mockedConnector.getMaxLength()).thenReturn(6);
 
-        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_3);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM_3, true);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_3));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM_3_VALUE_2));
@@ -151,7 +151,7 @@ public class EventDispatcherImplTest {
         when(mockedConnector.hasMaxlength()).thenReturn(true);
         when(mockedConnector.getMaxLength()).thenReturn(1);
 
-        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM);
+        testEventDispatcher.send(TEST_OUTPUT_DATASTREAM, true);
 
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT_DATASTREAM));
     }

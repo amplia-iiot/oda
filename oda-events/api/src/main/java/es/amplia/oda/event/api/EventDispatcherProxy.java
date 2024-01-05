@@ -33,6 +33,12 @@ public class EventDispatcherProxy implements EventDispatcher, AutoCloseable {
     }
 
     @Override
+    public void publishSameThreadNoQos(List<Event> event) {
+        Optional<List<Event>> resultEvent = eventListInterceptorProxy.intercept(Optional.of(event));
+        resultEvent.ifPresent(value -> proxy.consumeAll(eventDispatcher -> eventDispatcher.publishSameThreadNoQos(value)));
+    }
+
+    @Override
     public void close() {
         proxy.close();
     }

@@ -163,9 +163,9 @@ public class EventCollectorImplTest {
         verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT_3));
         verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT_4));
 
-        verify(mockedEventDispatcher).send(odReturn);
+        verify(mockedEventDispatcher).send(odReturn, true);
 
-        verify(mockedEventDispatcher).send(outputDatastreamCaptor.capture());
+        verify(mockedEventDispatcher).send(outputDatastreamCaptor.capture(), anyBoolean());
         OutputDatastream outputDatastream = outputDatastreamCaptor.getValue();
         List<Datastream> sentDatastreams = new ArrayList<>(outputDatastream.getDatastreams());
         assertEquals(3, sentDatastreams.size());

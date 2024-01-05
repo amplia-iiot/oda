@@ -54,8 +54,18 @@ public class EventCollectorImpl implements EventCollector {
             return;
         }
 
-        eventDispatcher.publish(events);
+        eventDispatcher.publishImmediately(events);
     }
+
+    @Override
+    public void publishSameThreadNoQos(List<Event> events) {
+        if (events.isEmpty()) {
+            return;
+        }
+
+        eventDispatcher.publishSameThreadNoQos(events);
+    }
+
 
     private boolean isEventFromCollectedDatastream(Event event) {
         return datastreamIdsToCollect.contains(event.getDatastreamId());
@@ -86,7 +96,7 @@ public class EventCollectorImpl implements EventCollector {
             }
         }
 
-        outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.send(outputDatastream));
+        outputDatastreamPerDevice.forEach((deviceId, outputDatastream) -> eventDispatcher.send(outputDatastream, true));
     }
 
 

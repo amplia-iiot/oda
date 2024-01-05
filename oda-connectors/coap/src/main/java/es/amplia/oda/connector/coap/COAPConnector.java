@@ -89,6 +89,11 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
     }
 
     @Override
+    public void uplinkNoQos(byte[] payload, ContentType contentType) {
+        uplink(payload, contentType);
+    }
+
+    @Override
     public void uplinkResponse(byte[] payload, ContentType arg1) {
         logErrorMessage("Send response not suported");
     }

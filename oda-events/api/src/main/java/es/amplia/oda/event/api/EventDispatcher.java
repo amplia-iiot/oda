@@ -21,4 +21,11 @@ public interface EventDispatcher {
      * @param events List of events to publish.
      */
     void publishImmediately(List<Event> events);
+
+    /**
+     * Publish a list of events generated from a source to the dispatcher to send it through a connector.
+     * The publication is done in the same thread that calls this function and with qos = 0 in the connector
+     * @param events List of events to publish.
+     */
+    void publishSameThreadNoQos(List<Event> events);
 }
