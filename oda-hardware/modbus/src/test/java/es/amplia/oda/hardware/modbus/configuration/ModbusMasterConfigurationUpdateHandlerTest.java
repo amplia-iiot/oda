@@ -26,20 +26,22 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final int TEST_TIMEOUT = 10000;
     private static final boolean TEST_RECONNECT = true;
     private static final String TEST_DEVICE_ID = "deviceId";
+    private static final String TEST_DEVICE_MANUFACTURER = "testManufacturer";
     private static final String TEST_PORTS_SERIAL_PROPERTY = "testPort, deviceId";
+    private static final String TEST_PORTS_SERIAL_PROPERTY_FULL = "testPort, deviceId, testManufacturer";
     private static final String TEST_CONNECT_PROPERTY_MIN = "deviceId, localhost";
-    private static final String TEST_CONNECT_PROPERTY_FULL = "deviceId, localhost, 12345";
-
+    private static final String TEST_CONNECT_PROPERTY_FULL = "deviceId, localhost, 12345, testManufacturer";
 
 
     private static final TCPModbusMasterConfiguration TEST_TCP_COMPLETE_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).build();
+                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).deviceManufacturer(TEST_DEVICE_MANUFACTURER)
+                    .build();
     private static final TCPModbusMasterConfiguration TEST_TCP_DEFAULT_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).deviceId(TEST_DEVICE_ID).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_COMPLETE_CONFIGURATION =
             UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .deviceId(TEST_DEVICE_ID).build();
+                    .deviceId(TEST_DEVICE_ID).deviceManufacturer(TEST_DEVICE_MANUFACTURER).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_DEFAULT_CONFIGURATION =
             UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).deviceId(TEST_DEVICE_ID).build();
     private static final String TEST_PORT_NAME = "testPort";
@@ -55,7 +57,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
             SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).baudRate(TEST_BAUD_RATE)
                     .flowControlIn(TEST_FLOW_CONTROL_IN).flowControlOut(TEST_FLOW_CONTROL_OUT).dataBits(TEST_DATA_BITS)
                     .stopBits(TEST_STOP_BITS).parity(TEST_PARITY).encoding(TEST_ENCODING).echo(TEST_ECHO)
-                    .timeout(TEST_TIMEOUT).build();
+                    .timeout(TEST_TIMEOUT).deviceManufacturer(TEST_DEVICE_MANUFACTURER).build();
     private static final SerialModbusConfiguration TEST_SERIAL_DEFAULT_CONFIGURATION =
             SerialModbusConfiguration.builder().portName(TEST_PORT_NAME).deviceId(TEST_DEVICE_ID).build();
 
@@ -144,7 +146,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     public void testLoadSerialCompleteConfiguration() {
         Dictionary<String, String>  serialCompleteConfiguration = new Hashtable<>();
         serialCompleteConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
-        serialCompleteConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY);
+        serialCompleteConfiguration.put(PORTS_PROPERTY_NAME, TEST_PORTS_SERIAL_PROPERTY_FULL);
         serialCompleteConfiguration.put(BAUD_RATE_PROPERTY_NAME, Integer.toString(TEST_BAUD_RATE));
         serialCompleteConfiguration.put(FLOW_CONTROL_IN_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_IN));
         serialCompleteConfiguration.put(FLOW_CONTROL_OUT_PROPERTY_NAME, Integer.toString(TEST_FLOW_CONTROL_OUT));

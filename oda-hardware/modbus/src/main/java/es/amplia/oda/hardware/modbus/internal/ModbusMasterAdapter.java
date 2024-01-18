@@ -26,11 +26,14 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
     private final T modbusMaster;
     private final ModbusTypeMapper modbusTypeMapper;
     private final String deviceId;
+    private final String deviceManufacturer;
 
-    ModbusMasterAdapter(T modbusMasterToAdapt, ModbusTypeMapper modbusTypeMapper, String deviceId) {
+    ModbusMasterAdapter(T modbusMasterToAdapt, ModbusTypeMapper modbusTypeMapper, String deviceId,
+                        String deviceManufacturer) {
         this.modbusMaster = modbusMasterToAdapt;
         this.modbusTypeMapper = modbusTypeMapper;
         this.deviceId = deviceId;
+        this.deviceManufacturer = deviceManufacturer;
     }
 
     @Override
@@ -158,5 +161,10 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
     @Override
     public String getDeviceId() {
         return this.deviceId;
+    }
+
+    @Override
+    public String getDeviceManufacturer() {
+        return this.deviceManufacturer;
     }
 }

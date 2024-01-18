@@ -86,20 +86,21 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
             // first element of string is the name of the connection
             // second element is the IP address
             // third element is the port
+            // fourth element is the device manufacturer (bitronic, saci, etc.)
             List<String> connectionProperties = Arrays.asList(item.split(","));
 
-            if(!connectionProperties.isEmpty())
-            {
+            if (!connectionProperties.isEmpty()) {
                 Optional.of(connectionProperties.get(0).trim()).ifPresent(builder::deviceId);
             }
-            if(connectionProperties.size() >= 2)
-            {
+            if (connectionProperties.size() >= 2) {
                 Optional.of(connectionProperties.get(1).trim()).ifPresent(builder::address);
             }
-            if(connectionProperties.size() >= 3)
-            {
+            if (connectionProperties.size() >= 3) {
                 Optional.of(connectionProperties.get(2).trim()).ifPresent(value ->
                         builder.port(Integer.parseInt(value)));
+            }
+            if (connectionProperties.size() >= 4) {
+                Optional.of(connectionProperties.get(3).trim()).ifPresent(builder::deviceManufacturer);
             }
 
             Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
@@ -131,20 +132,21 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
             // first element of string is the device id
             // second element is the IP address
             // third element is the port
+            // fourth element is the device manufacturer (bitronic, saci, etc.)
             List<String> connectionProperties = Arrays.asList(item.split(","));
 
-            if(!connectionProperties.isEmpty())
-            {
+            if (!connectionProperties.isEmpty()) {
                 Optional.of(connectionProperties.get(0).trim()).ifPresent(builder::deviceId);
             }
-            if(connectionProperties.size() >= 2)
-            {
+            if (connectionProperties.size() >= 2) {
                 Optional.of(connectionProperties.get(1).trim()).ifPresent(builder::address);
             }
-            if(connectionProperties.size() >= 3)
-            {
+            if (connectionProperties.size() >= 3) {
                 Optional.of(connectionProperties.get(2).trim()).ifPresent(value ->
                         builder.port(Integer.parseInt(value)));
+            }
+            if (connectionProperties.size() >= 4) {
+                Optional.of(connectionProperties.get(3).trim()).ifPresent(builder::deviceManufacturer);
             }
 
             Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
@@ -168,15 +170,17 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
 
             // first element of string is the port name
             // second element is the deviceId associated to the port
+            // third element is the device manufacturer (bitronic, saci, etc.)
             List<String> portInfo = Arrays.asList(item.split(","));
 
-            if(!portInfo.isEmpty())
-            {
+            if (!portInfo.isEmpty()) {
                 Optional.of(portInfo.get(0).trim()).ifPresent(builder::portName);
             }
-            if(portInfo.size() >= 2)
-            {
+            if (portInfo.size() >= 2) {
                 Optional.of(portInfo.get(1).trim()).ifPresent(builder::deviceId);
+            }
+            if (portInfo.size() >= 3) {
+                Optional.of(portInfo.get(2).trim()).ifPresent(builder::deviceManufacturer);
             }
 
             Optional.ofNullable((String) props.get(BAUD_RATE_PROPERTY_NAME)).ifPresent(value ->

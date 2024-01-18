@@ -37,6 +37,8 @@ public class ModbusMasterAdapterTest {
     private static final Register[] TEST_REGISTERS = new Register[4];
 
     private final String TEST_DEVICE_ID = "testDeviceId";
+    private final String TEST_DEVICE_MANUFACTURER = "testBitronic";
+
     @Mock
     private ModbusTCPMaster mockedModbusMaster;
     @Mock
@@ -49,7 +51,7 @@ public class ModbusMasterAdapterTest {
     public void setUp() {
 
         // ini class to test
-        testModbusMasterAdapter = new ModbusMasterAdapter<>(mockedModbusMaster, mockedMapper, TEST_DEVICE_ID);
+        testModbusMasterAdapter = new ModbusMasterAdapter<>(mockedModbusMaster, mockedMapper, TEST_DEVICE_ID, TEST_DEVICE_MANUFACTURER);
 
     }
 
@@ -286,5 +288,16 @@ public class ModbusMasterAdapterTest {
         String deviceId = testModbusMasterAdapter.getDeviceId();
 
         Assert.assertEquals(TEST_DEVICE_ID, deviceId);
+    }
+
+    @Test
+    public void testGetDeviceManufacturer() throws Exception {
+        PowerMockito.whenNew(ModbusMasterAdapter.class).
+                withAnyArguments().
+                thenReturn(testModbusMasterAdapter);
+
+        String deviceManufacturer = testModbusMasterAdapter.getDeviceManufacturer();
+
+        Assert.assertEquals(TEST_DEVICE_MANUFACTURER, deviceManufacturer);
     }
 }

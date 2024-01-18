@@ -4,6 +4,7 @@ package es.amplia.oda.core.commons.modbus;
 public interface ModbusMaster {
 
     String getDeviceId();
+    String getDeviceManufacturer();
     void connect();
     boolean readInputDiscrete(int unitId, int ref);
     Boolean[] readInputDiscretes(int unitId, int ref, int count);

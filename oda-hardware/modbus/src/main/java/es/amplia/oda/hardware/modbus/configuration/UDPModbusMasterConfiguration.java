@@ -14,6 +14,7 @@ public class UDPModbusMasterConfiguration {
     String address;
     @NonNull
     String deviceId;
+    String deviceManufacturer;
     @Builder.Default
     int port = DEFAULT_PORT;
     @Builder.Default

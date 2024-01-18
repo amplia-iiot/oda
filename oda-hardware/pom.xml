@@ -6,7 +6,7 @@
     <artifactId>oda-hardware</artifactId>
     <packaging>pom</packaging>
 
-    <name>OpenGate Device Agent Hardare</name>
+    <name>OpenGate Device Agent Hardware</name>
     <description>Hardware layer of the OpenGate Device Agent</description>
 
     <modules>

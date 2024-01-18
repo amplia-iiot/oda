@@ -85,71 +85,83 @@ class ModbusReadOperatorProcessor {
     
     private CollectedValue readBooleanFromInputDiscrete(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         boolean value = modbusConnection.readInputDiscrete(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), value);
+        return new CollectedValue(System.currentTimeMillis(), value, null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readBooleanFromCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         boolean value = modbusConnection.readCoil(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), value);
+        return new CollectedValue(System.currentTimeMillis(), value, null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readBytesFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register registerValue = modbusConnection.readInputRegister(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readShortFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register registerValue = modbusConnection.readInputRegister(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readIntegerFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readFloatFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readLongFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readDoubleFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readBytesFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register registerValue = modbusConnection.readHoldingRegister(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registerValue)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readShortFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register registerValue = modbusConnection.readHoldingRegister(slaveAddress, dataAddress);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registerValue),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readIntegerFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readFloatFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, TWO_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readLongFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readDoubleFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress) {
         Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, FOUR_REGISTERS);
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues));
+        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registerValues)
+                , null, modbusConnection.getDeviceManufacturer());
     }
 }

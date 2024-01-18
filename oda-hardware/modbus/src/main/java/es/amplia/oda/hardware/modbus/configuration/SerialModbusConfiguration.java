@@ -21,6 +21,7 @@ public class SerialModbusConfiguration {
     String portName;
     @NonNull
     String deviceId;
+    String deviceManufacturer;
     @Builder.Default
     int baudRate = DEFAULT_BAUD_RATE;
     @Builder.Default
