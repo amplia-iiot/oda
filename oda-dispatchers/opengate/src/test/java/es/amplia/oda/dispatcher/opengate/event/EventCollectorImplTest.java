@@ -1,15 +1,9 @@
 package es.amplia.oda.dispatcher.opengate.event;
 
 import es.amplia.oda.core.commons.utils.Event;
-import es.amplia.oda.core.commons.utils.OdaCommonConstants;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datapoint;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.Datastream;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -29,7 +23,6 @@ public class EventCollectorImplTest {
     private static final String[] TEST_PATH = new String[] { "testGateway" };
     private static final String TEST_FEED = "testFeed";
     private static final long TEST_AT = System.currentTimeMillis();
-    private static final long TEST_AT_2 = System.currentTimeMillis() + 500;
     private static final Object TEST_VALUE = 99;
     private static final String TEST_COLLECTED_DATASTREAM_ID_2 = "collectedDatastream2";
     private static final Object TEST_VALUE_2 = "meh";
@@ -39,10 +32,6 @@ public class EventCollectorImplTest {
             new Event(TEST_COLLECTED_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_FEED, TEST_AT, TEST_VALUE);
     private static final Event TEST_COLLECTED_EVENT_2 =
             new Event(TEST_COLLECTED_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE_2);
-    private static final Event TEST_COLLECTED_EVENT_3 =
-            new Event(TEST_COLLECTED_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE);
-    private static final Event TEST_COLLECTED_EVENT_4 =
-            new Event(TEST_COLLECTED_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT_2, TEST_VALUE_2);
 
 
     @Mock
@@ -52,9 +41,6 @@ public class EventCollectorImplTest {
     @Spy
     private HashMap<String, List<Event>> spiedCollectedEvents;
     private EventCollectorImpl testEventCollector;
-
-    @Captor
-    ArgumentCaptor<OutputDatastream> outputDatastreamCaptor;
 
 
     @Before
@@ -114,78 +100,4 @@ public class EventCollectorImplTest {
                 spiedCollectedEvents.get(TEST_COLLECTED_DATASTREAM_ID));
     }
 
-
-
-    @Test
-    public void testEventsSameDatastreamIdDiferentFeed() {
-        // set events 1 to 4 as collected events
-        spiedCollectedEvents.clear();
-        spiedCollectedEvents.put(TEST_COLLECTED_DATASTREAM_ID, Arrays.asList(TEST_COLLECTED_EVENT, TEST_COLLECTED_EVENT_3, TEST_COLLECTED_EVENT_4));
-        spiedCollectedEvents.put(TEST_COLLECTED_DATASTREAM_ID_2, Collections.singletonList(TEST_COLLECTED_EVENT_2));
-
-        // prepare expected response
-        List<Datastream> datastreamList = Arrays.asList(
-                new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT_2, TEST_VALUE_2))),
-                new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE))),
-                new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2)))
-                );
-
-        OutputDatastream odReturn = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION,
-                TEST_DEVICE_ID, TEST_PATH, datastreamList);
-
-
-        // conditions
-        OutputDatastream od1 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, TEST_FEED,
-                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE)))));
-
-        OutputDatastream od2 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID_2, null,
-                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2)))));
-
-        OutputDatastream od3 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE)))));
-
-        OutputDatastream od4 = new OutputDatastream(OdaCommonConstants.OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH,
-                Collections.singletonList(new Datastream(TEST_COLLECTED_DATASTREAM_ID, null,
-                        Collections.singletonList(new Datapoint(TEST_AT_2, TEST_VALUE_2)))));
-
-        when(mockedEventDispatcher.parse(Collections.singletonList(any(Event.class))))
-                .thenReturn(od1).thenReturn(od2).thenReturn(od3).thenReturn(od4);
-
-        // call to publish collected events
-        testEventCollector.publishCollectedEvents(Arrays.asList(TEST_COLLECTED_DATASTREAM_ID, TEST_COLLECTED_DATASTREAM_ID_2));
-
-        verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT));
-        verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT_2));
-        verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT_3));
-        verify(mockedEventDispatcher).parse(Collections.singletonList(TEST_COLLECTED_EVENT_4));
-
-        verify(mockedEventDispatcher).send(odReturn, true);
-
-        verify(mockedEventDispatcher).send(outputDatastreamCaptor.capture(), anyBoolean());
-        OutputDatastream outputDatastream = outputDatastreamCaptor.getValue();
-        List<Datastream> sentDatastreams = new ArrayList<>(outputDatastream.getDatastreams());
-        assertEquals(3, sentDatastreams.size());
-
-        sentDatastreams.forEach(datastream -> {
-            if (datastream.getId().equals(TEST_COLLECTED_DATASTREAM_ID)) {
-
-                // for datastreamId TEST_COLLECTED_DATASTREAM_ID and feed null, there must be 2 datapoints
-                if (datastream.getFeed() == null) {
-                    assertEquals(2, datastream.getDatapoints().size());
-                }
-                // for datastreamId TEST_COLLECTED_DATASTREAM_ID and feed TEST_FEED, there must be 1 datapoints
-                else if (datastream.getFeed().equals(TEST_FEED)) {
-                    assertEquals(1, datastream.getDatapoints().size());
-                }
-            }
-            // for datastreamId TEST_COLLECTED_DATASTREAM_ID_2 there must be 1 datapoints
-            else if (datastream.getId().equals(TEST_COLLECTED_DATASTREAM_ID_2)) {
-                assertEquals(1, datastream.getDatapoints().size());
-            }
-        });
-    }
 }

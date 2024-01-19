@@ -46,13 +46,13 @@ public class EventParserReducedOutputImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT);
 
-        OutputDatastream output = testEventParser.parse(events);
+        List<OutputDatastream> output = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, output.getVersion());
-        assertEquals(TEST_DEVICE_ID, output.getDevice());
-        assertNull(output.getPath());
+        assertEquals(OPENGATE_VERSION, output.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, output.get(0).getDevice());
+        assertNull(output.get(0).getPath());
 
-        List<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertEquals(1, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()
@@ -76,13 +76,13 @@ public class EventParserReducedOutputImplTest {
         events.add(TEST_EVENT);
         events.add(TEST_EVENT_2);
 
-        OutputDatastream output = testEventParser.parse(events);
+        List<OutputDatastream> output = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, output.getVersion());
-        assertEquals(TEST_DEVICE_ID, output.getDevice());
-        assertNull(output.getPath());
+        assertEquals(OPENGATE_VERSION, output.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, output.get(0).getDevice());
+        assertNull(output.get(0).getPath());
 
-        List<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertEquals(2, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()
@@ -117,13 +117,13 @@ public class EventParserReducedOutputImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT);
 
-        OutputDatastream output = testEventParser.parse(events);
+        List<OutputDatastream> output = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, output.getVersion());
-        assertNull(output.getDevice());
-        assertNull(output.getPath());
+        assertEquals(OPENGATE_VERSION, output.get(0).getVersion());
+        assertNull(output.get(0).getDevice());
+        assertNull(output.get(0).getPath());
 
-        List<Datastream> datastreams = output.getDatastreams();
+        List<Datastream> datastreams = output.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertEquals(1, datastreams.size());
         Optional<Datastream> datastreamWithId = datastreams.stream()

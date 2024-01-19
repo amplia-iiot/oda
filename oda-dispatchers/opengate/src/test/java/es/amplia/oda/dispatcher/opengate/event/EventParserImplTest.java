@@ -12,6 +12,8 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
@@ -23,8 +25,12 @@ import static org.mockito.Mockito.when;
 public class EventParserImplTest {
 
     private static final long TEST_AT = System.currentTimeMillis();
+    private static final long TEST_AT_2 = System.currentTimeMillis() + 500;
     private static final String TEST_DATASTREAM_ID = "testDatastream";
+    private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
+    private static final String TEST_FEED = "testFeed";
     private static final String TEST_DEVICE_ID = "testDevice";
+    private static final String TEST_DEVICE_ID_2 = "testDevice2";
     private static final String TEST_HOST_ID = "testHost";
     private static final String[] TEST_PATH = new String[] { "path", "to", "device"};
     private static final String TEST_VALUE = "test";
@@ -32,10 +38,25 @@ public class EventParserImplTest {
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE);
     private static final Event TEST_EVENT_NULL_PATH =
             new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, null, null, TEST_AT, TEST_VALUE);
-    private static final String TEST_DATASTREAM_ID_2 = "testDatastream2";
     private static final int TEST_VALUE_2 = 782;
     private static final Event TEST_EVENT_2 =
             new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, null, TEST_VALUE_2);
+
+
+
+
+    private static final Event TEST_COLLECTED_EVENT =
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, TEST_FEED, TEST_AT, TEST_VALUE);
+    private static final Event TEST_COLLECTED_EVENT_2 =
+            new Event(TEST_DATASTREAM_ID_2, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE_2);
+    private static final Event TEST_COLLECTED_EVENT_3 =
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT, TEST_VALUE);
+    private static final Event TEST_COLLECTED_EVENT_4 =
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_PATH, null, TEST_AT_2, TEST_VALUE_2);
+    private static final Event TEST_COLLECTED_EVENT_5 =
+            new Event(TEST_DATASTREAM_ID, TEST_DEVICE_ID_2, TEST_PATH, null, TEST_AT_2, TEST_VALUE_2);
+
+
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
@@ -49,12 +70,12 @@ public class EventParserImplTest {
         events.add(TEST_EVENT);
         events.add(TEST_EVENT_2);
 
-        OutputDatastream outputDatastream = testEventParser.parse(events);
+        List<OutputDatastream> outputDatastream = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertArrayEquals(TEST_PATH, outputDatastream.getPath());
-        List<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertEquals(OPENGATE_VERSION, outputDatastream.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.get(0).getDevice());
+        assertArrayEquals(TEST_PATH, outputDatastream.get(0).getPath());
+        List<Datastream> datastreams = outputDatastream.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(2, datastreams.size());
@@ -66,12 +87,12 @@ public class EventParserImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT_NULL_PATH);
 
-        OutputDatastream outputDatastream = testEventParser.parse(events);
+        List<OutputDatastream> outputDatastream = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertNull(outputDatastream.getPath());
-        List<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertEquals(OPENGATE_VERSION, outputDatastream.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.get(0).getDevice());
+        assertNull(outputDatastream.get(0).getPath());
+        List<Datastream> datastreams = outputDatastream.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
@@ -95,12 +116,12 @@ public class EventParserImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT);
 
-        OutputDatastream outputDatastream = testEventParser.parse(events);
+        List<OutputDatastream> outputDatastream = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertArrayEquals(TEST_PATH, outputDatastream.getPath());
-        List<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertEquals(OPENGATE_VERSION, outputDatastream.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.get(0).getDevice());
+        assertArrayEquals(TEST_PATH, outputDatastream.get(0).getPath());
+        List<Datastream> datastreams = outputDatastream.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
@@ -124,12 +145,12 @@ public class EventParserImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT_NULL_PATH);
 
-        OutputDatastream outputDatastream = testEventParser.parse(events);
+        List<OutputDatastream> outputDatastream = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertArrayEquals(new String[] { TEST_HOST_ID }, outputDatastream.getPath());
-        List<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertEquals(OPENGATE_VERSION, outputDatastream.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.get(0).getDevice());
+        assertArrayEquals(new String[] { TEST_HOST_ID }, outputDatastream.get(0).getPath());
+        List<Datastream> datastreams = outputDatastream.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
@@ -157,12 +178,12 @@ public class EventParserImplTest {
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT);
 
-        OutputDatastream outputDatastream = testEventParser.parse(events);
+        List<OutputDatastream> outputDatastream = testEventParser.parse(events);
 
-        assertEquals(OPENGATE_VERSION, outputDatastream.getVersion());
-        assertEquals(TEST_DEVICE_ID, outputDatastream.getDevice());
-        assertArrayEquals(expectedPath, outputDatastream.getPath());
-        List<Datastream> datastreams = outputDatastream.getDatastreams();
+        assertEquals(OPENGATE_VERSION, outputDatastream.get(0).getVersion());
+        assertEquals(TEST_DEVICE_ID, outputDatastream.get(0).getDevice());
+        assertArrayEquals(expectedPath, outputDatastream.get(0).getPath());
+        List<Datastream> datastreams = outputDatastream.get(0).getDatastreams();
         assertNotNull(datastreams);
         assertFalse(datastreams.isEmpty());
         assertEquals(1, datastreams.size());
@@ -178,5 +199,84 @@ public class EventParserImplTest {
         assertEquals(TEST_AT, (long) datapoint.getAt());
         assertEquals(TEST_VALUE, datapoint.getValue());
         verify(mockedDeviceInfoProvider).getDeviceId();
+    }
+
+
+    @Test
+    public void testEventsSameDatastreamIdDiferentFeed() {
+
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_COLLECTED_EVENT);
+        events.add(TEST_COLLECTED_EVENT_2);
+        events.add(TEST_COLLECTED_EVENT_3);
+        events.add(TEST_COLLECTED_EVENT_4);
+
+        // prepare expected response
+        List<Datastream> datastreamList = Arrays.asList(
+                new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE))),
+                new Datastream(TEST_DATASTREAM_ID, null,
+                        Arrays.asList(new Datapoint(TEST_AT, TEST_VALUE), new Datapoint(TEST_AT_2, TEST_VALUE_2))),
+                new Datastream(TEST_DATASTREAM_ID_2, null, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2)))
+        );
+
+        List<OutputDatastream> expectedOutput = Collections.singletonList(new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH, datastreamList));
+
+        // call method to test
+        List<OutputDatastream> returnedOutput = testEventParser.parse(events);
+
+        // check result
+        assertEquals(expectedOutput, returnedOutput);
+        assertEquals(1, returnedOutput.size());
+        List<Datastream> returnedDatastreams = new ArrayList<>(returnedOutput.get(0).getDatastreams());
+        assertEquals(3, returnedDatastreams.size());
+
+        returnedDatastreams.forEach(datastream -> {
+            if (datastream.getId().equals(TEST_DATASTREAM_ID)) {
+
+                // for datastreamId TEST_COLLECTED_DATASTREAM_ID and feed null, there must be 2 datapoints
+                if (datastream.getFeed() == null) {
+                    assertEquals(2, datastream.getDatapoints().size());
+                }
+                // for datastreamId TEST_COLLECTED_DATASTREAM_ID and feed TEST_FEED, there must be 1 datapoints
+                else if (datastream.getFeed().equals(TEST_FEED)) {
+                    assertEquals(1, datastream.getDatapoints().size());
+                }
+            }
+            // for datastreamId TEST_COLLECTED_DATASTREAM_ID_2 there must be 1 datapoints
+            else if (datastream.getId().equals(TEST_DATASTREAM_ID_2)) {
+                assertEquals(1, datastream.getDatapoints().size());
+            }
+        });
+    }
+
+    @Test
+    public void testEventsSameDatastreamIdDiferentDeviceId() {
+
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(null);
+
+        List<Event> events = new ArrayList<>();
+        events.add(TEST_COLLECTED_EVENT);
+        events.add(TEST_COLLECTED_EVENT_5);
+
+        // prepare expected response
+        List<OutputDatastream> expectedOutput = Arrays.asList(
+                new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID, TEST_PATH, Collections.singletonList(
+                        new Datastream(TEST_DATASTREAM_ID, TEST_FEED,
+                                Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE)))))
+                , new OutputDatastream(OPENGATE_VERSION, TEST_DEVICE_ID_2, TEST_PATH, Collections.singletonList(
+                        new Datastream(TEST_DATASTREAM_ID, null, Collections.singletonList(
+                                new Datapoint(TEST_AT_2, TEST_VALUE_2))))));
+
+        // call method to test
+        List<OutputDatastream> returnedOutput = testEventParser.parse(events);
+
+        // check result
+        assertEquals(expectedOutput, returnedOutput);
+        assertEquals(2, returnedOutput.size());
+        List<Datastream> returnedDatastreams = new ArrayList<>(returnedOutput.get(0).getDatastreams());
+        assertEquals(1, returnedDatastreams.size());
+        List<Datastream> returnedDatastreams2 = new ArrayList<>(returnedOutput.get(1).getDatastreams());
+        assertEquals(1, returnedDatastreams2.size());
     }
 }

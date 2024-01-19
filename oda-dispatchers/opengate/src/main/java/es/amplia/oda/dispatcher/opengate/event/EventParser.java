@@ -6,5 +6,5 @@ import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import java.util.List;
 
 interface EventParser {
-    OutputDatastream parse(List<Event> event);
+    List<OutputDatastream> parse(List<Event> event);
 }

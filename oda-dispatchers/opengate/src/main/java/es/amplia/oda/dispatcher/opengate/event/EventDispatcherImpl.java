@@ -13,9 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 class EventDispatcherImpl implements EventDispatcher {
@@ -43,8 +41,9 @@ class EventDispatcherImpl implements EventDispatcher {
             return;
         }
 
-        OutputDatastream outputEvent = parse(events);
-        scheduler.schedule(() -> send(outputEvent, true), 0, 0, TimeUnit.SECONDS);
+        List<OutputDatastream> outputEvents = parse(events);
+        outputEvents.forEach(outputEvent -> scheduler.schedule(() -> send(outputEvent, true),
+                0, 0, TimeUnit.SECONDS));
     }
 
     @Override
@@ -58,11 +57,11 @@ class EventDispatcherImpl implements EventDispatcher {
             return;
         }
 
-        OutputDatastream outputEvent = parse(events);
-        send(outputEvent, false);
+        List<OutputDatastream> outputEvents = parse(events);
+        outputEvents.forEach( outputEvent ->  send(outputEvent, false));
     }
 
-    OutputDatastream parse(List<Event> events) {
+    List<OutputDatastream> parse(List<Event> events) {
         return eventParser.parse(events);
     }
 

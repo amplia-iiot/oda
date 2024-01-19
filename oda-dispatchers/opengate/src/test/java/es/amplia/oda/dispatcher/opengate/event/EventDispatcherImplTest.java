@@ -83,13 +83,13 @@ public class EventDispatcherImplTest {
         List<Datastream> datastreams = new ArrayList<>();
         datastreams.add(new Datastream(TEST_DATASTREAM_ID, TEST_FEED, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2))));
         datastreams.add(new Datastream(TEST_DATASTREAM_ID_2, TEST_FEED, Collections.singletonList(new Datapoint(TEST_AT, TEST_VALUE_2))));
-        OutputDatastream outputDatastream =
-                new OutputDatastream("8.0", TEST_DEVICE_ID, null, datastreams);
+        List<OutputDatastream> outputDatastreams = Collections.singletonList(
+                new OutputDatastream("8.0", TEST_DEVICE_ID, null, datastreams));
         List<Event> events = new ArrayList<>();
         events.add(TEST_EVENT);
         events.add(TEST_EVENT_2);
 
-        when(mockedEventParser.parse(any(List.class))).thenReturn(outputDatastream);
+        when(mockedEventParser.parse(any(List.class))).thenReturn(outputDatastreams);
         when(mockedSerializer.serialize(any())).thenReturn(TEST_BYTE_STREAM);
 
         testEventDispatcher.publish(events);
