@@ -78,13 +78,15 @@ public class Iec104ConnectionsFactoryTest {
 
     }
 
-    /*@Test
+    @Test
     public void testConnect()
     {
         // conditions
         Map<SocketAddress, Client> clients = new HashMap();
         clients.put(mockedAddress, mockedClient);
         Whitebox.setInternalState(testIec104ConnectionsFactory,"clients", clients);
+        Whitebox.setInternalState(testIec104ConnectionsFactory,"connInitialDelay", 0);
+        Whitebox.setInternalState(testIec104ConnectionsFactory,"connRetryDelay", 10);
         when(mockedClient.connect()).thenReturn(mockedFuture);
 
         // call method to test
@@ -106,6 +108,6 @@ public class Iec104ConnectionsFactoryTest {
 
         // assertions
         verify(mockedClient, times(1)).close();
-    }*/
+    }
 
 }
