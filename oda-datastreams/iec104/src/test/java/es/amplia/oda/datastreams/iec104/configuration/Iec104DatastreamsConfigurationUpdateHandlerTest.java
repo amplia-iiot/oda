@@ -65,7 +65,7 @@ public class Iec104DatastreamsConfigurationUpdateHandlerTest {
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedIec104DatastreamsManager).loadConfiguration(currentConfiguration, 1000, 10000);
+        verify(mockedIec104DatastreamsManager).loadConfiguration(currentConfiguration, 1000, 10000, 0, 0);
     }
 
     @Test

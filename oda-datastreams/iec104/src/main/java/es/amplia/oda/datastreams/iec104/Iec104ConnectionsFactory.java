@@ -21,6 +21,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Iec104ConnectionsFactory {
 
@@ -29,10 +33,16 @@ public class Iec104ConnectionsFactory {
     private final Map<String, Iec104Cache> caches = new HashMap<>();
     private final Map<String, Iec104ClientModule> connections = new HashMap<>();
     private final Map<String, Integer> commonAddresses = new HashMap<>();
-    private final List<Client> clients = new ArrayList<>();
+    //private final List<Client> clients = new ArrayList<>();
+    private final Map<SocketAddress, Client> clients = new HashMap<>();
+    private final Map<SocketAddress, ScheduledFuture<?>> connectionSchedules = new HashMap<>();
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
     private final EventDispatcher eventDispatcher;
     private final ScadaTableTranslator scadaTables;
+
+    private int connInitialDelay;
+    private int connRetryDelay;
 
 
     Iec104ConnectionsFactory(EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables)
@@ -59,6 +69,14 @@ public class Iec104ConnectionsFactory {
 
     public List<String> getConnectionsDeviceList() {
         return new ArrayList<>(connections.keySet());
+    }
+
+    public void setConnInitialDelay(int connInitialDelay) {
+        this.connInitialDelay = connInitialDelay;
+    }
+
+    public void setConnRetryDelay(int connRetryDelay) {
+        this.connRetryDelay = connRetryDelay;
     }
 
     public void createConnections (List<Iec104DatastreamsConfiguration> configuration) {
@@ -91,23 +109,27 @@ public class Iec104ConnectionsFactory {
                         LOGGER.info("DeviceId {} connected ", client.getDeviceId());
                         client.setConnected(true);
                     });
+
+                    // Cancelamos la posible programación de conexión que haya en curso para esa dirección IP
+                    ScheduledFuture<?> schedule = connectionSchedules.get(channel.remoteAddress());
+                    if (schedule != null) schedule.cancel(false);
                 }
 
                 @Override
                 public void disconnected(Throwable error) {
                     LOGGER.error("Client disconnect", error);
-                    e.getValue().forEach(client ->
+                    e.getValue().forEach(clientModule ->
                     {
-                        LOGGER.info("DeviceId {} disconnected ", client.getDeviceId());
-                        client.setConnected(false);
+                        LOGGER.info("DeviceId {} disconnected ", clientModule.getDeviceId());
+                        clientModule.setConnected(false);
                     });
 
-                 /*   LOGGER.error("Reconnecting...", e);
-                    connect();*/
+                    // Programamos de nuevo para reconectar
+                    scheduleClientConnection(e.getKey(), clients.get(e.getKey()));
                 }
 
             }, options, new ArrayList<>(e.getValue()));
-            clients.add(client);
+            clients.put(e.getKey(), client);
         });
     }
 
@@ -149,19 +171,37 @@ public class Iec104ConnectionsFactory {
 
     public void connect() {
         LOGGER.info("Establishing IEC104 connections");
-        clients.forEach(c -> {
-            ListenableFuture<Void> ret = c.connect();
-            if (ret.isDone()) {
-                LOGGER.info("Client connected");
-            } else {
-                LOGGER.warn("Client not connected");
-            }
-        });
+        clients.entrySet().forEach(e -> scheduleClientConnection(e.getKey(), e.getValue()));
+    }
+
+    private void scheduleClientConnection (SocketAddress address, Client client) {
+        LOGGER.info("Sechedule client connection for address {}", address);
+        ScheduledFuture<?> schedule = connectionSchedules.get(address);
+        if (schedule != null) {
+            // Si estaba previamente programada lo cancelamos
+            schedule.cancel(false);
+        }
+        schedule = executorService.scheduleWithFixedDelay(() -> connectClient(address, client),
+            this.connInitialDelay, this.connRetryDelay, TimeUnit.SECONDS);
+        connectionSchedules.put(address, schedule);
+    }
+
+    private void connectClient(SocketAddress address, Client client) {
+        LOGGER.info("Trying to connect to {}", address);
+        ListenableFuture<Void> ret = client.connect();
+        if (ret.isDone()) {
+            ScheduledFuture<?> schedule = connectionSchedules.get(address);
+            if (schedule != null) schedule.cancel(false);
+            LOGGER.info("Client connected");
+        } else {
+            LOGGER.warn("Client not connected");
+        }
     }
 
     public void disconnect() {
         LOGGER.info("Disconnecting old IEC104 connections");
-        clients.forEach(c -> {
+        connectionSchedules.values().forEach(s -> s.cancel(false)); // Por si hay alguna recoexión en marcha
+        clients.values().forEach(c -> {
             try {
                 c.close();
             } catch (Exception e) {

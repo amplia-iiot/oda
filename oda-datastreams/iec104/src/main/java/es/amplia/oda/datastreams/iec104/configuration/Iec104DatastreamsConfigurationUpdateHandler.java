@@ -15,7 +15,11 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
 
     private static final String POLLING_TIME_PROPERTY_NAME = "pollingTime";
     private static final String INITIAL_POLLING_TIME_PROPERTY_NAME = "initialPollingTime";
+    private static final String CONNECTION_INITIAL_DELAY_PROPERTY_NAME = "connectionInitialDelay";
+    private static final String CONNECTION_RETRY_DELAY_PROPERTY_NAME = "connectionRetryDelay";
 
+    private static final int DEFAULT_INITIAL_DELAY = 10;
+    private static final int DEFAULT_RETRY_DELAY = 300;
 
     private static final int KEY_FIELDS_SIZE = 3;
     private static final String KEY_FIELDS_DELIMITER = ";";
@@ -25,6 +29,8 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
     private final List<Iec104DatastreamsConfiguration> currentIec104DatastreamsConfigurations = new ArrayList<>();
     private int iec104Polling;
     private int iec104PollingInitialDelay;
+    private int initialDelay;
+    private int retryDelay;
 
 
     public Iec104DatastreamsConfigurationUpdateHandler(Iec104DatastreamsManager iec104DatastreamsManager) {
@@ -39,10 +45,18 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
         Map<String, ?> mappedProperties = Collections.dictionaryToMap(props);
         this.iec104PollingInitialDelay = Integer.parseInt((String)mappedProperties.get(INITIAL_POLLING_TIME_PROPERTY_NAME));
         this.iec104Polling = Integer.parseInt((String)mappedProperties.get(POLLING_TIME_PROPERTY_NAME));
+        initialDelay = Optional.ofNullable((String) props.get(CONNECTION_INITIAL_DELAY_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_INITIAL_DELAY);
+        retryDelay = Optional.ofNullable((String) props.get(CONNECTION_RETRY_DELAY_PROPERTY_NAME))
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_RETRY_DELAY);
         LOGGER.debug("Initial polling time of {} milliseconds, after this polling time of {} milliseconds",
                 this.iec104PollingInitialDelay, this.iec104Polling);
         mappedProperties.remove(POLLING_TIME_PROPERTY_NAME);
         mappedProperties.remove(INITIAL_POLLING_TIME_PROPERTY_NAME);
+        mappedProperties.remove(CONNECTION_INITIAL_DELAY_PROPERTY_NAME);
+        mappedProperties.remove(CONNECTION_RETRY_DELAY_PROPERTY_NAME);
 
         if (this.iec104PollingInitialDelay <= 0 ||  this.iec104Polling <= 0) {
             LOGGER.error("Initial delay or polling times are not bigger than zero");
@@ -75,6 +89,6 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
 
     @Override
     public void applyConfiguration() {
-        iec104DatastreamsManager.loadConfiguration(currentIec104DatastreamsConfigurations, iec104PollingInitialDelay, iec104Polling);
+        iec104DatastreamsManager.loadConfiguration(currentIec104DatastreamsConfigurations, iec104PollingInitialDelay, iec104Polling, initialDelay, retryDelay);
     }
 }

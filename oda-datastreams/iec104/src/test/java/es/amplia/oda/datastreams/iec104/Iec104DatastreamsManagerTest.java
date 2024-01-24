@@ -57,7 +57,7 @@ public class Iec104DatastreamsManagerTest {
         when(mockedDatastreamsFactory.createIec104DatastreamsSetter(anyString())).thenReturn(mockedDatastreamsSetter);
 
         // launch method to test
-        testIec104DatastreamsManager.loadConfiguration(configurations, TEST_INIT_PO0L, TEST_PO0L);
+        testIec104DatastreamsManager.loadConfiguration(configurations, TEST_INIT_PO0L, TEST_PO0L, 10, 300);
 
         // verifications
         verify(mockedRegistrationManager, times(2)).unregister();
