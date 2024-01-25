@@ -28,9 +28,11 @@ public class Iec104DatastreamsManager implements AutoCloseable {
     }
 
     public void loadConfiguration(List<Iec104DatastreamsConfiguration> currentIEC104DatastreamsConfigurations,
-                                  int initialPolling, int polling) {
+                                  int initialPolling, int polling, int initialDelay, int retryDelay) {
         close();
 
+        this.iec104ConnectionsFactory.setConnInitialDelay(initialDelay);
+        this.iec104ConnectionsFactory.setConnRetryDelay(retryDelay);
         // Primero creamos las conexiones para saber el número de dispositivos que tenemos en el sistema
         this.iec104ConnectionsFactory.createConnections(currentIEC104DatastreamsConfigurations);
 

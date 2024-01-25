@@ -2,11 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mqtt-ds</artifactId>
+    <artifactId>iec104-ds</artifactId>
     <packaging>pom</packaging>
 
-    <name>OpenGate Device Agent Demos - MQTT-Datastreams</name>
-    <description>Demo agent with MQTT Datastreams</description>
+    <name>OpenGate Device Agent Demos - IEC104-Datastreams</name>
+    <description>Demo agent with IEC104 Datastreams</description>
 
     <parent>
         <artifactId>oda-demos</artifactId>
@@ -198,8 +198,17 @@
             <version>${project.version}</version>
         </dependency>
 		<dependency>
+            <groupId>es.amplia.oda.comms</groupId>
+            <artifactId>iec104</artifactId>
+        </dependency>
+		<dependency>
             <groupId>es.amplia.oda.datastreams</groupId>
-            <artifactId>mqtt</artifactId>
+            <artifactId>iec104</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+		<dependency>
+            <groupId>es.amplia.oda.service</groupId>
+            <artifactId>scadatables</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -76,16 +76,6 @@ public class ActivatorTest {
     }
 
     @Test
-    public void testOnServiceChanged() {
-        Whitebox.setInternalState(testActivator, "connectionsFactory", mockedConnectionsFactory);
-        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
-
-        testActivator.onServiceChanged();
-
-        verify(mockedConnectionsFactory).connect();
-    }
-
-    @Test
     public void testStop() {
         Whitebox.setInternalState(testActivator, "connectionsFactory", mockedConnectionsFactory);
         Whitebox.setInternalState(testActivator, "iec104DatastreamsManager", mockedIec104DatastreamsManager);

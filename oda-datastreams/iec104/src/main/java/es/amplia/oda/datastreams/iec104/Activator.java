@@ -62,7 +62,6 @@ public class Activator implements BundleActivator {
 
     public void onServiceChanged() {
         configHandler.applyConfiguration();
-        connectionsFactory.connect();
     }
 
     @Override
