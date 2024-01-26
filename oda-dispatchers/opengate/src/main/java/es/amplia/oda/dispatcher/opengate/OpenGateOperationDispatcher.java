@@ -26,6 +26,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
+import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.DISCOVER_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.GET_DEVICE_PARAMETERS_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.SET_DEVICE_PARAMETERS_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.SetClockEquipmentProcessor.SET_CLOCK_EQUIPMENT_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.SYNCHRONIZE_CLOCK_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.UpdateProcessor.UPDATE_OPERATION_NAME;
+
 class OpenGateOperationDispatcher implements Dispatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenGateOperationDispatcher.class);
@@ -33,7 +41,6 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private static final String WRONG_SERIALIZED_OPERATION_EXCEPTION_MESSAGE = "No request specified in deserialized input";
     private static final String OPERATION_RECEIVED_EXCEPTION_MESSAGE = "Operation received as {}: {}";
     private static final String NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE = "No operation specified in deserialized input";
-
 
     private final SerializerProvider serializerProvider;
     private final DeviceInfoProvider deviceInfoProvider;
@@ -55,6 +62,8 @@ class OpenGateOperationDispatcher implements Dispatcher {
             throw new IllegalArgumentException("Input is null");
         }
 
+        String opName = null;
+
         try {
             OperationRequest<Object> basicOperation = serializerProvider.getSerializer(contentType).deserialize(input, OperationRequest.class);
             LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
@@ -64,6 +73,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 operationSender.downlink((OperationRequest<Object>)basicOperation);
                 return null;
             }
+            opName = basicOperation.getOperation().getRequest().getName();
         } catch (Exception e) {
             LOGGER.error("Could not deserialize input as Basic Operation", e);
         }
@@ -73,71 +83,73 @@ class OpenGateOperationDispatcher implements Dispatcher {
         InputGeneralOperation openGateInputGeneralOperation = null;
         InputSetClockOperation openGateInputSetClockOperation = null;
         InputCustomOperation openGateInputCustomOperation = null;
-        try {
-            openGateUpdateOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputUpdateOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "update operation", openGateUpdateOperation);
-            if (openGateUpdateOperation == null || openGateUpdateOperation.getOperation() == null || !openGateUpdateOperation.getOperation().getRequest().getName().equals("UPDATE")) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
-            }
-            return processUpdateOperation(openGateUpdateOperation, contentType);
-        } catch (Exception e) {
-            LOGGER.debug("Could not deserialize input as Update Operation: \n{}", e.getMessage());
-        }
 
-        try {
-            openGateInputGetOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGetOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "get operation", openGateInputGetOperation);
-            if (openGateInputGetOperation == null || openGateInputGetOperation.getOperation() == null || !openGateInputGetOperation.getOperation().getRequest().getName().equals("GET_DEVICE_PARAMETERS")) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+        if (UPDATE_OPERATION_NAME.equals(opName)) {
+            try {
+                openGateUpdateOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputUpdateOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "update operation", openGateUpdateOperation);
+                if (openGateUpdateOperation == null || openGateUpdateOperation.getOperation() == null || !openGateUpdateOperation.getOperation().getRequest().getName().equals("UPDATE")) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processUpdateOperation(openGateUpdateOperation, contentType);
+            } catch (Exception e) {
+                LOGGER.debug("Could not deserialize input as Update Operation: \n{}", e.getMessage());
             }
-            return processGetOperation(openGateInputGetOperation, contentType);
-        } catch (Exception e) {
-            LOGGER.debug("Could not deserialize input as Get Operation: \n{}", e.getMessage());
-        }
-
-        try {
-            openGateInputGeneralOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGeneralOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "general operation", openGateInputGeneralOperation);
-            if (openGateInputGeneralOperation == null || openGateInputGeneralOperation.getOperation() == null) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+        } else if (GET_DEVICE_PARAMETERS_OPERATION_NAME.equals(opName)) {
+            try {
+                openGateInputGetOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGetOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "get operation", openGateInputGetOperation);
+                if (openGateInputGetOperation == null || openGateInputGetOperation.getOperation() == null || !openGateInputGetOperation.getOperation().getRequest().getName().equals("GET_DEVICE_PARAMETERS")) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processGetOperation(openGateInputGetOperation, contentType);
+            } catch (Exception e) {
+                LOGGER.debug("Could not deserialize input as Get Operation: \n{}", e.getMessage());
             }
-            return processGeneralOperation(openGateInputGeneralOperation, contentType);
-        } catch (Exception e) {
-            LOGGER.debug("Could not deserialize input as General Operation: \n{}", e.getMessage());
-        }
-
-        try {
-            openGateInputSetClockOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetClockOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set clock operation", openGateInputSetClockOperation);
-            if (openGateInputSetClockOperation == null || openGateInputSetClockOperation.getOperation() == null) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+        } else if (SET_CLOCK_EQUIPMENT_OPERATION_NAME.equals(opName)) {
+            try {
+                openGateInputSetClockOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetClockOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set clock operation", openGateInputSetClockOperation);
+                if (openGateInputSetClockOperation == null || openGateInputSetClockOperation.getOperation() == null) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processSetClockOperation(openGateInputSetClockOperation, contentType);
+            } catch (Exception e) {
+                LOGGER.debug("Could not deserialize input as Set Clock Operation: \n{}", e.getMessage());
             }
-            return processSetClockOperation(openGateInputSetClockOperation, contentType);
-        } catch (Exception e) {
-            LOGGER.debug("Could not deserialize input as Set Clock Operation: \n{}", e.getMessage());
-        }
-
-        try {
-            openGateInputSetOrConfigureOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetOrConfigureOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set or configure operation", openGateInputSetOrConfigureOperation);
-            if(openGateInputSetOrConfigureOperation == null || openGateInputSetOrConfigureOperation.getOperation() == null) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+        } else if (SET_DEVICE_PARAMETERS_OPERATION_NAME.equals(opName)) {
+            try {
+                openGateInputSetOrConfigureOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetOrConfigureOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set or configure operation", openGateInputSetOrConfigureOperation);
+                if(openGateInputSetOrConfigureOperation == null || openGateInputSetOrConfigureOperation.getOperation() == null) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processSetOrConfigureOperation(openGateInputSetOrConfigureOperation, contentType);
+            } catch (Exception e) {
+                LOGGER.debug("Could not deserialize input as Set Operation: \n{}", e.getMessage());
             }
-            return processSetOrConfigureOperation(openGateInputSetOrConfigureOperation, contentType);
-        } catch (Exception e) {
-            LOGGER.debug("Could not deserialize input as Set Operation: \n{}", e.getMessage());
-        }
-
-        try {
-            openGateInputCustomOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputCustomOperation.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "custom operation", openGateInputCustomOperation);
-            if(openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
-                throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+        } else {
+            try {
+                openGateInputGeneralOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGeneralOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "general operation", openGateInputGeneralOperation);
+                if (openGateInputGeneralOperation == null || openGateInputGeneralOperation.getOperation() == null) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processGeneralOperation(openGateInputGeneralOperation, contentType);
+            } catch (Exception e) {
+                LOGGER.debug("Could not deserialize input as General Operation: \n{}", e.getMessage());
             }
-            return processCustomOperation(openGateInputCustomOperation, contentType);
-        } catch (IOException e) {
-            LOGGER.debug("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
-            openGateInputCustomOperation = null;
+            try {
+                openGateInputCustomOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputCustomOperation.class);
+                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "custom operation", openGateInputCustomOperation);
+                if(openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
+                    throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
+                }
+                return processCustomOperation(openGateInputCustomOperation, contentType);
+            } catch (IOException e) {
+                LOGGER.debug("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
+                openGateInputCustomOperation = null;
+            }
         }
 
         if (openGateInputSetOrConfigureOperation == null

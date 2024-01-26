@@ -5,9 +5,6 @@ import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.Datetime;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.ParameterSetClockOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.RequestSetClockOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetClock;
 
 import java.time.*;
@@ -18,9 +15,9 @@ import java.util.concurrent.CompletableFuture;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationSetClock.*;
 
-class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result> {
+public class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result> {
 
-    static final String SET_CLOCK_EQUIPMENT_OPERATION_NAME = "SET_CLOCK_EQUIPMENT";
+    public static final String SET_CLOCK_EQUIPMENT_OPERATION_NAME = "SET_CLOCK_EQUIPMENT";
 
 
     private final OperationSetClock operationSetClock;

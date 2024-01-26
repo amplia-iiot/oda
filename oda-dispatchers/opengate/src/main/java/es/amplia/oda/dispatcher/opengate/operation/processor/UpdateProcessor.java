@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
-class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateOperation, Result> {
+public class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateOperation, Result> {
 
-    static final String UPDATE_OPERATION_NAME = "UPDATE";
+    public static final String UPDATE_OPERATION_NAME = "UPDATE";
 
 
     private final OperationUpdate operationUpdate;

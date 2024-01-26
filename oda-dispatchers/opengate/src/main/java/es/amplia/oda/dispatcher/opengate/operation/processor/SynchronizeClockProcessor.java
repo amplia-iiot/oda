@@ -14,9 +14,9 @@ import java.util.concurrent.CompletableFuture;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationSynchronizeClock.*;
 
-class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Result> {
+public class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Result> {
 
-    static final String SYNCHRONIZE_CLOCK_OPERATION_NAME = "SYNCHRONIZE_CLOCK";
+    public static final String SYNCHRONIZE_CLOCK_OPERATION_NAME = "SYNCHRONIZE_CLOCK";
 
 
     private final OperationSynchronizeClock operationSynchronizeClock;

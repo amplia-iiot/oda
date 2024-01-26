@@ -10,9 +10,9 @@ import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 
-class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscover.Result> {
+public class DiscoverProcessor extends OperationProcessorTemplate<Void, OperationDiscover.Result> {
 
-	static final String DISCOVER_OPERATION_NAME = "DISCOVER";
+	public static final String DISCOVER_OPERATION_NAME = "DISCOVER";
 
 
 	private final OperationDiscover operationDiscover;

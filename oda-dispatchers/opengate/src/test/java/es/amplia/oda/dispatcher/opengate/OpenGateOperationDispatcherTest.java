@@ -74,7 +74,7 @@ public class OpenGateOperationDispatcherTest {
         byte[] result = future.get();
 
         assertEquals(TEST_PAYLOAD_2, result);
-        verify(mockedSerializerProvider,times(5)).getSerializer(eq(TEST_CONTENT_TYPE));
+        verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST));
@@ -94,7 +94,7 @@ public class OpenGateOperationDispatcherTest {
         byte[] result = future.get();
 
         assertEquals(TEST_PAYLOAD_2, result);
-        verify(mockedSerializerProvider,times(5)).getSerializer(eq(ContentType.JSON));
+        verify(mockedSerializerProvider,times(3)).getSerializer(eq(ContentType.JSON));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST));
@@ -118,7 +118,7 @@ public class OpenGateOperationDispatcherTest {
         byte[] result = future.get();
 
         assertEquals(TEST_PAYLOAD_2, result);
-        verify(mockedSerializerProvider,times(5)).getSerializer(eq(TEST_CONTENT_TYPE));
+        verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
@@ -142,7 +142,7 @@ public class OpenGateOperationDispatcherTest {
         byte[] result = future.get();
 
         assertEquals(TEST_PAYLOAD_2, result);
-        verify(mockedSerializerProvider,times(5)).getSerializer(eq(TEST_CONTENT_TYPE));
+        verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
@@ -166,7 +166,7 @@ public class OpenGateOperationDispatcherTest {
         byte[] result = future.get();
 
         assertEquals(TEST_PAYLOAD_2, result);
-        verify(mockedSerializerProvider,times(5)).getSerializer(eq(TEST_CONTENT_TYPE));
+        verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));

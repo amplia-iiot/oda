@@ -1,7 +1,6 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
-import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
@@ -15,9 +14,9 @@ import java.util.stream.Collectors;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationSetDeviceParameters.*;
 
-class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<VariableValue>, Result> {
+public class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<VariableValue>, Result> {
 
-    static final String SET_DEVICE_PARAMETERS_OPERATION_NAME = "SET_DEVICE_PARAMETERS";
+    public static final String SET_DEVICE_PARAMETERS_OPERATION_NAME = "SET_DEVICE_PARAMETERS";
 
 
     private final OperationSetDeviceParameters operationSetDeviceParameters;

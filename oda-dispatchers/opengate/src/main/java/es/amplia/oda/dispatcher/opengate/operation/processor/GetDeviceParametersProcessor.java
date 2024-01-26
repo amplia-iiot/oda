@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationGetDeviceParameters.*;
 
-class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String>, Result> {
+public class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String>, Result> {
 
-    static final String GET_DEVICE_PARAMETERS_OPERATION_NAME = "GET_DEVICE_PARAMETERS";
+    public static final String GET_DEVICE_PARAMETERS_OPERATION_NAME = "GET_DEVICE_PARAMETERS";
 
 
     private final OperationGetDeviceParameters operationGetDeviceParameters;

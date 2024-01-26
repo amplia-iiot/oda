@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.operation.api.OperationRefreshInfo.*;
 
-class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
+public class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
 
-    static final String REFRESH_INFO_OPERATION_NAME = "REFRESH_INFO";
+    public static final String REFRESH_INFO_OPERATION_NAME = "REFRESH_INFO";
 
 
     private final OperationRefreshInfo operationRefreshInfo;
