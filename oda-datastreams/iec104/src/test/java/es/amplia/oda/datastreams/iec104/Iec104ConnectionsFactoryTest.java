@@ -79,7 +79,7 @@ public class Iec104ConnectionsFactoryTest {
     }
 
     @Test
-    public void testConnect()
+    public void testConnect() throws InterruptedException
     {
         // conditions
         Map<SocketAddress, Client> clients = new HashMap();
@@ -91,6 +91,8 @@ public class Iec104ConnectionsFactoryTest {
 
         // call method to test
         testIec104ConnectionsFactory.connect();
+
+        Thread.sleep(100); // Añadimos la espera para eliminar la aleatoriedad del test producida por el hilo generado con el connInitialDelay aunque esté con valor 0
 
         // assertions
         verify(mockedClient, times(1)).connect();
