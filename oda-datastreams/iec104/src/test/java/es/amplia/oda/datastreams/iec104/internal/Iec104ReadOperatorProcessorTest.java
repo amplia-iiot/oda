@@ -1,7 +1,6 @@
 package es.amplia.oda.datastreams.iec104.internal;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
-import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.Iec104ConnectionsFactory;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
@@ -10,12 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Collections;
-import java.util.Timer;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import static org.mockito.Matchers.*;
@@ -29,8 +24,6 @@ public class Iec104ReadOperatorProcessorTest {
     private Iec104ConnectionsFactory mockedConnectionsFactory;
     @Mock
     private ScadaTableTranslator mockScadaTranslator;
-    @Mock
-    private Iec104ClientModule mockClient;
     @InjectMocks
     private Iec104ReadOperatorProcessor readOperatorProcessor;
 
@@ -66,24 +59,6 @@ public class Iec104ReadOperatorProcessorTest {
         // test value in cache already processed is not obtained again
         CollectedValue readValue2 = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
         Assert.assertNull(readValue2);
-    }
-
-    @Test
-    public void testUpdateGetterPolling(){
-
-        Whitebox.setInternalState(readOperatorProcessor,"timer", new Timer());
-
-        // call function
-        readOperatorProcessor.updateGetterPolling(100, 2000);
-
-        // conditions
-        when(mockedConnectionsFactory.getConnectionsDeviceList()).thenReturn(Collections.singletonList(TEST_DEVICE_ID));
-        when(mockedConnectionsFactory.getConnection(TEST_DEVICE_ID)).thenReturn(mockClient);
-        when(mockedConnectionsFactory.getCommonAddress(TEST_DEVICE_ID)).thenReturn(1);
-        when(mockClient.isConnected()).thenReturn(true);
-
-        Timer timer = (Timer) Whitebox.getInternalState(readOperatorProcessor,"timer");
-        Assert.assertNotNull(timer);
     }
 
     @Test

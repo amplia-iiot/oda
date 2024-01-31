@@ -62,7 +62,7 @@ public class Iec104DatastreamsManagerTest {
         // verifications
         verify(mockedRegistrationManager, times(2)).unregister();
         verify(mockedConnectionsFactory).createConnections(configurations);
-        verify(mockedDatastreamsFactory).updateGetterPolling(TEST_INIT_PO0L, TEST_PO0L);
+        verify(mockedConnectionsFactory).updateGetterPolling(TEST_INIT_PO0L, TEST_PO0L);
         verify(mockedDatastreamsFactory).createIec104DatastreamsGetter("datastreamId1");
         verify(mockedDatastreamsFactory).createIec104DatastreamsGetter("datastreamId2");
         verify(mockedRegistrationManager, times(2)).register(mockedDatastreamsGetter);

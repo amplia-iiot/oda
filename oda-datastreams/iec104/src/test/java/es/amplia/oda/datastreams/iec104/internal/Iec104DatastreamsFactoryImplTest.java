@@ -11,14 +11,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Iec104DatastreamsFactoryImpl.class)
@@ -86,12 +82,5 @@ public class Iec104DatastreamsFactoryImplTest {
         PowerMockito.verifyNew(Iec104DatastreamsSetter.class).withArguments(eq(TEST_DATASTREAM_ID), any(List.class), eq(mockedWriteOperatorProcessor));
         PowerMockito.verifyNew(Iec104WriteOperatorProcessor.class)
                 .withArguments(eq(mockedScadaTranslator), eq(mockedConnectionsFactory));
-    }
-
-    @Test
-    public void testUpdateGetterPolling(){
-        testFactory.updateGetterPolling(100, 200);
-        verify(mockedReadOperatorProcessor, times(1)).updateGetterPolling(100, 200);
-
     }
 }

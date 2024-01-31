@@ -7,6 +7,4 @@ public interface Iec104DatastreamsFactory {
     DatastreamsGetter createIec104DatastreamsGetter(String datastreamId);
 
     DatastreamsSetter createIec104DatastreamsSetter(String datastreamId);
-
-    void updateGetterPolling (int initialPolling, int polling);
 }

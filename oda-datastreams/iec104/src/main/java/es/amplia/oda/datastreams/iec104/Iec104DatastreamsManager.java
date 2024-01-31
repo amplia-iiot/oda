@@ -33,14 +33,18 @@ public class Iec104DatastreamsManager implements AutoCloseable {
 
         this.iec104ConnectionsFactory.setConnInitialDelay(initialDelay);
         this.iec104ConnectionsFactory.setConnRetryDelay(retryDelay);
+        this.iec104ConnectionsFactory.updateGetterPolling(initialPolling, polling);
+
         // Primero creamos las conexiones para saber el número de dispositivos que tenemos en el sistema
         this.iec104ConnectionsFactory.createConnections(currentIEC104DatastreamsConfigurations);
 
         // Una vez que tenemos el número de dispositivos en el sistema ya podemos crear los datastreams Getter y Setters correspondientes
-        this.translator.getRecollectionDatastreamsIds().forEach(this::createAndRegisterIEC104Datastreams);
+        List<String> recollectionDatastreamIds = this.translator.getRecollectionDatastreamsIds();
+        if (recollectionDatastreamIds!= null && !recollectionDatastreamIds.isEmpty()) {
+            recollectionDatastreamIds.forEach(this::createAndRegisterIEC104Datastreams);
+        }
 
         this.iec104ConnectionsFactory.connect();
-        this.iec104DatastreamsFactory.updateGetterPolling(initialPolling, polling);
     }
 
     private void createAndRegisterIEC104Datastreams(String datastreamId) {

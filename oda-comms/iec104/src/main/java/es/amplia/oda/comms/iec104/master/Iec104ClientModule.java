@@ -9,15 +9,22 @@ import io.netty.channel.socket.SocketChannel;
 import lombok.Getter;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.apci.MessageChannel;
+import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDU;
+import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDUAddress;
+import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.eclipse.neoscada.protocol.iec60870.client.Client;
 import org.eclipse.neoscada.protocol.iec60870.client.ClientModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class Iec104ClientModule implements ClientModule {
 
@@ -30,6 +37,9 @@ public class Iec104ClientModule implements ClientModule {
     private final Map<String, Iec104Cache> cache;
 	private final EventDispatcher eventDispatcher;
 	private final ScadaTableTranslator scadaTables;
+	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+	private ScheduledFuture<?> interrogationCommandTask;
+
 
 
 	@Getter
@@ -170,7 +180,7 @@ public class Iec104ClientModule implements ClientModule {
 				MeasuredValueNormalizedNoQualitySequence.class.getAnnotation(ASDU.class).informationStructure(),
 				new MeasuredValueNormalizedNoQualitySequenceCodec());
 
-        LOGGER.info("Initialized IEC104 client");
+        LOGGER.debug("Initialized IEC104 client");
     }
 
     @Override
@@ -181,7 +191,7 @@ public class Iec104ClientModule implements ClientModule {
 		// we replace the message channel introduced by neoscada library in Client class (handleInitChannel) with our message channel
 		socketChannel.pipeline().replace(MessageChannel.class, this.messageChannel.toString(), this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);
-		LOGGER.info("Initialized IEC104 channel");
+		LOGGER.debug("Initialized IEC104 channel");
     }
 
 	public void setConnected(boolean connected) {
@@ -194,6 +204,8 @@ public class Iec104ClientModule implements ClientModule {
 		this.messageManager = null;
 		this.messageChannel = null;
 		this.connected = false;
+		this.interrogationCommandTask.cancel(false);
+		this.scheduledExecutor.shutdownNow();
 	}
 
     public void send(Object asdu) {
@@ -201,5 +213,43 @@ public class Iec104ClientModule implements ClientModule {
             this.client.writeCommand(asdu);
         }
     }
-    
+
+	public ScheduledFuture<?> addInterrogationCommandScheduling(int initialPolling, int polling) {
+		LOGGER.info("Scheduling interrogation command for deviceId {}, initial delay {}, polling every {} milliseconds"
+				, this.deviceId, initialPolling, polling);
+
+		if (initialPolling <= 0 || polling <= 0) {
+			LOGGER.error("Initial delay or polling times must be bigger than zero");
+			return null;
+		}
+
+		if (interrogationCommandTask != null && !interrogationCommandTask.isCancelled()) {
+			interrogationCommandTask.cancel(false);
+		}
+
+		Runnable taskWithExceptionCatching = () -> {
+            try {
+                InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED,
+                        ASDUAddress.valueOf(commonAddress)), (short) 20);
+                if (isConnected()) {
+                    LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
+                    send(cmd);
+                } else {
+                    LOGGER.warn("Could not send InterrogationCommand due to no client connected for device {}", deviceId);
+                }
+
+            } catch (Throwable t) {  // Catch Throwable rather than Exception (a subclass).
+                LOGGER.error("Caught exception in IEC104 TimerTask. StackTrace: ", t);
+            }
+        };
+
+		interrogationCommandTask = scheduledExecutor.scheduleAtFixedRate(taskWithExceptionCatching, initialPolling, polling, TimeUnit.MILLISECONDS);
+		return interrogationCommandTask;
+	}
+
+	public void cancelInterrogationCommandScheduling(){
+		if(!interrogationCommandTask.isCancelled()) {
+			interrogationCommandTask.cancel(false);
+		}
+	}
 }

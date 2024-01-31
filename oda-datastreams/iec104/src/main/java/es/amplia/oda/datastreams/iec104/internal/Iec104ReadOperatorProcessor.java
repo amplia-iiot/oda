@@ -6,16 +6,8 @@ import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator.ScadaInfo;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.datastreams.iec104.Iec104ConnectionsFactory;
-import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
-import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
-import org.eclipse.neoscada.protocol.iec60870.asdu.message.InterrogationCommand;
-import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDUAddress;
-import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
@@ -25,7 +17,6 @@ class Iec104ReadOperatorProcessor {
 
     private final ScadaTableTranslator translator;
     private final Iec104ConnectionsFactory connectionsFactory;
-    private Timer timer = null;
 
     Iec104ReadOperatorProcessor(ScadaTableTranslator scadaTranslator, Iec104ConnectionsFactory connectionsFactory) {
         this.translator = scadaTranslator;
@@ -71,50 +62,4 @@ class Iec104ReadOperatorProcessor {
         }
         return null;
     }
-
-    public void updateGetterPolling(int initialPolling, int polling) {
-        LOGGER.info("Update polling time. Initial delay {}, next executions every {} milliseconds", initialPolling, polling);
-
-        if (initialPolling <= 0 || polling <= 0) {
-            LOGGER.error("Initial delay or polling times are not bigger than zero");
-            return;
-        }
-
-        if (timer != null) {
-            timer.cancel();
-        }
-        timer = new Timer("IEC104 InterrogationCommand");
-
-        TimerTask taskWithExceptionCatching = new TimerTask() {
-            public void run() {
-                try {
-                    for (String deviceId : connectionsFactory.getConnectionsDeviceList()) {
-                        Iec104ClientModule client = connectionsFactory.getConnection(deviceId);
-                        if (client == null) {
-                            continue;
-                        }
-
-                        Integer commonAddress = connectionsFactory.getCommonAddress(deviceId);
-                        if (commonAddress == null) {
-                            continue;
-                        }
-
-                        InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED,
-                                ASDUAddress.valueOf(commonAddress)), (short) 20);
-                        if (client.isConnected()) {
-                            LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
-                            client.send(cmd);
-                        } else {
-                            LOGGER.warn("Could not send InterrogationCommand due to no client connected for device {}", deviceId);
-                        }
-                    }
-                } catch (Throwable t) {  // Catch Throwable rather than Exception (a subclass).
-                    LOGGER.error("Caught exception in IEC104 TimerTask. StackTrace: ", t);
-                }
-            }
-        };
-
-        timer.schedule(taskWithExceptionCatching, initialPolling, polling);
-    }
-
 }

@@ -33,7 +33,6 @@ public class Iec104ConnectionsFactory {
     private final Map<String, Iec104Cache> caches = new HashMap<>();
     private final Map<String, Iec104ClientModule> connections = new HashMap<>();
     private final Map<String, Integer> commonAddresses = new HashMap<>();
-    //private final List<Client> clients = new ArrayList<>();
     private final Map<SocketAddress, Client> clients = new HashMap<>();
     private final Map<SocketAddress, ScheduledFuture<?>> connectionSchedules = new HashMap<>();
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
@@ -43,6 +42,8 @@ public class Iec104ConnectionsFactory {
 
     private int connInitialDelay;
     private int connRetryDelay;
+    private int interrogationCommandInitialPolling;
+    private int interrogationCommandPolling;
 
 
     Iec104ConnectionsFactory(EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables)
@@ -79,7 +80,12 @@ public class Iec104ConnectionsFactory {
         this.connRetryDelay = connRetryDelay;
     }
 
-    public void createConnections (List<Iec104DatastreamsConfiguration> configuration) {
+    public void updateGetterPolling(int initialPolling, int polling) {
+        this.interrogationCommandInitialPolling = initialPolling;
+        this.interrogationCommandPolling = polling;
+    }
+
+    public void createConnections(List<Iec104DatastreamsConfiguration> configuration) {
         disconnect();
         deleteConnections();
         HashMap<SocketAddress, List<Iec104ClientModule>> newConnections = new HashMap<>();
@@ -96,6 +102,7 @@ public class Iec104ConnectionsFactory {
         ProtocolOptions options = optionsBuilder.build();
 
         // create connection
+        LOGGER.info("Creating IEC104 connections");
         configuration.forEach(c -> createNewConnection(c, newConnections, options));
 
         newConnections.entrySet().forEach(e -> {
@@ -103,16 +110,20 @@ public class Iec104ConnectionsFactory {
 
                 @Override
                 public void connected(Channel channel) {
-                    LOGGER.info("Client connected {}", channel.remoteAddress());
                     e.getValue().forEach(client ->
                     {
-                        LOGGER.info("DeviceId {} connected ", client.getDeviceId());
+                        LOGGER.info("Client {} with address {} connected ", channel.remoteAddress(), client.getDeviceId());
                         client.setConnected(true);
+
+                        // crear programación del interrogation command para este cliente
+                        client.addInterrogationCommandScheduling(interrogationCommandInitialPolling, interrogationCommandPolling);
                     });
 
                     // Cancelamos la posible programación de conexión que haya en curso para esa dirección IP
                     ScheduledFuture<?> schedule = connectionSchedules.get(channel.remoteAddress());
-                    if (schedule != null) schedule.cancel(false);
+                    if (schedule != null) {
+                        schedule.cancel(false);
+                    }
                 }
 
                 @Override
@@ -120,8 +131,11 @@ public class Iec104ConnectionsFactory {
                     LOGGER.error("Client disconnect", error);
                     e.getValue().forEach(clientModule ->
                     {
-                        LOGGER.info("DeviceId {} disconnected ", clientModule.getDeviceId());
+                        LOGGER.info("Client {} disconnected ", clientModule.getDeviceId());
                         clientModule.setConnected(false);
+
+                        // eliminar programación del interrogation command
+                        clientModule.cancelInterrogationCommandScheduling();
                     });
 
                     // Programamos de nuevo para reconectar
@@ -133,14 +147,12 @@ public class Iec104ConnectionsFactory {
         });
     }
 
-    private void createNewConnection (Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress,
+    private void createNewConnection(Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress,
             List<Iec104ClientModule>> newConnections, ProtocolOptions options) {
         String deviceId = currentConfiguration.getDeviceId();
         String remoteAddress = currentConfiguration.getIpAddress();
         int port = currentConfiguration.getIpPort();
         int commonAddress = currentConfiguration.getCommonAddress();
-
-        LOGGER.info("Creating IEC104 connections");
 
         try {
             InetAddress address = InetAddress.getByName(remoteAddress);
@@ -175,7 +187,7 @@ public class Iec104ConnectionsFactory {
     }
 
     private void scheduleClientConnection (SocketAddress address, Client client) {
-        LOGGER.info("Sechedule client connection for address {}", address);
+        LOGGER.info("Schedule client connection for address {}", address);
         ScheduledFuture<?> schedule = connectionSchedules.get(address);
         if (schedule != null) {
             // Si estaba previamente programada lo cancelamos
@@ -200,7 +212,7 @@ public class Iec104ConnectionsFactory {
 
     public void disconnect() {
         LOGGER.info("Disconnecting old IEC104 connections");
-        connectionSchedules.values().forEach(s -> s.cancel(false)); // Por si hay alguna recoexión en marcha
+        connectionSchedules.values().forEach(s -> s.cancel(false)); // Por si hay alguna reconexión en marcha
         clients.values().forEach(c -> {
             try {
                 c.close();

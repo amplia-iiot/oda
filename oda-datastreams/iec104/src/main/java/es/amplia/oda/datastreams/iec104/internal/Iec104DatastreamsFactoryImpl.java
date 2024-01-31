@@ -26,10 +26,4 @@ public class Iec104DatastreamsFactoryImpl implements Iec104DatastreamsFactory {
     public Iec104DatastreamsSetter createIec104DatastreamsSetter(String datastreamId) {
         return new Iec104DatastreamsSetter(datastreamId, connectionsFactory.getDeviceList(), writeOperatorProcessor);
     }
-
-    @Override
-    public void updateGetterPolling(int initialPolling, int polling) {
-        readOperatorProcessor.updateGetterPolling(initialPolling, polling);
-    }
-
 }
