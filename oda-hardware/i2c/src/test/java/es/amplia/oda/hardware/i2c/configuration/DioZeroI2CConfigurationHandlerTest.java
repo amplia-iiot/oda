@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -26,6 +27,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DioZeroI2CConfigurationHandler.class,Collections.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DioZeroI2CConfigurationHandlerTest {
 
 	private static final String TEST_DEVICE_NAME = "device";

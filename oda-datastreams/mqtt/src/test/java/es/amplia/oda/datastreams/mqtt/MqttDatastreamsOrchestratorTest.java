@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MqttDatastreamsOrchestrator.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class MqttDatastreamsOrchestratorTest {
 
     private static final String TEST_SERVER_URI = "tcp://test.uri.com";

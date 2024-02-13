@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -20,6 +21,7 @@ import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AnalogInputDeviceBuilder.class, Fx30AnalogInputDeviceFactory.class, OwasysAnalogInputDeviceFactory.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class AnalogInputDeviceBuilderTest {
 
 	private static final int TEST_CHANNEL_INDEX = 1;

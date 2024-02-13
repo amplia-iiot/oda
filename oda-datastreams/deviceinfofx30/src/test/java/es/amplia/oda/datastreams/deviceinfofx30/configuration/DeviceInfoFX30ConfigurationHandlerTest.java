@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -27,6 +28,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DeviceInfoFX30ConfigurationHandler.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DeviceInfoFX30ConfigurationHandlerTest {
 
 	private static final String TEST_DEVICE_ID = "deviceId";

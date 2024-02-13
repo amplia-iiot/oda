@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -25,6 +26,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DeviceInfoFX30.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DeviceInfoFX30Test {
 
 	private DeviceInfoFX30 deviceInfo;

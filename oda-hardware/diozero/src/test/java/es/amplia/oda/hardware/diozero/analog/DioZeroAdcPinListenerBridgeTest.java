@@ -7,6 +7,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DioZeroAdcPinListenerBridge.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DioZeroAdcPinListenerBridgeTest {
 
     private static final AnalogInputEvent TEST_EVENT =

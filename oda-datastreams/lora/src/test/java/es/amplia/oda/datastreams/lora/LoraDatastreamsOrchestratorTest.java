@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -23,6 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(LoraDatastreamsOrchestrator.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class LoraDatastreamsOrchestratorTest {
 
 	private static final String TEST_DEVICE_ID_PROPERTY_VALUE = "testing_gateway";

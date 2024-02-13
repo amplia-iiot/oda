@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -19,6 +20,7 @@ import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(GpioDatastreamsFactoryImpl.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class GpioDatastreamsFactoryImplTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";

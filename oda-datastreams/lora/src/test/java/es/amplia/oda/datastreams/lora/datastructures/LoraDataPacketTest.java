@@ -3,6 +3,7 @@ package es.amplia.oda.datastreams.lora.datastructures;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -15,6 +16,7 @@ import static org.junit.Assert.assertNull;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(LoraDataPacket.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class LoraDataPacketTest {
 	private List<Rxpk> rxpk;
 

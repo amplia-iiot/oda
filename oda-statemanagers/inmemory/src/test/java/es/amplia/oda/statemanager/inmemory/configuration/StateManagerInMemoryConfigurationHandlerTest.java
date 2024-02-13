@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({InMemoryStateManager.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class StateManagerInMemoryConfigurationHandlerTest {
 
 	public static final String DATABASE_PATH_PROPERTY_VALUE = "/123/fake/street";

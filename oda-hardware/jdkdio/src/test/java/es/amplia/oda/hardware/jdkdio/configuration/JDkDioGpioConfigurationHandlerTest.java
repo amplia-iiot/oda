@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdkDioConfigurationHandler.class, Collections.class, JdkDioGpioPinBuilder.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class JDkDioGpioConfigurationHandlerTest {
 
     private static final String GPIO_PINS_CONFIGURATION_FIELD_NAME = "gpioPinsConfiguration";

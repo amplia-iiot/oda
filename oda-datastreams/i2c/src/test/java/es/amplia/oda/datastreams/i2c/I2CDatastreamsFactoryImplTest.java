@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -17,6 +18,7 @@ import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(I2CDatastreamsFactoryImpl.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class I2CDatastreamsFactoryImplTest {
 
 	private static final String TEST_NAME = "datastreamId";

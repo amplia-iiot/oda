@@ -6,10 +6,12 @@ import es.amplia.oda.service.scadatables.configuration.BoxEntryConfiguration;
 import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfiguration;
 
 import es.amplia.oda.service.scadatables.configuration.ScadaTablesConfigurationHandler;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -26,6 +28,7 @@ import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ScadaTableInfoService.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class ScadaTableInfoServiceTest {
 
     private ScadaTableInfoService testScadaTableInfoService;
@@ -39,7 +42,7 @@ public class ScadaTableInfoServiceTest {
                 "booxlean", "deviceId", "feed", false);
         // register script
         String script = "x*10";
-        final ScriptEngineManager manager = new ScriptEngineManager();
+        final ScriptEngineManager manager = new ScriptEngineManager(null);
         ScriptEngine engine = manager.getEngineByName("nashorn");
         engine.eval(ScadaTablesConfigurationHandler.REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
         entryBox.setScript((Invocable) engine);

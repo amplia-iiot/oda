@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.iec104;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
@@ -13,7 +14,6 @@ import org.eclipse.neoscada.protocol.iec60870.client.ConnectionStateListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -21,10 +21,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class Iec104ConnectionsFactory {
 

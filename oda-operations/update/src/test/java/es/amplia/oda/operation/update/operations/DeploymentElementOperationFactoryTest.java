@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.mock;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DeploymentElementOperationFactory.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DeploymentElementOperationFactoryTest {
 
     private static final String LOCAL_FILE_JAR = "path/to/local/file.jar";

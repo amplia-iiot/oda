@@ -9,6 +9,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(EventPublisherProxy.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class EventPublisherProxyTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";

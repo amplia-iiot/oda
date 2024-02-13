@@ -4,6 +4,7 @@ import es.amplia.oda.hardware.udp.Activator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertNull;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class JavaUdpPacketTest {
 
 	private static final byte[] DATA_BYTES = {

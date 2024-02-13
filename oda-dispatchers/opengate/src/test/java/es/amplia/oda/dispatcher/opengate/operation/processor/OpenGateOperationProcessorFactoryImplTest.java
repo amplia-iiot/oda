@@ -11,6 +11,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(OpenGateOperationProcessorFactoryImpl.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class OpenGateOperationProcessorFactoryImplTest {
 
     @Mock

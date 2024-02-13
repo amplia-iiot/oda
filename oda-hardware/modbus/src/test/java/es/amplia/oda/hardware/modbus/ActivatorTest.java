@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Activator.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();

@@ -17,6 +17,7 @@
     <properties>
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
+        <argLine>--add-modules jdk.scripting.nashorn</argLine>
     </properties>
 
     <build>

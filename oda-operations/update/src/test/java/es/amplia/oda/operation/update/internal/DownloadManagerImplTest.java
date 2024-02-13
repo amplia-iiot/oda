@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ DownloadManagerImpl.class, HttpClientBuilder.class, DataInputStream.class })
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DownloadManagerImplTest {
 
     private static final String DOWNLOAD_FOLDER = "downloads/";

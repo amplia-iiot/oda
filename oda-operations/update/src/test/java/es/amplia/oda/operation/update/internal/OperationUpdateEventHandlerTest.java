@@ -11,6 +11,7 @@ import org.osgi.framework.Version;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ OperationUpdateEventHandler.class, DeploymentElement.class, Event.class })
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class OperationUpdateEventHandlerTest {
 
     private static final String TEST_BUNDLE = "testBundle";

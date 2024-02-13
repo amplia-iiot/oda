@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -18,6 +19,7 @@ import static org.mockito.Matchers.eq;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DatastreamsFactoryImpl.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DatastreamsFactoryImplTest {
 
 	private static final String TEST_DATASTREAM = "testDatastream";

@@ -92,11 +92,6 @@
             <artifactId>api</artifactId>
         </dependency>
         <dependency>
-            <groupId>es.amplia.oda.service</groupId>
-            <artifactId>jsonserializer</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>

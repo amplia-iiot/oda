@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.*;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({JdkDioGpioPin.class, GPIOPinConfig.class, GPIOPinConfig.Builder.class, JdkDioGpioPinFactory.class,
                      Files.class })
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class JdkDioGpioPinTest {
 
     private static final int TEST_INDEX = 1;

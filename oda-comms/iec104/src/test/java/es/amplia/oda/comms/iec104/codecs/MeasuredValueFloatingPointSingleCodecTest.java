@@ -11,6 +11,7 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueShortFlo
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -20,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MeasuredValueFloatingPointSingleCodec.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class MeasuredValueFloatingPointSingleCodecTest {
 
 	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};

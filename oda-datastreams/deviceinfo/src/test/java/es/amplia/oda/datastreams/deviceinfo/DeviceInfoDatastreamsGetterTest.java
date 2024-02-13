@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -31,6 +32,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DeviceInfoDatastreamsGetter.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class DeviceInfoDatastreamsGetterTest {
 
     private static final String A_DEVICE_ID = "aDeviceId";

@@ -16,6 +16,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.event.Event;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ConfigurableBundleImpl.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class ConfigurableBundleTest {
 
     private static final String EXPECTED_UPDATED_TOPIC = CONFIGURATION_EVENT_BASE_TOPIC + CONFIGURATION_UPDATED_EVENT;

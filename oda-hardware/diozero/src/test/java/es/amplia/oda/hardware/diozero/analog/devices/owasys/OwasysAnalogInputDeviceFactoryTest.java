@@ -8,6 +8,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -21,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(OwasysAnalogInputDeviceFactory.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class OwasysAnalogInputDeviceFactoryTest {
 	private static final String OWA_ANA_INP_NAME_1 = "ADC1";
 	private static final String OWA_ANA_INP_NAME_2 = "ADC2";

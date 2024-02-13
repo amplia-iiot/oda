@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -33,6 +34,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Iec104CacheTest.class)
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class Iec104CacheTest {
 	private final Iec104Cache testCache = new Iec104Cache();
 	private static Map<String, Map<Integer, Iec104CacheValue>> cache;
