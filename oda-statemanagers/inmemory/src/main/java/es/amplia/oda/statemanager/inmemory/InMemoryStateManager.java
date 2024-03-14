@@ -61,6 +61,27 @@ public class InMemoryStateManager implements StateManager {
     }
 
     @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId) {
+        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        return CompletableFuture.completedFuture(state.getAllValues(deviceId, datastreamId).stream().collect(Collectors.toSet()));
+    }
+
+    @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformationByAt(String deviceId, String datastreamId) {
+        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        return CompletableFuture.completedFuture(state.getAllValues(deviceId, datastreamId).stream()
+                    .sorted(new Comparator<DatastreamValue>() {
+                        @Override
+                        public int compare(DatastreamValue o1, DatastreamValue o2) {
+                            if (o1.getAt() == o2.getAt()) return 0;
+                            else if (o1.getAt() < o2.getAt()) return -1;
+                            else return 1;
+                        }
+                    })
+                    .collect(Collectors.toSet()));
+    }
+
+    @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
         LOGGER.info("Get datastream info for device {} and datastreams {}", deviceId, datastreamIds);
         return CompletableFuture.completedFuture(datastreamIds.stream()

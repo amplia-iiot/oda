@@ -40,6 +40,18 @@ class RealTimeStateManager implements StateManager {
     }
 
     @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId) {
+        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        return getDatastreamsInformation(deviceId, Collections.singleton(datastreamId));
+    }
+
+    @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformationByAt(String deviceId, String datastreamId) {
+        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        return getDatastreamsInformation(deviceId, Collections.singleton(datastreamId));
+    }
+
+    @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
         LOGGER.debug("Getting values for device '{}': {}", deviceId, datastreamIds);
 

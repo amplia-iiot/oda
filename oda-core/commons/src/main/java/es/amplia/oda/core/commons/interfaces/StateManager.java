@@ -11,6 +11,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface StateManager extends AutoCloseable {
     CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId);
+    CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId);
+    CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformationByAt(String deviceId, String datastreamId);
     CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds);
     CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId);
     CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamId);
