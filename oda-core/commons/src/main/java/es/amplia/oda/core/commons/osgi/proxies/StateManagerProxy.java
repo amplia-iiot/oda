@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-public class StateManagerProxy implements StateManager, AutoCloseable {
+public class StateManagerProxy implements StateManager {
 
     private final OsgiServiceProxy<StateManager> proxy;
 
@@ -22,6 +22,16 @@ public class StateManagerProxy implements StateManager, AutoCloseable {
     @Override
     public CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId) {
         return proxy.callFirst(stateManager -> stateManager.getDatastreamInformation(deviceId, datastreamId));
+    }
+
+    @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId) {
+        return proxy.callFirst(stateManager -> stateManager.getAllDatastreamsInformation(deviceId, datastreamId));
+    }
+
+    @Override
+    public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformationByAt(String deviceId, String datastreamId) {
+        return proxy.callFirst(stateManager -> stateManager.getAllDatastreamsInformationByAt(deviceId, datastreamId));
     }
 
     @Override
