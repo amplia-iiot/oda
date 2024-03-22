@@ -3,6 +3,8 @@ package es.amplia.oda.comms.mqtt.paho;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 
+import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -27,11 +29,14 @@ public class MqttPahoMessageListenerTest {
 
     @Mock
     private MqttMessageListener mockedInnerListener;
+    @Mock
+    private IMqttClient mockedInnerMqttClient;
     @InjectMocks
     private MqttPahoMessageListener testListener;
 
+
     @Test
-    public void testMessageArrived() {
+    public void testMessageArrived() throws MqttException {
         org.eclipse.paho.client.mqttv3.MqttMessage testMessage =
                 new org.eclipse.paho.client.mqttv3.MqttMessage(TEST_PAYLOAD);
         testMessage.setQos(TEST_QOS);
@@ -41,6 +46,7 @@ public class MqttPahoMessageListenerTest {
         testListener.messageArrived(TEST_TOPIC, testMessage);
 
         verify(mockedInnerListener).messageArrived(eq(TEST_TOPIC), messageCaptor.capture());
+        verify(mockedInnerMqttClient).messageArrivedComplete(testMessage.getId(),TEST_QOS);
         MqttMessage createdMessage = messageCaptor.getValue();
         assertArrayEquals(TEST_PAYLOAD, createdMessage.getPayload());
         assertEquals(TEST_QOS, createdMessage.getQos());

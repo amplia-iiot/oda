@@ -18,6 +18,8 @@ class MqttPahoClient implements MqttClient {
     MqttPahoClient(IMqttClient innerClient, ResubscribeTopicsOnReconnectCallback resubscribedTopicsCallback) {
         this.innerClient = innerClient;
         this.resubscribeTopicsOnReconnectCallback = resubscribedTopicsCallback;
+        // set client to don't send ACKs automatically
+        innerClient.setManualAcks(true);
     }
 
     @Override
@@ -59,7 +61,7 @@ class MqttPahoClient implements MqttClient {
     @Override
     public void subscribe(String topic, MqttMessageListener listener) {
         try {
-            IMqttMessageListener pahoListener = new MqttPahoMessageListener(listener);
+            IMqttMessageListener pahoListener = new MqttPahoMessageListener(listener, innerClient);
             innerClient.subscribe(topic, pahoListener);
             resubscribeTopicsOnReconnectCallback.addSubscribedTopic(topic, pahoListener);
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
