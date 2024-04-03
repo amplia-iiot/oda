@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
@@ -30,10 +31,11 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
     private final String responseTopic;
     private final DeviceInfoProviderProxy deviceInfoProvider;
     private final ResponseDispatcher responseDispatcher;
+    private final HashSet<String> nextLevelOdaIds;
 
 
     MqttDatastreamsEvent(EventPublisher eventPublisher, MqttClient mqttClient, Serializer serializer, String eventTopic,
-                        DeviceInfoProviderProxy deviceInfoProvider, String responseTopic, ResponseDispatcher respDispatcher) {
+                        DeviceInfoProviderProxy deviceInfoProvider, String responseTopic, ResponseDispatcher respDispatcher, HashSet<String> odaList) {
         super(eventPublisher);
         this.mqttClient = mqttClient;
         this.serializer = serializer;
@@ -41,6 +43,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         this.responseTopic = responseTopic;
         this.responseDispatcher = respDispatcher;
         this.deviceInfoProvider = deviceInfoProvider;
+        this.nextLevelOdaIds = odaList;
         registerToEventSource();
     }
 
@@ -72,7 +75,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                     events.put(ds.getId(), eventsByFeed);
                 });
 
-                String[] path = addDeviceIdToPath(event.getPath());
+                String[] path = addDeviceIdToPath(event.getPath(), deviceId);
                 LOGGER.info("Sending event {} for device {} and path {}", events, deviceId, path);
                 publish(deviceId, Arrays.asList(path), events); // Añadir deviceId del ODA al path
 
@@ -96,7 +99,8 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
 
                 String[] path = resp.getOperation().getResponse().getPath();
-                resp.getOperation().getResponse().setPath(addDeviceIdToPath(path));
+                String deviceId = resp.getOperation().getResponse().getDeviceId();
+                resp.getOperation().getResponse().setPath(addDeviceIdToPath(path, deviceId));
                 LOGGER.info("Sending response {}", resp);
                 responseDispatcher.publishResponse(resp);
 
@@ -106,16 +110,20 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         }
     }
 
-    private String[] addDeviceIdToPath(String[] path) {
+    private String[] addDeviceIdToPath(String[] path, String deviceId) {
         String[] newPath;
         String ODAid = deviceInfoProvider.getDeviceId();
+        String nextODAid = deviceId;
         if ( (path == null) || (path.length == 0) ) {
             newPath = new String[1];
         } else {
             newPath = new String[path.length+1];
             System.arraycopy(path, 0, newPath, 1, path.length);
+            nextODAid = path[0];
         }
         newPath[0] = ODAid;
+        // Añadimos el deviceId del ODA del nivel anterior a la lista para registrarlo
+        this.nextLevelOdaIds.add(nextODAid);
         return newPath;
     }
 

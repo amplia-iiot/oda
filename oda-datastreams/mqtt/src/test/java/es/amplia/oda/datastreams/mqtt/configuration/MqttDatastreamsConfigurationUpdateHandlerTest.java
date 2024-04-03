@@ -27,6 +27,7 @@ public class MqttDatastreamsConfigurationUpdateHandlerTest {
     private static final String TEST_EVENT_TOPIC = "test/event";
     private static final String TEST_REQUEST_TOPIC = "test/request";
     private static final String TEST_RESPONSE_TOPIC = "test/response";
+    private static final String TEST_ODA_LIST = "oda1,oda2";
     private static final int TEST_QOS = 1;
     private static final boolean TEST_RETAINED = false;
     private static final MqttDatastreamsConfiguration TEST_CONFIGURATION =
@@ -47,6 +48,8 @@ public class MqttDatastreamsConfigurationUpdateHandlerTest {
         props.put(EVENT_TOPIC_PROPERTY_NAME, TEST_EVENT_TOPIC);
         props.put(REQUEST_TOPIC_PROPERTY_NAME, TEST_REQUEST_TOPIC);
         props.put(RESPONSE_TOPIC_PROPERTY_NAME, TEST_RESPONSE_TOPIC);
+        props.put(NEXT_LEVEL_ODA_LIST_PROPERTY_NAME, TEST_ODA_LIST);
+        TEST_CONFIGURATION.setNextLevelOdaIds(Arrays.asList("oda1", "oda2"));
 
         testConfigHandler.loadConfiguration(props);
 

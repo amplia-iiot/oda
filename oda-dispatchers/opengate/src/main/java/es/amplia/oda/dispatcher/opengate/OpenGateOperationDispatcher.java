@@ -68,7 +68,8 @@ class OpenGateOperationDispatcher implements Dispatcher {
             OperationRequest<Object> basicOperation = serializerProvider.getSerializer(contentType).deserialize(input, OperationRequest.class);
             LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
             String[] path = basicOperation.getOperation().getRequest().getPath();
-            if ( (path != null) && (path.length > 0) ) {
+            String deviceId = basicOperation.getOperation().getRequest().getDeviceId();
+            if ( (path != null) && (path.length > 0) && operationSender.isForNextLevel(path, deviceId)) {
                 LOGGER.info("Sending operation to level down: {}", basicOperation);
                 operationSender.downlink((OperationRequest<Object>)basicOperation);
                 return null;

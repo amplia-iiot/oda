@@ -5,5 +5,6 @@ import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
 public interface OperationSender {
 
     void downlink(OperationRequest<Object> operation);
+    boolean isForNextLevel(String[] path, String deviceId);
 
 }

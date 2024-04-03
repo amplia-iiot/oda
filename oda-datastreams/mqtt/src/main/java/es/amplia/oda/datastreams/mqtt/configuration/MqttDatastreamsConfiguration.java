@@ -1,5 +1,7 @@
 package es.amplia.oda.datastreams.mqtt.configuration;
 
+import java.util.List;
+
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyStoreType;
 import lombok.Data;
 import lombok.Setter;
@@ -20,4 +22,5 @@ public class MqttDatastreamsConfiguration {
     @Setter private String trustStore = null;
     @Setter private KeyStoreType trustStoreType = null;
     @Setter private char[] trustStorePassword = null;
+    @Setter private List<String> nextLevelOdaIds = null;
 }

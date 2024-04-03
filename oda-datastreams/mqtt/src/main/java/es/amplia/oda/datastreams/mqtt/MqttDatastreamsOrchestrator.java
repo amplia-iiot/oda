@@ -13,6 +13,8 @@ import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
 import es.amplia.oda.event.api.ResponseDispatcher;
 
+import java.util.HashSet;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
@@ -52,8 +54,10 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
         MqttConnectOptionsBuilder options = MqttConnectOptions.builder(configuration.getClientId(), configuration.getPassword().toCharArray());
         if (configuration.getKeyStore() != null) options.ssl(configuration.getKeyStore(), configuration.getKeyStorePassword(), configuration.getTrustStore(), configuration.getTrustStorePassword());
         mqttClient.connect(options.build());
-        mqttDatastreamsEvent = new MqttDatastreamsEvent(eventPublisher, mqttClient, serializer, configuration.getEventTopic(), deviceInfoProvider, configuration.getResponseTopic(), responseDispatcher);
-        MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained());
+        HashSet<String> odaList = new HashSet<>();
+        if (configuration.getNextLevelOdaIds() != null) odaList.addAll(configuration.getNextLevelOdaIds());
+        mqttDatastreamsEvent = new MqttDatastreamsEvent(eventPublisher, mqttClient, serializer, configuration.getEventTopic(), deviceInfoProvider, configuration.getResponseTopic(), responseDispatcher, odaList);
+        MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained(), odaList);
         this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
         this.ready = true;
     }

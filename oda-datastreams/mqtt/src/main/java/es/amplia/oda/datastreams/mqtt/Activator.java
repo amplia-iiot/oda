@@ -10,7 +10,6 @@ import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
-import es.amplia.oda.event.api.ResponseDispatcher;
 import es.amplia.oda.event.api.ResponseDispatcherProxy;
 
 import org.osgi.framework.BundleActivator;

@@ -5,6 +5,7 @@ import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
+import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -24,6 +26,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
+
+import java.util.HashSet;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MqttDatastreamsOrchestrator.class)
@@ -41,6 +45,9 @@ public class MqttDatastreamsOrchestratorTest {
                                                                                                             TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED);
     private static final String MQTT_CLIENT_FIELD_NAME = "mqttClient";
     private static final String MQTT_DATASTREAMS_EVENT_FIELD_NAME = "mqttDatastreamsEvent";
+    private static final String OP_SENDER_REG_FIELD_NAME = "mqttOperationSenderRegistration";
+
+    private static final HashSet<String> TEST_EMPTY_SET = new HashSet<>();
 
     @Mock
     private MqttClientFactory mockedMqttClientFactory;
@@ -58,6 +65,10 @@ public class MqttDatastreamsOrchestratorTest {
     @Mock
     private MqttDatastreamsEvent mockedEvent;
     @Mock
+    private MqttOperationSender mockedOpSender;
+    @Mock
+    private ServiceRegistration<OperationSender> mockedOpSendRegistration;
+    @Mock
     private ResponseDispatcher mockedResponseDispatcher;
     @Mock
     private BundleContext mockedContext;
@@ -72,39 +83,47 @@ public class MqttDatastreamsOrchestratorTest {
     public void testLoadConfiguration() throws Exception {
         when(mockedMqttClientFactory.createMqttClient(anyString(), anyString())).thenReturn(mockedClient);
         PowerMockito.whenNew(MqttDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
+        PowerMockito.whenNew(MqttOperationSender.class).withAnyArguments().thenReturn(mockedOpSender);
 
         testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
 
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
         verify(mockedClient).connect(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build());
-        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher));
+        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
+        PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
     }
 
     @Test
     public void testLoadConfigurationWithOldConfiguration() throws Exception {
         Whitebox.setInternalState(testOrchestrator, MQTT_CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testOrchestrator, MQTT_DATASTREAMS_EVENT_FIELD_NAME, mockedEvent);
+        Whitebox.setInternalState(testOrchestrator, OP_SENDER_REG_FIELD_NAME, mockedOpSendRegistration);
 
         when(mockedMqttClientFactory.createMqttClient(anyString(), anyString())).thenReturn(mockedClient);
         PowerMockito.whenNew(MqttDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
+        PowerMockito.whenNew(MqttOperationSender.class).withAnyArguments().thenReturn(mockedOpSender);
 
         testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
 
         verify(mockedEvent).unregisterFromEventSource();
+        verify(mockedOpSendRegistration).unregister();
         verify(mockedClient).disconnect();
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
         verify(mockedClient).connect(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build());
-        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher));
+        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
+        PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
     }
 
     @Test
     public void testClose() throws MqttException {
         Whitebox.setInternalState(testOrchestrator, MQTT_CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testOrchestrator, MQTT_DATASTREAMS_EVENT_FIELD_NAME, mockedEvent);
+        Whitebox.setInternalState(testOrchestrator, OP_SENDER_REG_FIELD_NAME, mockedOpSendRegistration);
 
         testOrchestrator.close();
 
         verify(mockedEvent).unregisterFromEventSource();
+        verify(mockedOpSendRegistration).unregister();
         verify(mockedClient).disconnect();
     }
 
@@ -112,12 +131,14 @@ public class MqttDatastreamsOrchestratorTest {
     public void testCloseMqttExceptionIsCaught() throws MqttException {
         Whitebox.setInternalState(testOrchestrator, MQTT_CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testOrchestrator, MQTT_DATASTREAMS_EVENT_FIELD_NAME, mockedEvent);
+        Whitebox.setInternalState(testOrchestrator, OP_SENDER_REG_FIELD_NAME, mockedOpSendRegistration);
 
         doThrow(new MqttException("")).when(mockedClient).disconnect();
 
         testOrchestrator.close();
 
         verify(mockedEvent).unregisterFromEventSource();
+        verify(mockedOpSendRegistration).unregister();
         verify(mockedClient).disconnect();
     }
 }
