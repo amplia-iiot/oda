@@ -28,6 +28,7 @@ public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationU
     static final String TRUST_STORE_PATH_PROPERTY_NAME = "trustStore.path";
     static final String TRUST_STORE_TYPE_PROPERTY_NAME = "trustStore.type";
     static final String TRUST_STORE_PASS_PROPERTY_NAME = "trustStore.password";
+    static final String NEXT_LEVEL_ODA_LIST_PROPERTY_NAME = "nextLevel.odaIds";
 
     static final int DEFAULT_QOS = 1;
     static final boolean DEFAULT_RETAINED = false;
@@ -83,6 +84,12 @@ public class MqttDatastreamsConfigurationUpdateHandler implements ConfigurationU
             currentConfiguration.setTrustStorePassword(trustStorePwd.get());
             currentConfiguration.setTrustStoreType(trustStoreType.orElse(SslOptions.DEFAULT_KEY_STORE_TYPE));
         }
+
+        // List of next level ODA identifiers
+        Optional<String> odaList = Optional.ofNullable((String) props.get(NEXT_LEVEL_ODA_LIST_PROPERTY_NAME));
+        odaList.ifPresent(list -> {
+            String[] array = list.split(",");
+            currentConfiguration.setNextLevelOdaIds(Arrays.asList(array));});
 
         LOGGER.info("New configuration loaded");
     }

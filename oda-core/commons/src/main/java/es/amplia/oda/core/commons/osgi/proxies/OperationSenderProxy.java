@@ -1,5 +1,7 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
+import java.util.Optional;
+
 import org.osgi.framework.BundleContext;
 
 import es.amplia.oda.core.commons.interfaces.OperationSender;
@@ -16,6 +18,11 @@ public class OperationSenderProxy implements OperationSender, AutoCloseable{
     @Override
     public void downlink(OperationRequest<Object> operation) {
         proxy.consumeFirst(sender -> sender.downlink(operation));
+    }
+
+    @Override
+    public boolean isForNextLevel(String[] path, String deviceId) {
+        return Optional.ofNullable(proxy.callFirst(sender -> sender.isForNextLevel(path, deviceId))).orElse(false);
     }
 
     @Override

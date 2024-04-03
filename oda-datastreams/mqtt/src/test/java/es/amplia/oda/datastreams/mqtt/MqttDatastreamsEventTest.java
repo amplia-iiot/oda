@@ -58,7 +58,7 @@ public class MqttDatastreamsEventTest {
 
     @Before
     public void setUp() throws MqttException {
-        testHandler = new MqttDatastreamsEvent(mockedEventPublisher, mockedClient, mockedSerializer, TEST_EVENT_TOPIC, mockedDeviceInfoProvider, TEST_RRESPONSE_TOPIC, mockedResponseDispatcher);
+        testHandler = new MqttDatastreamsEvent(mockedEventPublisher, mockedClient, mockedSerializer, TEST_EVENT_TOPIC, mockedDeviceInfoProvider, TEST_RRESPONSE_TOPIC, mockedResponseDispatcher, null);
     }
 
     @Test
