@@ -21,7 +21,7 @@
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.7.5</version>
+        <version>4.7.6-SNAPSHOT</version>
     </parent>
 
     <properties>
