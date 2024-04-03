@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -14,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -61,7 +61,7 @@ public class RulesDirectoryWatcherTest {
 	}
 
 	@Test
-	public void testThreadCreateEvent() throws InterruptedException, IOException {
+	public void testThreadCreateEvent() throws IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
@@ -70,14 +70,13 @@ public class RulesDirectoryWatcherTest {
 		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
-		TimeUnit.MILLISECONDS.sleep(500);
-		verify(mockedEngine).createRule(testRoute + "/tempDir.js");
+		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).createRule(testRoute + "/tempDir.js");
 
 		fileToCreate.delete();
 	}
 
 	@Test
-	public void testThreadDeleteEvent() throws InterruptedException, IOException {
+	public void testThreadDeleteEvent() throws IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
@@ -87,8 +86,7 @@ public class RulesDirectoryWatcherTest {
 		testDirectoryWatcher.start();
 		fileToCreate.delete();
 
-		TimeUnit.MILLISECONDS.sleep(500);
-		verify(mockedEngine).deleteRule(testRoute + "/tempDir.js");
+		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).deleteRule(testRoute + "/tempDir.js");
 	}
 
 	@Test

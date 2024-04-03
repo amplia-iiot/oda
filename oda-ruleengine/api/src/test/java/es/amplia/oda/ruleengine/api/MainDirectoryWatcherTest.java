@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -14,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -58,7 +58,7 @@ public class MainDirectoryWatcherTest {
 	}
 
 	@Test
-	public void testThreadCreateEvent() throws InterruptedException, IOException {
+	public void testThreadCreateEvent() throws IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new MainDirectoryWatcher(Paths.get(testRoute), mockedEngine);
@@ -67,14 +67,13 @@ public class MainDirectoryWatcherTest {
 		File fileToCreate = new File(testRoute + "/tempDir");
 		fileToCreate.createNewFile();
 
-		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).createDatastreamDirectory("tempDir");
+		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).createDatastreamDirectory("tempDir");
 
 		fileToCreate.delete();
 	}
 
 	@Test
-	public void testThreadDeleteEvent() throws InterruptedException, IOException {
+	public void testThreadDeleteEvent() throws IOException {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new MainDirectoryWatcher(Paths.get(testRoute), mockedEngine);
@@ -84,8 +83,7 @@ public class MainDirectoryWatcherTest {
 		testDirectoryWatcher.start();
 		fileToCreate.delete();
 
-		TimeUnit.MILLISECONDS.sleep(100);
-		verify(mockedEngine).deleteDatastreamDirectory("tempDir");
+		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).deleteDatastreamDirectory("tempDir");
 	}
 
 	@Test
