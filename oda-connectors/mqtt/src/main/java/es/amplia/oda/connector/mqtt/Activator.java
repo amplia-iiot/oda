@@ -54,7 +54,7 @@ public class Activator implements BundleActivator {
     }
 
     void onServiceChanged(ConfigurationUpdateHandlerImpl configHandler) {
-        LOGGER.info("Device Info provider service changed. Reapplying last MQTT connector configuration");
+        LOGGER.info("Reapplying last MQTT connector configuration");
         try {
             configHandler.reapplyConfiguration();
             LOGGER.info("Last MQTT connector configuration reapplied");

@@ -51,10 +51,16 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     }
 
     private void connect(ConnectorConfiguration configuration) {
+        if (client.isConnected()) {
+            LOGGER.info("Client already connected");
+            cancelFutureConnection();
+            return;
+        }
+
         try {
             client.connect(configuration.getConnectOptions());
             client.subscribe(configuration.getRequestTopic(), this);
-            scheduledFuture.cancel(false);
+            cancelFutureConnection();
             LOGGER.info("Reconnected to {} as {} for topic {}", configuration.getBrokerUrl(),
                     configuration.getClientId(), configuration.getRequestTopic());
         } catch (MqttException e) {
@@ -125,9 +131,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     @Override
     public void close() {
-        if (scheduledFuture != null) {
-            scheduledFuture.cancel(false);
-        }
+        cancelFutureConnection();
+
         if (client == null) {
             return;
         }
@@ -151,4 +156,9 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         return this.maxLength;
     }
 
+    private void cancelFutureConnection(){
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+        }
+    }
 }
