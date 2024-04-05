@@ -9,8 +9,11 @@ import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.*;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.Dictionary;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -107,7 +110,9 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
             String brokerUrl = getBrokerUrl(host, port, securePort, secureConnection);
 
             // Get MQTT options
-            MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey);
+            MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey, secureConnection);
+
+            LOGGER.info("MqttOptions = {}", mqttConnectOptions);
 
             // Topics and messages configuration
             String iotTopic = getTopicFromProperties(props, IOT_TOPIC_PROPERTY_NAME, deviceId);
@@ -132,7 +137,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                     .orElse(DEFAULT_MAX_LENGTH);
 
             currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
-                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay, maxLength == DEFAULT_MAX_LENGTH?false:true, maxLength);
+                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay, maxLength != DEFAULT_MAX_LENGTH, maxLength);
         } catch (IllegalArgumentException e) {
             throw new ConfigurationException("Error parsing configuration properties: " + e.getMessage());
         }
@@ -141,11 +146,11 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     }
 
     private MqttConnectOptions getMqttConnectOptionsConfiguration(Dictionary<String, ?> props, String deviceId,
-                                                                  String apiKey) {
+                                                                  String apiKey, boolean secureConnection) {
         MqttConnectOptionsBuilder optionsBuilder = MqttConnectOptions.builder(deviceId, apiKey.toCharArray());
         getConnectionConfiguration(props, optionsBuilder);
         getWillOptionalConfiguration(props, deviceId, optionsBuilder);
-        getSslOptionalConfiguration(props, optionsBuilder);
+        getSslOptionalConfiguration(props, optionsBuilder, secureConnection);
         return optionsBuilder.build();
     }
 
@@ -194,7 +199,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
         }
     }
 
-    private void getSslOptionalConfiguration(Dictionary<String, ?> props, MqttConnectOptionsBuilder optionsBuilder) {
+    private void getSslOptionalConfiguration(Dictionary<String, ?> props, MqttConnectOptionsBuilder optionsBuilder, boolean secureConnection) {
+
+        if (!secureConnection) {
+            return;
+        }
+
         Optional<String> keyStore = Optional.ofNullable((String) props.get(KEY_STORE_PATH_PROPERTY_NAME));
         Optional<KeyStoreType> keyStoreType =
                 Optional.ofNullable((String) props.get(KEY_STORE_TYPE_PROPERTY_NAME))
@@ -223,6 +233,16 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                     trustStore.get(), trustStoreType.orElse(SslOptions.DEFAULT_KEY_STORE_TYPE),
                     trustStorePwd.get(),
                     trustManagerAlgorithm.orElse(KeyManagerAlgorithm.from(KeyManagerFactory.getDefaultAlgorithm())));
+        }
+        else{
+            // if we want to securize connection but don't indicate trustore and keystore, create empty trusstore to accept all ssl certificates
+            LOGGER.info("Secure = true but no trustore specified, using empty trustore to accept all certificates");
+            try {
+                SSLContext sslContext = createEmptyTrustore();
+                optionsBuilder.ssl(sslContext.getSocketFactory());
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -272,5 +292,25 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
             loadConfiguration(lastProperties);
             applyConfiguration();
         }
+    }
+
+    private SSLContext createEmptyTrustore() throws KeyManagementException, NoSuchAlgorithmException {
+        TrustManager trm = new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        };
+
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, new TrustManager[] { trm }, null);
+
+        return sc;
     }
 }

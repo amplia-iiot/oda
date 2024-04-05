@@ -2,6 +2,7 @@ package es.amplia.oda.comms.mqtt.api;
 
 import lombok.*;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import java.util.Objects;
 
@@ -86,28 +87,31 @@ public class MqttConnectOptions {
 
         String keyStore;
         KeyStoreType keyStoreType;
-        @NonNull char[] keyStorePassword;
+        char[] keyStorePassword;
         KeyManagerAlgorithm keyManagerFactoryAlgorithm;
         String trustStore;
         KeyStoreType trustStoreType;
-        @NonNull char[] trustStorePassword;
+        char[] trustStorePassword;
         KeyManagerAlgorithm trustManagerFactoryAlgorithm;
+        SocketFactory sslSocketFactory;
 
         SslOptions(String keyStore, KeyStoreType keyStoreType, char[] keyStorePassword,
                    KeyManagerAlgorithm keyManagerFactoryAlgorithm, String trustStore, KeyStoreType trustStoreType,
-                   char[] trustStorePassword, KeyManagerAlgorithm trustManagerFactoryAlgorithm) {
+                   char[] trustStorePassword, KeyManagerAlgorithm trustManagerFactoryAlgorithm,
+                   SocketFactory socketFactory) {
             this.keyStore = keyStore;
             this.keyStoreType = keyStoreType;
-            this.keyStorePassword = keyStorePassword.clone();
+            this.keyStorePassword = keyStorePassword!=null ? keyStorePassword.clone() : null;
             this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
             this.trustStore = trustStore;
             this.trustStoreType = trustStoreType;
-            this.trustStorePassword = trustStorePassword.clone();
+            this.trustStorePassword = trustStorePassword!= null ? trustStorePassword.clone() : null;
             this.trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm;
+            this.sslSocketFactory = socketFactory;
         }
 
         public char[] getTrustStorePassword() {
-            return trustStorePassword.clone();
+            return trustStorePassword!= null ? trustStorePassword.clone() : null;
         }
     }
 
@@ -206,7 +210,14 @@ public class MqttConnectOptions {
             Objects.requireNonNull(keyStorePassword, "Key Store password must not be null");
             Objects.requireNonNull(trustStorePassword, "Trust Store password must not be null");
             this.ssl = new SslOptions(keyStore, keyStoreType, keyStorePassword, keyManagerAlgorithm, trustStore,
-                    trustStoreType, trustStorePassword, trustManagerAlgorithm);
+                    trustStoreType, trustStorePassword, trustManagerAlgorithm, null);
+            return this;
+        }
+
+        public MqttConnectOptionsBuilder ssl(SocketFactory socketFactory) {
+            this.ssl = new SslOptions(null, null, null,
+                    null, null, null, null,
+                    null, socketFactory);
             return this;
         }
 

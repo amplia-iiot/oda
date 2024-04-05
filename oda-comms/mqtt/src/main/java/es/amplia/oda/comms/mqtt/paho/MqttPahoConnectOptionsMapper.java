@@ -10,6 +10,8 @@ import java.util.Properties;
 
 import org.eclipse.paho.client.mqttv3.internal.security.SSLSocketFactoryFactory;
 
+import javax.net.SocketFactory;
+
 //import static es.amplia.oda.comms.mqtt.api.MqttConnectOptions.*;
 
 class MqttPahoConnectOptionsMapper {
@@ -61,16 +63,22 @@ class MqttPahoConnectOptionsMapper {
                                           org.eclipse.paho.client.mqttv3.MqttConnectOptions pahoOptions) {
         Optional<SslOptions> sslOptions = Optional.ofNullable(options.getSsl());
         sslOptions.ifPresent(ssl -> {
-            Properties sslProperties = new Properties();
-            sslProperties.put(SSLSocketFactoryFactory.KEYSTORE, ssl.getKeyStore());
-            sslProperties.put(SSLSocketFactoryFactory.KEYSTORETYPE, ssl.getKeyStoreType());
-            sslProperties.put(SSLSocketFactoryFactory.KEYSTOREPWD, ssl.getKeyStorePassword());
-            //sslProperties.put(SYSKEYMGRALGO, ssl.getKeyManagerFactoryAlgorithm());
-            sslProperties.put(SSLSocketFactoryFactory.TRUSTSTORE, ssl.getTrustStore());
-            sslProperties.put(SSLSocketFactoryFactory.TRUSTSTORETYPE, ssl.getTrustStoreType());
-            sslProperties.put(SSLSocketFactoryFactory.TRUSTSTOREPWD, ssl.getTrustStorePassword());
-            //sslProperties.put(SYSTRUSTMGRALGO, ssl.getTrustManagerFactoryAlgorithm());
-            pahoOptions.setSSLProperties(sslProperties);
+
+            SocketFactory sslSocketFactory = ssl.getSslSocketFactory();
+            if (sslSocketFactory != null) {
+                pahoOptions.setSocketFactory(sslSocketFactory);
+            } else {
+                Properties sslProperties = new Properties();
+                sslProperties.put(SSLSocketFactoryFactory.KEYSTORE, ssl.getKeyStore());
+                sslProperties.put(SSLSocketFactoryFactory.KEYSTORETYPE, ssl.getKeyStoreType());
+                sslProperties.put(SSLSocketFactoryFactory.KEYSTOREPWD, ssl.getKeyStorePassword());
+                //sslProperties.put(SYSKEYMGRALGO, ssl.getKeyManagerFactoryAlgorithm());
+                sslProperties.put(SSLSocketFactoryFactory.TRUSTSTORE, ssl.getTrustStore());
+                sslProperties.put(SSLSocketFactoryFactory.TRUSTSTORETYPE, ssl.getTrustStoreType());
+                sslProperties.put(SSLSocketFactoryFactory.TRUSTSTOREPWD, ssl.getTrustStorePassword());
+                //sslProperties.put(SYSTRUSTMGRALGO, ssl.getTrustManagerFactoryAlgorithm());
+                pahoOptions.setSSLProperties(sslProperties);
+            }
         });
     }
 }

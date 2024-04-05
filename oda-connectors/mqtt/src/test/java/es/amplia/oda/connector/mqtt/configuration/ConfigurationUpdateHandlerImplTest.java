@@ -8,6 +8,7 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.connector.mqtt.MqttConnector;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -21,10 +22,9 @@ import java.util.UUID;
 
 import static es.amplia.oda.connector.mqtt.configuration.ConfigurationUpdateHandlerImpl.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ConfigurationUpdateHandlerImplTest {
@@ -79,7 +79,7 @@ public class ConfigurationUpdateHandlerImplTest {
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
         testProperties.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         testProperties.put(SECURE_PORT_PROPERTY_NAME, Integer.toString(TEST_SECURE_PORT));
-        testProperties.put(SECURE_CONNECTION_PROPERTY_NAME, Boolean.toString(false));
+        testProperties.put(SECURE_CONNECTION_PROPERTY_NAME, Boolean.toString(true));
         testProperties.put(MQTT_VERSION_PROPERTY_NAME, TEST_MQTT_VERSION.toString());
         testProperties.put(KEEP_ALIVE_INTERVAL_PROPERTY_NAME, Integer.toString(TEST_KEEP_ALIVE_INTERVAL));
         testProperties.put(MAX_IN_FLIGHT_PROPERTY_NAME, Integer.toString(TEST_MAX_IN_FLIGHT));
@@ -119,7 +119,7 @@ public class ConfigurationUpdateHandlerImplTest {
                                 TEST_TRUST_MANAGER_ALGORITHM)
                         .build();
         ConnectorConfiguration expectedConfiguration =
-                new ConnectorConfiguration(TEST_BROKER_URL, TEST_DEVICE_ID, expectedOptions,
+                new ConnectorConfiguration(TEST_BROKER_SECURE_URL, TEST_DEVICE_ID, expectedOptions,
                         getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
                         getExpectedTopic(TEST_RESPONSE_TOPIC), TEST_QOS, TEST_RETAINED, TEST_CONNECTION_INITIAL_DELAY,
                         TEST_CONNECTION_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
@@ -160,10 +160,58 @@ public class ConfigurationUpdateHandlerImplTest {
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedDeviceInfoProvider).getApiKey();
         assertEquals(expectedConfiguration, Whitebox.getInternalState(testConfigHandler, "currentConfiguration"));
+
     }
 
     @Test
-    public void testLoadSecureConfiguration() {
+    public void testLoadSecureConfigurationWithTrustore() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
+        testProperties.put(SECURE_PORT_PROPERTY_NAME, Integer.toString(TEST_SECURE_PORT));
+        testProperties.put(SECURE_CONNECTION_PROPERTY_NAME, Boolean.toString(true));
+        testProperties.put(IOT_TOPIC_PROPERTY_NAME, TEST_IOT_TOPIC);
+        testProperties.put(REQUEST_TOPIC_PROPERTY_NAME, TEST_REQUEST_TOPIC);
+        testProperties.put(RESPONSE_TOPIC_PROPERTY_NAME, TEST_RESPONSE_TOPIC);
+        testProperties.put(KEY_STORE_PATH_PROPERTY_NAME, TEST_KEY_STORE_PATH);
+        testProperties.put(KEY_STORE_PASS_PROPERTY_NAME, new String(TEST_KEY_STORE_P));
+        testProperties.put(TRUST_STORE_PATH_PROPERTY_NAME, TEST_TRUST_STORE_PATH);
+        testProperties.put(TRUST_STORE_PASS_PROPERTY_NAME, new String(TEST_TRUST_STORE_P));
+        testProperties.put(TRUST_MANAGER_ALGORITHM_PROPERTY_NAME, TEST_TRUST_MANAGER_ALGORITHM.toString());
+        MqttConnectOptions expectedOptions = MqttConnectOptions.builder(TEST_DEVICE_ID, TEST_API_KEY).build();
+        ConnectorConfiguration expectedConfiguration =
+                new ConnectorConfiguration(TEST_BROKER_SECURE_URL, TEST_DEVICE_ID, expectedOptions,
+                        getExpectedTopic(TEST_IOT_TOPIC), getExpectedTopic(TEST_REQUEST_TOPIC),
+                        getExpectedTopic(TEST_RESPONSE_TOPIC), DEFAULT_QOS, DEFAULT_RETAINED, DEFAULT_INITIAL_DELAY,
+                        DEFAULT_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
+
+        when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        verify(mockedDeviceInfoProvider).getDeviceId();
+        verify(mockedDeviceInfoProvider).getApiKey();
+
+        ConnectorConfiguration currentConfiguration = (ConnectorConfiguration) Whitebox.getInternalState(testConfigHandler, "currentConfiguration");
+        assertEquals(expectedConfiguration.getBrokerUrl(), currentConfiguration.getBrokerUrl());
+        assertEquals(expectedConfiguration.getClientId(), currentConfiguration.getClientId());
+        assertEquals(expectedConfiguration.getIotTopic(), currentConfiguration.getIotTopic());
+        assertEquals(expectedConfiguration.getRequestTopic(), currentConfiguration.getRequestTopic());
+        assertEquals(expectedConfiguration.getResponseTopic(), currentConfiguration.getResponseTopic());
+        assertEquals(DEFAULT_QOS, currentConfiguration.getQos());
+        assertEquals(DEFAULT_INITIAL_DELAY, currentConfiguration.getInitialDelay());
+        assertEquals(DEFAULT_RETRY_DELAY, currentConfiguration.getRetryDelay());
+        assertEquals(expectedConfiguration.getMaxlength(), currentConfiguration.getMaxlength());
+
+        assertEquals(TEST_TRUST_STORE_PATH, currentConfiguration.getConnectOptions().getSsl().getTrustStore());
+        assertEquals(TEST_KEY_STORE_PATH, currentConfiguration.getConnectOptions().getSsl().getKeyStore());
+
+        // if there is truststore defined there mustn't be socket factory
+        Assert.assertNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
+    }
+
+    @Test
+    public void testLoadSecureConfigurationNoTrustore() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
         testProperties.put(SECURE_PORT_PROPERTY_NAME, Integer.toString(TEST_SECURE_PORT));
@@ -185,7 +233,19 @@ public class ConfigurationUpdateHandlerImplTest {
 
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedDeviceInfoProvider).getApiKey();
-        assertEquals(expectedConfiguration, Whitebox.getInternalState(testConfigHandler, "currentConfiguration"));
+
+        ConnectorConfiguration currentConfiguration = (ConnectorConfiguration) Whitebox.getInternalState(testConfigHandler, "currentConfiguration");
+        assertEquals(expectedConfiguration.getBrokerUrl(), currentConfiguration.getBrokerUrl());
+        assertEquals(expectedConfiguration.getClientId(), currentConfiguration.getClientId());
+        assertEquals(expectedConfiguration.getIotTopic(), currentConfiguration.getIotTopic());
+        assertEquals(expectedConfiguration.getRequestTopic(), currentConfiguration.getRequestTopic());
+        assertEquals(expectedConfiguration.getResponseTopic(), currentConfiguration.getResponseTopic());
+        assertEquals(DEFAULT_QOS, currentConfiguration.getQos());
+        assertEquals(DEFAULT_INITIAL_DELAY, currentConfiguration.getInitialDelay());
+        assertEquals(DEFAULT_RETRY_DELAY, currentConfiguration.getRetryDelay());
+        assertEquals(expectedConfiguration.getMaxlength(), currentConfiguration.getMaxlength());
+
+        Assert.assertNotNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
     }
 
     @Test
@@ -196,6 +256,7 @@ public class ConfigurationUpdateHandlerImplTest {
         testProperties.put(IOT_TOPIC_PROPERTY_NAME, TEST_IOT_TOPIC);
         testProperties.put(REQUEST_TOPIC_PROPERTY_NAME, TEST_REQUEST_TOPIC);
         testProperties.put(RESPONSE_TOPIC_PROPERTY_NAME, TEST_RESPONSE_TOPIC);
+
         MqttConnectOptions expectedOptions = MqttConnectOptions.builder(TEST_DEVICE_ID, TEST_API_KEY).build();
         ConnectorConfiguration expectedConfiguration =
                 new ConnectorConfiguration(TEST_BROKER_SECURE_URL_WITH_DEFAULT_PORT, TEST_DEVICE_ID, expectedOptions,
@@ -210,7 +271,19 @@ public class ConfigurationUpdateHandlerImplTest {
 
         verify(mockedDeviceInfoProvider).getDeviceId();
         verify(mockedDeviceInfoProvider).getApiKey();
-        assertEquals(expectedConfiguration, Whitebox.getInternalState(testConfigHandler, "currentConfiguration"));
+
+        ConnectorConfiguration currentConfiguration = (ConnectorConfiguration) Whitebox.getInternalState(testConfigHandler, "currentConfiguration");
+        assertEquals(expectedConfiguration.getBrokerUrl(), currentConfiguration.getBrokerUrl());
+        assertEquals(expectedConfiguration.getClientId(), currentConfiguration.getClientId());
+        assertEquals(expectedConfiguration.getIotTopic(), currentConfiguration.getIotTopic());
+        assertEquals(expectedConfiguration.getRequestTopic(), currentConfiguration.getRequestTopic());
+        assertEquals(expectedConfiguration.getResponseTopic(), currentConfiguration.getResponseTopic());
+        assertEquals(DEFAULT_QOS, currentConfiguration.getQos());
+        assertEquals(DEFAULT_INITIAL_DELAY, currentConfiguration.getInitialDelay());
+        assertEquals(DEFAULT_RETRY_DELAY, currentConfiguration.getRetryDelay());
+        assertEquals(expectedConfiguration.getMaxlength(), currentConfiguration.getMaxlength());
+
+        assertTrue(expectedConfiguration.getBrokerUrl().contains(String.valueOf(DEFAULT_SECURE_PORT)));
     }
 
     @Test
