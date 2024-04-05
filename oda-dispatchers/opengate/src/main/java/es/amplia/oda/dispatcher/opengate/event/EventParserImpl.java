@@ -54,6 +54,8 @@ class EventParserImpl implements EventParser {
             return path;
         } else if (path == null) {
             return new String[] { hostId };
+        } else if (Arrays.asList(path).contains(hostId)) {
+            return path;
         } else {
             List<String> pathDevices = Arrays.stream(path).collect(Collectors.toList());
             pathDevices.add(0, hostId);
