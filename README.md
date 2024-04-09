@@ -38,7 +38,7 @@ To run ODA you have to untar the assembly and run the script provided inside the
 ```shell
 tar xjf mqtt-${project.version}.tar.bz
 cd mqtt
-bin/run.sh
+bin/run.sh start
 ```
 
 To connect to the ODA Remote Console you should open an SSH connection to *localhost* to the port *50000*. The default SSH credentials are username *oda* and password *oda*
