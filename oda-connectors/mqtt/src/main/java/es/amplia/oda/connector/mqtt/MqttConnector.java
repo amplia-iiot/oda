@@ -105,7 +105,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             try {
                 client.publish(topic, message, contentType);
             } catch (MqttException e) {
-                LOGGER.warn("Cannot send the response: {}", message);
+                LOGGER.warn("Cannot send the response: " + message, e);
             }
         }
     }
