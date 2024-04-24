@@ -103,15 +103,21 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
         }
 
         for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> map : entries) {
-            ScadaTableEntryConfiguration entry = map.getValue();
             for (Map.Entry<Integer, String> addressAsduMap : map.getKey().entrySet()) {
-                if (entry.getDatastreamId().equals(datastreamInfo.getDatastreamId())) {
-                    return new ScadaInfo(addressAsduMap.getKey(), entry.getDataType());
+                ScadaTableEntryConfiguration entryValue = map.getValue();
+                // check that datastreamId is the same
+                if (entryValue.getDatastreamId().equals(datastreamInfo.getDatastreamId())) {
+                    // check that deviceId is the same or is null the one in the entry
+                    // deviceId in entry is null when there is no device defined in scadatables
+                    // in this case, the deviceId in the translation info is the deviceId from the physical connection
+                    if ( entryValue.getDeviceId() == null || entryValue.getDeviceId().equals(datastreamInfo.getDeviceId())) {
+                        return new ScadaInfo(addressAsduMap.getKey(), entryValue.getDataType());
+                    }
                 }
             }
         }
 
-        LOGGER.debug("DatasteamId {} not found in SCADA tables", datastreamInfo.getDatastreamId());
+        LOGGER.info("DatasteamId {} for deviceId {} not found in SCADA tables", datastreamInfo.getDatastreamId(), datastreamInfo.getDeviceId());
         return null;
     }
 

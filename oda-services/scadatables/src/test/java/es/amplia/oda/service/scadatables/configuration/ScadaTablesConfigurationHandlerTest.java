@@ -45,9 +45,9 @@ public class ScadaTablesConfigurationHandlerTest {
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableEvents =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
         assertEquals(2, scadaTableRecollection.size());
         assertEquals(0, scadaTableEvents.size());
@@ -65,15 +65,15 @@ public class ScadaTablesConfigurationHandlerTest {
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableEvents =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
         assertEquals(2, scadaTableRecollection.size());
         assertEquals(1, scadaTableEvents.size());
 
         // get from table element of address 10001
-        Map<Integer,String> pairAsduAddress = java.util.Collections.singletonMap(10001, "BinaryInput");
+        Map<Integer, String> pairAsduAddress = java.util.Collections.singletonMap(10001, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo = scadaTableEvents.get(pairAsduAddress);
         assertEquals("BinaryInput", scadaInfo.getDataType());
         assertEquals("testDevice", scadaInfo.getDeviceId());
@@ -82,7 +82,7 @@ public class ScadaTablesConfigurationHandlerTest {
         assertNotNull(scadaInfo.getScript());
 
         // get from table element of address 10011
-        Map<Integer,String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
+        Map<Integer, String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo2 = scadaTableRecollection.get(pairAsduAddress2);
         assertEquals("BinaryInput", scadaInfo2.getDataType());
         Assert.assertNull(scadaInfo2.getDeviceId());
@@ -91,7 +91,7 @@ public class ScadaTablesConfigurationHandlerTest {
         assertNull(scadaInfo2.getScript());
 
         // get from table element of address 10015
-        Map<Integer,String> pairAsduAddress3 = java.util.Collections.singletonMap(10015, "BinaryInput");
+        Map<Integer, String> pairAsduAddress3 = java.util.Collections.singletonMap(10015, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo3 = scadaTableRecollection.get(pairAsduAddress3);
         assertEquals("BinaryInput", scadaInfo3.getDataType());
         assertNull(scadaInfo3.getDeviceId());
@@ -101,77 +101,108 @@ public class ScadaTablesConfigurationHandlerTest {
     }
 
     @Test
-    public void testLoadConfigurationWrongConfig(){
+    public void testLoadConfigurationWrongConfig() {
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
             put("BinaryInput,10001", "testConfig: test");
         }};
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableEvents =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
         assertEquals(0, scadaTableRecollection.size());
         assertEquals(0, scadaTableEvents.size());
     }
 
     @Test
-    public void testSameDatastreamIdDifferentTable() {
+    public void testSameDatastreamIdSameDeviceIdDifferentTable() {
 
-        // we can have the same datastreamId associated to two ASDUS as long one it is an event and the other not
+        // we can have the same datastreamId associated to the same deviceId as long one it is an event and the other not
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
-            put("BinaryInput,10001", "datastream:batteryAlarm, event: false");
-            put("BinaryInput,10011", "datastream:batteryAlarm, event: true");
+            put("BinaryInput,10001", "datastream:batteryAlarm, device:deviceTest1, event: false");
+            put("BinaryInput,10011", "datastream:batteryAlarm, device:deviceTest1, event: true");
         }};
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableEvents =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
         assertEquals(1, scadaTableRecollection.size());
         assertEquals(1, scadaTableEvents.size());
 
-        Map<Integer,String> pairAsduAddress1 = java.util.Collections.singletonMap(10001, "BinaryInput");
+        Map<Integer, String> pairAsduAddress1 = java.util.Collections.singletonMap(10001, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo1 = scadaTableRecollection.get(pairAsduAddress1);
         assertEquals("batteryAlarm", scadaInfo1.getDatastreamId());
         assertFalse(scadaInfo1.isEvent());
 
-        Map<Integer,String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
+        Map<Integer, String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo2 = scadaTableEvents.get(pairAsduAddress2);
         assertEquals("batteryAlarm", scadaInfo2.getDatastreamId());
         assertTrue(scadaInfo2.isEvent());
     }
 
     @Test
-    public void testSameDatastreamIdSameTable() {
+    public void testSameDatastreamSameDeviceIdSameTable() {
 
-        // we can have the same datastreamId associated to two ASDUS as long one it is an event and the other not
+        // we can't have the same datastreamId associated to the same deviceId if both are of the same type (events or not)
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
-            put("BinaryInput,10001", "datastream:batteryAlarm, event: false");
-            put("BinaryInput,10011", "datastream:batteryAlarm, event: false");
+            put("BinaryInput,10001", "datastream:batteryAlarm, device:deviceTest1, event: false");
+            put("BinaryInput,10011", "datastream:batteryAlarm, device:deviceTest1, event: false");
         }};
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
 
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableEvents =
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
 
-        // when loading the second entry with the same datastreamId, error will be logged and entry wont be loaded
+        // when loading the second entry with the same datastreamId and deviceId, error will be logged and entry won't be loaded
         assertEquals(1, scadaTableRecollection.size());
         assertEquals(0, scadaTableEvents.size());
 
-        Map<Integer,String> pairAsduAddress1 = java.util.Collections.singletonMap(10001, "BinaryInput");
+        Map<Integer, String> pairAsduAddress1 = java.util.Collections.singletonMap(10001, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo1 = scadaTableRecollection.get(pairAsduAddress1);
         assertEquals("batteryAlarm", scadaInfo1.getDatastreamId());
         assertFalse(scadaInfo1.isEvent());
 
-        Map<Integer,String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
-        ScadaTableEntryConfiguration scadaInfo2 = scadaTableEvents.get(pairAsduAddress2);
+        Map<Integer, String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
+        ScadaTableEntryConfiguration scadaInfo2 = scadaTableRecollection.get(pairAsduAddress2);
         assertNull(scadaInfo2);
+    }
+
+
+    @Test
+    public void testSameDatastreamIdDiffDeviceSameTable() {
+
+        // we can have the same datastreamId associated to two different deviceIds
+        Dictionary<String, String> dic = new Hashtable<String, String>() {{
+            put("BinaryInput,10001", "datastream:batteryAlarm, device:deviceTest1, event: false");
+            put("BinaryInput,10011", "datastream:batteryAlarm, device:deviceTest2, event: false");
+        }};
+
+        testScadaTablesConfigurationHandler.loadConfiguration(dic);
+
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableRecollection =
+                Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableRecollection");
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableEvents =
+                Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
+
+        assertEquals(2, scadaTableRecollection.size());
+        assertEquals(0, scadaTableEvents.size());
+
+        Map<Integer, String> pairAsduAddress1 = java.util.Collections.singletonMap(10001, "BinaryInput");
+        ScadaTableEntryConfiguration scadaInfo1 = scadaTableRecollection.get(pairAsduAddress1);
+        assertEquals("batteryAlarm", scadaInfo1.getDatastreamId());
+        assertFalse(scadaInfo1.isEvent());
+
+        Map<Integer, String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
+        ScadaTableEntryConfiguration scadaInfo2 = scadaTableRecollection.get(pairAsduAddress2);
+        assertEquals("batteryAlarm", scadaInfo2.getDatastreamId());
+        assertFalse(scadaInfo2.isEvent());
     }
 }

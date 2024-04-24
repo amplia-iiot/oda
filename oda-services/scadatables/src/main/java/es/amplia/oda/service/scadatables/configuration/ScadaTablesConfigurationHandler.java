@@ -101,10 +101,10 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
                         deviceId, feed, isEvent);
                 Map<Integer, String> pairAsduAddress = java.util.Collections.singletonMap(index, dataType);
 
-                // check if datastreamId already exists in the table
+                // check if datastreamId and deviceId combination already exists in the table
                 // it is only allowed if one is an event and the other is not
-                if (checkDatastreamExistence(datastreamId, isEvent)) {
-                    throw new ConfigurationException("There can't be two signals with the same datastreamId unless one its an event and the other not");
+                if (checkDatastreamDeviceExistence(datastreamId, deviceId, isEvent)) {
+                    throw new ConfigurationException("There can't be two signals with the same datastreamId and deviceId unless one its an event and the other not");
                 }
 
                 if (isEvent) {
@@ -168,9 +168,23 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
         scadaTableInfoService.loadConfiguration(currentScadaTableRecollection, currentScadaTableEvents);
     }
 
-    private boolean checkDatastreamExistence(String datastreamId, boolean isEvent)
-    {
-        Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTableToCheck;
+    private boolean checkExistence(Map<Integer, String> pairAsduAddress, boolean isEvent) {
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableToCheck;
+
+        if (isEvent) {
+            scadaTableToCheck = currentScadaTableEvents;
+        } else {
+            scadaTableToCheck = currentScadaTableRecollection;
+        }
+
+        // check if it already exists a key in map with that combination of address and ASDU
+        ScadaTableEntryConfiguration entry = scadaTableToCheck.get(pairAsduAddress);
+
+        return entry != null;
+    }
+
+    private boolean checkDatastreamDeviceExistence(String datastreamId, String deviceId, boolean isEvent) {
+        Map<Map<Integer, String>, ScadaTableEntryConfiguration> scadaTableToCheck;
 
         if (isEvent) {
             scadaTableToCheck = currentScadaTableEvents;
@@ -179,7 +193,8 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
         }
 
         for (Map.Entry<Map<Integer, String>, ScadaTableEntryConfiguration> entry : scadaTableToCheck.entrySet()) {
-            if (entry.getValue().getDatastreamId().equals(datastreamId)) {
+            ScadaTableEntryConfiguration entryValue = entry.getValue();
+            if (entryValue.getDatastreamId().equals(datastreamId) && entryValue.getDeviceId().equals(deviceId)) {
                 return true;
             }
         }
