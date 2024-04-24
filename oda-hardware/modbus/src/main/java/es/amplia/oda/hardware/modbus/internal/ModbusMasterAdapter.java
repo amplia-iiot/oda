@@ -63,7 +63,7 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
 
     private ModbusException createModbusException(String operation, String registerType, int unitId, int ref, int count,
                                       Exception exception) {
-        LOGGER.error("Error {} {} {}s from {} of slave {}: ", operation, count, registerType, ref, unitId, exception);
+        LOGGER.error("Error {} {} {}s from {} of slave {} from device {}: ", operation, count, registerType, ref, unitId, this.deviceId, exception);
         return new ModbusException("Error " + operation + " " + count + " " + registerType + "s from " + ref +
                 " of slave " + unitId, exception);
     }
