@@ -86,6 +86,8 @@ public class CounterEngine {
     public void init() {
         if (enable.equals("true"))
             isEngineEnabled = true;
+        else
+            isEngineEnabled = false;
         if (isEngineEnabled) {
             logger.info("initiating counter engine ...");
             
