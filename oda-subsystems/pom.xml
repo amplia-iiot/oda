@@ -12,6 +12,7 @@
         <module>poller</module>
         <module>collector</module>
         <module>sshserver</module>
+		<module>countermanager</module>
     </modules>
 
     <parent>
