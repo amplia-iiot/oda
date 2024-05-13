@@ -12,7 +12,7 @@
     <parent>
         <artifactId>oda-subsystems</artifactId>
         <groupId>es.amplia.oda.subsystem</groupId>
-        <version>4.7.9-SNAPSHOT</version>
+        <version>4.8.0</version>
     </parent>
 
     <properties>
@@ -35,8 +35,8 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency></Embed-Dependency>
-                        <Embed-Directory></Embed-Directory>
+                        <Embed-Dependency />
+                        <Embed-Directory />
                     </instructions>
                 </configuration>
             </plugin>
