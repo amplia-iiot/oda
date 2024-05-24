@@ -31,18 +31,17 @@ class PollerImpl implements Poller {
     @Override
     public void poll(DevicePattern deviceIdPattern, Set<String> datastreamIds) {
         LOGGER.info("Polling({},{})", deviceIdPattern, datastreamIds);
-        Return getters =
-                datastreamsGettersFinder.getGettersSatisfying(deviceIdPattern, datastreamIds);
-        if(!getters.getNotFoundIds().isEmpty()) {
+        Return getters = datastreamsGettersFinder.getGettersSatisfying(deviceIdPattern, datastreamIds);
+        if (!getters.getNotFoundIds().isEmpty()) {
             LOGGER.warn("No datastreamsGetters found for {}", getters.getNotFoundIds());
         }
 
         for (DatastreamsGetter getter : getters.getGetters()) {
-            for (String deviceId: getter.getDevicesIdManaged()) {
+            for (String deviceId : getter.getDevicesIdManaged()) {
                 if (deviceIdPattern.match(deviceId)) {
                     LOGGER.debug("Getting datastream {}, for device {}", getter.getDatastreamIdSatisfied(), deviceId);
                     CompletableFuture<CollectedValue> futureValue = getter.get(deviceId);
-                    if(futureValue!=null) {
+                    if (futureValue != null) {
                         futureValue.thenAccept(data -> sendValueAsEvent(deviceId, getter.getDatastreamIdSatisfied(), data));
                         LOGGER.debug("Get operation initiated in datastreamsGetter of {}", getter.getDatastreamIdSatisfied());
                     }
@@ -52,8 +51,14 @@ class PollerImpl implements Poller {
         }
     }
 
-    private void sendValueAsEvent (String deviceId, String datastreamId, CollectedValue data) {
-        LOGGER.debug("Sending event {}, for device {}", data, deviceId);
+    private void sendValueAsEvent(String deviceId, String datastreamId, CollectedValue data) {
+
+        if (deviceId == null || datastreamId == null || data.getValue() == null) {
+            LOGGER.warn("Event won't be created because one of these is null : deviceId '{}', datastreamId '{}' or value '{}'.",
+                    deviceId, datastreamId, data.getValue());
+            return;
+        }
+
         // map <datastreamId, map <feed, map <at, value>>>
         Map<String, Map<String, Map<Long, Object>>> event = new HashMap<>();
         Map<String, Map<Long, Object>> feedMap = new HashMap<>();

@@ -293,6 +293,8 @@ public class InMemoryStateManager implements StateManager {
 
             if(!notProcessedValues.isEmpty()) {
                 for (DatastreamValue notProcessedValue : notProcessedValues) {
+                    LOGGER.info("Processing refreshed event = {}", notProcessedValue);
+
                     try {
                         // if event was marked as send immediately, value will be inserted in database with sent = true
                         // if it was not marked as send immediately, value will be inserted in database with sent = false
