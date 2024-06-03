@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
+import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.DISCOVER_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.GET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
@@ -69,12 +70,21 @@ class OpenGateOperationDispatcher implements Dispatcher {
             LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
             String[] path = basicOperation.getOperation().getRequest().getPath();
             String deviceId = basicOperation.getOperation().getRequest().getDeviceId();
+            opName = basicOperation.getOperation().getRequest().getName();
             if ( (path != null) && (path.length > 0) && operationSender.isForNextLevel(path, deviceId)) {
                 LOGGER.info("Sending operation to level down: {}", basicOperation);
-                operationSender.downlink((OperationRequest<Object>)basicOperation);
-                return null;
+                try {
+                    operationSender.downlink((OperationRequest<Object>)basicOperation);
+                    return null;
+                } catch (Throwable e) {
+                    LOGGER.error("Error sending operation to level down", e);
+                    Response response = new Response(basicOperation.getOperation().getRequest().getId(), deviceId, path, opName,
+                            OperationResultCode.ERROR_PROCESSING, "Unable to send operation to lower levels", null);
+                    OutputOperation operation = new OutputOperation(response);
+                    Output output = new Output(OPENGATE_VERSION, operation);
+                    return CompletableFuture.completedFuture(serializeOutput(output, contentType));
+                }
             }
-            opName = basicOperation.getOperation().getRequest().getName();
         } catch (Exception e) {
             LOGGER.error("Could not deserialize input as Basic Operation", e);
         }
