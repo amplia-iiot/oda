@@ -51,15 +51,18 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
     public void loadConfiguration(MqttDatastreamsConfiguration configuration) {
         closeResources();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
-        MqttConnectOptionsBuilder options = MqttConnectOptions.builder(configuration.getClientId(), configuration.getPassword().toCharArray());
-        if (configuration.getKeyStore() != null) options.ssl(configuration.getKeyStore(), configuration.getKeyStorePassword(), configuration.getTrustStore(), configuration.getTrustStorePassword());
-        mqttClient.connect(options.build());
-        HashSet<String> odaList = new HashSet<>();
-        if (configuration.getNextLevelOdaIds() != null) odaList.addAll(configuration.getNextLevelOdaIds());
-        mqttDatastreamsEvent = new MqttDatastreamsEvent(eventPublisher, mqttClient, serializer, configuration.getEventTopic(), deviceInfoProvider, configuration.getResponseTopic(), responseDispatcher, odaList);
-        MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained(), odaList);
-        this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
-        this.ready = true;
+        if (mqttClient != null) {
+            // Quiere decir que ya tenemos accesible el bundle MQTTClientFactory
+            MqttConnectOptionsBuilder options = MqttConnectOptions.builder(configuration.getClientId(), configuration.getPassword().toCharArray());
+            if (configuration.getKeyStore() != null) options.ssl(configuration.getKeyStore(), configuration.getKeyStorePassword(), configuration.getTrustStore(), configuration.getTrustStorePassword());
+            HashSet<String> odaList = new HashSet<>();
+            if (configuration.getNextLevelOdaIds() != null) odaList.addAll(configuration.getNextLevelOdaIds());
+            mqttDatastreamsEvent = new MqttDatastreamsEvent(eventPublisher, mqttClient, serializer, configuration.getEventTopic(), deviceInfoProvider, configuration.getResponseTopic(), responseDispatcher, odaList);
+            MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained(), odaList);
+            this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
+            this.ready = true;
+            mqttClient.connect(options.build()); // Lo dejamos al final porque puede tardar en conectar y si falla estará el reconnect automático del MQTT
+        }
     }
 
     private void closeResources() {
