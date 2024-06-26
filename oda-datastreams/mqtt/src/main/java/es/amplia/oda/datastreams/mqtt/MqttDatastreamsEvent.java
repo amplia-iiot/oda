@@ -88,6 +88,16 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
             String[] topics = topic.split(TOPIC_SEPARATOR);
             return topics[topics.length-1];
         }
+
+        @Override
+        public void onFailure(Throwable err) {
+            LOGGER.error("Error subscribing to event topic: " + eventTopic, err);
+        }
+
+        @Override
+        public void onSuccess() {
+            LOGGER.info("Subscribed to event topic: " + eventTopic);
+        }
     }
 
     class ResponseMessageListener implements MqttMessageListener {
@@ -107,6 +117,16 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
             } catch (Exception e) {
                 LOGGER.error("Error dispatching device response from MQTT message {}: {}", mqttMessage, e);
             }
+        }
+
+        @Override
+        public void onFailure(Throwable err) {
+            LOGGER.error("Error subscribing to response topic: " + responseTopic, err);
+        }
+
+        @Override
+        public void onSuccess() {
+            LOGGER.info("Subscribed to response topic: " + responseTopic);
         }
     }
 

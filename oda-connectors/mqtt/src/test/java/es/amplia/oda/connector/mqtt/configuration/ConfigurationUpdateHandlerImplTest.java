@@ -365,7 +365,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(expectedConfiguration, Whitebox.getInternalState(testConfigHandler, "currentConfiguration"));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingDeviceId() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -379,7 +379,7 @@ public class ConfigurationUpdateHandlerImplTest {
         testConfigHandler.loadConfiguration(testProperties);
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingApiKey() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);

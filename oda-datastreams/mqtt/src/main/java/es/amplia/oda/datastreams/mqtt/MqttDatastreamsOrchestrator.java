@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.mqtt;
 
+import es.amplia.oda.comms.mqtt.api.MqttActionListener;
 import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
@@ -14,6 +15,10 @@ import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration
 import es.amplia.oda.event.api.ResponseDispatcher;
 
 import java.util.HashSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -37,6 +42,11 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
 
     private ServiceRegistration<OperationSender> mqttOperationSenderRegistration;
 
+    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> scheduledFuture;
+
+    private String serverURI;
+
     MqttDatastreamsOrchestrator(MqttClientFactory mqttClientFactory, Serializer serializer, EventPublisher eventPublisher,
                                 DeviceInfoProviderProxy deviceInfoProvider, ResponseDispatcher respDispatcher, BundleContext bundleContext) {
         this.mqttClientFactory = mqttClientFactory;
@@ -50,6 +60,7 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
 
     public void loadConfiguration(MqttDatastreamsConfiguration configuration) {
         closeResources();
+        serverURI = configuration.getServerURI();
         mqttClient = mqttClientFactory.createMqttClient(configuration.getServerURI(), configuration.getClientId());
         if (mqttClient != null) {
             // Quiere decir que ya tenemos accesible el bundle MQTTClientFactory
@@ -61,7 +72,44 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
             MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained(), odaList);
             this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
             this.ready = true;
-            mqttClient.connect(options.build()); // Lo dejamos al final porque puede tardar en conectar y si falla estará el reconnect automático del MQTT
+
+            // Lo dejamos al final porque puede tardar en conectar y si falla estará el reconnect automático del MQTT
+            scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(options.build()),
+                0, 30, TimeUnit.SECONDS);
+        }
+    }
+
+    private void connect(MqttConnectOptions configuration) {
+        if (mqttClient.isConnected()) {
+            LOGGER.info("Client already connected");
+            cancelFutureConnection();
+            return;
+        }
+
+        try {
+            mqttClient.connect(configuration, new MqttActionListener() {
+
+                @Override
+                public void onFailure(Throwable err) {
+                    LOGGER.error("Error connecting to " + serverURI + " as " + configuration.getUsername(), err);
+                }
+
+                @Override
+                public void onSuccess() {
+                    cancelFutureConnection();
+                    LOGGER.info("Connected to {} as {}", serverURI, configuration.getUsername());
+                }
+                
+            });
+        } catch (MqttException e) {
+            LOGGER.error("Error connecting through MQTT with configuration {}", configuration, e);
+        }
+    }
+
+    private void cancelFutureConnection(){
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+            scheduledFuture = null;
         }
     }
 
@@ -79,6 +127,7 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
                 mqttClient.disconnect();
                 mqttClient = null;
             }
+            cancelFutureConnection();
             this.ready = false;
         } catch (MqttException e) {
             LOGGER.warn("Error closing MQTT resources {0}", e);

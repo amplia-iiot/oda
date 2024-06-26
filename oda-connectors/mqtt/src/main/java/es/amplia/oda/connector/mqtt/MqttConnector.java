@@ -20,6 +20,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     private String iotTopic;
     private String responseTopic;
+    private String requestTopic;
     private int qos;
     private boolean retained;
     private MqttClient client;
@@ -43,6 +44,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
                 connectorConfiguration.getInitialDelay(), connectorConfiguration.getRetryDelay(), TimeUnit.SECONDS);
         this.iotTopic = connectorConfiguration.getIotTopic();
         this.responseTopic = connectorConfiguration.getResponseTopic();
+        this.requestTopic = connectorConfiguration.getRequestTopic();
         this.qos = connectorConfiguration.getQos();
         this.retained = connectorConfiguration.isRetained();
         this.hasMaxlength = connectorConfiguration.isHasMaxlength();
@@ -58,11 +60,22 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         }
 
         try {
-            client.connect(configuration.getConnectOptions());
             client.subscribe(configuration.getRequestTopic(), this);
-            cancelFutureConnection();
-            LOGGER.info("Reconnected to {} as {} for topic {}", configuration.getBrokerUrl(),
-                    configuration.getClientId(), configuration.getRequestTopic());
+            client.connect(configuration.getConnectOptions(), new MqttActionListener() {
+
+                @Override
+                public void onFailure(Throwable err) {
+                    LOGGER.error("Error connecting to " + configuration.getBrokerUrl() + " as " + configuration.getClientId(), err);
+                }
+
+                @Override
+                public void onSuccess() {
+                    cancelFutureConnection();
+                    LOGGER.info("Connected to {} as {} for topic {}", configuration.getBrokerUrl(),
+                            configuration.getClientId(), configuration.getRequestTopic());
+                }
+                
+            });
         } catch (MqttException e) {
             LOGGER.error("Error connecting through MQTT with configuration {}", configuration, e);
         }
@@ -77,7 +90,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             ContentType contentType = ContentType.JSON;
             CompletableFuture<byte[]> response = dispatcher.process(message.getPayload(), contentType);
             if (response == null) {
-                LOGGER.warn("Cannot process message as Dispatcher is not present");
+                LOGGER.debug("Message not processed by this device or Dispatcher is not present");
                 return;
             }
             response.thenAccept(responseBytes -> sendMessage(responseTopic, responseBytes, contentType, qos))
@@ -105,7 +118,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             try {
                 client.publish(topic, message, contentType);
             } catch (MqttException e) {
-                LOGGER.warn("Cannot send the response: " + message, e);
+                LOGGER.warn("Cannot send the message: " + message + ", on topic: " + topic, e);
             }
         }
     }
@@ -159,6 +172,17 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     private void cancelFutureConnection(){
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
+            scheduledFuture = null;
         }
+    }
+
+    @Override
+    public void onFailure(Throwable err) {
+        LOGGER.error("Error subscribing to request topic: " + requestTopic, err);
+    }
+
+    @Override
+    public void onSuccess() {
+        LOGGER.info("Subscribed to request topic: " + requestTopic);
     }
 }

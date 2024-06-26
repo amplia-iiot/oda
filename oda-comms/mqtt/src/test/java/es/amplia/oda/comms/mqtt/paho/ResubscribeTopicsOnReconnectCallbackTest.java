@@ -1,6 +1,7 @@
 package es.amplia.oda.comms.mqtt.paho;
 
-import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.Test;
@@ -13,6 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -24,7 +28,7 @@ public class ResubscribeTopicsOnReconnectCallbackTest {
     private final ResubscribeTopicsOnReconnectCallback testCallback = new ResubscribeTopicsOnReconnectCallback();
 
     @Mock
-    private IMqttClient mockedInnerClient;
+    private IMqttAsyncClient mockedInnerClient;
     @Mock
     private IMqttMessageListener mockedListener;
 
@@ -55,7 +59,7 @@ public class ResubscribeTopicsOnReconnectCallbackTest {
 
         testCallback.connectComplete(true, "http://test.uri:1883");
 
-        verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), eq(mockedListener));
+        verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), eq(2), eq(null), any(IMqttActionListener.class), eq(mockedListener));
     }
 
     @Test
@@ -66,15 +70,15 @@ public class ResubscribeTopicsOnReconnectCallbackTest {
         Whitebox.setInternalState(testCallback, "innerClient", mockedInnerClient);
         Whitebox.setInternalState(testCallback, "subscribedListeners", listeners);
 
-        doThrow(new MqttException(1)).when(mockedInnerClient).subscribe(anyString(), any(IMqttMessageListener.class));
+        doThrow(new MqttException(1)).when(mockedInnerClient).subscribe(anyString(), eq(2), any(IMqttMessageListener.class));
 
         testCallback.connectComplete(true, "http://test.uri:1883");
 
-        verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), eq(mockedListener));
+        verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), eq(2), eq(null), any(IMqttActionListener.class), eq(mockedListener));
     }
 
     @Test
-    public void testConnectCompleteNoReconnectionWithSubscribedListeners() {
+    public void testConnectCompleteNoReconnectionWithSubscribedListeners() throws MqttException {
         Map<String, IMqttMessageListener> listeners = new HashMap<>();
         listeners.put(TEST_TOPIC, mockedListener);
 
@@ -83,6 +87,6 @@ public class ResubscribeTopicsOnReconnectCallbackTest {
 
         testCallback.connectComplete(false, "http://test.uri:1883");
 
-        verifyZeroInteractions(mockedInnerClient);
+        verify(mockedInnerClient).subscribe(eq(TEST_TOPIC), eq(2), eq(null), any(IMqttActionListener.class), eq(mockedListener));
     }
 }

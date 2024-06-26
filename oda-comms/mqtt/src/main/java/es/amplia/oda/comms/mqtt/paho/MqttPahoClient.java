@@ -11,11 +11,11 @@ import org.eclipse.paho.client.mqttv3.*;
 
 class MqttPahoClient implements MqttClient {
 
-    private final IMqttClient innerClient;
+    private final IMqttAsyncClient innerClient;
     private final ResubscribeTopicsOnReconnectCallback resubscribeTopicsOnReconnectCallback;
 
 
-    MqttPahoClient(IMqttClient innerClient, ResubscribeTopicsOnReconnectCallback resubscribedTopicsCallback) {
+    MqttPahoClient(IMqttAsyncClient innerClient, ResubscribeTopicsOnReconnectCallback resubscribedTopicsCallback) {
         this.innerClient = innerClient;
         this.resubscribeTopicsOnReconnectCallback = resubscribedTopicsCallback;
         // set client to don't send ACKs automatically
@@ -33,11 +33,23 @@ class MqttPahoClient implements MqttClient {
     }
 
     @Override
-    public void connect(MqttConnectOptions options) {
+    public void connect(MqttConnectOptions options, MqttActionListener listener) {
         try {
             org.eclipse.paho.client.mqttv3.MqttConnectOptions innerOptions = MqttPahoConnectOptionsMapper.from(options);
             resubscribeTopicsOnReconnectCallback.listenTo(innerClient);
-            innerClient.connect(innerOptions);
+            innerClient.connect(innerOptions, null, new IMqttActionListener() {
+
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    if (listener != null) listener.onSuccess();
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                    if (listener != null) listener.onFailure(exception);
+                }
+                
+            });
         } catch (Exception e) {
             throw new MqttException(e.getMessage(), e);
         }
@@ -60,13 +72,15 @@ class MqttPahoClient implements MqttClient {
 
     @Override
     public void subscribe(String topic, MqttMessageListener listener) {
-        try {
+        IMqttMessageListener pahoListener = new MqttPahoMessageListener(listener, innerClient);
+        resubscribeTopicsOnReconnectCallback.addSubscribedTopic(topic, pahoListener);
+        /*try {
             IMqttMessageListener pahoListener = new MqttPahoMessageListener(listener, innerClient);
-            innerClient.subscribe(topic, pahoListener);
+            innerClient.subscribe(topic, 0, pahoListener);
             resubscribeTopicsOnReconnectCallback.addSubscribedTopic(topic, pahoListener);
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
             throw new MqttException(e.getMessage(), e);
-        }
+        }*/
     }
 
     @Override

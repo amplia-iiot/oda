@@ -97,7 +97,7 @@ public class MqttConnectorTest {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         ScheduledFuture<?> scheduledFuture = executor.schedule(() -> {
             try {
-                verify(newMockedClient).connect(eq(testOptions));
+                verify(newMockedClient).connect(eq(testOptions), any(MqttActionListener.class));
                 verify(newMockedClient).subscribe(eq(TEST_REQUEST_TOPIC), eq(testConnector));
             } catch (MqttException e) {
                 fail("Exception verifying connection: " + e);
@@ -146,7 +146,7 @@ public class MqttConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
-        doThrow(new MqttException("")).when(newMockedClient).connect(any(MqttConnectOptions.class));
+        doThrow(new MqttException("")).when(newMockedClient).connect(any(MqttConnectOptions.class), any(MqttActionListener.class));
 
         testConnector.loadConfigurationAndInit(testConfiguration);
 
@@ -163,7 +163,7 @@ public class MqttConnectorTest {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         ScheduledFuture<?> scheduledFuture = executor.schedule(() -> {
             try {
-                verify(newMockedClient).connect(eq(testOptions));
+                verify(newMockedClient).connect(eq(testOptions), any(MqttActionListener.class));
             } catch (MqttException e) {
                 fail("Exception verifying connection: " + e);
             }

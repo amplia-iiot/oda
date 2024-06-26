@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.mqtt;
 
+import es.amplia.oda.comms.mqtt.api.MqttActionListener;
 import es.amplia.oda.comms.mqtt.api.MqttClient;
 import es.amplia.oda.comms.mqtt.api.MqttClientFactory;
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
@@ -88,9 +89,10 @@ public class MqttDatastreamsOrchestratorTest {
         testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
 
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        verify(mockedClient).connect(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build());
         PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
         PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
+        Thread.sleep(100);
+        verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
     }
 
     @Test
@@ -109,9 +111,10 @@ public class MqttDatastreamsOrchestratorTest {
         verify(mockedOpSendRegistration).unregister();
         verify(mockedClient).disconnect();
         verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        verify(mockedClient).connect(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build());
         PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
         PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
+        Thread.sleep(100);
+        verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
     }
 
     @Test

@@ -2,9 +2,11 @@ package es.amplia.oda.comms.mqtt.paho;
 
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 
-import org.eclipse.paho.client.mqttv3.IMqttClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +19,11 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResubscribeTopicsOnReconnectCallback.class);
 
 
-    private IMqttClient innerClient;
+    private IMqttAsyncClient innerClient;
     private final Map<String, IMqttMessageListener> subscribedListeners = new HashMap<>();
 
 
-    public void listenTo(IMqttClient innerClient) {
+    public void listenTo(IMqttAsyncClient innerClient) {
         this.innerClient = innerClient;
         innerClient.setCallback(this);
     }
@@ -33,18 +35,41 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
 
     @Override
     public void connectComplete(boolean reconnect, String serverUri) {
-        if (reconnect) {
+        if (reconnect) LOGGER.info("Reconnection completed to {}", serverUri);
+        else LOGGER.info("Connection completed to {}", serverUri);
+        subscribedListeners.forEach(
+                (topic, listener) -> {
+                    try {
+                        innerClient.subscribe(topic, 2, null, new IMqttActionListener() {
+
+                            @Override
+                            public void onSuccess(IMqttToken asyncActionToken) {
+                                ((MqttPahoMessageListener)listener).getMqttMessageListener().onSuccess();
+                            }
+
+                            @Override
+                            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                                ((MqttPahoMessageListener)listener).getMqttMessageListener().onFailure(exception);;
+                            }
+                            
+                        }, listener);
+                    } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
+                        LOGGER.warn("Error subscribing to topic {} after reconnection", topic);
+                    }
+                }
+        );
+        /*if (reconnect) {
             LOGGER.info("Reconnection completed to {}", serverUri);
             subscribedListeners.forEach(
                     (topic, listener) -> {
                         try {
-                            innerClient.subscribe(topic, listener);
+                            innerClient.subscribe(topic, 0, listener);
                         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
                             LOGGER.warn("Error subscribing to topic {} after reconnection", topic);
                         }
                     }
             );
-        }
+        }*/
     }
 
     @Override

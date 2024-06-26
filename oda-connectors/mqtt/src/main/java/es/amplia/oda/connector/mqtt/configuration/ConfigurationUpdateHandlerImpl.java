@@ -88,61 +88,63 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
         String deviceId = deviceInfoProvider.getDeviceId();
         String apiKey = deviceInfoProvider.getApiKey();
-        if (deviceId == null || apiKey == null) {
+        /*if (deviceId == null || apiKey == null) {
             throw new ConfigurationException("Can not find device identifier and API Key");
+        }*/
+
+        if (deviceId != null && apiKey != null) {
+            try {
+                // Get broker URL
+                String host = Optional.ofNullable((String) props.get(HOST_PROPERTY_NAME))
+                                .orElseThrow(() -> missingRequireFieldExceptionSupplier(HOST_PROPERTY_NAME).get());
+                int port = Optional.ofNullable((String) props.get(PORT_PROPERTY_NAME))
+                                .map(Integer::parseInt)
+                                .orElse(DEFAULT_PORT);
+                int securePort =
+                        Optional.ofNullable((String) props.get(SECURE_PORT_PROPERTY_NAME))
+                                .map(Integer::parseInt)
+                                .orElse(DEFAULT_SECURE_PORT);
+                boolean secureConnection =
+                        Optional.ofNullable((String) props.get(SECURE_CONNECTION_PROPERTY_NAME))
+                                .map(Boolean::parseBoolean)
+                                .orElse(false);
+                String brokerUrl = getBrokerUrl(host, port, securePort, secureConnection);
+
+                // Get MQTT options
+                MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey, secureConnection);
+
+                LOGGER.info("MqttOptions = {}", mqttConnectOptions);
+
+                // Topics and messages configuration
+                String iotTopic = getTopicFromProperties(props, IOT_TOPIC_PROPERTY_NAME, deviceId);
+                String requestTopic = getTopicFromProperties(props, REQUEST_TOPIC_PROPERTY_NAME, deviceId);
+                String responseTopic = getTopicFromProperties(props, RESPONSE_TOPIC_PROPERTY_NAME, deviceId);
+                int qos = Optional.ofNullable((String) props.get(MESSAGE_QOS_PROPERTY_NAME))
+                        .map(Integer::parseInt)
+                        .orElse(DEFAULT_QOS);
+                boolean retained = Optional.ofNullable((String) props.get(MESSAGE_RETAINED_PROPERTY))
+                        .map(Boolean::parseBoolean)
+                        .orElse(DEFAULT_RETAINED);
+
+                int initialDelay = Optional.ofNullable((String) props.get(CONNECTION_INITIAL_DELAY_PROPERTY_NAME))
+                        .map(Integer::parseInt)
+                        .orElse(DEFAULT_INITIAL_DELAY);
+                int retryDelay = Optional.ofNullable((String) props.get(CONNECTION_RETRY_DELAY_PROPERTY_NAME))
+                        .map(Integer::parseInt)
+                        .orElse(DEFAULT_RETRY_DELAY);
+
+                int maxLength = Optional.ofNullable((String) props.get(MAX_LENGTH_PROPERTY_NAME))
+                        .map(Integer::parseInt)
+                        .orElse(DEFAULT_MAX_LENGTH);
+
+                currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
+                        requestTopic, responseTopic, qos, retained, initialDelay, retryDelay, maxLength != DEFAULT_MAX_LENGTH, maxLength);
+            } catch (IllegalArgumentException e) {
+                throw new ConfigurationException("Error parsing configuration properties: " + e.getMessage());
+            }
+
+            LOGGER.info("MQTT connector configuration loaded");
         }
-
-        try {
-            // Get broker URL
-            String host = Optional.ofNullable((String) props.get(HOST_PROPERTY_NAME))
-                            .orElseThrow(() -> missingRequireFieldExceptionSupplier(HOST_PROPERTY_NAME).get());
-            int port = Optional.ofNullable((String) props.get(PORT_PROPERTY_NAME))
-                            .map(Integer::parseInt)
-                            .orElse(DEFAULT_PORT);
-            int securePort =
-                    Optional.ofNullable((String) props.get(SECURE_PORT_PROPERTY_NAME))
-                            .map(Integer::parseInt)
-                            .orElse(DEFAULT_SECURE_PORT);
-            boolean secureConnection =
-                    Optional.ofNullable((String) props.get(SECURE_CONNECTION_PROPERTY_NAME))
-                            .map(Boolean::parseBoolean)
-                            .orElse(false);
-            String brokerUrl = getBrokerUrl(host, port, securePort, secureConnection);
-
-            // Get MQTT options
-            MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey, secureConnection);
-
-            LOGGER.info("MqttOptions = {}", mqttConnectOptions);
-
-            // Topics and messages configuration
-            String iotTopic = getTopicFromProperties(props, IOT_TOPIC_PROPERTY_NAME, deviceId);
-            String requestTopic = getTopicFromProperties(props, REQUEST_TOPIC_PROPERTY_NAME, deviceId);
-            String responseTopic = getTopicFromProperties(props, RESPONSE_TOPIC_PROPERTY_NAME, deviceId);
-            int qos = Optional.ofNullable((String) props.get(MESSAGE_QOS_PROPERTY_NAME))
-                    .map(Integer::parseInt)
-                    .orElse(DEFAULT_QOS);
-            boolean retained = Optional.ofNullable((String) props.get(MESSAGE_RETAINED_PROPERTY))
-                    .map(Boolean::parseBoolean)
-                    .orElse(DEFAULT_RETAINED);
-
-            int initialDelay = Optional.ofNullable((String) props.get(CONNECTION_INITIAL_DELAY_PROPERTY_NAME))
-                    .map(Integer::parseInt)
-                    .orElse(DEFAULT_INITIAL_DELAY);
-            int retryDelay = Optional.ofNullable((String) props.get(CONNECTION_RETRY_DELAY_PROPERTY_NAME))
-                    .map(Integer::parseInt)
-                    .orElse(DEFAULT_RETRY_DELAY);
-
-            int maxLength = Optional.ofNullable((String) props.get(MAX_LENGTH_PROPERTY_NAME))
-                    .map(Integer::parseInt)
-                    .orElse(DEFAULT_MAX_LENGTH);
-
-            currentConfiguration = new ConnectorConfiguration(brokerUrl, deviceId, mqttConnectOptions, iotTopic,
-                    requestTopic, responseTopic, qos, retained, initialDelay, retryDelay, maxLength != DEFAULT_MAX_LENGTH, maxLength);
-        } catch (IllegalArgumentException e) {
-            throw new ConfigurationException("Error parsing configuration properties: " + e.getMessage());
-        }
-
-        LOGGER.info("MQTT connector configuration loaded");
     }
 
     private MqttConnectOptions getMqttConnectOptionsConfiguration(Dictionary<String, ?> props, String deviceId,
@@ -280,11 +282,13 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
 
     @Override
     public void applyConfiguration() {
-        LOGGER.info("Applying last MQTT connector configuration");
+        if (currentConfiguration != null) { // Se ha cargado correctamente la configuración del conector MQTT
+            LOGGER.info("Applying last MQTT connector configuration");
 
-        connector.loadConfigurationAndInit(currentConfiguration);
+            connector.loadConfigurationAndInit(currentConfiguration);
 
-        LOGGER.info("Last MQTT connector configuration applied");
+            LOGGER.info("Last MQTT connector configuration applied");
+        } else LOGGER.warn("MQTT Configuration not loaded yet");
     }
 
     public void reapplyConfiguration() {
