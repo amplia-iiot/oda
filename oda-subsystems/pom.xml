@@ -12,11 +12,12 @@
         <module>poller</module>
         <module>collector</module>
         <module>sshserver</module>
+		<module>countermanager</module>
     </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.7.9-SNAPSHOT</version>
+        <version>4.8.3-SNAPSHOT</version>
     </parent>
 </project>

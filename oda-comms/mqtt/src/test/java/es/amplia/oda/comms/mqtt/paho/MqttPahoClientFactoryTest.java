@@ -17,13 +17,13 @@ import static org.mockito.Matchers.eq;
 @PrepareForTest(MqttPahoClientFactory.class)
 public class MqttPahoClientFactoryTest {
 
-    private static final String TEST_SERVER_URI = "test.host.server";
+    private static final String TEST_SERVER_URI = "tcp://testhost.server";
     private static final String TEST_CLIENT_ID = "testClient";
 
     private final MqttPahoClientFactory testFactory = new MqttPahoClientFactory();
 
     @Mock
-    private org.eclipse.paho.client.mqttv3.MqttClient mockedInnerClient;
+    private org.eclipse.paho.client.mqttv3.MqttAsyncClient mockedInnerClient;
     @Mock
     private ResubscribeTopicsOnReconnectCallback mockedCallback;
     @Mock
@@ -31,14 +31,14 @@ public class MqttPahoClientFactoryTest {
 
     @Test
     public void testCreateMqttClient() throws Exception {
-        PowerMockito.whenNew(org.eclipse.paho.client.mqttv3.MqttClient.class).withAnyArguments().
+        PowerMockito.whenNew(org.eclipse.paho.client.mqttv3.MqttAsyncClient.class).withAnyArguments().
                 thenReturn(mockedInnerClient);
         PowerMockito.whenNew(ResubscribeTopicsOnReconnectCallback.class).withAnyArguments().thenReturn(mockedCallback);
         PowerMockito.whenNew(MqttPahoClient.class).withAnyArguments().thenReturn(mockedClient);
 
         testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
 
-        PowerMockito.verifyNew(org.eclipse.paho.client.mqttv3.MqttClient.class)
+        PowerMockito.verifyNew(org.eclipse.paho.client.mqttv3.MqttAsyncClient.class)
                 .withArguments(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID), any(MemoryPersistence.class));
         PowerMockito.verifyNew(ResubscribeTopicsOnReconnectCallback.class).withNoArguments();
         PowerMockito.verifyNew(MqttPahoClient.class).withArguments(eq(mockedInnerClient), eq(mockedCallback));
@@ -46,7 +46,7 @@ public class MqttPahoClientFactoryTest {
 
     @Test(expected = MqttException.class)
     public void testCreateMqttClientThrowsMqttException() throws Exception {
-        PowerMockito.whenNew(org.eclipse.paho.client.mqttv3.MqttClient.class).withAnyArguments().
+        PowerMockito.whenNew(org.eclipse.paho.client.mqttv3.MqttAsyncClient.class).withAnyArguments().
                 thenThrow(new org.eclipse.paho.client.mqttv3.MqttException(1));
 
         testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
