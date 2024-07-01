@@ -52,13 +52,13 @@ class EventDispatcherImpl implements EventDispatcher {
     }
 
     @Override
-    public void publishSameThreadNoQos(List<Event> events) {
+    public void publishSameThread(List<Event> events, boolean useQos) {
         if (events.isEmpty()) {
             return;
         }
 
         List<OutputDatastream> outputEvents = parse(events);
-        outputEvents.forEach( outputEvent ->  send(outputEvent, false));
+        outputEvents.forEach( outputEvent ->  send(outputEvent, useQos));
     }
 
     List<OutputDatastream> parse(List<Event> events) {

@@ -24,8 +24,9 @@ public interface EventDispatcher {
 
     /**
      * Publish a list of events generated from a source to the dispatcher to send it through a connector.
-     * The publication is done in the same thread that calls this function and with qos = 0 in the connector
+     * The publication is done in the same thread that calls this function
      * @param events List of events to publish.
+     * @param useQos indicates if we want to use connector Qos or not
      */
-    void publishSameThreadNoQos(List<Event> events);
+    void publishSameThread(List<Event> events, boolean useQos);
 }

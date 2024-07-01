@@ -55,12 +55,12 @@ public class EventCollectorImpl implements EventCollector {
     }
 
     @Override
-    public void publishSameThreadNoQos(List<Event> events) {
+    public void publishSameThread(List<Event> events, boolean useQos) {
         if (events.isEmpty()) {
             return;
         }
 
-        eventDispatcher.publishSameThreadNoQos(events);
+        eventDispatcher.publishSameThread(events, useQos);
     }
 
 

@@ -46,7 +46,7 @@ class ScadaEventDispatcher implements EventDispatcher {
     }
 
     @Override
-    public void publishSameThreadNoQos(List<Event> events) {
+    public void publishSameThread(List<Event> events, boolean useQos) {
         publish(events);
     }
 }
