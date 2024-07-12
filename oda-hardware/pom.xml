@@ -19,6 +19,7 @@
         <module>comms</module>
         <module>udp</module>
         <module>ftp</module>
+		<module>opcua</module>
     </modules>
 
     <parent>
