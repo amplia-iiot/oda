@@ -1,0 +1,80 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Building OpenGate Device Agent Hardware - OPC-UA devices 4.8.3-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/es/amplia/oda/core/commons/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/groups/amplia-external/es/amplia/oda/core/commons/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/es/amplia/oda/core/commons/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/lib.snapshots/es/amplia/oda/core/commons/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/groups/amplia-external/es/amplia/oda/core/oda-core/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/es/amplia/oda/core/oda-core/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/lib.snapshots/es/amplia/oda/core/oda-core/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/es/amplia/oda/core/oda-core/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/groups/amplia-external/es/amplia/oda/oda-parent/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/es/amplia/oda/oda-parent/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/lib.snapshots/es/amplia/oda/oda-parent/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/es/amplia/oda/oda-parent/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/groups/amplia-external/es/amplia/oda/event/api/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/es/amplia/oda/event/api/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/lib.snapshots/es/amplia/oda/event/api/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/es/amplia/oda/event/api/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-snapshots/es/amplia/oda/event/oda-events/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/lib.snapshots/es/amplia/oda/event/oda-events/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/repositories/amplia-releases/es/amplia/oda/event/oda-events/4.8.3-SNAPSHOT/maven-metadata.xml
+Downloading: http://repository.amplia.es:8081/nexus/content/groups/amplia-external/es/amplia/oda/event/oda-events/4.8.3-SNAPSHOT/maven-metadata.xml
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ opcua ---
+[INFO] es.amplia.oda.hardware:opcua:bundle:4.8.3-SNAPSHOT
+[INFO] +- org.eclipse.milo:sdk-client:jar:0.6.13:compile
+[INFO] |  +- org.eclipse.milo:stack-client:jar:0.6.13:compile
+[INFO] |  |  +- org.eclipse.milo:stack-core:jar:0.6.13:compile
+[INFO] |  |  |  +- org.bouncycastle:bcprov-jdk18on:jar:1.78.1:compile
+[INFO] |  |  |  +- org.bouncycastle:bcpkix-jdk18on:jar:1.78.1:compile
+[INFO] |  |  |  |  \- org.bouncycastle:bcutil-jdk18on:jar:1.78.1:compile
+[INFO] |  |  |  +- com.google.guava:guava:jar:33.0.0-jre:compile
+[INFO] |  |  |  |  +- com.google.guava:failureaccess:jar:1.0.2:compile
+[INFO] |  |  |  |  \- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+[INFO] |  |  |  +- io.netty:netty-codec:jar:4.1.109.Final:compile
+[INFO] |  |  |  +- io.netty:netty-handler:jar:4.1.109.Final:compile
+[INFO] |  |  |  |  +- io.netty:netty-resolver:jar:4.1.109.Final:compile
+[INFO] |  |  |  |  \- io.netty:netty-transport-native-unix-common:jar:4.1.109.Final:compile
+[INFO] |  |  |  \- org.glassfish.jaxb:jaxb-runtime:jar:2.3.6:compile
+[INFO] |  |  |     +- jakarta.xml.bind:jakarta.xml.bind-api:jar:2.3.3:compile
+[INFO] |  |  |     +- org.glassfish.jaxb:txw2:jar:2.3.6:compile
+[INFO] |  |  |     +- com.sun.istack:istack-commons-runtime:jar:3.0.12:compile
+[INFO] |  |  |     \- com.sun.activation:jakarta.activation:jar:1.2.2:runtime
+[INFO] |  |  +- com.digitalpetri.netty:netty-channel-fsm:jar:0.9:compile
+[INFO] |  |  |  \- com.digitalpetri.fsm:strict-machine:jar:0.7:compile
+[INFO] |  |  \- io.netty:netty-codec-http:jar:4.1.109.Final:compile
+[INFO] |  |     +- io.netty:netty-common:jar:4.1.109.Final:compile
+[INFO] |  |     +- io.netty:netty-buffer:jar:4.1.109.Final:compile
+[INFO] |  |     \- io.netty:netty-transport:jar:4.1.109.Final:compile
+[INFO] |  \- org.eclipse.milo:sdk-core:jar:0.6.13:compile
+[INFO] +- org.projectlombok:lombok:jar:1.18.2:compile
+[INFO] +- es.amplia.oda.core:commons:jar:4.8.3-SNAPSHOT:compile
+[INFO] |  \- org.slf4j:slf4j-api:jar:1.7.25:compile
+[INFO] +- es.amplia.oda.event:api:jar:4.8.3-SNAPSHOT:compile
+[INFO] +- org.osgi:org.osgi.core:jar:5.0.0:compile
+[INFO] +- org.osgi:org.osgi.compendium:jar:5.0.0:compile
+[INFO] +- junit:junit:jar:4.12:test
+[INFO] |  \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] +- org.mockito:mockito-core:jar:1.10.19:test
+[INFO] |  \- org.objenesis:objenesis:jar:2.1:test
+[INFO] +- org.powermock:powermock-module-junit4:jar:1.7.4:test
+[INFO] |  \- org.powermock:powermock-module-junit4-common:jar:1.7.4:test
+[INFO] |     +- org.powermock:powermock-reflect:jar:1.7.4:test
+[INFO] |     \- org.powermock:powermock-core:jar:1.7.4:test
+[INFO] |        \- org.javassist:javassist:jar:3.21.0-GA:test
+[INFO] +- org.powermock:powermock-api-mockito:jar:1.7.4:test
+[INFO] |  \- org.powermock:powermock-api-mockito-common:jar:1.7.4:test
+[INFO] |     \- org.powermock:powermock-api-support:jar:1.7.4:test
+[INFO] +- org.slf4j:slf4j-nop:jar:1.7.25:test
+[INFO] \- org.jacoco:org.jacoco.agent:jar:runtime:0.8.1:test
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 14.692 s
+[INFO] Finished at: 2024-07-10T09:37:24+02:00
+[INFO] Final Memory: 21M/293M
+[INFO] ------------------------------------------------------------------------

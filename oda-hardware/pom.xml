@@ -18,6 +18,7 @@
         <module>i2c</module>
         <module>comms</module>
         <module>udp</module>
+		<module>opcua</module>
     </modules>
 
     <parent>
