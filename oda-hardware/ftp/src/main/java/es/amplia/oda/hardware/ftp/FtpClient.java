@@ -30,7 +30,7 @@ public class FtpClient {
         this.passiveMode = passiveMode;
     }
 
-    public void connect() throws IOException {
+    public boolean connect() throws IOException {
         ftpClient = new FTPClient();
 
         // add this to redirect ftp commands and answers to log
@@ -54,10 +54,14 @@ public class FtpClient {
         if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
             ftpClient.disconnect();
             log.error("Error connecting to FTP server {}", this.server);
+            return false;
         }
 
         // login in ftp server
-        ftpClient.login(user, password);
+        if(!ftpClient.login(user, password)){
+            log.error("Error logging to FTP server {}", this.server);
+            return false;
+        }
 
         // set file type for downloads (in some servers must be done after logging)
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
@@ -65,6 +69,8 @@ public class FtpClient {
         if(this.passiveMode) {
             ftpClient.enterLocalPassiveMode();
         }
+
+        return true;
     }
 
     public void disconnect() throws IOException {
