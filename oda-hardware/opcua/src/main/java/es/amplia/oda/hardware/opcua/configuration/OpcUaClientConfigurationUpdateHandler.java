@@ -36,19 +36,16 @@ public class OpcUaClientConfigurationUpdateHandler implements ConfigurationUpdat
     private static final Logger LOGGER = LoggerFactory.getLogger(OpcUaClientConfigurationUpdateHandler.class);
 
     private static final String URL_PROPERTY_NAME = "url";
-    private static final String DEVICEID_PROPERTY_NAME = "deviceId";
-    private static final String PUBLISH_PROPERTY_NAME = "datapoints.subscription.publish";
-    private static final String DATAPOINTS_PROPERTY_NAME = "datapoints.subscription.list";
+    private static final String PUBLISH_PROPERTY_NAME = "subscription.publish";
+    private static final String DATAPOINTS_PROPERTY_NAME = "subscription.list";
     private static final String EMPTY_SCADA_TYPE = "*";
 
     private OpcUaConnection internalConnection;
     private EventDispatcher eventDispatcher;
     private ScadaTableTranslator scadaTranslator;
     private String url;
-    private String deviceId;
     private Integer publish;
     private OpcUaClient client;
-    private HashMap<Integer,String> nodeIds = new HashMap<>();
     private List<MonitoredItemCreateRequest> requests = new ArrayList<>();
     private Long clientHandlerSeq;
 
@@ -64,21 +61,17 @@ public class OpcUaClientConfigurationUpdateHandler implements ConfigurationUpdat
         close();
         url = Optional.ofNullable((String)props.get(URL_PROPERTY_NAME))
                             .orElseThrow(() -> new ConfigurationException("Missing required parameter: " + URL_PROPERTY_NAME));
-        deviceId = Optional.ofNullable((String)props.get(DEVICEID_PROPERTY_NAME))
-                            .orElseThrow(() -> new ConfigurationException("Missing required parameter: " + DEVICEID_PROPERTY_NAME));
         publish = Optional.ofNullable((String)props.get(PUBLISH_PROPERTY_NAME)).map(Integer::parseInt)
                             .orElseThrow(() -> new ConfigurationException("Missing required parameter: " + PUBLISH_PROPERTY_NAME));
-        String datapointsListStr = Optional.ofNullable((String)props.get(DATAPOINTS_PROPERTY_NAME))
+        String subscriptionListStr = Optional.ofNullable((String)props.get(DATAPOINTS_PROPERTY_NAME))
                             .orElseThrow(() -> new ConfigurationException("Missing required parameter: " + DATAPOINTS_PROPERTY_NAME));
         
-        String[] arrayDp = datapointsListStr.split("\\|");
+        String[] arrayDp = subscriptionListStr.split("\\|");
         for (int i = 0; i < arrayDp.length; i++) {
             String[] meterParams = arrayDp[i].split(";");
-            if (meterParams.length != 3) throw new ConfigurationException("Invalid meter configuration: " + arrayDp[i] + ", must be datastreamId;nodeId;samplingInterval");
-            String dsId = meterParams[0];
-            Integer nodeId = Integer.parseInt(meterParams[1]);
-            Double samplingInterval = Double.parseDouble(meterParams[2]);
-            nodeIds.put(nodeId, dsId);
+            if (meterParams.length != 2) throw new ConfigurationException("Invalid meter configuration: " + arrayDp[i] + ", must be nodeId;samplingInterval");
+            Integer nodeId = Integer.parseInt(meterParams[0]);
+            Double samplingInterval = Double.parseDouble(meterParams[1]);
             requests.add(createRequest(nodeId, samplingInterval));
         }
                     
@@ -159,7 +152,6 @@ public class OpcUaClientConfigurationUpdateHandler implements ConfigurationUpdat
             client.getSubscriptionManager().cancelWatchdogTimers();
             client.disconnect();
         }
-        nodeIds.clear();
         requests.clear();
         clientHandlerSeq = 0l;
     }
