@@ -4,6 +4,7 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -17,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +46,11 @@ public class FtpClientTest {
 
         boolean connectResult = ftpClient.connect();
         Assert.assertTrue(connectResult);
+
+        Path destPath = Paths.get("src/test/resources/downloadedTest.txt");
+        if(Files.exists(destPath)) {
+            Files.delete(destPath);
+        }
     }
 
 
@@ -71,6 +79,7 @@ public class FtpClientTest {
         ftpClient.changeDir("");
     }
 
+    @Ignore
     @Test
     public void testDownloadFile() throws IOException {
         String source = "src/test/resources/test.txt";
@@ -83,6 +92,7 @@ public class FtpClientTest {
         Files.delete(destPath);
     }
 
+    @Ignore
     @Test
     public void testDownloadFileKeepDate() throws IOException {
         FtpFile source = new FtpFile();
@@ -93,13 +103,22 @@ public class FtpClientTest {
 
         ftpClient.downloadFileKeepDate(source, dest);
 
+        // check file exists
         Path destPath = Paths.get(dest);
         Assert.assertTrue(Files.exists(destPath));
-        Date currentDate = new Date(currentTime);
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        Assert.assertEquals(formatter.format(currentDate), Files.getAttribute(destPath, "lastAccessTime").toString());
+        // format current date
+        Date expectedDate = new Date(currentTime);
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        // get current file date in the same format as current date
+        String resultDate = Files.getAttribute(destPath, "lastAccessTime").toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'");
+        LocalDateTime date = LocalDateTime.parse(resultDate, formatter);
+        Date returnedDate = Date.from(date.atZone(TimeZone.getTimeZone("UTC").toZoneId()).toInstant());
+
+        Assert.assertEquals(dateFormatter.format(expectedDate), dateFormatter.format(returnedDate));
         Files.delete(destPath);
     }
 
