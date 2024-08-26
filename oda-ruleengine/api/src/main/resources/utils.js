@@ -135,6 +135,15 @@ function exists(state, deviceId, datastream) {
     return state.exists(deviceId, datastream);
 }
 
+// Check if current value is different than the last one stored
+function isValueDifferent(State, datastreamId, deviceId, currentValue) {
+    if(State.getLastValue(deviceId, datastreamId) != currentValue) {
+	    return true;
+    } else {
+	    return false;
+    }
+}
+
 // SEND IMMEDIATELY
 
 function sendImmediately(state, deviceId, datastreamId) {
@@ -151,4 +160,12 @@ function readFile(filePath){
 	var bytes = Java.from(bytesObj);
 	var content = String.fromCharCode.apply(null, bytes);
 	return content;
+}
+
+// SET VALUE AS ALREADY SENT
+function setSent(state, deviceId, datastreamId, datastreamValue) {
+	var HashMap = Java.type('java.util.HashMap');
+	var valuesAlreadySent = new HashMap();
+	valuesAlreadySent.put(datastreamValue.getAt(), true);
+	state.setSent(deviceId, datastreamId, valuesAlreadySent);
 }
