@@ -103,11 +103,17 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public int getCpuTotal() {
         try {
-            int cpuTotal = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT));
-            LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
-            return cpuTotal;
+            String cpuTotalString = commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT);
+            if (cpuTotalString != null) {
+                int cpuTotal = Integer.parseInt(cpuTotalString);
+                LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
+                return cpuTotal;
+            } else {
+                LOGGER.warn("Executing CPU Total command '{}' return null", CPU_TOTAL_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing Clock command '{}':", CPU_TOTAL_SCRIPT,
+            LOGGER.error("Error executing CPU Total command '{}':", CPU_TOTAL_SCRIPT,
                     ex);
             return 0;
         }
@@ -129,9 +135,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public long getUptime() {
         try {
-            long uptime = Long.parseLong(commandProcessor.execute(path + "/" + UPTIME_SCRIPT));
-            LOGGER.debug("Getting actual UpTime: {}", uptime);
-            return uptime;
+            String upTimeString = commandProcessor.execute(path + "/" + UPTIME_SCRIPT);
+            if (upTimeString != null) {
+                long uptime = Long.parseLong(upTimeString);
+                LOGGER.debug("Getting actual UpTime: {}", uptime);
+                return uptime;
+            } else {
+                LOGGER.warn("Executing UpTime command '{}' return null", UPTIME_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing UpTime command '{}':", UPTIME_SCRIPT,
                     ex);
@@ -155,9 +167,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public int getCpuUsage() {
         try {
-            int cpuUsage = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT));
-            LOGGER.debug("Getting actual CPU Usage: {}", cpuUsage);
-            return cpuUsage;
+            String cpuUsageString = commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT);
+            if (cpuUsageString != null) {
+                int cpuUsage = Integer.parseInt(cpuUsageString);
+                LOGGER.debug("Getting actual CPU Usage: {}", cpuUsage);
+                return cpuUsage;
+            } else {
+                LOGGER.warn("Executing CPU Usage command '{}' return null", CPU_USAGE_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing CPU Usage command '{}':", CPU_USAGE_SCRIPT,
                     ex);
@@ -168,9 +186,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public long getRamTotal() {
         try {
-            long ramTotal = Long.parseLong(commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT));
-            LOGGER.debug("Getting actual RAM Usage: {}", ramTotal);
-            return ramTotal;
+            String ramTotalString = commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT);
+            if (ramTotalString != null) {
+                long ramTotal = Long.parseLong(ramTotalString);
+                LOGGER.debug("Getting actual RAM Usage: {}", ramTotal);
+                return ramTotal;
+            } else {
+                LOGGER.warn("Executing RAM Total command '{}' return null", RAM_TOTAL_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Total command '{}':", RAM_TOTAL_SCRIPT,
                     ex);
@@ -181,9 +205,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public int getRamUsage() {
         try {
-            int ramUsage = Integer.parseInt(commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT));
-            LOGGER.debug("Getting actual RAM Usage: {}", ramUsage);
-            return ramUsage;
+            String ramUsageString = commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT);
+            if (ramUsageString != null) {
+                int ramUsage = Integer.parseInt(ramUsageString);
+                LOGGER.debug("Getting actual RAM Usage: {}", ramUsage);
+                return ramUsage;
+            } else {
+                LOGGER.warn("Executing RAM Usage command '{}' return null", RAM_USAGE_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Usage command '{}':", RAM_USAGE_SCRIPT,
                     ex);
@@ -194,9 +224,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public long getDiskTotal() {
         try {
-            long diskTotal = Long.parseLong(commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT));
-            LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskTotal);
-            return diskTotal;
+            String diskTotalString = commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT);
+            if (diskTotalString != null) {
+                long diskTotal = Long.parseLong(diskTotalString);
+                LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskTotal);
+                return diskTotal;
+            } else {
+                LOGGER.warn("Executing Disk Total command '{}' return null", DISK_TOTAL_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Disk Total command '{}':", DISK_TOTAL_SCRIPT,
                     ex);
@@ -207,9 +243,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public int getDiskUsage() {
         try {
-            int diskUsage = Integer.parseInt(commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT));
-            LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskUsage);
-            return diskUsage;
+            String diskUsageString = commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT);
+            if (diskUsageString != null) {
+                int diskUsage = Integer.parseInt(diskUsageString);
+                LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskUsage);
+                return diskUsage;
+            } else {
+                LOGGER.warn("Executing Disk Usage command '{}' return null", DISK_USAGE_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException ex) {
             LOGGER.error("Error executing Disk Usage command '{}':", DISK_USAGE_SCRIPT,
                     ex);
@@ -243,9 +285,15 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public int getTemperatureValue() {
         try {
-            int temperatureValue = Integer.parseInt(commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT));
-            LOGGER.debug("Getting actual Temperature: {}", temperatureValue);
-            return temperatureValue;
+            String tempValueString = commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT);
+            if (tempValueString != null) {
+                int temperatureValue = Integer.parseInt(tempValueString);
+                LOGGER.debug("Getting actual Temperature: {}", temperatureValue);
+                return temperatureValue;
+            } else {
+                LOGGER.warn("Executing Temperature command '{}' return null", TEMPERATURE_VALUE_SCRIPT);
+                return 0;
+            }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Temperature command '{}':", TEMPERATURE_VALUE_SCRIPT,
                     ex);
