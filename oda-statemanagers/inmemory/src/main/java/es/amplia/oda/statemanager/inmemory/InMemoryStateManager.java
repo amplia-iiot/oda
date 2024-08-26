@@ -271,10 +271,12 @@ public class InMemoryStateManager implements StateManager {
         Event eventToSendImmediately;
 
         if (!notProcessedValues.isEmpty()) {
-            for (DatastreamValue notProcessedValue : notProcessedValues) {
+            // get only values not already sent
+            List<DatastreamValue> valuesToSent = notProcessedValues.stream().filter(value -> !value.isSent()).collect(Collectors.toList());
+            for (DatastreamValue notProcessedValue : valuesToSent) {
 
                 eventToSendImmediately = new Event(notProcessedValue.getDatastreamId(), notProcessedValue.getDeviceId(),
-                        event.getPath(), event.getFeed(), notProcessedValue.getAt(), notProcessedValue.getValue());
+                        event.getPath(), notProcessedValue.getFeed(), notProcessedValue.getAt(), notProcessedValue.getValue());
 
                 // add event to list to publish
                 eventsToSendImmediately.add(eventToSendImmediately);
