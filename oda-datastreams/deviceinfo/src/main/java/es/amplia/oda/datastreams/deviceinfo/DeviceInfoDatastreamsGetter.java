@@ -109,11 +109,11 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
                 LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
                 return cpuTotal;
             } else {
-                LOGGER.warn("Executing Clock command '{}' return null", CPU_TOTAL_SCRIPT);
+                LOGGER.warn("Executing CPU Total command '{}' return null", CPU_TOTAL_SCRIPT);
                 return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing Clock command '{}':", CPU_TOTAL_SCRIPT,
+            LOGGER.error("Error executing CPU Total command '{}':", CPU_TOTAL_SCRIPT,
                     ex);
             return 0;
         }
