@@ -101,22 +101,21 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public int getCpuTotal() {
+    public Integer getCpuTotal() {
         try {
             String cpuTotalString = commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT);
-            if (cpuTotalString != null) {
+            if ( (cpuTotalString != null) && !cpuTotalString.isEmpty() ) {
                 int cpuTotal = Integer.parseInt(cpuTotalString);
                 LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
                 return cpuTotal;
             } else {
                 LOGGER.warn("Executing CPU Total command '{}' return null", CPU_TOTAL_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing CPU Total command '{}':", CPU_TOTAL_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
@@ -133,22 +132,21 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public long getUptime() {
+    public Long getUptime() {
         try {
             String upTimeString = commandProcessor.execute(path + "/" + UPTIME_SCRIPT);
-            if (upTimeString != null) {
+            if ( (upTimeString != null) && !upTimeString.isEmpty() ) {
                 long uptime = Long.parseLong(upTimeString);
                 LOGGER.debug("Getting actual UpTime: {}", uptime);
                 return uptime;
             } else {
                 LOGGER.warn("Executing UpTime command '{}' return null", UPTIME_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing UpTime command '{}':", UPTIME_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
@@ -165,98 +163,93 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public int getCpuUsage() {
+    public Integer getCpuUsage() {
         try {
             String cpuUsageString = commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT);
-            if (cpuUsageString != null) {
+            if ( (cpuUsageString != null) && !cpuUsageString.isEmpty() ) {
                 int cpuUsage = Integer.parseInt(cpuUsageString);
                 LOGGER.debug("Getting actual CPU Usage: {}", cpuUsage);
                 return cpuUsage;
             } else {
                 LOGGER.warn("Executing CPU Usage command '{}' return null", CPU_USAGE_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing CPU Usage command '{}':", CPU_USAGE_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
-    public long getRamTotal() {
+    public Long getRamTotal() {
         try {
             String ramTotalString = commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT);
-            if (ramTotalString != null) {
+            if ( (ramTotalString != null) && !ramTotalString.isEmpty() ) {
                 long ramTotal = Long.parseLong(ramTotalString);
                 LOGGER.debug("Getting actual RAM Usage: {}", ramTotal);
                 return ramTotal;
             } else {
                 LOGGER.warn("Executing RAM Total command '{}' return null", RAM_TOTAL_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Total command '{}':", RAM_TOTAL_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
-    public int getRamUsage() {
+    public Integer getRamUsage() {
         try {
             String ramUsageString = commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT);
-            if (ramUsageString != null) {
+            if ( (ramUsageString != null) && !ramUsageString.isEmpty() ) {
                 int ramUsage = Integer.parseInt(ramUsageString);
                 LOGGER.debug("Getting actual RAM Usage: {}", ramUsage);
                 return ramUsage;
             } else {
                 LOGGER.warn("Executing RAM Usage command '{}' return null", RAM_USAGE_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Usage command '{}':", RAM_USAGE_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
-    public long getDiskTotal() {
+    public Long getDiskTotal() {
         try {
             String diskTotalString = commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT);
-            if (diskTotalString != null) {
+            if ( (diskTotalString != null) && !diskTotalString.isEmpty() ) {
                 long diskTotal = Long.parseLong(diskTotalString);
                 LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskTotal);
                 return diskTotal;
             } else {
                 LOGGER.warn("Executing Disk Total command '{}' return null", DISK_TOTAL_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Disk Total command '{}':", DISK_TOTAL_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
-    public int getDiskUsage() {
+    public Integer getDiskUsage() {
         try {
             String diskUsageString = commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT);
-            if (diskUsageString != null) {
+            if ( (diskUsageString != null) && !diskUsageString.isEmpty() ) {
                 int diskUsage = Integer.parseInt(diskUsageString);
                 LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskUsage);
                 return diskUsage;
             } else {
                 LOGGER.warn("Executing Disk Usage command '{}' return null", DISK_USAGE_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException ex) {
             LOGGER.error("Error executing Disk Usage command '{}':", DISK_USAGE_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     
@@ -283,22 +276,21 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public int getTemperatureValue() {
+    public Integer getTemperatureValue() {
         try {
             String tempValueString = commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT);
-            if (tempValueString != null) {
+            if ( (tempValueString != null) && !tempValueString.isEmpty() ) {
                 int temperatureValue = Integer.parseInt(tempValueString);
                 LOGGER.debug("Getting actual Temperature: {}", temperatureValue);
                 return temperatureValue;
             } else {
                 LOGGER.warn("Executing Temperature command '{}' return null", TEMPERATURE_VALUE_SCRIPT);
-                return 0;
             }
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Temperature command '{}':", TEMPERATURE_VALUE_SCRIPT,
                     ex);
-            return 0;
         }
+        return null;
     }
 
     public String getSerialNumber() {

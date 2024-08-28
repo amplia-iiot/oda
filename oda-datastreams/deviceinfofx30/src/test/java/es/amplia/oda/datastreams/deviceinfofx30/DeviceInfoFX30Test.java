@@ -87,9 +87,9 @@ public class DeviceInfoFX30Test {
 		list.add(new Software("MyName","1.0.0","SOFTWARE"));
 		assertEquals(list, deviceInfo.getSoftware());
 		assertEquals("apn", deviceInfo.getApn());
-		assertEquals(1000L, deviceInfo.getCpuTotal());
-		assertEquals(2000L, deviceInfo.getRamTotal());
-		assertEquals(4000L, deviceInfo.getDiskTotal());
+		assertEquals(new Integer(1000), deviceInfo.getCpuTotal());
+		assertEquals(new Long(2000), deviceInfo.getRamTotal());
+		assertEquals(new Long(4000), deviceInfo.getDiskTotal());
 	}
 
 	@Test
@@ -110,9 +110,9 @@ public class DeviceInfoFX30Test {
 		assertNull(deviceInfo.getRssi());
 		assertNull(deviceInfo.getSoftware());
 		assertNull(deviceInfo.getApn());
-		assertEquals(0, deviceInfo.getCpuTotal());
-		assertEquals(0, deviceInfo.getRamTotal());
-		assertEquals(0, deviceInfo.getDiskTotal());
+		assertEquals(null, deviceInfo.getCpuTotal());
+		assertEquals(null, deviceInfo.getRamTotal());
+		assertEquals(null, deviceInfo.getDiskTotal());
 	}
 
 	@Test
@@ -154,9 +154,9 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "path", "path");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.UPTIME_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
-		long uptime = deviceInfo.getUptime();
+		Long uptime = deviceInfo.getUptime();
 
-		assertEquals(0, uptime);
+		assertEquals(null, uptime);
 	}
 
 	@Test
@@ -176,9 +176,9 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "path", "path");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.TEMPERATURE_VALUE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
-		int temperatureValue = deviceInfo.getTemperatureValue();
+		Integer temperatureValue = deviceInfo.getTemperatureValue();
 
-		assertEquals(0, temperatureValue);
+		assertEquals(null, temperatureValue);
 	}
 
 	@Test
@@ -242,9 +242,9 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "path", "path");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
-		int cpuUsage = deviceInfo.getCpuUsage();
+		Integer cpuUsage = deviceInfo.getCpuUsage();
 
-		assertEquals(0, cpuUsage);
+		assertEquals(null, cpuUsage);
 	}
 
 	@Test
@@ -264,9 +264,9 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "path", "path");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
-		int ramUsage = deviceInfo.getRamUsage();
+		Integer ramUsage = deviceInfo.getRamUsage();
 
-		assertEquals(0, ramUsage);
+		assertEquals(null, ramUsage);
 	}
 
 	@Test
@@ -286,8 +286,8 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "path", "path");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.DISK_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
-		int diskUsage = deviceInfo.getDiskUsage();
+		Integer diskUsage = deviceInfo.getDiskUsage();
 
-		assertEquals(0, diskUsage);
+		assertEquals(null, diskUsage);
 	}
 }

@@ -4,7 +4,6 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class DatastreamGetterTemplate implements DatastreamsGetter {
@@ -30,6 +29,6 @@ public class DatastreamGetterTemplate implements DatastreamsGetter {
 	@Override
 	public CompletableFuture<CollectedValue> get(String device) {
 		return CompletableFuture.completedFuture(
-				new CollectedValue(System.currentTimeMillis(), Optional.ofNullable(getterFunction.op()).orElse("")));
+				new CollectedValue(System.currentTimeMillis(), getterFunction.op()));
 	}
 }
