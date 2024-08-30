@@ -27,7 +27,7 @@ class CollectorImpl implements Collector {
 
     @Override
     public void collect(DevicePattern devicePattern, Set<String> datastreams) {
-        LOGGER.info("Collecting values for datastreamIds {}",
+        LOGGER.debug("Collecting values for datastreamIds {}",
                 datastreams.stream().map(Object::toString).collect(Collectors.joining(",")));
 
         stateManager.getDatastreamsInformation(devicePattern, datastreams)

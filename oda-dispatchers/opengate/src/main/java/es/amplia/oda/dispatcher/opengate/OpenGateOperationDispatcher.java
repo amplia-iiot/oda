@@ -67,12 +67,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
 
         try {
             OperationRequest<Object> basicOperation = serializerProvider.getSerializer(contentType).deserialize(input, OperationRequest.class);
-            LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
+            LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "basic operation", basicOperation);
             String[] path = basicOperation.getOperation().getRequest().getPath();
             String deviceId = basicOperation.getOperation().getRequest().getDeviceId();
             opName = basicOperation.getOperation().getRequest().getName();
             if ( (path != null) && (path.length > 0) && operationSender.isForNextLevel(path, deviceId)) {
-                LOGGER.info("Sending operation to level down: {}", basicOperation);
+                LOGGER.debug("Sending operation to level down: {}", basicOperation);
                 try {
                     operationSender.downlink((OperationRequest<Object>)basicOperation);
                     return null;
@@ -98,7 +98,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         if (UPDATE_OPERATION_NAME.equals(opName)) {
             try {
                 openGateUpdateOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputUpdateOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "update operation", openGateUpdateOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "update operation", openGateUpdateOperation);
                 if (openGateUpdateOperation == null || openGateUpdateOperation.getOperation() == null || !openGateUpdateOperation.getOperation().getRequest().getName().equals("UPDATE")) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -109,7 +109,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         } else if (GET_DEVICE_PARAMETERS_OPERATION_NAME.equals(opName)) {
             try {
                 openGateInputGetOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGetOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "get operation", openGateInputGetOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "get operation", openGateInputGetOperation);
                 if (openGateInputGetOperation == null || openGateInputGetOperation.getOperation() == null || !openGateInputGetOperation.getOperation().getRequest().getName().equals("GET_DEVICE_PARAMETERS")) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -120,7 +120,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         } else if (SET_CLOCK_EQUIPMENT_OPERATION_NAME.equals(opName)) {
             try {
                 openGateInputSetClockOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetClockOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set clock operation", openGateInputSetClockOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set clock operation", openGateInputSetClockOperation);
                 if (openGateInputSetClockOperation == null || openGateInputSetClockOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -131,7 +131,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         } else if (SET_DEVICE_PARAMETERS_OPERATION_NAME.equals(opName)) {
             try {
                 openGateInputSetOrConfigureOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetOrConfigureOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set or configure operation", openGateInputSetOrConfigureOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set or configure operation", openGateInputSetOrConfigureOperation);
                 if(openGateInputSetOrConfigureOperation == null || openGateInputSetOrConfigureOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -142,7 +142,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         } else {
             try {
                 openGateInputGeneralOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputGeneralOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "general operation", openGateInputGeneralOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "general operation", openGateInputGeneralOperation);
                 if (openGateInputGeneralOperation == null || openGateInputGeneralOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -152,7 +152,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
             }
             try {
                 openGateInputCustomOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputCustomOperation.class);
-                LOGGER.info(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "custom operation", openGateInputCustomOperation);
+                LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "custom operation", openGateInputCustomOperation);
                 if(openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
@@ -177,7 +177,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
 
     private byte[] serializeOutput(Output output, ContentType contentType) {
         try {
-            LOGGER.info("Operation processed: {}", output);
+            LOGGER.debug("Operation processed: {}", output);
             return serializerProvider.getSerializer(contentType).serialize(output);
         } catch (IOException e) {
             throw new IllegalArgumentException("Error serializing output " + output + " with content type " +

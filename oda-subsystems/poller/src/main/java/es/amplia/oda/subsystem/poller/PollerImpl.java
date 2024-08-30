@@ -30,7 +30,7 @@ class PollerImpl implements Poller {
 
     @Override
     public void poll(DevicePattern deviceIdPattern, Set<String> datastreamIds) {
-        LOGGER.info("Polling({},{})", deviceIdPattern, datastreamIds);
+        LOGGER.debug("Polling({},{})", deviceIdPattern, datastreamIds);
         Return getters = datastreamsGettersFinder.getGettersSatisfying(deviceIdPattern, datastreamIds);
         if (!getters.getNotFoundIds().isEmpty()) {
             LOGGER.warn("No datastreamsGetters found for {}", getters.getNotFoundIds());

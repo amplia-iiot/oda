@@ -56,19 +56,19 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<DatastreamValue> getDatastreamInformation(String deviceId, String datastreamId) {
-        LOGGER.info("Get datastream info for device {} and datastream {}", deviceId, datastreamId);
+        LOGGER.debug("Get datastream info for device {} and datastream {}", deviceId, datastreamId);
         return CompletableFuture.completedFuture(state.getLastValue(new DatastreamInfo(deviceId, datastreamId)));
     }
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId) {
-        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        LOGGER.debug("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
         return CompletableFuture.completedFuture(state.getAllValues(deviceId, datastreamId).stream().collect(Collectors.toSet()));
     }
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformationByAt(String deviceId, String datastreamId) {
-        LOGGER.info("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
+        LOGGER.debug("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
         return CompletableFuture.completedFuture(state.getAllValues(deviceId, datastreamId).stream()
                     .sorted(new Comparator<DatastreamValue>() {
                         @Override
@@ -83,7 +83,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(String deviceId, Set<String> datastreamIds) {
-        LOGGER.info("Get datastream info for device {} and datastreams {}", deviceId, datastreamIds);
+        LOGGER.debug("Get datastream info for device {} and datastreams {}", deviceId, datastreamIds);
         return CompletableFuture.completedFuture(datastreamIds.stream()
                 .map(datastreamId -> new DatastreamInfo(deviceId, datastreamId))
                 .flatMap(this::getStreamOfDatapointsToSend)
@@ -92,7 +92,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, String datastreamId) {
-        LOGGER.info("Get datastream info for device pattern {} and datastream {}", devicePattern, datastreamId);
+        LOGGER.debug("Get datastream info for device pattern {} and datastream {}", devicePattern, datastreamId);
         return CompletableFuture.completedFuture(
                 state.getStoredValues().stream()
                         .filter(entry -> datastreamId.equals(entry.getDatastreamId()))
@@ -103,7 +103,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
-        LOGGER.info("Get datastream info for device pattern {} and datastreams {}", devicePattern, datastreamIds);
+        LOGGER.debug("Get datastream info for device pattern {} and datastreams {}", devicePattern, datastreamIds);
         return CompletableFuture.completedFuture(
                 state.getStoredValues().stream()
                         .filter(entry -> datastreamIds.contains(entry.getDatastreamId()))
@@ -114,7 +114,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDeviceInformation(String deviceId) {
-        LOGGER.info("Get device info for device {}", deviceId);
+        LOGGER.debug("Get device info for device {}", deviceId);
         List<DatastreamInfo> stored = state.getStoredValues();
         return CompletableFuture.completedFuture(stored.stream()
                 .filter(datastreamInfo -> deviceId.equals(datastreamInfo.getDeviceId()))
@@ -149,7 +149,7 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> setDatastreamValues(String deviceId, Map<String, Object> datastreamValues) {
-        LOGGER.info("Set datastream values for device {}, {}", deviceId, datastreamValues);
+        LOGGER.debug("Set datastream values for device {}, {}", deviceId, datastreamValues);
         DatastreamsSettersFinder.Return satisfyingSetters =
                 datastreamsSettersFinder.getSettersSatisfying(deviceId, datastreamValues.keySet());
 
@@ -233,7 +233,7 @@ public class InMemoryStateManager implements StateManager {
         // for every event received
         for (Event event : events) {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
-            LOGGER.info("Processing new event {}", dsValue);
+            LOGGER.debug("Processing new event {}", dsValue);
 
             // apply rules
             this.ruleEngine.engine(this.state, dsValue);
@@ -295,7 +295,7 @@ public class InMemoryStateManager implements StateManager {
 
             if(!notProcessedValues.isEmpty()) {
                 for (DatastreamValue notProcessedValue : notProcessedValues) {
-                    LOGGER.info("Processing refreshed event = {}", notProcessedValue);
+                    LOGGER.debug("Processing refreshed event = {}", notProcessedValue);
 
                     try {
                         // if event was marked as send immediately, value will be inserted in database with sent = true

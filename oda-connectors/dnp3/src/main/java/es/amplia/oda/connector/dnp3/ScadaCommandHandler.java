@@ -37,7 +37,7 @@ class ScadaCommandHandler implements CommandHandler {
             result = ScadaOperationResult.ERROR;
             Thread.currentThread().interrupt();
         }
-        LOGGER.info("Operation {} on index {} with value {}: {}", operation, index, value, result);
+        LOGGER.debug("Operation {} on index {} with value {}: {}", operation, index, value, result);
         return toCommandStatus(result);
     }
 

@@ -44,8 +44,8 @@ public class MqttOperationSender implements OperationSender{
             String finalTopic = requestTopic + TOPIC_SEPARATOR + deviceToTopic;
             operation.getOperation().getRequest().setPath(Arrays.copyOfRange(path, 1, path.length));
             MqttMessage message = MqttMessage.newInstance(serializer.serialize(operation), qos, retained);
-            LOGGER.info("Sending message to topic {}", finalTopic);
-            LOGGER.info("Mqtt message content: {}", message);
+            LOGGER.debug("Sending message to topic {}", finalTopic);
+            LOGGER.trace("Mqtt message content: {}", message);
             this.mqttClient.publish(finalTopic, message, ContentType.JSON);
         } catch (IOException e) {
             LOGGER.error("Error parsing downlink message {}", operation, e);

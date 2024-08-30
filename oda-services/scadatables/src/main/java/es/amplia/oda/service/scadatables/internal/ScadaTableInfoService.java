@@ -117,7 +117,7 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
             }
         }
 
-        LOGGER.info("DatasteamId {} for deviceId {} not found in SCADA tables", datastreamInfo.getDatastreamId(), datastreamInfo.getDeviceId());
+        LOGGER.debug("DatasteamId {} for deviceId {} not found in SCADA tables", datastreamInfo.getDatastreamId(), datastreamInfo.getDeviceId());
         return null;
     }
 

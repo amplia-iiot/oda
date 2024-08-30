@@ -113,7 +113,7 @@ public class HttpConnector implements OpenGateConnector {
 
             int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (isSuccessCode(statusCode)) {
-                LOGGER.info("HTTP message sent");
+                LOGGER.debug("HTTP message sent");
             } else {
                 String reason = httpResponse.getStatusLine().getReasonPhrase();
                 LOGGER.error("Error sending HTTP message: {}, {}", statusCode, reason);
