@@ -8,17 +8,17 @@ public interface DeviceInfoProvider {
     String getDeviceId(); //Must return the device Id of ODA
     String getApiKey();
 
-    int getCpuTotal();
+    Integer getCpuTotal();
     String getClock();
-    long getUptime();
+    Long getUptime();
     String getCpuStatus();
-    int getCpuUsage();
-    long getRamTotal();
-    int getRamUsage();
+    Integer getCpuUsage();
+    Long getRamTotal();
+    Integer getRamUsage();
 
-    long getDiskTotal();
-    int getDiskUsage();
+    Long getDiskTotal();
+    Integer getDiskUsage();
     List<Software> getSoftware();
     String getTemperatureStatus();
-    int getTemperatureValue();
+    Integer getTemperatureValue();
 }
