@@ -33,6 +33,8 @@ public class ModbusDatastreamsManager implements AutoCloseable {
         Type datastreamType;
         ModbusType modbusType;
         int dataAddress;
+        boolean readFromCache;
+        int numRegistersToRead;
     }
 
     public void loadConfiguration(List<ModbusDatastreamsConfiguration> currentModbusDatastreamsConfigurations) {
@@ -42,15 +44,15 @@ public class ModbusDatastreamsManager implements AutoCloseable {
         Map<ModbusConfigurationKey, Map<String, Integer>> configurationByDatastreamId =
                 currentModbusDatastreamsConfigurations.stream()
                         .collect(Collectors.groupingBy(this::createModbusConfigurationKey,
-                                 Collectors.toMap(ModbusDatastreamsConfiguration::getDeviceId,
-                                         ModbusDatastreamsConfiguration::getSlaveAddress)));
+                                Collectors.toMap(ModbusDatastreamsConfiguration::getDeviceId,
+                                        ModbusDatastreamsConfiguration::getSlaveAddress)));
 
         configurationByDatastreamId.forEach(this::createAndRegisterModbusDatastreams);
     }
 
     private ModbusConfigurationKey createModbusConfigurationKey(ModbusDatastreamsConfiguration conf) {
         return new ModbusConfigurationKey(conf.getDatastreamId(), conf.getDatastreamType(), conf.getDataType(),
-                conf.getDataAddress());
+                conf.getDataAddress(), conf.isReadFromCache(), conf.getNumRegistersToRead());
     }
 
     private void createAndRegisterModbusDatastreams(ModbusConfigurationKey modbusConfigurationKey,
@@ -72,7 +74,8 @@ public class ModbusDatastreamsManager implements AutoCloseable {
         DatastreamsGetter datastreamsGetter =
                 modbusDatastreamsFactory.createModbusDatastreamsGetter(modbusConfigurationKey.datastreamId,
                         modbusConfigurationKey.datastreamType, devicesIdModbusSlaveMapper,
-                        modbusConfigurationKey.getModbusType(), modbusConfigurationKey.getDataAddress());
+                        modbusConfigurationKey.getModbusType(), modbusConfigurationKey.getDataAddress(),
+                        modbusConfigurationKey.readFromCache, modbusConfigurationKey.getNumRegistersToRead());
 
         if (datastreamsGetter != null) {
             datastreamsGetterRegistrationManager.register(datastreamsGetter);

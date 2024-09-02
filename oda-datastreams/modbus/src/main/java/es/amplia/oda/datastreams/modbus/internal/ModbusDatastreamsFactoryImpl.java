@@ -23,9 +23,10 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
     @Override
     public ModbusDatastreamsGetter createModbusDatastreamsGetter(String datastreamId, Type datastreamType,
                                                                  Map<String, Integer> deviceIdSlaveAddressMapper,
-                                                                 ModbusType dataType, int dataAddress) {
+                                                                 ModbusType dataType, int dataAddress,
+                                                                 boolean readFromCache, int numRegistersToRead) {
         return new ModbusDatastreamsGetter(datastreamId, datastreamType, deviceIdSlaveAddressMapper, dataType,
-                dataAddress, readOperatorProcessor);
+                dataAddress, readFromCache, numRegistersToRead, readOperatorProcessor);
     }
 
     @Override

@@ -21,6 +21,9 @@ public class ModbusDatastreamsConfigurationUpdateHandler implements Configuratio
     private static final String SLAVE_ADDRESS_PROPERTY_NAME = "slaveAddress";
     private static final String DATA_TYPE_PROPERTY_NAME = "dataType";
     private static final String DATA_ADDRESS_PROPERTY_NAME = "dataAddress";
+    private static final String NUM_REGISTERS_PROPERTY_NAME = "numRegisters";
+    private static final String READ_CACHE_PROPERTY_NAME = "readCache";
+
 
     private static final int KEY_FIELDS_SIZE = 2;
     private static final String KEY_FIELDS_DELIMITER = ";";
@@ -47,6 +50,7 @@ public class ModbusDatastreamsConfigurationUpdateHandler implements Configuratio
         mapper.put("double", Double.class);
         mapper.put("bytes", Byte[].class);
         mapper.put("byteArray", Byte[].class);
+        mapper.put("list", List.class);
         return mapper;
     }
 
@@ -87,11 +91,15 @@ public class ModbusDatastreamsConfigurationUpdateHandler implements Configuratio
                         .ifPresent(value -> builder.dataType(getModbusType(value)));
                 getValueByToken(DATA_ADDRESS_PROPERTY_NAME, properties)
                         .ifPresent(value -> builder.dataAddress(Integer.parseInt(value)));
+                getValueByToken(NUM_REGISTERS_PROPERTY_NAME, properties)
+                        .ifPresent(value -> builder.numRegistersToRead(Integer.parseInt(value)));
+                getValueByToken(READ_CACHE_PROPERTY_NAME, properties)
+                        .ifPresent(value -> builder.readFromCache(Boolean.parseBoolean(value)));
 
                 currentModbusDatastreamsConfigurations.add(builder.build());
             } catch (Exception exception) {
                 LOGGER.error("Invalid modbus datastream configuration entry {}={}: {}", entry.getKey(),
-                        entry.getValue(), exception);
+                        entry.getValue(), exception.getMessage());
             }
         }
     }

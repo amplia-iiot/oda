@@ -36,6 +36,9 @@ public class ModbusDatastreamsManagerTest {
     private static final int TEST_SLAVE_ADDRESS_3 = 3;
     private static final ModbusType TEST_DATA_TYPE_3 = ModbusType.HOLDING_REGISTER;
     private static final int TEST_DATA_ADDRESS_3 = 1;
+    private static final int TEST_REGISTERS_TO_READ = 1;
+    private static final boolean TEST_READ_FROM_CACHE = false;
+
 
 
     @Mock
@@ -55,13 +58,16 @@ public class ModbusDatastreamsManagerTest {
     public void testLoadConfiguration() {
         ModbusDatastreamsConfiguration conf1 = ModbusDatastreamsConfiguration.builder()
                 .datastreamId(TEST_DATASTREAM_ID_1).datastreamType(TEST_DATASTREAM_TYPE_1).deviceId(TEST_DEVICE_ID_1)
-                .slaveAddress(TEST_SLAVE_ADDRESS_1).dataType(TEST_DATA_TYPE_1).dataAddress(TEST_DATA_ADDRESS_1).build();
+                .slaveAddress(TEST_SLAVE_ADDRESS_1).dataType(TEST_DATA_TYPE_1).dataAddress(TEST_DATA_ADDRESS_1)
+                .readFromCache(TEST_READ_FROM_CACHE).numRegistersToRead(TEST_REGISTERS_TO_READ).build();
         ModbusDatastreamsConfiguration conf2 = ModbusDatastreamsConfiguration.builder()
                 .datastreamId(TEST_DATASTREAM_ID_1).datastreamType(TEST_DATASTREAM_TYPE_1).deviceId(TEST_DEVICE_ID_2)
-                .slaveAddress(TEST_SLAVE_ADDRESS_2).dataType(TEST_DATA_TYPE_1).dataAddress(TEST_DATA_ADDRESS_1).build();
+                .slaveAddress(TEST_SLAVE_ADDRESS_2).dataType(TEST_DATA_TYPE_1).dataAddress(TEST_DATA_ADDRESS_1)
+                .readFromCache(TEST_READ_FROM_CACHE).numRegistersToRead(TEST_REGISTERS_TO_READ).build();
         ModbusDatastreamsConfiguration conf3 = ModbusDatastreamsConfiguration.builder()
                 .datastreamId(TEST_DATASTREAM_ID_3).datastreamType(TEST_DATASTREAM_TYPE_3).deviceId(TEST_DEVICE_ID_3)
-                .slaveAddress(TEST_SLAVE_ADDRESS_3).dataType(TEST_DATA_TYPE_3).dataAddress(TEST_DATA_ADDRESS_3).build();
+                .slaveAddress(TEST_SLAVE_ADDRESS_3).dataType(TEST_DATA_TYPE_3).dataAddress(TEST_DATA_ADDRESS_3)
+                .readFromCache(TEST_READ_FROM_CACHE).numRegistersToRead(TEST_REGISTERS_TO_READ).build();
         List<ModbusDatastreamsConfiguration> configurations = Arrays.asList(conf1, conf2, conf3);
         Map<String, Integer> testMapper1 = new HashMap<>();
         testMapper1.put(TEST_DEVICE_ID_1, TEST_SLAVE_ADDRESS_1);
@@ -69,7 +75,7 @@ public class ModbusDatastreamsManagerTest {
         Map<String, Integer> testMapper3 = Collections.singletonMap(TEST_DEVICE_ID_3, TEST_SLAVE_ADDRESS_3);
 
         when(mockedFactory.createModbusDatastreamsGetter(anyString(), any(Type.class), any(), any(ModbusType.class),
-                anyInt())).thenReturn(mockedDatastreamsGetter);
+                anyInt(), anyBoolean(), anyInt())).thenReturn(mockedDatastreamsGetter);
         when(mockedFactory.createModbusDatastreamsSetter(anyString(), any(Type.class), any(), any(ModbusType.class),
                 anyInt())).thenReturn(mockedDatastreamsSetter);
 
@@ -77,9 +83,9 @@ public class ModbusDatastreamsManagerTest {
 
         verify(mockedRegistrationManager, times(2)).unregister();
         verify(mockedFactory).createModbusDatastreamsGetter(eq(TEST_DATASTREAM_ID_1), eq(TEST_DATASTREAM_TYPE_1),
-                eq(testMapper1), eq(TEST_DATA_TYPE_1), eq(TEST_DATA_ADDRESS_1));
+                eq(testMapper1), eq(TEST_DATA_TYPE_1), eq(TEST_DATA_ADDRESS_1), eq(TEST_READ_FROM_CACHE), eq (TEST_REGISTERS_TO_READ));
         verify(mockedFactory).createModbusDatastreamsGetter(eq(TEST_DATASTREAM_ID_3), eq(TEST_DATASTREAM_TYPE_3),
-                eq(testMapper3), eq(TEST_DATA_TYPE_3), eq(TEST_DATA_ADDRESS_3));
+                eq(testMapper3), eq(TEST_DATA_TYPE_3), eq(TEST_DATA_ADDRESS_3), eq(TEST_READ_FROM_CACHE), eq (TEST_REGISTERS_TO_READ));
         verify(mockedFactory).createModbusDatastreamsSetter(eq(TEST_DATASTREAM_ID_3), eq(TEST_DATASTREAM_TYPE_3),
                 eq(testMapper3), eq(TEST_DATA_TYPE_3), eq(TEST_DATA_ADDRESS_3));
         verify(mockedRegistrationManager, times(2)).register(eq(mockedDatastreamsGetter));

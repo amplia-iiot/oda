@@ -26,6 +26,9 @@ public class ModbusDatastreamsFactoryImplTest {
     private static final String TEST_DATASTREAM_ID = "testDatastream";
     private static final int TEST_DATA_ADDRESS = 5;
     private static final String TEST_DEVICE_ID = "deviceId";
+
+    private static final int TEST_REGISTERS_TO_READ = 1;
+    private static final boolean TEST_READ_FROM_CACHE = false;
     private static final Type TEST_DATASTREAM_TYPE = String.class;
     private static final Map<String, Integer> TEST_MAPPER = new HashMap<>();
     static {
@@ -84,12 +87,12 @@ public class ModbusDatastreamsFactoryImplTest {
 
         ModbusDatastreamsGetter result =
                 testFactory.createModbusDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER,
-                        TEST_DATA_TYPE, TEST_DATA_ADDRESS);
+                        TEST_DATA_TYPE, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, TEST_REGISTERS_TO_READ);
 
         assertEquals(mockedDatastreamsGetter, result);
         PowerMockito.verifyNew(ModbusDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
                 eq(TEST_DATASTREAM_TYPE), eq(TEST_MAPPER), eq(TEST_DATA_TYPE), eq(TEST_DATA_ADDRESS),
-                eq(mockedReadOperatorProcessor));
+                eq(TEST_READ_FROM_CACHE), eq(TEST_REGISTERS_TO_READ), eq(mockedReadOperatorProcessor));
         PowerMockito.verifyNew(ModbusTypeToJavaTypeConverter.class).withNoArguments();
         PowerMockito.verifyNew(ModbusReadOperatorProcessor.class)
                 .withArguments(eq(mockedConnectionsFinder), eq(mockedModbusTypeConverter));

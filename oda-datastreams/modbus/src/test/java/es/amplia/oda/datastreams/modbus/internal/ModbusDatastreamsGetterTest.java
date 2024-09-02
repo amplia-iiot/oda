@@ -31,6 +31,8 @@ public class ModbusDatastreamsGetterTest {
     private static final Map<String, Integer> TEST_MAPPER = Collections.singletonMap(TEST_DEVICE_ID, TEST_SLAVE_ADDRESS);
     private static final ModbusType TEST_DATA_TYPE = ModbusType.INPUT_REGISTER;
     private static final int TEST_DATA_ADDRESS = 5;
+    private static final int TEST_REGISTERS_TO_READ = 1;
+    private static final boolean TEST_READ_FROM_CACHE = false;
 
     @Mock
     private ModbusReadOperatorProcessor mockedReadOperatorProcessor;
@@ -40,7 +42,7 @@ public class ModbusDatastreamsGetterTest {
     @Before
     public void setUp() {
         testGetter = new ModbusDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER, TEST_DATA_TYPE,
-                TEST_DATA_ADDRESS, mockedReadOperatorProcessor);
+                TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, TEST_REGISTERS_TO_READ, mockedReadOperatorProcessor);
     }
 
     @Test
@@ -59,7 +61,8 @@ public class ModbusDatastreamsGetterTest {
         future.get();
 
         verify(mockedReadOperatorProcessor)
-                .read(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE), eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS));
+                .read(eq(TEST_DEVICE_ID), eq(TEST_DATASTREAM_TYPE), eq(TEST_DATA_TYPE), eq(TEST_SLAVE_ADDRESS),
+                        eq(TEST_DATA_ADDRESS), eq (TEST_READ_FROM_CACHE), eq (TEST_REGISTERS_TO_READ));
     }
 
     @Test(expected = IllegalArgumentException.class)
