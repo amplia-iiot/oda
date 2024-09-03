@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusType;
 import es.amplia.oda.datastreams.modbus.cache.ModbusCache;
+import es.amplia.oda.datastreams.modbus.cache.ModbusCacheRegister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,21 +119,35 @@ class ModbusReadOperatorProcessor {
 
     private CollectedValue readBooleanFromInputDiscrete(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
-        boolean value;
 
         if (readFromCache) {
             ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            value = cache.getInputDiscreteValues(dataAddress, ONE_REGISTER)[0];
-        } else {
-            value = modbusConnection.readInputDiscrete(slaveAddress, dataAddress);
-        }
+            List<ModbusCacheRegister> registersFromCache = cache.getInputDiscreteValues(dataAddress, ONE_REGISTER);
 
-        return new CollectedValue(System.currentTimeMillis(), value, null, modbusConnection.getDeviceManufacturer());
+            if (registersFromCache == null) {
+                return null;
+            }
+
+            Boolean[] registerValues = new Boolean[registersFromCache.size()];
+            for (int i = 0; i < registersFromCache.size(); i++) {
+                registerValues[i] = (Boolean) registersFromCache.get(i).getRegister();
+            }
+
+            return new CollectedValue(registersFromCache.get(0).getAt(), registerValues[0], null,
+                    modbusConnection.getDeviceManufacturer());
+
+        } else {
+            boolean registerValue = modbusConnection.readInputDiscrete(slaveAddress, dataAddress);
+            return new CollectedValue(System.currentTimeMillis(), registerValue, null, modbusConnection.getDeviceManufacturer());
+        }
     }
 
     private CollectedValue readNFromInputDiscrete(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+
+        // all registers will be saved with the same datetime
+        long at = System.currentTimeMillis();
 
         int numRegistersToRequest = MAX_INPUT_DISCRETE_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
@@ -148,7 +163,7 @@ class ModbusReadOperatorProcessor {
             Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, dataAddress, numRegistersToRequest);
 
             // save values read in cache
-            modbusCache.setInputDiscreteValues(registerValues, i);
+            modbusCache.setInputDiscreteValues(registerValues, i, at);
         }
 
         return null;
@@ -159,21 +174,34 @@ class ModbusReadOperatorProcessor {
     private CollectedValue readBooleanFromCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        boolean value;
-
         if (readFromCache) {
             ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            value = cache.getCoilValues(dataAddress, ONE_REGISTER)[0];
-        } else {
-            value = modbusConnection.readCoil(slaveAddress, dataAddress);
-        }
+            List<ModbusCacheRegister> registersFromCache = cache.getCoilValues(dataAddress, ONE_REGISTER);
 
-        return new CollectedValue(System.currentTimeMillis(), value, null, modbusConnection.getDeviceManufacturer());
+            if (registersFromCache == null) {
+                return null;
+            }
+
+            Boolean[] registerValues = new Boolean[registersFromCache.size()];
+            for (int i = 0; i < registersFromCache.size(); i++) {
+                registerValues[i] = (Boolean) registersFromCache.get(i).getRegister();
+            }
+
+            return new CollectedValue(registersFromCache.get(0).getAt(), registerValues[0], null,
+                    modbusConnection.getDeviceManufacturer());
+
+        } else {
+            boolean registerValue = modbusConnection.readCoil(slaveAddress, dataAddress);
+            return new CollectedValue(System.currentTimeMillis(), registerValue, null, modbusConnection.getDeviceManufacturer());
+        }
     }
 
     private CollectedValue readNFromCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+
+        // all registers will be saved with the same datetime
+        long at = System.currentTimeMillis();
 
         int numRegistersToRequest = MAX_COIL_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
@@ -188,7 +216,7 @@ class ModbusReadOperatorProcessor {
             Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, dataAddress, numRegistersToRequest);
 
             // save values read in cache
-            modbusCache.setCoilValues(registerValues, i);
+            modbusCache.setCoilValues(registerValues, i, at);
         }
 
         return null;
@@ -196,97 +224,113 @@ class ModbusReadOperatorProcessor {
 
     // INPUT REGISTERS
 
-    private Register[] readInputRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
-                                          int numRegisters, boolean readFromCache) {
+    private ModbusReadRegister readInputRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
+                                                  int numRegisters, boolean readFromCache) {
         if (readFromCache) {
             ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            return cache.getInputRegisterValues(dataAddress, numRegisters);
+            List<ModbusCacheRegister> registersFromCache = cache.getInputRegisterValues(dataAddress, numRegisters);
+
+            if (registersFromCache == null) {
+                return null;
+            }
+
+            Register[] registerValues = new Register[registersFromCache.size()];
+            for (int i = 0; i < registersFromCache.size(); i++) {
+                registerValues[i] = (Register) registersFromCache.get(i).getRegister();
+            }
+
+            return new ModbusReadRegister(registersFromCache.get(0).getAt(), registerValues);
+
         } else {
-            return modbusConnection.readInputRegisters(slaveAddress, dataAddress, numRegisters);
+            Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, numRegisters);
+            return new ModbusReadRegister(System.currentTimeMillis(), registerValues);
         }
     }
 
     private CollectedValue readBytesFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registers[0]), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegisterToByteArray(((Register[]) registers.getValue())[0]),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readShortFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registers[0]), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegisterToShort(((Register[]) registers.getValue())[0]),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readIntegerFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToInteger((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readFloatFromTwoInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToFloat((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readLongFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToLong((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readDoubleFromFourInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readInputRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToDouble((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readNFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+
+        // all registers will be saved with the same datetime
+        long at = System.currentTimeMillis();
 
         int numRegistersToRequest = MAX_INPUT_REGISTER_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
@@ -302,7 +346,7 @@ class ModbusReadOperatorProcessor {
             Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, numRegistersToRequest);
 
             // save values read in cache
-            modbusCache.setInputRegisterValues(registerValues, i);
+            modbusCache.setInputRegisterValues(registerValues, i, at);
         }
 
         return null;
@@ -310,96 +354,113 @@ class ModbusReadOperatorProcessor {
 
     // HOLDING REGISTERS
 
-    private Register[] readHoldingRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
-                                            int numRegisters, boolean readFromCache) {
+    private ModbusReadRegister readHoldingRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
+                                                    int numRegisters, boolean readFromCache) {
         if (readFromCache) {
             ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            return cache.getHoldingRegisterValues(dataAddress, numRegisters);
+            List<ModbusCacheRegister> registersFromCache = cache.getHoldingRegisterValues(dataAddress, numRegisters);
+
+            if (registersFromCache == null) {
+                return null;
+            }
+
+            Register[] registerValues = new Register[registersFromCache.size()];
+            for (int i = 0; i < registersFromCache.size(); i++) {
+                registerValues[i] = (Register) registersFromCache.get(i).getRegister();
+            }
+
+            return new ModbusReadRegister(registersFromCache.get(0).getAt(), registerValues);
+
         } else {
-            return modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, numRegisters);
+            Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, numRegisters);
+            return new ModbusReadRegister(System.currentTimeMillis(), registerValues);
         }
     }
 
     private CollectedValue readBytesFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
+
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToByteArray(registers[0]), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegisterToByteArray(((Register[]) registers.getValue())[0]),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readShortFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, ONE_REGISTER, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegisterToShort(registers[0]), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegisterToShort(((Register[]) registers.getValue())[0]),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readIntegerFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToInteger(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToInteger((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readFloatFromTwoHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, TWO_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToFloat(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToFloat((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readLongFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToLong(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToLong((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readDoubleFromFourHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress
             , boolean readFromCache) {
 
-        Register[] registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
+        ModbusReadRegister registers = readHoldingRegisters(modbusConnection, slaveAddress, dataAddress, FOUR_REGISTERS, readFromCache);
 
         if (registers == null) {
             return null;
         }
 
-        return new CollectedValue(System.currentTimeMillis(), converter.convertRegistersToDouble(registers), null,
-                modbusConnection.getDeviceManufacturer());
+        return new CollectedValue(registers.getAt(), converter.convertRegistersToDouble((Register[]) registers.getValue()),
+                null, modbusConnection.getDeviceManufacturer());
     }
 
     private CollectedValue readNFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+
+        // all registers will be saved with the same datetime
+        long at = System.currentTimeMillis();
 
         // max registers holding register per request = 125
         int numRegistersToRequest = MAX_HOLDING_REGISTERS_PER_REQUEST;
@@ -416,7 +477,7 @@ class ModbusReadOperatorProcessor {
             Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, numRegistersToRequest);
 
             // save values read in cache
-            modbusCache.setHoldingRegisterValues(registerValues, i);
+            modbusCache.setHoldingRegisterValues(registerValues, i, at);
         }
 
         return null;

@@ -52,8 +52,6 @@ public class ModbusReadOperatorProcessorTest {
     public void setUp() {
         PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
         PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
-
-
     }
 
     @Test
