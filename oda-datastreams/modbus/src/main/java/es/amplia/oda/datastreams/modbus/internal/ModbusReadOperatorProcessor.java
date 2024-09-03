@@ -160,7 +160,7 @@ class ModbusReadOperatorProcessor {
             LOGGER.info("Reading {} input discrete from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, dataAddress, numRegistersToRequest);
+            Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, i, numRegistersToRequest);
 
             // save values read in cache
             modbusCache.setInputDiscreteValues(registerValues, i, at);
@@ -213,7 +213,7 @@ class ModbusReadOperatorProcessor {
 
             LOGGER.info("Reading {} coil from device {} starting from address {}", numRegistersToRequest, modbusConnection.getDeviceId(), i);
 
-            Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, dataAddress, numRegistersToRequest);
+            Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, i, numRegistersToRequest);
 
             // save values read in cache
             modbusCache.setCoilValues(registerValues, i, at);
@@ -343,7 +343,7 @@ class ModbusReadOperatorProcessor {
             LOGGER.info("Reading {} input register from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, dataAddress, numRegistersToRequest);
+            Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, i, numRegistersToRequest);
 
             // save values read in cache
             modbusCache.setInputRegisterValues(registerValues, i, at);
@@ -474,7 +474,7 @@ class ModbusReadOperatorProcessor {
             LOGGER.info("Reading {} registers from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, dataAddress, numRegistersToRequest);
+            Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, i, numRegistersToRequest);
 
             // save values read in cache
             modbusCache.setHoldingRegisterValues(registerValues, i, at);

@@ -84,7 +84,8 @@ public class ModbusCache {
 
         // check if any of the registers is null
         if (modbusRegistersFromCache.contains(null)) {
-            log.error("At least one of the registers is null, can't retrieve value");
+            log.error("Can't retrieve value from cache : at least one of the {} registers starting " +
+                    "from address {} is null", numValues, modbusAddress);
             return null;
         }
 
@@ -92,7 +93,8 @@ public class ModbusCache {
         long at = modbusRegistersFromCache.get(0).getAt();
         for (ModbusCacheRegister register : modbusRegistersFromCache) {
             if (register.getAt() != at) {
-                log.error("Registers have different date time, can't retrieve value");
+                log.error("Can't retrieve value from cache : at least one of the {} registers starting " +
+                        "from address {} has a different date time than the rest", numValues, modbusAddress);
                 return null;
             }
         }
