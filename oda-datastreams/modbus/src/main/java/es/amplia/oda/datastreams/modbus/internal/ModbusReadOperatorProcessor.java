@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.modbus.internal;
 
+import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
@@ -149,22 +150,29 @@ class ModbusReadOperatorProcessor {
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
 
-        int numRegistersToRequest = MAX_INPUT_DISCRETE_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
-        for (int i = dataAddress; i < finalAddress; i = i + MAX_INPUT_DISCRETE_PER_REQUEST) {
-
-            if ((i + MAX_INPUT_DISCRETE_PER_REQUEST) > finalAddress) {
-                numRegistersToRequest = finalAddress - i;
-            }
+        int numRegistersToRequest;
+        int i = dataAddress;
+        do {
+            // get number of registers to request in this iteration
+            numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_DISCRETE_PER_REQUEST, i, finalAddress);
 
             LOGGER.info("Reading {} input discrete from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, i, numRegistersToRequest);
+            try {
+                Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, i, numRegistersToRequest);
+                // save values read in cache
+                modbusCache.setInputDiscreteValues(registerValues, i, at);
+            } catch (ModbusException e) {
+                // error reading registers, set all values in cache of that block to null
+                modbusCache.emptyInputDiscreteValues(i, numRegistersToRequest);
+            }
 
-            // save values read in cache
-            modbusCache.setInputDiscreteValues(registerValues, i, at);
-        }
+            // update start address
+            i = i + numRegistersToRequest;
+
+        } while (numRegistersToRequest == MAX_INPUT_DISCRETE_PER_REQUEST);
 
         return null;
     }
@@ -203,21 +211,28 @@ class ModbusReadOperatorProcessor {
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
 
-        int numRegistersToRequest = MAX_COIL_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
-        for (int i = dataAddress; i < finalAddress; i = i + MAX_COIL_PER_REQUEST) {
-
-            if ((i + MAX_COIL_PER_REQUEST) > finalAddress) {
-                numRegistersToRequest = finalAddress - i;
-            }
+        int numRegistersToRequest;
+        int i = dataAddress;
+        do {
+            // get number of registers to request in this iteration
+            numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_COIL_PER_REQUEST, i, finalAddress);
 
             LOGGER.info("Reading {} coil from device {} starting from address {}", numRegistersToRequest, modbusConnection.getDeviceId(), i);
 
-            Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, i, numRegistersToRequest);
+            try {
+                Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, i, numRegistersToRequest);
+                // save values read in cache
+                modbusCache.setCoilValues(registerValues, i, at);
+            } catch (ModbusException e) {
+                // error reading registers, set all values in cache of that block to null
+                modbusCache.emptyCoilValues(i, numRegistersToRequest);
+            }
 
-            // save values read in cache
-            modbusCache.setCoilValues(registerValues, i, at);
-        }
+            // update start address
+            i = i + numRegistersToRequest;
+
+        } while (numRegistersToRequest == MAX_COIL_PER_REQUEST);
 
         return null;
     }
@@ -332,22 +347,29 @@ class ModbusReadOperatorProcessor {
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
 
-        int numRegistersToRequest = MAX_INPUT_REGISTER_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
-        for (int i = dataAddress; i < finalAddress; i = i + MAX_INPUT_REGISTER_PER_REQUEST) {
+        int numRegistersToRequest;
+        int i = dataAddress;
+        do {
+            // get number of registers to request in this iteration
+            numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_REGISTER_PER_REQUEST, i, finalAddress);
 
-            if ((i + MAX_INPUT_REGISTER_PER_REQUEST) > finalAddress) {
-                numRegistersToRequest = finalAddress - i;
-            }
-
-            LOGGER.info("Reading {} input register from device {} starting from address {}", numRegistersToRequest,
+            LOGGER.info("Reading {} registers from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, i, numRegistersToRequest);
+            try {
+                Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, i, numRegistersToRequest);
+                // save values read in cache
+                modbusCache.setInputRegisterValues(registerValues, i, at);
+            } catch (ModbusException e) {
+                // error reading registers, set all values in cache of that block to null
+                modbusCache.emptyInputRegisterValues(i, numRegistersToRequest);
+            }
 
-            // save values read in cache
-            modbusCache.setInputRegisterValues(registerValues, i, at);
-        }
+            // update start address
+            i = i + numRegistersToRequest;
+
+        } while (numRegistersToRequest == MAX_INPUT_REGISTER_PER_REQUEST);
 
         return null;
     }
@@ -462,23 +484,29 @@ class ModbusReadOperatorProcessor {
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
 
-        // max registers holding register per request = 125
-        int numRegistersToRequest = MAX_HOLDING_REGISTERS_PER_REQUEST;
         int finalAddress = dataAddress + numRegisters;
-        for (int i = dataAddress; i < finalAddress; i = i + MAX_HOLDING_REGISTERS_PER_REQUEST) {
-
-            if ((i + MAX_HOLDING_REGISTERS_PER_REQUEST) > finalAddress) {
-                numRegistersToRequest = finalAddress - i;
-            }
+        int numRegistersToRequest;
+        int i = dataAddress;
+        do {
+            // get number of registers to request in this iteration
+            numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_HOLDING_REGISTERS_PER_REQUEST, i, finalAddress);
 
             LOGGER.info("Reading {} registers from device {} starting from address {}", numRegistersToRequest,
                     modbusConnection.getDeviceId(), i);
 
-            Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, i, numRegistersToRequest);
+            try {
+                Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, i, numRegistersToRequest);
+                // save values read in cache
+                modbusCache.setHoldingRegisterValues(registerValues, i, at);
+            } catch (ModbusException e) {
+                // error reading registers, set all values in cache of that block to null
+                modbusCache.emptyHoldingRegisterValues(i, numRegistersToRequest);
+            }
 
-            // save values read in cache
-            modbusCache.setHoldingRegisterValues(registerValues, i, at);
-        }
+            // update start address
+            i = i + numRegistersToRequest;
+
+        } while (numRegistersToRequest == MAX_HOLDING_REGISTERS_PER_REQUEST);
 
         return null;
     }
@@ -494,5 +522,17 @@ class ModbusReadOperatorProcessor {
         }
 
         return modbusCache;
+    }
+
+    private int getNumRegistersToRequest(int numRegistersTotal, int maxRegistersPerRequest, int currentStartAddress, int finalAddress) {
+        if (numRegistersTotal <= maxRegistersPerRequest) {
+            return numRegistersTotal;
+        }
+
+        if ((currentStartAddress + maxRegistersPerRequest) > finalAddress) {
+            return finalAddress - currentStartAddress;
+        }
+
+        return maxRegistersPerRequest;
     }
 }

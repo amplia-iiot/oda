@@ -26,12 +26,24 @@ public class ModbusCache {
         }
     }
 
+    public void emptyHoldingRegisterValues(int startAddress, int numRegisters) {
+        for (int i = 0; i < numRegisters; i++) {
+            this.holdingRegisterCache.put(i + startAddress, null);
+        }
+    }
+
     public void setInputDiscreteValues(Boolean[] values, int startAddress, long at){
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
                 //log.info("Writing value {} in address {}", values[i].getValue(), i + startAddress);
                 this.inputDiscreteCache.put(i + startAddress, new ModbusCacheRegister(at, values[i]));
             }
+        }
+    }
+
+    public void emptyInputDiscreteValues(int startAddress, int numRegisters) {
+        for (int i = 0; i < numRegisters; i++) {
+            this.inputDiscreteCache.put(i + startAddress, null);
         }
     }
 
@@ -44,6 +56,12 @@ public class ModbusCache {
         }
     }
 
+    public void emptyCoilValues(int startAddress, int numRegisters) {
+        for (int i = 0; i < numRegisters; i++) {
+            this.coilCache.put(i + startAddress, null);
+        }
+    }
+
     public void setInputRegisterValues(Register[] values, int startAddress, long at){
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
@@ -52,6 +70,14 @@ public class ModbusCache {
             }
         }
     }
+
+
+    public void emptyInputRegisterValues(int startAddress, int numRegisters) {
+        for (int i = 0; i < numRegisters; i++) {
+            this.inputRegisterCache.put(i + startAddress, null);
+        }
+    }
+
 
     public List<ModbusCacheRegister> getHoldingRegisterValues(int modbusAddress, int numValues) {
         return getValuesFromCache(this.holdingRegisterCache, modbusAddress, numValues);
