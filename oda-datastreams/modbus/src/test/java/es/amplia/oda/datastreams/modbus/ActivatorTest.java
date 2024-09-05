@@ -77,10 +77,12 @@ public class ActivatorTest {
     @Test
     public void testOnServiceChanged() {
         Whitebox.setInternalState(testActivator, "modbusConnectionsFinder", mockedConnectionsFinder);
+        Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
 
         testActivator.onServiceChanged();
 
         verify(mockedConnectionsFinder).connect();
+        verify(mockedConfigHandler).applyConfiguration();
     }
 
     @Test

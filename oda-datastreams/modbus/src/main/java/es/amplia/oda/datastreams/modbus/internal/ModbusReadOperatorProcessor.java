@@ -35,12 +35,25 @@ class ModbusReadOperatorProcessor {
 
     // Cache used to store the data read from block requests
     // Map <deviceId, ModbusCache>
-    Map<String, ModbusCache> modbusCaches;
+    Map<String, ModbusCache> modbusCaches = new HashMap<>();
 
     ModbusReadOperatorProcessor(ModbusConnectionsFinder modbusConnectionsLocator, ModbusTypeToJavaTypeConverter converter) {
         this.modbusConnectionsLocator = modbusConnectionsLocator;
         this.converter = converter;
-        this.modbusCaches = new HashMap<>();
+        updateModbusCaches(modbusConnectionsLocator);
+    }
+
+    public void updateModbusCaches(ModbusConnectionsFinder modbusConnectionsLocator) {
+        // clear all existing caches
+        this.modbusCaches.clear();
+
+        // get all existing devices
+        List<ModbusMaster> modbusConnections = modbusConnectionsLocator.getAllModbusConnections();
+
+        for (ModbusMaster modbusConn : modbusConnections) {
+            // create cache for every deviceId
+            this.modbusCaches.put(modbusConn.getDeviceId(), new ModbusCache());
+        }
     }
 
     CollectedValue read(String deviceId, Type datastreamType, ModbusType dataType, int slaveAddress, int dataAddress,
@@ -122,9 +135,13 @@ class ModbusReadOperatorProcessor {
             , boolean readFromCache) {
 
         if (readFromCache) {
-            ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            List<ModbusCacheRegister> registersFromCache = cache.getInputDiscreteValues(dataAddress, ONE_REGISTER);
+            // get cache corresponding to the deviceId of the request
+            ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+            if (modbusCache == null) {
+                return null;
+            }
 
+            List<ModbusCacheRegister> registersFromCache = modbusCache.getInputDiscreteValues(dataAddress, ONE_REGISTER);
             if (registersFromCache == null) {
                 return null;
             }
@@ -146,6 +163,9 @@ class ModbusReadOperatorProcessor {
     private CollectedValue readNFromInputDiscrete(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+        if (modbusCache == null) {
+            return null;
+        }
 
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
@@ -156,9 +176,6 @@ class ModbusReadOperatorProcessor {
         do {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_DISCRETE_PER_REQUEST, i, finalAddress);
-
-            LOGGER.info("Reading {} input discrete from device {} starting from address {}", numRegistersToRequest,
-                    modbusConnection.getDeviceId(), i);
 
             try {
                 Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, i, numRegistersToRequest);
@@ -183,9 +200,13 @@ class ModbusReadOperatorProcessor {
             , boolean readFromCache) {
 
         if (readFromCache) {
-            ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            List<ModbusCacheRegister> registersFromCache = cache.getCoilValues(dataAddress, ONE_REGISTER);
+            // get cache corresponding to the deviceId of the request
+            ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+            if (modbusCache == null) {
+                return null;
+            }
 
+            List<ModbusCacheRegister> registersFromCache = modbusCache.getCoilValues(dataAddress, ONE_REGISTER);
             if (registersFromCache == null) {
                 return null;
             }
@@ -207,6 +228,9 @@ class ModbusReadOperatorProcessor {
     private CollectedValue readNFromCoil(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+        if (modbusCache == null) {
+            return null;
+        }
 
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
@@ -217,8 +241,6 @@ class ModbusReadOperatorProcessor {
         do {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_COIL_PER_REQUEST, i, finalAddress);
-
-            LOGGER.info("Reading {} coil from device {} starting from address {}", numRegistersToRequest, modbusConnection.getDeviceId(), i);
 
             try {
                 Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, i, numRegistersToRequest);
@@ -242,9 +264,13 @@ class ModbusReadOperatorProcessor {
     private ModbusReadRegister readInputRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
                                                   int numRegisters, boolean readFromCache) {
         if (readFromCache) {
-            ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            List<ModbusCacheRegister> registersFromCache = cache.getInputRegisterValues(dataAddress, numRegisters);
+            // get cache corresponding to the deviceId of the request
+            ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+            if (modbusCache == null) {
+                return null;
+            }
 
+            List<ModbusCacheRegister> registersFromCache = modbusCache.getInputRegisterValues(dataAddress, numRegisters);
             if (registersFromCache == null) {
                 return null;
             }
@@ -343,6 +369,9 @@ class ModbusReadOperatorProcessor {
     private CollectedValue readNFromInputRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+        if (modbusCache == null) {
+            return null;
+        }
 
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
@@ -353,9 +382,6 @@ class ModbusReadOperatorProcessor {
         do {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_REGISTER_PER_REQUEST, i, finalAddress);
-
-            LOGGER.info("Reading {} registers from device {} starting from address {}", numRegistersToRequest,
-                    modbusConnection.getDeviceId(), i);
 
             try {
                 Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, i, numRegistersToRequest);
@@ -379,9 +405,13 @@ class ModbusReadOperatorProcessor {
     private ModbusReadRegister readHoldingRegisters(ModbusMaster modbusConnection, int slaveAddress, int dataAddress,
                                                     int numRegisters, boolean readFromCache) {
         if (readFromCache) {
-            ModbusCache cache = getCache(modbusConnection.getDeviceId());
-            List<ModbusCacheRegister> registersFromCache = cache.getHoldingRegisterValues(dataAddress, numRegisters);
+            // get cache corresponding to the deviceId of the request
+            ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+            if (modbusCache == null) {
+                return null;
+            }
 
+            List<ModbusCacheRegister> registersFromCache = modbusCache.getHoldingRegisterValues(dataAddress, numRegisters);
             if (registersFromCache == null) {
                 return null;
             }
@@ -480,6 +510,9 @@ class ModbusReadOperatorProcessor {
     private CollectedValue readNFromHoldingRegister(ModbusMaster modbusConnection, int slaveAddress, int dataAddress, int numRegisters) {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = getCache(modbusConnection.getDeviceId());
+        if (modbusCache == null) {
+            return null;
+        }
 
         // all registers will be saved with the same datetime
         long at = System.currentTimeMillis();
@@ -490,9 +523,6 @@ class ModbusReadOperatorProcessor {
         do {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_HOLDING_REGISTERS_PER_REQUEST, i, finalAddress);
-
-            LOGGER.info("Reading {} registers from device {} starting from address {}", numRegistersToRequest,
-                    modbusConnection.getDeviceId(), i);
 
             try {
                 Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, i, numRegistersToRequest);
@@ -515,10 +545,10 @@ class ModbusReadOperatorProcessor {
         // get cache corresponding to the deviceId of the request
         ModbusCache modbusCache = this.modbusCaches.get(deviceId);
 
-        // if it doesn't exist a cache for the deviceId, create it
+        // if cache for this device doesn't exist
         if (modbusCache == null) {
-            modbusCache = new ModbusCache();
-            this.modbusCaches.put(deviceId, modbusCache);
+            LOGGER.error("Cache for deviceId {} doesn't exist", deviceId);
+            return null;
         }
 
         return modbusCache;

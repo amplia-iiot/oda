@@ -11,9 +11,11 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
 
     private final ModbusReadOperatorProcessor readOperatorProcessor;
     private final ModbusWriteOperatorProcessor writeOperatorProcessor;
+    private final ModbusConnectionsFinder modbusConnectionsFinder;
 
 
     public ModbusDatastreamsFactoryImpl(ModbusConnectionsFinder modbusConnectionsFinder) {
+        this.modbusConnectionsFinder = modbusConnectionsFinder;
         this.readOperatorProcessor = new ModbusReadOperatorProcessor(modbusConnectionsFinder,
                 new ModbusTypeToJavaTypeConverter());
         this.writeOperatorProcessor = new ModbusWriteOperatorProcessor(modbusConnectionsFinder,
@@ -35,5 +37,10 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
                                                                  ModbusType dataType, int dataAddress) {
         return new ModbusDatastreamsSetter(datastreamId, datastreamType, deviceIdSlaveAddressMapper, dataType,
                 dataAddress, writeOperatorProcessor);
+    }
+
+    @Override
+    public void updateDevicesCaches() {
+        this.readOperatorProcessor.updateModbusCaches(this.modbusConnectionsFinder);
     }
 }

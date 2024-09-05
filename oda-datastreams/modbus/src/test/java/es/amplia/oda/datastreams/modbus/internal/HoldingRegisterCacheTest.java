@@ -8,12 +8,11 @@ import es.amplia.oda.datastreams.modbus.ModbusType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 
+import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
@@ -47,7 +46,6 @@ public class HoldingRegisterCacheTest {
     private ModbusConnectionsFinder mockedConnectionsLocator;
     @Mock
     private ModbusMaster mockedModbusMaster;
-    @InjectMocks
     private ModbusReadOperatorProcessor testReadOperatorProcessor;
 
 
@@ -60,13 +58,13 @@ public class HoldingRegisterCacheTest {
         TEST_HOLDING_REGISTER_ARRAY[3] = new Register(3);
         TEST_HOLDING_REGISTER_ARRAY[4] = new Register(4);
 
-
-        ModbusTypeToJavaTypeConverter converter = new ModbusTypeToJavaTypeConverter();
-        Whitebox.setInternalState(testReadOperatorProcessor, "converter", converter);
-
+        List<ModbusMaster> listModbusConnections = Collections.singletonList(mockedModbusMaster);
+        PowerMockito.when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
         PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
         PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
         PowerMockito.when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(TEST_HOLDING_REGISTER_ARRAY);
+
+        testReadOperatorProcessor = new ModbusReadOperatorProcessor(mockedConnectionsLocator, new ModbusTypeToJavaTypeConverter());
 
         // read block and save data in cache
         testReadOperatorProcessor.read(TEST_DEVICE_ID, List.class, ModbusType.HOLDING_REGISTER,

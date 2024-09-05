@@ -15,4 +15,6 @@ public interface ModbusDatastreamsFactory {
     DatastreamsSetter createModbusDatastreamsSetter(String datastreamId, Type datastreamType,
                                                     Map<String, Integer> deviceIdSlaveAddressMapper,
                                                     ModbusType dataType, int dataAddress);
+
+    void updateDevicesCaches();
 }

@@ -71,13 +71,11 @@ public class ModbusCache {
         }
     }
 
-
     public void emptyInputRegisterValues(int startAddress, int numRegisters) {
         for (int i = 0; i < numRegisters; i++) {
             this.inputRegisterCache.put(i + startAddress, null);
         }
     }
-
 
     public List<ModbusCacheRegister> getHoldingRegisterValues(int modbusAddress, int numValues) {
         return getValuesFromCache(this.holdingRegisterCache, modbusAddress, numValues);

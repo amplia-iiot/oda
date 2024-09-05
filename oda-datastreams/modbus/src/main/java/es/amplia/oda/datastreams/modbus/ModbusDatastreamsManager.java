@@ -41,6 +41,8 @@ public class ModbusDatastreamsManager implements AutoCloseable {
         datastreamsGetterRegistrationManager.unregister();
         datastreamsSetterRegistrationManager.unregister();
 
+        this.modbusDatastreamsFactory.updateDevicesCaches();
+
         Map<ModbusConfigurationKey, Map<String, Integer>> configurationByDatastreamId =
                 currentModbusDatastreamsConfigurations.stream()
                         .collect(Collectors.groupingBy(this::createModbusConfigurationKey,

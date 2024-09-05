@@ -7,11 +7,11 @@ import es.amplia.oda.datastreams.modbus.ModbusType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 
+import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.ONE_REGISTER;
@@ -42,7 +42,8 @@ public class CoilCacheTest {
     private ModbusConnectionsFinder mockedConnectionsLocator;
     @Mock
     private ModbusMaster mockedModbusMaster;
-    @InjectMocks
+    @Mock
+    private ModbusTypeToJavaTypeConverter mockedConverter;
     private ModbusReadOperatorProcessor testReadOperatorProcessor;
 
 
@@ -54,9 +55,13 @@ public class CoilCacheTest {
         TEST_BOOLEAN_ARRAY[2] = true;
         TEST_BOOLEAN_ARRAY[3] = false;
 
+        List<ModbusMaster> listModbusConnections = Collections.singletonList(mockedModbusMaster);
+        PowerMockito.when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
         PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
         PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
         PowerMockito.when(mockedModbusMaster.readCoils(anyInt(), anyInt(), anyInt())).thenReturn(TEST_BOOLEAN_ARRAY);
+
+        testReadOperatorProcessor = new ModbusReadOperatorProcessor(mockedConnectionsLocator, mockedConverter);
 
         // read block and save data in cache
         testReadOperatorProcessor.read(TEST_DEVICE_ID, List.class, ModbusType.COIL, TEST_SLAVE_ADDRESS,

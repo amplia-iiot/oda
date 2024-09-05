@@ -19,6 +19,7 @@ public class Activator implements BundleActivator {
     private ConfigurableBundle configurableBundle;
     private ServiceListenerBundle<ModbusMaster> modbusMasterListenerBundle;
     private ModbusConnectionsFinder modbusConnectionsFinder;
+    private ModbusDatastreamsConfigurationUpdateHandler configHandler;
 
 
     @Override
@@ -43,8 +44,7 @@ public class Activator implements BundleActivator {
                         datastreamsSetterRegistrationManager);
 
         // make bundle configurable
-        ModbusDatastreamsConfigurationUpdateHandler configHandler =
-                new ModbusDatastreamsConfigurationUpdateHandler(modbusDatastreamsManager);
+        configHandler = new ModbusDatastreamsConfigurationUpdateHandler(modbusDatastreamsManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
         // listen for configuration changes in Modbus Hardware bundles
@@ -58,6 +58,7 @@ public class Activator implements BundleActivator {
 
     void onServiceChanged() {
         modbusConnectionsFinder.connect();
+        configHandler.applyConfiguration();
     }
 
     @Override
