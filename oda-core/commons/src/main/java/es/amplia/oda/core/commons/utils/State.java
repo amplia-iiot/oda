@@ -342,6 +342,10 @@ public class State {
         values.forEach((at, sent) -> this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent));
     }
 
+    public void setSent(String deviceId, String datastreamId, Long at, Boolean sent) {
+        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent);
+    }
+
     public void removeHistoricValuesInMemory(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {
         DatastreamState state = this.datastreams.get(new DatastreamInfo(deviceId, datastreamId));
 

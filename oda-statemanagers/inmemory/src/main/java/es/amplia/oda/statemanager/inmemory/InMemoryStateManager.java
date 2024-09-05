@@ -87,7 +87,8 @@ public class InMemoryStateManager implements StateManager {
         return CompletableFuture.completedFuture(datastreamIds.stream()
                 .map(datastreamId -> new DatastreamInfo(deviceId, datastreamId))
                 .flatMap(this::getStreamOfDatapointsToSend)
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toSet()))
+                .thenApply(this::setSent);
     }
 
     @Override
@@ -98,7 +99,8 @@ public class InMemoryStateManager implements StateManager {
                         .filter(entry -> datastreamId.equals(entry.getDatastreamId()))
                         .filter(entry -> devicePattern.match(entry.getDeviceId()))
                         .flatMap(this::getStreamOfDatapointsToSend)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toSet()))
+                        .thenApply(this::setSent);
     }
 
     @Override
@@ -109,7 +111,8 @@ public class InMemoryStateManager implements StateManager {
                         .filter(entry -> datastreamIds.contains(entry.getDatastreamId()))
                         .filter(entry -> devicePattern.match(entry.getDeviceId()))
                         .flatMap(this::getStreamOfDatapointsToSend)
-                        .collect(Collectors.toSet()));
+                        .collect(Collectors.toSet()))
+                        .thenApply(this::setSent);
     }
 
     @Override
@@ -119,7 +122,8 @@ public class InMemoryStateManager implements StateManager {
         return CompletableFuture.completedFuture(stored.stream()
                 .filter(datastreamInfo -> deviceId.equals(datastreamInfo.getDeviceId()))
                 .flatMap(this::getStreamOfDatapointsToSend)
-                .collect(Collectors.toSet()));
+                .collect(Collectors.toSet()))
+                .thenApply(this::setSent);
     }
 
     private synchronized Stream<DatastreamValue> getStreamOfDatapointsToSend(DatastreamInfo datastreamInfo) {
@@ -128,17 +132,27 @@ public class InMemoryStateManager implements StateManager {
             values.add(this.state.createNotFoundValue(datastreamInfo));
             return values.stream();
         }
-        Map<Long, Boolean> datapoints = database.getDatapointsSentValue(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId());
-        state.setSent(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId(), datapoints);
         // get values to publish
         Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
         Stream<DatastreamValue> returnStream = supplier.get();
-        supplier.get()
-                .forEach(datastreamValue -> database.updateDataAsSent(
-                        datastreamValue.getDeviceId(),
-                        datastreamValue.getDatastreamId(),
-                        datastreamValue.getAt()));
+
         return returnStream;
+    }
+
+    private Set<DatastreamValue> setSent (Set<DatastreamValue> values) {
+        values.forEach(datastreamValue -> {
+            if (this.state.exists(datastreamValue.getDeviceId(), datastreamValue.getDatastreamId()) ) {
+                setSentInState(datastreamValue);
+                database.updateDataAsSent(
+                    datastreamValue.getDeviceId(),
+                    datastreamValue.getDatastreamId(),
+                    datastreamValue.getAt());
+            }});
+        return values;
+    }
+
+    private void setSentInState (DatastreamValue value) {
+        state.setSent(value.getDeviceId(), value.getDatastreamId(), value.getAt(), true);
     }
 
     @Override
@@ -235,7 +249,7 @@ public class InMemoryStateManager implements StateManager {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
             LOGGER.info("Processing new event {}", dsValue);
 
-            // apply rules
+            // apply rules & and rules save events in state
             this.ruleEngine.engine(this.state, dsValue);
 
             // get all values to process (those marked as sendImmediately and/or refreshed)
@@ -303,6 +317,8 @@ public class InMemoryStateManager implements StateManager {
                         if (!this.database.insertNewRow(notProcessedValue)) {
                             LOGGER.error("The value {} couldn't be stored into the database.", notProcessedValue);
                         }
+                        // If datastream isSent mark as sent in State
+                        if (notProcessedValue.isSent()) setSentInState(notProcessedValue);
                     } catch (DatabaseException | IOException e) {
                         LOGGER.error("Error trying to insert the new value for {} in device {}",
                                 dsInfo.getDatastreamId(), dsInfo.getDeviceId());
