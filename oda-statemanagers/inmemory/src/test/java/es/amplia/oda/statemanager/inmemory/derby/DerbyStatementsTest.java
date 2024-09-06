@@ -94,7 +94,7 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getUpdateIsDataSentTest() {
-		assertEquals("SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?",
+		assertEquals("SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"sent\"=false",
 				statements.getUpdateIsDataSent());
 	}
 

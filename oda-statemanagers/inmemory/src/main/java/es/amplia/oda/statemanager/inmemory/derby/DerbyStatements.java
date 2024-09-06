@@ -80,7 +80,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getUpdateIsDataSent() {
-		return "SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?";
+		return "SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"sent\"=false";
 	}
 
 	@Override
