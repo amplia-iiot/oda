@@ -86,7 +86,7 @@ public class EventCollectorImpl implements EventCollector {
             if (events != null) {
                 eventDispatcher.publish(events);
             } else {
-                LOGGER.debug("No events collected for {}", datastreamId);
+                LOGGER.info("No events collected for {}", datastreamId);
             }
         }
     }
