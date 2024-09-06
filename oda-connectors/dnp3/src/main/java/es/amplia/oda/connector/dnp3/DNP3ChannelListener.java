@@ -14,7 +14,7 @@ class DNP3ChannelListener implements ChannelListener {
     @Override
     public void onStateChange(ChannelState channelState) {
         currentState = channelState;
-        LOGGER.info("Channel state: {}", channelState);
+        LOGGER.debug("Channel state: {}", channelState);
     }
 
     boolean isOpen() {

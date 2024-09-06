@@ -67,7 +67,6 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
         }
 
         Message message = new Message(payload);
-        LOGGER.info("Sending message through COAP connector");
         LOGGER.debug("Message sending through COAP connector: {}", message);
 
         OptionSet messageOptions = getMessageOptions(contentType);
@@ -81,7 +80,7 @@ public class COAPConnector implements OpenGateConnector, AutoCloseable {
             } else if (!CoAP.ResponseCode.isSuccess(response.getCode())) {
                 logErrorMessage(response.getCode().toString());
             } else {
-                LOGGER.info("Message sent through COAP connector");
+                LOGGER.debug("Message sent through COAP connector");
             }
         } catch (Exception e) {
             LOGGER.error("Exception sending message", e);

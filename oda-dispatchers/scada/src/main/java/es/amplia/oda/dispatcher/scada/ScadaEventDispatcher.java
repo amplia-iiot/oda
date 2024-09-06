@@ -28,7 +28,7 @@ class ScadaEventDispatcher implements EventDispatcher {
     public void publish(List<Event> events) {
         for (Event event : events) {
             try {
-                LOGGER.info("Publishing events {}", event);
+                LOGGER.debug("Publishing events {}", event);
                 DatastreamInfo datastreamInfo = new DatastreamInfo(event.getDeviceId(), event.getDatastreamId());
                 // for the moment only check values that are not catalogued as events in scada tables
                 boolean isEvent = false;

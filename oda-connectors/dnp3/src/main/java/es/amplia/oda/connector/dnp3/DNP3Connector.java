@@ -99,13 +99,13 @@ public class DNP3Connector implements ScadaConnector, AutoCloseable {
         byte dataQuality = 0x01;
 
         if (isBinaryOutput(value)) {
-            LOGGER.info("Uplink binary input in index {}", index);
-            LOGGER.debug("Binary value {} sent in index {}", Boolean.parseBoolean(value.toString()), index);
+            LOGGER.debug("Uplink binary input in index {}", index);
+            LOGGER.trace("Binary value {} sent in index {}", Boolean.parseBoolean(value.toString()), index);
             BinaryInput binaryInput = new BinaryInput(Boolean.parseBoolean(value.toString()), dataQuality, timestamp);
             updateSet.update(binaryInput, index);
         } else if (isAnalogInput(value)) {
-            LOGGER.info("Uplink analog input in index {}", index);
-            LOGGER.debug("Analog value {} sent in index {}", Double.parseDouble(value.toString()), index);
+            LOGGER.debug("Uplink analog input in index {}", index);
+            LOGGER.trace("Analog value {} sent in index {}", Double.parseDouble(value.toString()), index);
             AnalogInput analogInput = new AnalogInput(Double.parseDouble(value.toString()), dataQuality, timestamp);
             updateSet.update(analogInput, index);
         } else {

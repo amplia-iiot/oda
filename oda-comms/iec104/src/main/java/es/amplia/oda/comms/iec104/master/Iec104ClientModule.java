@@ -215,7 +215,7 @@ public class Iec104ClientModule implements ClientModule {
     }
 
 	public ScheduledFuture<?> addInterrogationCommandScheduling(int initialPolling, int polling) {
-		LOGGER.info("Scheduling interrogation command for deviceId {}, initial delay {}, polling every {} milliseconds"
+		LOGGER.debug("Scheduling interrogation command for deviceId {}, initial delay {}, polling every {} milliseconds"
 				, this.deviceId, initialPolling, polling);
 
 		if (initialPolling <= 0 || polling <= 0) {
@@ -232,7 +232,7 @@ public class Iec104ClientModule implements ClientModule {
                 InterrogationCommand cmd = new InterrogationCommand(new ASDUHeader(CauseOfTransmission.ACTIVATED,
                         ASDUAddress.valueOf(commonAddress)), (short) 20);
                 if (isConnected()) {
-                    LOGGER.info("Sending InterrogationCommand for device {}", deviceId);
+                    LOGGER.debug("Sending InterrogationCommand for device {}", deviceId);
                     send(cmd);
                 } else {
                     LOGGER.warn("Could not send InterrogationCommand due to no client connected for device {}", deviceId);

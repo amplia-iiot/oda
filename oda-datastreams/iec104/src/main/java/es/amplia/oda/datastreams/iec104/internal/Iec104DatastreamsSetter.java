@@ -37,7 +37,7 @@ class Iec104DatastreamsSetter implements DatastreamsSetter {
     @Override
     public CompletableFuture<Void> set(String device, Object value) {
         return CompletableFuture.supplyAsync(() -> {
-            LOGGER.info("Setting value {} to datastream {} of device {}", value, datastreamId, device);
+            LOGGER.debug("Setting value {} to datastream {} of device {}", value, datastreamId, device);
             writeOperatorProcessor.write(device, this.datastreamId, value);
             return null;
         });

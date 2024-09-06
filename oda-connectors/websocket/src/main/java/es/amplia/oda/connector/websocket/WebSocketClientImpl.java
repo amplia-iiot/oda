@@ -29,13 +29,13 @@ class WebSocketClientImpl extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        LOGGER.info("Open WebSocket connection: {}", serverHandshake.getHttpStatusMessage());
+        LOGGER.debug("Open WebSocket connection: {}", serverHandshake.getHttpStatusMessage());
     }
 
     @Override
     public void onMessage(String message) {
-        LOGGER.info("Messaged arrived");
-        LOGGER.debug("Message content: {}", message);
+        LOGGER.debug("Messaged arrived");
+        LOGGER.trace("Message content: {}", message);
         try {
             CompletableFuture<byte[]> response = dispatcher.process(message.getBytes(StandardCharsets.UTF_8));
             if (response == null) {

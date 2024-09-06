@@ -24,7 +24,7 @@ class OperationRefreshInfoImpl implements OperationRefreshInfo {
     
     @Override
     public CompletableFuture<Result> refreshInfo(String deviceId) {
-        LOGGER.info("Refreshing information for all datastreams registered in ODA");
+        LOGGER.debug("Refreshing information for all datastreams registered in ODA");
 
         CompletableFuture<Result> value = stateManager.getDeviceInformation(deviceId).thenApply(this::createResult);
 

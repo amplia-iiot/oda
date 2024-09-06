@@ -191,11 +191,11 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                LOGGER.info("Message {} read from socket {}", messageId, socketId);
+                LOGGER.debug("Message {} read from socket {}", messageId, socketId);
 
                 Matcher readResponseMatcher = READ_MESSAGE_RESPONSE_PATTERN.matcher(response.getBody());
                 if (readResponseMatcher.matches()) {
-                    LOGGER.info("Message read from socket {}", socketId);
+                    LOGGER.debug("Message read from socket {}", socketId);
                     return readResponseMatcher.group(1);
                 } else {
                     LOGGER.warn("Invalid response to read message command");
@@ -223,7 +223,7 @@ public class ATUDPConnector implements Connector {
         } else {
             String data = Hex.encodeHexString(msg.getBytes()).toUpperCase();
             senderExecutor.submit(() -> sendMessage(localSocketId, remoteHost, remotePort, msg.getSize(), data));
-            LOGGER.info("Message sent through socket {}", localSocketId);
+            LOGGER.debug("Message sent through socket {}", localSocketId);
         }
     }
 
@@ -245,7 +245,7 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                LOGGER.info("Message sent through socket {}", socketId);
+                LOGGER.debug("Message sent through socket {}", socketId);
             } else {
                 LOGGER.warn("Couldn't send message through socket {}: {}", socketId, response.getErrorMsg());
             }
@@ -292,7 +292,7 @@ public class ATUDPConnector implements Connector {
             ATResponse response = future.get();
 
             if (response.isOk()) {
-                LOGGER.info("Socket {} closed", localSocketId);
+                LOGGER.debug("Socket {} closed", localSocketId);
             } else {
                 LOGGER.warn("Couldn't close socket {}: {}", localSocketId, response.getErrorMsg());
             }

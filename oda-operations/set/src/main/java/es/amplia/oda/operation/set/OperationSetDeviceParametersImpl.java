@@ -28,7 +28,7 @@ class OperationSetDeviceParametersImpl implements OperationSetDeviceParameters {
     
     @Override
     public CompletableFuture<Result> setDeviceParameters(String deviceId, List<VariableValue> values) {
-        LOGGER.info("Setting for the device '{}' the values: {}", deviceId, values);
+        LOGGER.debug("Setting for the device '{}' the values: {}", deviceId, values);
 
         return stateManager.setDatastreamValues(deviceId, mapToDatastreamValues(values))
                 .thenApply(this::createResult);

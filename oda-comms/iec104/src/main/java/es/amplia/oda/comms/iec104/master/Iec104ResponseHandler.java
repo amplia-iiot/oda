@@ -96,7 +96,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
             List<Event> eventsToPublishImmediately = new ArrayList<>();
 
             valuesParsed.forEach((address, value) -> {
-                LOGGER.info("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
+                LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
                         valuesType, address, value.getValue(), translateCauseOfTransmission(causeOfTransmission), this.deviceId);
                 LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
 

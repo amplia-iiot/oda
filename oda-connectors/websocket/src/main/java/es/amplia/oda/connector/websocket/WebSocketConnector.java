@@ -57,14 +57,14 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
                 configuration.getKeepAliveInterval());
 
         try {
-            LOGGER.info("Connecting to URI: {}", uri);
+            LOGGER.debug("Connecting to URI: {}", uri);
             client.connect();
         } catch (Exception exception) {
             String exceptionMessage = "Exception connecting WebSocket client: " + exception;
             LOGGER.error(exceptionMessage);
             throw new ConfigurationException(exceptionMessage);
         }
-        LOGGER.info("Loaded and established WebSocket connection");
+        LOGGER.info("Loaded and established WebSocket connection to URI: {}", uri);
     }
 
     private URI getUri(ConnectorConfiguration configuration, String deviceId, String apiKey) throws URISyntaxException {
@@ -76,8 +76,8 @@ public class WebSocketConnector implements OpenGateConnector, AutoCloseable {
     public void uplink(byte[] payload, ContentType contentType) {
         if (client != null) {
             WebSocketMessage message = new WebSocketMessage(payload);
-            LOGGER.info("Sending message through WebSocket");
-            LOGGER.debug("Message content: {}", message);
+            LOGGER.debug("Sending message through WebSocket");
+            LOGGER.trace("Message content: {}", message);
             try {
                 client.send(message.getPayload());
             } catch (Exception e) {

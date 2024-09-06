@@ -26,7 +26,7 @@ public class OperationSynchronizeClockImpl implements OperationSynchronizeClock 
 
 	@Override
 	public CompletableFuture<Result> synchronizeClock(String deviceId, String source) {
-		LOGGER.info("Synchronize clock with system time for device '{}'. Ignoring source {}", deviceId, source);
+		LOGGER.debug("Synchronize clock with system time for device '{}'. Ignoring source {}", deviceId, source);
 
 		return stateManager.setDatastreamValue(deviceId, clockDatastream, System.currentTimeMillis())
 				.thenApply(this::mapValueToResult);

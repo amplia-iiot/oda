@@ -18,7 +18,7 @@ class Iec104WriteOperatorProcessor {
     }
 
     void write(String deviceId, String datastreamId, Object value) {
-        LOGGER.info("Setting value {} to device {}", value, deviceId);
+        LOGGER.debug("Setting value {} to device {}", value, deviceId);
         this.connectionsFactory.getConnection(deviceId).send(value);
     }
 }
