@@ -177,6 +177,10 @@ class ModbusReadOperatorProcessor {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_DISCRETE_PER_REQUEST, i, finalAddress);
 
+            if (numRegistersToRequest <= 0) {
+                return null;
+            }
+
             try {
                 Boolean[] registerValues = modbusConnection.readInputDiscretes(slaveAddress, i, numRegistersToRequest);
                 // save values read in cache
@@ -241,6 +245,10 @@ class ModbusReadOperatorProcessor {
         do {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_COIL_PER_REQUEST, i, finalAddress);
+
+            if (numRegistersToRequest <= 0) {
+                return null;
+            }
 
             try {
                 Boolean[] registerValues = modbusConnection.readCoils(slaveAddress, i, numRegistersToRequest);
@@ -383,6 +391,10 @@ class ModbusReadOperatorProcessor {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_INPUT_REGISTER_PER_REQUEST, i, finalAddress);
 
+            if (numRegistersToRequest <= 0) {
+                return null;
+            }
+
             try {
                 Register[] registerValues = modbusConnection.readInputRegisters(slaveAddress, i, numRegistersToRequest);
                 // save values read in cache
@@ -524,6 +536,10 @@ class ModbusReadOperatorProcessor {
             // get number of registers to request in this iteration
             numRegistersToRequest = getNumRegistersToRequest(numRegisters, MAX_HOLDING_REGISTERS_PER_REQUEST, i, finalAddress);
 
+            if (numRegistersToRequest <= 0) {
+                return null;
+            }
+
             try {
                 Register[] registerValues = modbusConnection.readHoldingRegisters(slaveAddress, i, numRegistersToRequest);
                 // save values read in cache
@@ -555,12 +571,16 @@ class ModbusReadOperatorProcessor {
     }
 
     private int getNumRegistersToRequest(int numRegistersTotal, int maxRegistersPerRequest, int currentStartAddress, int finalAddress) {
-        if (numRegistersTotal <= maxRegistersPerRequest) {
-            return numRegistersTotal;
+        if (currentStartAddress >= finalAddress) {
+            return 0;
         }
 
         if ((currentStartAddress + maxRegistersPerRequest) > finalAddress) {
             return finalAddress - currentStartAddress;
+        }
+
+        if (numRegistersTotal <= maxRegistersPerRequest) {
+            return numRegistersTotal;
         }
 
         return maxRegistersPerRequest;
