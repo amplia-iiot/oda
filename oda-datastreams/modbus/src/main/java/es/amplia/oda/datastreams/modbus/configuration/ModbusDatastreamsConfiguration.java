@@ -7,20 +7,25 @@ import lombok.NonNull;
 import lombok.Value;
 
 import java.lang.reflect.Type;
+import java.util.List;
 
 @Value
 @Builder(builderClassName = "ModbusDatastreamsConfigurationBuilder")
 public class ModbusDatastreamsConfiguration {
     @NonNull
-    private String datastreamId;
+    String datastreamId;
     @NonNull
-    private String deviceId;
+    String deviceId;
     @NonNull
-    private Type datastreamType;
-    private int slaveAddress;
+    Type datastreamType;
+    int slaveAddress;
     @NonNull
-    private ModbusType dataType;
-    private int dataAddress;
+    ModbusType dataType;
+    int dataAddress;
+    @Builder.Default
+    int numRegistersToRead = 1;
+    @Builder.Default
+    boolean readFromCache = false;
 
     public static class ModbusDatastreamsConfigurationBuilder {
         private String datastreamId;
@@ -29,6 +34,8 @@ public class ModbusDatastreamsConfiguration {
         private int slaveAddress;
         private ModbusType dataType;
         private int dataAddress;
+        private int numRegistersToRead;
+        private boolean readFromCache;
 
         public ModbusDatastreamsConfigurationBuilder datastreamId(String datastreamId) {
             this.datastreamId = datastreamId;
@@ -60,11 +67,21 @@ public class ModbusDatastreamsConfiguration {
             return this;
         }
 
+        public ModbusDatastreamsConfigurationBuilder readFromCache(boolean readFromCache) {
+            this.readFromCache = readFromCache;
+            return this;
+        }
+
+        public ModbusDatastreamsConfigurationBuilder numRegistersToRead(int numRegistersToRead) {
+            this.numRegistersToRead = numRegistersToRead;
+            return this;
+        }
+
         public ModbusDatastreamsConfiguration build() {
             validateTypesCompatible();
 
             return new ModbusDatastreamsConfiguration(datastreamId, deviceId, datastreamType, slaveAddress, dataType,
-                    dataAddress);
+                    dataAddress, numRegistersToRead, readFromCache);
         }
 
         private void validateTypesCompatible() {
@@ -79,15 +96,20 @@ public class ModbusDatastreamsConfiguration {
         }
 
         private boolean isBitDataTypeCompatible() {
-            return Boolean.class.equals(datastreamType);
+            return Boolean.class.equals(datastreamType) || listBitCompatible();
         }
+
+        private boolean listBitCompatible() {
+            return List.class.equals(datastreamType);
+        }
+
 
         private boolean is16BitDataType() {
             return ModbusType.INPUT_REGISTER.equals(dataType) || ModbusType.HOLDING_REGISTER.equals(dataType);
         }
 
         private boolean is16BitDataTypeCompatible() {
-            return one16BitRegisterCompatible() || two16BitRegisterCompatible() || four16BitCompatible();
+            return one16BitRegisterCompatible() || two16BitRegisterCompatible() || four16BitCompatible() || list16BitCompatible();
         }
 
         private boolean one16BitRegisterCompatible() {
@@ -100,6 +122,10 @@ public class ModbusDatastreamsConfiguration {
 
         private boolean four16BitCompatible() {
             return Long.class.equals(datastreamType) || Double.class.equals(datastreamType);
+        }
+
+        private boolean list16BitCompatible() {
+            return List.class.equals(datastreamType);
         }
     }
 }

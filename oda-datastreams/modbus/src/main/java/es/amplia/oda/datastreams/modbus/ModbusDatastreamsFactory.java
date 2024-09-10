@@ -9,9 +9,12 @@ import java.util.Map;
 public interface ModbusDatastreamsFactory {
     DatastreamsGetter createModbusDatastreamsGetter(String datastreamId, Type datastreamType,
                                                     Map<String, Integer> deviceIdSlaveAddressMapper,
-                                                    ModbusType dataType, int dataAddress);
+                                                    ModbusType dataType, int dataAddress, boolean readFromCache,
+                                                    int numRegistersToRead);
 
     DatastreamsSetter createModbusDatastreamsSetter(String datastreamId, Type datastreamType,
                                                     Map<String, Integer> deviceIdSlaveAddressMapper,
                                                     ModbusType dataType, int dataAddress);
+
+    void updateDevicesCaches();
 }

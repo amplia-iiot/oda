@@ -11,9 +11,11 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
 
     private final ModbusReadOperatorProcessor readOperatorProcessor;
     private final ModbusWriteOperatorProcessor writeOperatorProcessor;
+    private final ModbusConnectionsFinder modbusConnectionsFinder;
 
 
     public ModbusDatastreamsFactoryImpl(ModbusConnectionsFinder modbusConnectionsFinder) {
+        this.modbusConnectionsFinder = modbusConnectionsFinder;
         this.readOperatorProcessor = new ModbusReadOperatorProcessor(modbusConnectionsFinder,
                 new ModbusTypeToJavaTypeConverter());
         this.writeOperatorProcessor = new ModbusWriteOperatorProcessor(modbusConnectionsFinder,
@@ -23,9 +25,10 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
     @Override
     public ModbusDatastreamsGetter createModbusDatastreamsGetter(String datastreamId, Type datastreamType,
                                                                  Map<String, Integer> deviceIdSlaveAddressMapper,
-                                                                 ModbusType dataType, int dataAddress) {
+                                                                 ModbusType dataType, int dataAddress,
+                                                                 boolean readFromCache, int numRegistersToRead) {
         return new ModbusDatastreamsGetter(datastreamId, datastreamType, deviceIdSlaveAddressMapper, dataType,
-                dataAddress, readOperatorProcessor);
+                dataAddress, readFromCache, numRegistersToRead, readOperatorProcessor);
     }
 
     @Override
@@ -34,5 +37,10 @@ public class ModbusDatastreamsFactoryImpl implements ModbusDatastreamsFactory {
                                                                  ModbusType dataType, int dataAddress) {
         return new ModbusDatastreamsSetter(datastreamId, datastreamType, deviceIdSlaveAddressMapper, dataType,
                 dataAddress, writeOperatorProcessor);
+    }
+
+    @Override
+    public void updateDevicesCaches() {
+        this.readOperatorProcessor.updateModbusCaches(this.modbusConnectionsFinder);
     }
 }
