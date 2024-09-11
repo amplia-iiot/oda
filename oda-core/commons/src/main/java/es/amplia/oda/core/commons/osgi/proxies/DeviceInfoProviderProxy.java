@@ -21,29 +21,29 @@ public class DeviceInfoProviderProxy implements DeviceInfoProvider, AutoCloseabl
     public String getApiKey() { return proxy.callFirst(DeviceInfoProvider::getApiKey); }
 
     @Override
-    public int getCpuUsage() { return proxy.callFirst(DeviceInfoProvider::getCpuUsage); }
+    public Integer getCpuUsage() { return proxy.callFirst(DeviceInfoProvider::getCpuUsage); }
     @Override
     public String getCpuStatus() { return proxy.callFirst(DeviceInfoProvider::getCpuStatus); }
     @Override
-    public int getCpuTotal() { return proxy.callFirst(DeviceInfoProvider::getCpuTotal); }
+    public Integer getCpuTotal() { return proxy.callFirst(DeviceInfoProvider::getCpuTotal); }
     @Override
-    public int getRamUsage() { return proxy.callFirst(DeviceInfoProvider::getRamUsage); }
+    public Integer getRamUsage() { return proxy.callFirst(DeviceInfoProvider::getRamUsage); }
     @Override
-    public long getRamTotal() { return proxy.callFirst(DeviceInfoProvider::getRamTotal); }
+    public Long getRamTotal() { return proxy.callFirst(DeviceInfoProvider::getRamTotal); }
     @Override
-    public int getDiskUsage() { return proxy.callFirst(DeviceInfoProvider::getDiskUsage); }
+    public Integer getDiskUsage() { return proxy.callFirst(DeviceInfoProvider::getDiskUsage); }
     @Override
-    public long getDiskTotal() { return proxy.callFirst(DeviceInfoProvider::getDiskTotal); }
+    public Long getDiskTotal() { return proxy.callFirst(DeviceInfoProvider::getDiskTotal); }
     @Override
     public String getClock() { return proxy.callFirst(DeviceInfoProvider::getClock); }
     @Override
-    public long getUptime() { return proxy.callFirst(DeviceInfoProvider::getUptime); }
+    public Long getUptime() { return proxy.callFirst(DeviceInfoProvider::getUptime); }
     @Override
     public List<Software> getSoftware() { return proxy.callFirst(DeviceInfoProvider::getSoftware); }
     @Override
     public String getTemperatureStatus() { return proxy.callFirst(DeviceInfoProvider::getTemperatureStatus); }
     @Override
-    public int getTemperatureValue() { return proxy.callFirst(DeviceInfoProvider::getTemperatureValue); }
+    public Integer getTemperatureValue() { return proxy.callFirst(DeviceInfoProvider::getTemperatureValue); }
 
     @Override
     public void close() {

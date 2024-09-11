@@ -35,7 +35,7 @@ public class ResponseDispatcherImpl implements ResponseDispatcher {
             response.getOperation().getResponse().setPath((String[]) path.toArray());
             send(response);*/
 
-            LOGGER.info("Publishing response {}", response);
+            LOGGER.debug("Publishing response {}", response);
             byte[] payload = serializer.serialize(response);
             connector.uplinkResponse(payload, contentType);
         } catch (IOException e) {

@@ -58,7 +58,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
             try {
-                LOGGER.info("Message arrived to the {} topic", topic);
+                LOGGER.debug("Message arrived to the {} topic", topic);
                 OutputDatastream event =
                         serializer.deserialize(mqttMessage.getPayload(), OutputDatastream.class);
                 String deviceId = event.getDevice()!=null?event.getDevice():extractDeviceIdFromTopic(topic);
@@ -76,7 +76,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 });
 
                 String[] path = addDeviceIdToPath(event.getPath(), deviceId);
-                LOGGER.info("Sending event {} for device {} and path {}", events, deviceId, path);
+                LOGGER.debug("Sending event {} for device {} and path {}", events, deviceId, path);
                 publish(deviceId, Arrays.asList(path), events); // Añadir deviceId del ODA al path
 
             } catch (Exception e) {
@@ -105,13 +105,13 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         @Override
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
-                LOGGER.info("Response arrived to the {} topic", topic);
+                LOGGER.debug("Response arrived to the {} topic", topic);
                 OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
 
                 String[] path = resp.getOperation().getResponse().getPath();
                 String deviceId = resp.getOperation().getResponse().getDeviceId();
                 resp.getOperation().getResponse().setPath(addDeviceIdToPath(path, deviceId));
-                LOGGER.info("Sending response {}", resp);
+                LOGGER.debug("Sending response {}", resp);
                 responseDispatcher.publishResponse(resp);
 
             } catch (Exception e) {

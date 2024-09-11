@@ -180,10 +180,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        int result = deviceInfoDatastreamsGetter.getCpuTotal();
+        Integer result = deviceInfoDatastreamsGetter.getCpuTotal();
 
         verify(mockedCommandProcessor).execute("script/" + CPU_TOTAL_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -228,10 +228,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        long result = deviceInfoDatastreamsGetter.getUptime();
+        Long result = deviceInfoDatastreamsGetter.getUptime();
 
         verify(mockedCommandProcessor).execute("script/" + UPTIME_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -276,10 +276,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        int result = deviceInfoDatastreamsGetter.getCpuUsage();
+        Integer result = deviceInfoDatastreamsGetter.getCpuUsage();
 
         verify(mockedCommandProcessor).execute("script/" + CPU_USAGE_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -300,10 +300,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        long result = deviceInfoDatastreamsGetter.getRamTotal();
+        Long result = deviceInfoDatastreamsGetter.getRamTotal();
 
         verify(mockedCommandProcessor).execute("script/" + RAM_TOTAL_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -324,10 +324,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        int result = deviceInfoDatastreamsGetter.getRamUsage();
+        Integer result = deviceInfoDatastreamsGetter.getRamUsage();
 
         verify(mockedCommandProcessor).execute("script/" + RAM_USAGE_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -348,10 +348,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        long result = deviceInfoDatastreamsGetter.getDiskTotal();
+        Long result = deviceInfoDatastreamsGetter.getDiskTotal();
 
         verify(mockedCommandProcessor).execute("script/" + DISK_TOTAL_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -372,10 +372,10 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        long result = deviceInfoDatastreamsGetter.getDiskUsage();
+        Integer result = deviceInfoDatastreamsGetter.getDiskUsage();
 
         verify(mockedCommandProcessor).execute("script/" + DISK_USAGE_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 
     @Test
@@ -434,9 +434,9 @@ public class DeviceInfoDatastreamsGetterTest {
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "path", "script");
         when(mockedCommandProcessor.execute(any())).thenThrow(mockedException);
 
-        int result = deviceInfoDatastreamsGetter.getTemperatureValue();
+        Integer result = deviceInfoDatastreamsGetter.getTemperatureValue();
 
         verify(mockedCommandProcessor).execute("script/" + TEMPERATURE_VALUE_SCRIPT);
-        assertEquals(0, result);
+        assertEquals(null, result);
     }
 }

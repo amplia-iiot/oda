@@ -68,7 +68,7 @@ class EventDispatcherImpl implements EventDispatcher {
 
     void send(OutputDatastream outputEvent, boolean useQos) {
         try {
-            LOGGER.info("Publishing events {}", outputEvent);
+            LOGGER.debug("Publishing events {}", outputEvent);
             int maxLength = connector.getMaxLength();
             byte[] payload = serializer.serialize(outputEvent);
             if ( (connector.hasMaxlength()) && (payload.length > maxLength) ) {

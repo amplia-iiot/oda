@@ -82,7 +82,7 @@ public class Iec104ServerModule implements ServerModule {
 		socketChannel.pipeline().addLast(this.messageChannel);
 		socketChannel.pipeline().addLast(commandHandler);
 		this.socketChannel = socketChannel;
-		LOGGER.info("Initialized IEC104 channel");
+		LOGGER.debug("Initialized IEC104 channel");
 	}
 
 	@Override

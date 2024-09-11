@@ -49,7 +49,7 @@ public class Iec104Connector implements ScadaConnector, AutoCloseable{
 			if (isConnected()) {
 				Object asdu = cache.getAsdu(iec104Type, value, index, timestamp, this.commonAddress);
 				serverModule.send(asdu);
-				LOGGER.info("Uplink info to index {}", index);
+				LOGGER.debug("Uplink info to index {}", index);
 			} else {
 				LOGGER.warn("No connection established for sending data to Master SCADA. Message cannot be sent");
 			}

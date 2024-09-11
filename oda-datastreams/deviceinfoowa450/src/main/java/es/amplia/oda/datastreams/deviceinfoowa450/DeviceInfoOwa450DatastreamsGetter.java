@@ -98,7 +98,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public int getCpuTotal() {
+    public Integer getCpuTotal() {
         try {
             int cpuTotal = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT));
             LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
@@ -106,7 +106,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Clock command '{}':", CPU_TOTAL_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
@@ -124,7 +124,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public long getUptime() {
+    public Long getUptime() {
         try {
             long uptime = Long.parseLong(commandProcessor.execute(path + "/" + UPTIME_SCRIPT));
             LOGGER.debug("Getting actual UpTime: {}", uptime);
@@ -132,7 +132,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing UpTime command '{}':", UPTIME_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
@@ -150,7 +150,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
     }
 
     
-    public int getCpuUsage() {
+    public Integer getCpuUsage() {
         try {
             int cpuUsage = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT));
             LOGGER.debug("Getting actual CPU Usage: {}", cpuUsage);
@@ -158,12 +158,12 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing CPU Usage command '{}':", CPU_USAGE_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
     
-    public long getRamTotal() {
+    public Long getRamTotal() {
         try {
             long ramTotal = Long.parseLong(commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT));
             LOGGER.debug("Getting actual RAM Usage: {}", ramTotal);
@@ -171,12 +171,12 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Total command '{}':", RAM_TOTAL_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
     
-    public int getRamUsage() {
+    public Integer getRamUsage() {
         try {
             int ramUsage = Integer.parseInt(commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT));
             LOGGER.debug("Getting actual RAM Usage: {}", ramUsage);
@@ -184,12 +184,12 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing RAM Usage command '{}':", RAM_USAGE_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
     
-    public long getDiskTotal() {
+    public Long getDiskTotal() {
         try {
             long diskTotal = Long.parseLong(commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT));
             LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskTotal);
@@ -197,12 +197,12 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException | NumberFormatException ex) {
             LOGGER.error("Error executing Disk Total command '{}':", DISK_TOTAL_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
     
-    public int getDiskUsage() {
+    public Integer getDiskUsage() {
         try {
             int diskUsage = Integer.parseInt(commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT));
             LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskUsage);
@@ -210,7 +210,7 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         } catch (CommandExecutionException ex) {
             LOGGER.error("Error executing Disk Usage command '{}':", DISK_USAGE_SCRIPT,
                     ex);
-            return 0;
+            return null;
         }
     }
 
@@ -230,8 +230,8 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
     }
 
     @Override
-    public int getTemperatureValue() {
-        return 0;
+    public Integer getTemperatureValue() {
+        return null;
     }
 
 

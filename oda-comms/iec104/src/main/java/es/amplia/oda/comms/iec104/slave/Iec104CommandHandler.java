@@ -42,11 +42,11 @@ public class Iec104CommandHandler extends ChannelInboundHandlerAdapter {
 			try {
 				switch (msg.getClass().getAnnotation(ASDU.class).name()) {
 					case "C_IC_NA_1":
-						LOGGER.info("Interrogation command received.");
+						LOGGER.debug("Interrogation command received.");
 						processInterrogationType(ctx, (InterrogationCommand) msg);
 						return;
 					case "C_BO_NA_1":
-						LOGGER.info("Bit string 32 bit command received.");
+						LOGGER.debug("Bit string 32 bit command received.");
 						processBitStringType(ctx, (BitStringCommand) msg);
 						return;
 					default:

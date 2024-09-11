@@ -83,8 +83,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     @Override
     public void messageArrived(String topic, MqttMessage message) {
-        LOGGER.info("Messaged arrived to topic {}", topic);
-        LOGGER.debug("Mqtt message content: {}", message);
+        LOGGER.debug("Messaged arrived to topic {}", topic);
+        LOGGER.trace("Mqtt message content: {}", message);
         try {
             // In MQTT v5 contentType should come from MqttProperties Content-Format
             ContentType contentType = ContentType.JSON;
@@ -113,8 +113,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         } else {
             // In MQTT v5 contentType should be injected in MqttProperties Content-Format
             MqttMessage message = MqttMessage.newInstance(payload, qos, retained);
-            LOGGER.info("Sending message to topic {}", topic);
-            LOGGER.debug("Mqtt message content: {}", message );
+            LOGGER.debug("Sending message to topic {}", topic);
+            LOGGER.trace("Mqtt message content: {}", message );
             try {
                 client.publish(topic, message, contentType);
             } catch (MqttException e) {

@@ -51,7 +51,7 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
     }
 
     public CompletableFuture<Result> initialDiscover() {
-        LOGGER.info("Processing discover operation in ODA");
+        LOGGER.debug("Processing discover operation in ODA");
 
         try {
             byte[] msg = serializer.serialize(EMPTY_MESSAGE);
@@ -75,7 +75,7 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
 
     public CompletableFuture<Void> waitForMqttDatastreamService(String serverUri, String clientId, String discoverTopic) {
         return CompletableFuture.runAsync(() -> {
-            LOGGER.info("Waiting for MQTT Datastreams service ready");
+            LOGGER.debug("Waiting for MQTT Datastreams service ready");
             try {
                 for(int i = 0; i < 10 && !mqttDatastreamsService.isReady(); i++) {
                     LOGGER.info("Waiting 6 seconds... Try {}/10. ", i);
@@ -86,7 +86,7 @@ public class OperationLocalProtocolDiscoveryImpl implements OperationDiscover, A
                 Thread.currentThread().interrupt();
             }
             if (mqttDatastreamsService.isReady()) {
-                LOGGER.info("MQTT Datastreams service is ready yet, preparing the discover operation");
+                LOGGER.debug("MQTT Datastreams service is ready yet, preparing the discover operation");
                 topic = discoverTopic;
                 mqttClient = mqttClientFactory.createMqttClient(serverUri, clientId);
                 mqttClient.connect();
