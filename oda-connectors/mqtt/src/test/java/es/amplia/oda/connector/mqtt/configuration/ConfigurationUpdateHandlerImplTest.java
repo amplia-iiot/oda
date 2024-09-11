@@ -216,6 +216,7 @@ public class ConfigurationUpdateHandlerImplTest {
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
         testProperties.put(SECURE_PORT_PROPERTY_NAME, Integer.toString(TEST_SECURE_PORT));
         testProperties.put(SECURE_CONNECTION_PROPERTY_NAME, Boolean.toString(true));
+        testProperties.put(SECURE_SKIP_VERIFY_PROPERTY_NAME, Boolean.toString(true));
         testProperties.put(IOT_TOPIC_PROPERTY_NAME, TEST_IOT_TOPIC);
         testProperties.put(REQUEST_TOPIC_PROPERTY_NAME, TEST_REQUEST_TOPIC);
         testProperties.put(RESPONSE_TOPIC_PROPERTY_NAME, TEST_RESPONSE_TOPIC);

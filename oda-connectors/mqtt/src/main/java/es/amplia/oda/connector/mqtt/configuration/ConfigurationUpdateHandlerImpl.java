@@ -28,6 +28,7 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     static final String PORT_PROPERTY_NAME = "port";
     static final String SECURE_PORT_PROPERTY_NAME = "securePort";
     static final String SECURE_CONNECTION_PROPERTY_NAME = "secure";
+    static final String SECURE_SKIP_VERIFY_PROPERTY_NAME = "skipVerify";
     static final String MQTT_VERSION_PROPERTY_NAME = "mqttVersion";
     static final String KEEP_ALIVE_INTERVAL_PROPERTY_NAME = "keepAliveInterval";
     static final String MAX_IN_FLIGHT_PROPERTY_NAME = "maxInFlight";
@@ -108,10 +109,15 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                         Optional.ofNullable((String) props.get(SECURE_CONNECTION_PROPERTY_NAME))
                                 .map(Boolean::parseBoolean)
                                 .orElse(false);
+                boolean skipVerify =
+                        Optional.ofNullable((String) props.get(SECURE_SKIP_VERIFY_PROPERTY_NAME))
+                                .map(Boolean::parseBoolean)
+                                .orElse(false);
                 String brokerUrl = getBrokerUrl(host, port, securePort, secureConnection);
 
                 // Get MQTT options
-                MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey, secureConnection);
+                MqttConnectOptions mqttConnectOptions = getMqttConnectOptionsConfiguration(props, deviceId, apiKey,
+                        secureConnection, skipVerify);
 
                 LOGGER.info("MqttOptions = {}", mqttConnectOptions);
 
@@ -148,11 +154,12 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
     }
 
     private MqttConnectOptions getMqttConnectOptionsConfiguration(Dictionary<String, ?> props, String deviceId,
-                                                                  String apiKey, boolean secureConnection) {
+                                                                  String apiKey, boolean secureConnection,
+                                                                  boolean skipVerify) {
         MqttConnectOptionsBuilder optionsBuilder = MqttConnectOptions.builder(deviceId, apiKey.toCharArray());
         getConnectionConfiguration(props, optionsBuilder);
         getWillOptionalConfiguration(props, deviceId, optionsBuilder);
-        getSslOptionalConfiguration(props, optionsBuilder, secureConnection);
+        getSslOptionalConfiguration(props, optionsBuilder, secureConnection, skipVerify);
         return optionsBuilder.build();
     }
 
@@ -201,9 +208,22 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
         }
     }
 
-    private void getSslOptionalConfiguration(Dictionary<String, ?> props, MqttConnectOptionsBuilder optionsBuilder, boolean secureConnection) {
+    private void getSslOptionalConfiguration(Dictionary<String, ?> props, MqttConnectOptionsBuilder optionsBuilder,
+                                             boolean secureConnection, boolean skipVerify) {
 
         if (!secureConnection) {
+            return;
+        }
+
+        // if we want to securize connection but don't want to check certificate create empty trustStore to accept all ssl certificates
+        if (skipVerify) {
+            LOGGER.info("Using empty trustStore to accept all certificates (secure = {}, skipVerify = {})", secureConnection, skipVerify);
+            try {
+                SSLContext sslContext = createEmptyTrustore();
+                optionsBuilder.ssl(sslContext.getSocketFactory());
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
             return;
         }
 
@@ -235,16 +255,9 @@ public class ConfigurationUpdateHandlerImpl implements ConfigurationUpdateHandle
                     trustStore.get(), trustStoreType.orElse(SslOptions.DEFAULT_KEY_STORE_TYPE),
                     trustStorePwd.get(),
                     trustManagerAlgorithm.orElse(KeyManagerAlgorithm.from(KeyManagerFactory.getDefaultAlgorithm())));
-        }
-        else{
-            // if we want to securize connection but don't indicate trustore and keystore, create empty trusstore to accept all ssl certificates
-            LOGGER.info("Secure = true but no trustore specified, using empty trustore to accept all certificates");
-            try {
-                SSLContext sslContext = createEmptyTrustore();
-                optionsBuilder.ssl(sslContext.getSocketFactory());
-            } catch (KeyManagementException | NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
+        } else {
+            LOGGER.warn("Ssl not activated because some of the required ssl parameters is missing " +
+                    "(keyStore, keyStorePwd, trustStore, trustStorePwd)");
         }
     }
 
