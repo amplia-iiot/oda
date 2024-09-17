@@ -232,16 +232,16 @@ public class DatabaseHandler {
 			LOGGER.debug("Executing query {} with parameters {}, {}, {}", partialStatement,
 					deviceId, datastreamId, maxHistoricalData - 1);
 			if (result.next()) {
-				long at = result.getLong("at");
+				long date = result.getLong("date");
 				result.close();
 				prstmt.close();
 				List<Object> params = new ArrayList<>();
 				params.add(deviceId);
 				params.add(datastreamId);
-				params.add(at);
+				params.add(date);
 				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
 				LOGGER.debug("Executing query {} with parameters {}, {}, {},",
-						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, at);
+						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, date);
 				return removed >= 1;
 			}
 		} catch (SQLException e) {
