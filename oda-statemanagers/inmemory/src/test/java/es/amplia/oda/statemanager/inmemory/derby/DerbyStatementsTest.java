@@ -29,6 +29,7 @@ public class DerbyStatementsTest {
 				"\"datastreamId\" varchar(255), " +
 				"\"feed\" varchar(255), " +
 				"\"at\" bigint, " +
+				"\"date\" bigint, " +
 				"\"value\" varchar(5000), " +
 				"\"type\" varchar(255), " +
 				"\"status\" varchar(255), " +
@@ -52,13 +53,13 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getObtainStoredDataStatementTest() {
-		assertEquals("SELECT * FROM state ORDER BY \"at\" DESC",
+		assertEquals("SELECT * FROM state ORDER BY \"date\" DESC",
 				statements.getObtainStoredDataStatement());
 	}
 
 	@Test
 	public void getInsertNewDataRowStatementTest() {
-		assertEquals("INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?)",
+		assertEquals("INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"date\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?,?)",
 				statements.getInsertNewDataRowStatement());
 	}
 
@@ -70,19 +71,19 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getSelectRowNOfADatastreamStatementTest() {
-		assertEquals("SELECT \"at\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"at\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY",
+		assertEquals("SELECT \"date\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"date\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY",
 				statements.getSelectRowNOfADatastreamStatement());
 	}
 
 	@Test
 	public void getDeleteOverloadDataFromADatastreamStatementTest() {
-		assertEquals("DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\" < ?",
+		assertEquals("DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"date\" < ?",
 				statements.getDeleteOverloadDataFromADatastreamStatement());
 	}
 
 	@Test
 	public void getDeleteOlderDataFromDatabaseStatementTest() {
-		assertEquals("DELETE FROM state WHERE \"at\"<?",
+		assertEquals("DELETE FROM state WHERE \"date\"<?",
 				statements.getDeleteOlderDataFromDatabaseStatement());
 	}
 
@@ -90,12 +91,6 @@ public class DerbyStatementsTest {
 	public void getUpdateSentDataTest() {
 		assertEquals("UPDATE state SET \"sent\"=true WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\"=?",
 				statements.getUpdateSentData());
-	}
-
-	@Test
-	public void getUpdateIsDataSentTest() {
-		assertEquals("SELECT \"at\", \"sent\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"sent\"=false",
-				statements.getUpdateIsDataSent());
 	}
 
 	@Test

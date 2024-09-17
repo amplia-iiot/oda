@@ -68,12 +68,12 @@ public class State {
 
         public Stream<DatastreamValue> getNotSentValues() {
             return this.storedValues.stream()
-                    .filter(stored -> !stored.isSent());
+                    .filter(stored -> !stored.getSent());
         }
 
         public List<DatastreamValue> getNotProcessedValues() {
             return this.storedValues.stream()
-                    .filter(stored -> !stored.isProcessed())
+                    .filter(stored -> !stored.getProcessed())
                     .collect(Collectors.toList());
         }
 
@@ -129,7 +129,7 @@ public class State {
             long time = System.currentTimeMillis() - (forgetTime * 1000);
 
             List<DatastreamValue> oldValuesByDate = this.storedValues.stream()
-                    .filter(value -> value.getAt() <= time)
+                    .filter(value -> value.getDate() <= time)
                     .collect(Collectors.toList());
 
             if (!oldValuesByDate.isEmpty()) {

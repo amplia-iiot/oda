@@ -28,7 +28,7 @@ public class RealTimeStateManagerTest {
     private static final String TEST_DATASTREAM_ID_3 = "testDatastream3";
     private static final String TEST_DATASTREAM_ID_4 = "testDatastream4";
     private static final String TEST_DATASTREAM_ID_5 = "testDatastream5";
-    private static final long TEST_AT_1 = 123456789L;
+    private static final Long TEST_AT_1 = 123456789L;
     private static final double TEST_VALUE_1 = 99.99;
     private static final int TEST_VALUE_2 = 5;
     private static final String TEST_VALUE_3 = "Hello World!";
@@ -272,7 +272,7 @@ public class RealTimeStateManagerTest {
 
         assertEquals(TEST_DEVICE_ID, result.getDeviceId());
         assertEquals(TEST_DATASTREAM_ID_1, result.getDatastreamId());
-        assertNotEquals(0L, result.getAt());
+        assertNotEquals(new Long(0L), result.getAt());
         assertEquals(DatastreamValue.Status.OK, result.getStatus());
         assertEquals(TEST_VALUE_1, result.getValue());
         assertNull(result.getError());

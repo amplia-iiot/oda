@@ -119,44 +119,6 @@ public class DatabaseHandler {
 		}
 	}
 
-	public Map<Long, Boolean> getDatapointsSentValue(String deviceId, String datastreamId) {
-		PreparedStatement stmt = null;
-		ResultSet result = null;
-		try {
-			String partialStatement = statements.getUpdateIsDataSent();
-			stmt = connection.prepareStatement(partialStatement);
-			stmt.setString(1, deviceId);
-			stmt.setString(2, datastreamId);
-			result = stmt.executeQuery();
-			LOGGER.debug("Executing query {} with parameters {}, {}", partialStatement, deviceId, datastreamId);
-			Map<Long, Boolean> datapoints = new HashMap<>();
-			while (result.next()) {
-				long at = result.getLong("at");
-				boolean sent = result.getBoolean("sent");
-				datapoints.put(at, sent);
-			}
-			return datapoints;
-		} catch (SQLException e) {
-			throw new DatabaseException("Error trying to execute an update: " + e.getSQLState());
-		} finally {
-			try {
-				if(result != null) {
-					result.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			} catch (SQLException e) {
-				LOGGER.warn("Couldn't close a statement of the update.");
-				try {
-					stmt.close();
-				} catch (SQLException ignored) {
-					LOGGER.warn("Couldn't close a statement of the update.");
-				}
-			}
-		}
-	}
-
 	private Map<DatastreamInfo, List<DatastreamValue>> generateMapOfData(ResultSet result) throws SQLException {
 		Map<DatastreamInfo, List<DatastreamValue>> map = new HashMap<>();
 		while (!result.isClosed() && result.next()) {
@@ -206,6 +168,7 @@ public class DatabaseHandler {
 		values.add(value.getDatastreamId());
 		values.add(value.getFeed());
 		values.add(value.getAt());
+		values.add(value.getDate());
 		String className = datatypesUtils.getClassNameOf(value.getValue());
 		if(className == null) {
 			return false;
@@ -215,7 +178,7 @@ public class DatabaseHandler {
 		values.add(className);
 		values.add(value.getStatus().toString());
 		values.add(value.getError());
-		values.add(value.isSent());
+		values.add(value.getSent());
 
 		// insert new value
 		int changes = preparedUpdate(statements.getInsertNewDataRowStatement(), values);
