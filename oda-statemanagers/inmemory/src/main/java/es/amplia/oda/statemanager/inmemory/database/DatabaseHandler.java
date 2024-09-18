@@ -119,54 +119,17 @@ public class DatabaseHandler {
 		}
 	}
 
-	public Map<Long, Boolean> getDatapointsSentValue(String deviceId, String datastreamId) {
-		PreparedStatement stmt = null;
-		ResultSet result = null;
-		try {
-			String partialStatement = statements.getUpdateIsDataSent();
-			stmt = connection.prepareStatement(partialStatement);
-			stmt.setString(1, deviceId);
-			stmt.setString(2, datastreamId);
-			result = stmt.executeQuery();
-			LOGGER.debug("Executing query {} with parameters {}, {}", partialStatement, deviceId, datastreamId);
-			Map<Long, Boolean> datapoints = new HashMap<>();
-			while (result.next()) {
-				long at = result.getLong("at");
-				boolean sent = result.getBoolean("sent");
-				datapoints.put(at, sent);
-			}
-			return datapoints;
-		} catch (SQLException e) {
-			throw new DatabaseException("Error trying to execute an update: " + e.getSQLState());
-		} finally {
-			try {
-				if(result != null) {
-					result.close();
-				}
-				if(stmt != null) {
-					stmt.close();
-				}
-			} catch (SQLException e) {
-				LOGGER.warn("Couldn't close a statement of the update.");
-				try {
-					stmt.close();
-				} catch (SQLException ignored) {
-					LOGGER.warn("Couldn't close a statement of the update.");
-				}
-			}
-		}
-	}
-
 	private Map<DatastreamInfo, List<DatastreamValue>> generateMapOfData(ResultSet result) throws SQLException {
 		Map<DatastreamInfo, List<DatastreamValue>> map = new HashMap<>();
 		while (!result.isClosed() && result.next()) {
 			try {
 				// during DatastreamValue process, it is saved in the database, so if it exists in the database it means it has been processed
 				DatastreamValue value = new DatastreamValue(result.getString(1), result.getString(2),
-						result.getString(3), result.getLong(4),
-						datatypesUtils.parseStoredData(result.getString(5), result.getString(6)),
-						parseStatus(result.getString(7)), result.getString(8),
-						result.getBoolean(9), true);
+						result.getString(3), result.getLong(4), 
+						datatypesUtils.parseStoredData(result.getString(6), result.getString(7)),
+						parseStatus(result.getString(8)), result.getString(9),
+						result.getBoolean(10), true);
+				value.setDate(result.getLong(5));
 				DatastreamInfo info = new DatastreamInfo(result.getString(1), result.getString(2));
 				List<DatastreamValue> values = map.get(info);
 				if (values == null) {
@@ -206,6 +169,7 @@ public class DatabaseHandler {
 		values.add(value.getDatastreamId());
 		values.add(value.getFeed());
 		values.add(value.getAt());
+		values.add(value.getDate());
 		String className = datatypesUtils.getClassNameOf(value.getValue());
 		if(className == null) {
 			return false;
@@ -215,7 +179,7 @@ public class DatabaseHandler {
 		values.add(className);
 		values.add(value.getStatus().toString());
 		values.add(value.getError());
-		values.add(value.isSent());
+		values.add(value.getSent());
 
 		// insert new value
 		int changes = preparedUpdate(statements.getInsertNewDataRowStatement(), values);
@@ -269,16 +233,16 @@ public class DatabaseHandler {
 			LOGGER.debug("Executing query {} with parameters {}, {}, {}", partialStatement,
 					deviceId, datastreamId, maxHistoricalData - 1);
 			if (result.next()) {
-				long at = result.getLong("at");
+				long date = result.getLong("date");
 				result.close();
 				prstmt.close();
 				List<Object> params = new ArrayList<>();
 				params.add(deviceId);
 				params.add(datastreamId);
-				params.add(at);
+				params.add(date);
 				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
 				LOGGER.debug("Executing query {} with parameters {}, {}, {},",
-						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, at);
+						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, date);
 				return removed >= 1;
 			}
 		} catch (SQLException e) {

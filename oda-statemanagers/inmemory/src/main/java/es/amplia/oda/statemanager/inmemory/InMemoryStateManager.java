@@ -286,7 +286,7 @@ public class InMemoryStateManager implements StateManager {
 
         if (!notProcessedValues.isEmpty()) {
             // get only values not already sent
-            List<DatastreamValue> valuesToSent = notProcessedValues.stream().filter(value -> !value.isSent()).collect(Collectors.toList());
+            List<DatastreamValue> valuesToSent = notProcessedValues.stream().filter(value -> !value.getSent()).collect(Collectors.toList());
             for (DatastreamValue notProcessedValue : valuesToSent) {
 
                 eventToSendImmediately = new Event(notProcessedValue.getDatastreamId(), notProcessedValue.getDeviceId(),
@@ -318,7 +318,7 @@ public class InMemoryStateManager implements StateManager {
                             LOGGER.error("The value {} couldn't be stored into the database.", notProcessedValue);
                         }
                         // If datastream isSent mark as sent in State
-                        if (notProcessedValue.isSent()) setSentInState(notProcessedValue);
+                        if (notProcessedValue.getSent()) setSentInState(notProcessedValue);
                     } catch (DatabaseException | IOException e) {
                         LOGGER.error("Error trying to insert the new value for {} in device {}",
                                 dsInfo.getDatastreamId(), dsInfo.getDeviceId());
