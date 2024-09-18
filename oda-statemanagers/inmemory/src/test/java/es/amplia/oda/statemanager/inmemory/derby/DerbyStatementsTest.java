@@ -47,7 +47,7 @@ public class DerbyStatementsTest {
 
 	@Test
 	public void getTimeIndexStatementTest() {
-		assertEquals("CREATE INDEX idx_at ON state (\"at\")",
+		assertEquals("CREATE INDEX idx_date ON state (\"date\")",
 				statements.getTimeIndexStatement());
 	}
 
