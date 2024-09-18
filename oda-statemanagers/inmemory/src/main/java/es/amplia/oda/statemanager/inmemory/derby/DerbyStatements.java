@@ -41,7 +41,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getTimeIndexStatement() {
-		return "CREATE INDEX idx_at ON state (\"at\")";
+		return "CREATE INDEX idx_date ON state (\"date\")";
 	}
 
 	@Override

@@ -125,10 +125,11 @@ public class DatabaseHandler {
 			try {
 				// during DatastreamValue process, it is saved in the database, so if it exists in the database it means it has been processed
 				DatastreamValue value = new DatastreamValue(result.getString(1), result.getString(2),
-						result.getString(3), result.getLong(4),
-						datatypesUtils.parseStoredData(result.getString(5), result.getString(6)),
-						parseStatus(result.getString(7)), result.getString(8),
-						result.getBoolean(9), true);
+						result.getString(3), result.getLong(4), 
+						datatypesUtils.parseStoredData(result.getString(6), result.getString(7)),
+						parseStatus(result.getString(8)), result.getString(9),
+						result.getBoolean(10), true);
+				value.setDate(result.getLong(5));
 				DatastreamInfo info = new DatastreamInfo(result.getString(1), result.getString(2));
 				List<DatastreamValue> values = map.get(info);
 				if (values == null) {
