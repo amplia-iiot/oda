@@ -101,7 +101,7 @@ public class DatabaseHandler {
 			stmt = connection.createStatement();
 			String partialStatement = statements.getObtainStoredDataStatement();
 			ResultSet result = stmt.executeQuery(partialStatement);
-			LOGGER.debug("Executing query {}", partialStatement);
+			LOGGER.trace("Executing query {}", partialStatement);
 			Map<DatastreamInfo, List<DatastreamValue>> map = generateMapOfData(result);
 			stmt.close();
 			result.close();
@@ -149,7 +149,7 @@ public class DatabaseHandler {
 		try {
 			stmt = connection.createStatement();
 			stmt.executeUpdate(sql);
-			LOGGER.debug("Executing query {} ", sql);
+			LOGGER.trace("Executing query {} ", sql);
 		} catch (SQLException e) {
 			LOGGER.error("Error trying to update the table: {}", e.getSQLState());
 		} finally {
@@ -193,7 +193,7 @@ public class DatabaseHandler {
 			for (int i = 1; i <= parameters.size(); i++) {
 				datatypesUtils.insertParameter(prstmt, i, parameters.get(i-1));
 			}
-			LOGGER.debug("Executing query {} with parameters {}", sql, parameters);
+			LOGGER.trace("Executing query {} with parameters {}", sql, parameters);
 			return prstmt.executeUpdate();
 		} catch (SQLException throwables) {
 			LOGGER.error("Impossible execute the update: {} with values {}", sql, parameters);
@@ -219,7 +219,7 @@ public class DatabaseHandler {
 	}
 
 	public boolean deleteExcessiveHistoricMaxData(String deviceId, String datastreamId) {
-		LOGGER.debug("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
+		LOGGER.trace("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
 
 		PreparedStatement prstmt = null;
 		ResultSet result = null;
@@ -230,7 +230,7 @@ public class DatabaseHandler {
 			prstmt.setString(2, datastreamId);
 			prstmt.setInt(3, maxHistoricalData - 1);
 			result = prstmt.executeQuery();
-			LOGGER.debug("Executing query {} with parameters {}, {}, {}", partialStatement,
+			LOGGER.trace("Executing query {} with parameters {}, {}, {}", partialStatement,
 					deviceId, datastreamId, maxHistoricalData - 1);
 			if (result.next()) {
 				long date = result.getLong("date");
@@ -241,7 +241,7 @@ public class DatabaseHandler {
 				params.add(datastreamId);
 				params.add(date);
 				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
-				LOGGER.debug("Executing query {} with parameters {}, {}, {},",
+				LOGGER.trace("Executing query {} with parameters {}, {}, {},",
 						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, date);
 				return removed >= 1;
 			}
@@ -272,7 +272,7 @@ public class DatabaseHandler {
 		// remove datastreams whose datetime it's older than forgettime
 		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
 
-		LOGGER.debug("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
+		LOGGER.trace("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
 
 		// prepare and execute query
 		List<Object> params = Collections.singletonList(maxTimeToRetain);
@@ -287,7 +287,7 @@ public class DatabaseHandler {
 			stmt = connection.prepareStatement(partialStatement);
 			stmt.setInt(1, maxHistoricalData);
 			result = stmt.executeQuery();
-			LOGGER.debug("Executing query {} with parameters {}", partialStatement, maxHistoricalData);
+			LOGGER.trace("Executing query {} with parameters {}", partialStatement, maxHistoricalData);
 			// parse SQL results
 			Map<String, List<String>> existingValues = new HashMap<>();
 			while (result.next()) {
