@@ -114,11 +114,11 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
                 }
 
             } catch (IndexOutOfBoundsException | NumberFormatException exception) {
-                logInvalidConfigurationWarning(entry.getKey(), "The entry format is not valid");
+                logInvalidConfigurationWarning(entry, "The entry format is not valid");
             } catch (IllegalArgumentException exception) {
-                logInvalidConfigurationWarning(entry.getKey(), "Unrecognized property value");
+                logInvalidConfigurationWarning(entry, "Unrecognized property value");
             } catch (ConfigurationException exception) {
-                logInvalidConfigurationWarning(entry.getKey(), exception.getMessage());
+                logInvalidConfigurationWarning(entry, exception.getMessage());
             }
         }
     }
@@ -151,7 +151,7 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
      * @param entry   Invalid entry.
      * @param message Message describing the error.
      */
-    private void logInvalidConfigurationWarning(String entry, String message) {
+    private void logInvalidConfigurationWarning(Map.Entry<String, ?> entry, String message) {
         logger.warn("Invalid configuration entry  \"{}\": {}", entry, message);
     }
 
