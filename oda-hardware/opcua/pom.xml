@@ -41,11 +41,13 @@
                             !org.apache.log4j.*,!sun.*,!com.oracle.*,!com.aayushatharva.brotli4j,!com.aayushatharva.brotli4j.decoder,
                             !com.aayushatharva.brotli4j.encoder,!com.github.luben.zstd,!com.google.common.util.concurrent.internal,
                             !com.google.errorprone.annotations,!com.google.errorprone.annotations.concurrent,!com.ning.compress.*,
-                            !io.netty.channel.unix,!io.netty.internal.*,!lzma.sdk.*,!net.jpountz.*,!org.apache.logging.*,!org.bouncycastle.*,
+                            !io.netty.channel.unix,!io.netty.internal.*,!lzma.sdk.*,!net.jpountz.*,!org.apache.logging.*,
                             !org.checkerframework.*,!org.conscrypt.*,!org.eclipse.jetty.*,!org.jboss.marshalling,!reactor.blockhound.*,*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                         <Embed-Dependency>sdk-client,sdk-core,stack-client,stack-core,strict-machine,guava,netty-transport,netty-buffer,netty-codec,
-                            netty-codec-http,netty-common,netty-handler,strict-machine,netty-channel-fsm,netty-resolver</Embed-Dependency>
+                            netty-codec-http,netty-common,netty-handler,strict-machine,netty-channel-fsm,netty-resolver,
+                            bcprov-jdk18on, bcpkix-jdk18on, bcutil-jdk18on
+                        </Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Embed-Directory>lib</Embed-Directory>
                     </instructions>
@@ -178,6 +180,11 @@
             <groupId>com.digitalpetri.netty</groupId>
             <artifactId>netty-channel-fsm</artifactId>
             <version>0.9</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aayushatharva.brotli4j</groupId>
+            <artifactId>brotli4j</artifactId>
+            <version>1.17.0</version>
         </dependency>
 
         <dependency>
