@@ -141,6 +141,12 @@ public class OpcUaClientConfigurationUpdateHandler implements ConfigurationUpdat
                                             namespaceIndex, nodeId, value);
                                     ScadaTranslationInfo dsInfo = scadaTranslator.getTranslationInfo(
                                             new ScadaInfo(nodeId.intValue(), EMPTY_SCADA_TYPE), false);
+
+                                    if (dsInfo == null) {
+                                        LOGGER.warn("There is no translation in scadaTables for nodeId {}", nodeId.intValue());
+                                        return;
+                                    }
+
                                     Event e = new Event(dsInfo.getDatastreamId(), dsInfo.getDeviceId(), null,
                                             dsInfo.getFeed(), System.currentTimeMillis(), value.getValue().getValue());
                                     LOGGER.info("Publishing event: " + e);
