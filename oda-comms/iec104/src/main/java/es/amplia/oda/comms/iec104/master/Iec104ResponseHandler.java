@@ -2,9 +2,8 @@ package es.amplia.oda.comms.iec104.master;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.types.*;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
-import es.amplia.oda.core.commons.utils.Event;
-import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
@@ -13,15 +12,13 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ResponseHandler.class);
 
-    private final EventDispatcher eventDispatcher;
+    private final EventPublisher eventPublisher;
     private final ScadaTableTranslator scadaTables;
 
     private final Map<String, Iec104Cache> caches;
@@ -30,11 +27,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private final int commonAddress;
 
     public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress,
-                                 EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables) {
+                                 EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
         this.caches = caches;
         this.deviceId = deviceId;
         this.commonAddress = commonAddress;
-        this.eventDispatcher = eventDispatcher;
+        this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
     }
 
@@ -93,8 +90,6 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     {
         if (!valuesParsed.isEmpty()) {
 
-            List<Event> eventsToPublishImmediately = new ArrayList<>();
-
             valuesParsed.forEach((address, value) -> {
                 LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
                         valuesType, address, value.getValue(), translateCauseOfTransmission(causeOfTransmission), this.deviceId);
@@ -116,10 +111,19 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                 // if no deviceId assigned in scadaTables, use the deviceId of the IEC104 connection
                 String finalDeviceId = datastreamInfo.getDeviceId() != null ? datastreamInfo.getDeviceId() : this.deviceId;
 
-                // if values must be sent immediately, add to list
+                // if values comes from an event, pass to StateManager
                 if (isEvent) {
-                    eventsToPublishImmediately.add(new Event(datastreamInfo.getDatastreamId(), finalDeviceId, null,
-                            datastreamInfo.getFeed(), transformedValue.getTimestamp(), transformedValue.getValue()));
+
+                    Map<Long, Object> datapointsMap = new HashMap<>();
+                    datapointsMap.put(transformedValue.getTimestamp(), transformedValue.getValue());
+
+                    Map<String, Map<Long, Object>> feedDatapointsMap = new HashMap<>();
+                    feedDatapointsMap.put(datastreamInfo.getFeed(), datapointsMap);
+
+                    Map<String, Map<String, Map<Long, Object>>> eventsByDatastreamId = new HashMap<>();
+                    eventsByDatastreamId.put(datastreamInfo.getDatastreamId(), feedDatapointsMap);
+
+                    eventPublisher.publishEvents(finalDeviceId, null, eventsByDatastreamId);
                 }
                 // else, add it to the corresponding cache
                 else {
@@ -129,10 +133,6 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                     valuesCache.add(valuesType, transformedValue, address);
                 }
             });
-
-            if (!eventsToPublishImmediately.isEmpty()) {
-                eventDispatcher.publishImmediately(eventsToPublishImmediately);
-            }
         }
     }
 

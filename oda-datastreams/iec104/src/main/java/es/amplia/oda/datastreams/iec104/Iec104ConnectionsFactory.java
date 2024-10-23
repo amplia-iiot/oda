@@ -2,9 +2,9 @@ package es.amplia.oda.datastreams.iec104;
 
 import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfiguration;
-import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.Channel;
 
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
@@ -37,7 +37,7 @@ public class Iec104ConnectionsFactory {
     private final Map<SocketAddress, ScheduledFuture<?>> connectionSchedules = new HashMap<>();
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-    private final EventDispatcher eventDispatcher;
+    private final EventPublisher eventPublisher;
     private final ScadaTableTranslator scadaTables;
 
     private int connInitialDelay;
@@ -46,9 +46,9 @@ public class Iec104ConnectionsFactory {
     private int interrogationCommandPolling;
 
 
-    Iec104ConnectionsFactory(EventDispatcher eventDispatcher, ScadaTableTranslator scadaTables)
+    Iec104ConnectionsFactory(EventPublisher eventPublisher, ScadaTableTranslator scadaTables)
     {
-        this.eventDispatcher = eventDispatcher;
+        this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
     }
 
@@ -173,7 +173,7 @@ public class Iec104ConnectionsFactory {
 
     private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
         Iec104ClientModule clientModule = new Iec104ClientModule(caches, options, deviceId, commonAddress,
-                this.eventDispatcher, this.scadaTables);
+                this.eventPublisher, this.scadaTables);
 
         connections.put(deviceId, clientModule);
         commonAddresses.put(deviceId, commonAddress);
@@ -215,9 +215,10 @@ public class Iec104ConnectionsFactory {
         connectionSchedules.values().forEach(s -> s.cancel(false)); // Por si hay alguna reconexión en marcha
         clients.values().forEach(c -> {
             try {
+                LOGGER.info("Closing IEC104 connection {}", c);
                 c.close();
             } catch (Exception e) {
-                LOGGER.error("Error closing connection {}", c);
+                LOGGER.error("Error closing connection ", e);
             }
         });
     }

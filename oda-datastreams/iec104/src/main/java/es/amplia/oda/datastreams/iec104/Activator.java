@@ -1,16 +1,13 @@
 package es.amplia.oda.datastreams.iec104;
 
-import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
-import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
-import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.core.commons.interfaces.*;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.ScadaTableTranslatorProxy;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.iec104.internal.Iec104DatastreamsFactoryImpl;
 
-import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -25,20 +22,20 @@ public class Activator implements BundleActivator {
     private Iec104ConnectionsFactory connectionsFactory;
     private ServiceListenerBundle<ScadaTableInfo> serviceListenerBundle;
     private Iec104DatastreamsConfigurationUpdateHandler configHandler;
-    private EventDispatcherProxy eventDispatcher;
+    private EventPublisher eventPublisher;
 
     @Override
     public void start(BundleContext bundleContext) {
 
         LOGGER.info("Starting up IEC104 datastreams bundle");
 
-        eventDispatcher = new EventDispatcherProxy(bundleContext);
+        eventPublisher = new EventPublisherProxy(bundleContext);
 
         serviceListenerBundle = new ServiceListenerBundle<>(bundleContext, ScadaTableInfo.class, this::onServiceChanged);
         ScadaTableTranslator translator = new ScadaTableTranslatorProxy(bundleContext);
 
         // initiate manager of IEC104 connections
-        connectionsFactory = new Iec104ConnectionsFactory(eventDispatcher, translator);
+        connectionsFactory = new Iec104ConnectionsFactory(eventPublisher, translator);
 
         // init data streams factory
         Iec104DatastreamsFactory iec104DatastreamsFactory = new Iec104DatastreamsFactoryImpl(translator, connectionsFactory);
@@ -73,7 +70,7 @@ public class Activator implements BundleActivator {
         serviceListenerBundle.close();
         iec104DatastreamsManager.close();
         connectionsFactory.disconnect();
-        eventDispatcher.close();
+        eventPublisher.close();
 
         LOGGER.info("IEC104 data streams bundle stopped");
     }

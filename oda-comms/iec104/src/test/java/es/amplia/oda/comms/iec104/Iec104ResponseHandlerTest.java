@@ -2,9 +2,8 @@ package es.amplia.oda.comms.iec104;
 
 import es.amplia.oda.comms.iec104.master.Iec104ResponseHandler;
 import es.amplia.oda.comms.iec104.types.MeasuredValueNormalizedSingle;
+import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
-import es.amplia.oda.core.commons.utils.Event;
-import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class Iec104ResponseHandlerTest {
 
     @Mock
-    EventDispatcher mockedEventDispatcher;
+    EventPublisher mockedEventPublisher;
 
     @Mock
     ChannelHandlerContext mockedChannelCtx;
@@ -59,7 +58,7 @@ public class Iec104ResponseHandlerTest {
     @Before
     public void prepareForTest() {
         responseHandler = new Iec104ResponseHandler(cache, TEST_DEVICE_CONNECTION, TEST_COMMON_ADDRESS,
-                mockedEventDispatcher, mockedScadaTablesTranslator);
+                mockedEventPublisher, mockedScadaTablesTranslator);
 
         // protocol options
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
@@ -100,10 +99,13 @@ public class Iec104ResponseHandlerTest {
         responseHandler.channelRead(mockedChannelCtx, asduReceived);
 
         // check
-        List<Event> eventsToPublish = new ArrayList<>();
-        Event eventExpected = new Event(TEST_DATASTREAM_ID, TEST_DEVICE, null, TEST_FEED, asduTime, TEST_VALUE);
-        eventsToPublish.add(eventExpected);
-        verify(mockedEventDispatcher).publishImmediately(eventsToPublish);
+        Map<Long, Object> datapointsMap = new HashMap<>();
+        datapointsMap.put(asduTime, TEST_VALUE);
+        Map<String, Map<Long, Object>> feedDatapointsMap = new HashMap<>();
+        feedDatapointsMap.put(TEST_FEED, datapointsMap);
+        Map<String, Map<String, Map<Long, Object>>> eventsByDatastreamId = new HashMap<>();
+        eventsByDatastreamId.put(TEST_DATASTREAM_ID, feedDatapointsMap);
+        verify(mockedEventPublisher).publishEvents(TEST_DEVICE, null, eventsByDatastreamId);
     }
 
     @Test
@@ -133,10 +135,13 @@ public class Iec104ResponseHandlerTest {
         responseHandler.channelRead(mockedChannelCtx, asduReceived);
 
         // check
-        List<Event> eventsToPublish = new ArrayList<>();
-        Event eventExpected = new Event(TEST_DATASTREAM_ID, TEST_DEVICE_CONNECTION, null, TEST_FEED, asduTime, TEST_VALUE);
-        eventsToPublish.add(eventExpected);
-        verify(mockedEventDispatcher).publishImmediately(eventsToPublish);
+        Map<Long, Object> datapointsMap = new HashMap<>();
+        datapointsMap.put(asduTime, TEST_VALUE);
+        Map<String, Map<Long, Object>> feedDatapointsMap = new HashMap<>();
+        feedDatapointsMap.put(TEST_FEED, datapointsMap);
+        Map<String, Map<String, Map<Long, Object>>> eventsByDatastreamId = new HashMap<>();
+        eventsByDatastreamId.put(TEST_DATASTREAM_ID, feedDatapointsMap);
+        verify(mockedEventPublisher).publishEvents(TEST_DEVICE, null, eventsByDatastreamId);
     }
 
     @Test

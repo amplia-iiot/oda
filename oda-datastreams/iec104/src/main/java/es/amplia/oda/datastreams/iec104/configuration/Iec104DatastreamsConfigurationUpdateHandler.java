@@ -89,6 +89,7 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
 
     @Override
     public void applyConfiguration() {
+        LOGGER.info("IEC104 datastreams applying configuration");
         iec104DatastreamsManager.loadConfiguration(currentIec104DatastreamsConfigurations, iec104PollingInitialDelay, iec104Polling, initialDelay, retryDelay);
     }
 }

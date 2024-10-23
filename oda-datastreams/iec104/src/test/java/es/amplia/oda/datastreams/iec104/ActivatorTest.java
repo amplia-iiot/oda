@@ -3,13 +3,12 @@ package es.amplia.oda.datastreams.iec104;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.iec104.internal.Iec104DatastreamsFactoryImpl;
-
-import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -46,7 +45,7 @@ public class ActivatorTest {
     @Mock
     private ServiceListenerBundle<ScadaTableInfo> mockedServiceListenerBundle;
     @Mock
-    private EventDispatcherProxy mockedEventDispatcher;
+    private EventPublisherProxy mockedEventPublisher;
 
     @Test
     public void testStart() throws Exception {
@@ -59,7 +58,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(Iec104DatastreamsConfigurationUpdateHandler.class).withAnyArguments()
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
 
         testActivator.start(mockedContext);
 
@@ -81,7 +80,7 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "iec104DatastreamsManager", mockedIec104DatastreamsManager);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "serviceListenerBundle", mockedServiceListenerBundle);
-        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
+        Whitebox.setInternalState(testActivator, "eventPublisher", mockedEventPublisher);
 
 
         testActivator.stop(mockedContext);
