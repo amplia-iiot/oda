@@ -205,7 +205,9 @@ public class Iec104ClientModule implements ClientModule {
 		this.messageManager = null;
 		this.messageChannel = null;
 		this.connected = false;
-		this.interrogationCommandTask.cancel(false);
+		if(this.interrogationCommandTask != null) {
+			this.interrogationCommandTask.cancel(false);
+		}
 		this.scheduledExecutor.shutdownNow();
 	}
 
