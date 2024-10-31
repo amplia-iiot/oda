@@ -24,6 +24,6 @@
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.10.1-SNAPSHOT</version>
+        <version>4.10.1</version>
     </parent>
 </project>
