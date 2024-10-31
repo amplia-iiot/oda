@@ -53,8 +53,8 @@
     </modules>
 
     <scm>
-        <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
-        <url>scm:git:http://github.com/amplia-iiot/oda.git</url>
+        <connection>scm:git:https://github.com/amplia-iiot/oda.git</connection>
+        <url>scm:git:https://github.com/amplia-iiot/oda.git</url>
         <tag>HEAD</tag>
     </scm>
 
