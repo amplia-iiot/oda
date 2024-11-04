@@ -4,7 +4,7 @@
 
     <groupId>es.amplia.oda</groupId>
     <artifactId>oda-parent</artifactId>
-    <version>4.10.1-SNAPSHOT</version>
+    <version>4.10.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenGate Device Agent</name>
@@ -53,8 +53,8 @@
     </modules>
 
     <scm>
-        <connection>scm:git:http://github.com/amplia-iiot/oda.git</connection>
-        <url>scm:git:http://github.com/amplia-iiot/oda.git</url>
+        <connection>scm:git:https://github.com/amplia-iiot/oda.git</connection>
+        <url>scm:git:https://github.com/amplia-iiot/oda.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -114,6 +114,18 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.plugin.version}</version>
+                </plugin>
+		<plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4.2</version>
+		    <dependencies>
+		        <dependency>
+		          <groupId>org.apache.maven.scm</groupId>
+		          <artifactId>maven-scm-provider-gitexe</artifactId>
+		          <version>1.8.1</version>
+		        </dependency>
+		    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>
