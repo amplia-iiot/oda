@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.Collections;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,7 +14,7 @@ public class State {
     private Map<DatastreamInfo, DatastreamState> datastreams;
 
     private static class DatastreamState {
-        private List<DatastreamValue> storedValues;
+        private final List<DatastreamValue> storedValues;
         private boolean refreshed;
         private boolean sendImmediately;
         private long lastTimeHistoricMaxDataCheck;
@@ -194,6 +193,21 @@ public class State {
     }
 
     /**
+     * Method that retrieves the datastreamState associated to the deviceId and datastreamId indicated
+     * If it doesn't exit, it creates it
+     *
+     * @param deviceId String with the identifier of the device
+     * @param datastreamId String with the identifier of the datastream
+     **/
+    private DatastreamState getDatastreamState(String deviceId, String datastreamId) {
+        if (!this.datastreams.containsKey(getKey(deviceId, datastreamId))) {
+            this.datastreams.put(new DatastreamInfo(deviceId, datastreamId), new DatastreamState());
+        }
+
+        return this.datastreams.get(getKey(deviceId, datastreamId));
+    }
+
+    /**
      * Method to load the data of a map into the state. This will overwrite all previous data.
      * Initialize all Maps of this class, inserting all datastreams with their values and putting to false their
      * refreshed and sendImmediately attribute.
@@ -201,16 +215,10 @@ public class State {
      * @param storedValues Map with datastreams to add and their values.
      */
     public void loadData(Map<DatastreamInfo, List<DatastreamValue>> storedValues) {
-        storedValues.forEach((datastreamInfo, datastreamValues) -> {
-            if (this.datastreams.containsKey(datastreamInfo)) {
-                DatastreamState state = this.datastreams.get(datastreamInfo);
-                state.addDatastreamLoadedValues(datastreamValues);
-            } else {
-                this.datastreams.put(datastreamInfo, new DatastreamState(datastreamValues));
-            }
-        });
         this.datastreams = new HashMap<>();
-        storedValues.forEach((info, values) -> this.datastreams.put(info, new DatastreamState(values)));
+        storedValues.forEach((datastreamInfo, datastreamValues) ->
+                getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                        .addDatastreamLoadedValues(datastreamValues));
     }
 
     /**
@@ -240,13 +248,7 @@ public class State {
      * @param value Object with the new value and its metadata that we want to use to refresh datastream.
      */
     public void refreshValue(String deviceId, String datastreamId, DatastreamValue value) {
-        DatastreamState state = this.datastreams.get(getKey(deviceId, datastreamId));
-
-        if (state == null) {
-            this.datastreams.put(new DatastreamInfo(deviceId, datastreamId), new DatastreamState());
-        }
-
-        this.datastreams.get(getKey(deviceId, datastreamId)).refreshValue(value);
+        getDatastreamState(deviceId, datastreamId).refreshValue(value);
     }
 
     /**
@@ -277,11 +279,11 @@ public class State {
     }
 
     public void clearRefreshed(String datastreamId, String deviceId) {
-        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).clearRefreshed();
+        getDatastreamState(deviceId, datastreamId).clearRefreshed();
     }
 
     public void clearSendImmediately(String datastreamId, String deviceId) {
-        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).clearImmediately();
+        getDatastreamState(deviceId, datastreamId).clearImmediately();
     }
 
     /**
@@ -304,14 +306,14 @@ public class State {
      * @return Object with the last value and its metadata of the datastream.
      */
     public DatastreamValue getLastValue(DatastreamInfo datastreamInfo) {
-        DatastreamState dsState = this.datastreams.get(datastreamInfo);
-        if (dsState != null) {
-            DatastreamValue dsValue = dsState.getLastValue();
-            if (dsValue != null) {
-                return dsValue;
-            }
+        DatastreamValue dsValue = getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                .getLastValue();
+
+        if (dsValue != null) {
+            return dsValue;
+        } else {
+            return createNotFoundValue(datastreamInfo);
         }
-        return createNotFoundValue(datastreamInfo);
     }
 
     /**
@@ -321,37 +323,24 @@ public class State {
      * @return Object with the list of not processed values.
      */
     public List<DatastreamValue> getNotProcessedValues(DatastreamInfo datastreamInfo) {
-        DatastreamState dsState = this.datastreams.get(datastreamInfo);
-
-        if (dsState != null) {
-            List<DatastreamValue> dsValues = dsState.getNotProcessedValues();
-            if (!dsValues.isEmpty()) {
-                return dsValues;
-            }
-        }
-        return Collections.emptyList();
+        return getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                .getNotProcessedValues();
     }
 
     public Supplier<Stream<DatastreamValue>> getNotSentValuesToSend(DatastreamInfo datastreamInfo) {
-        return () -> this.datastreams.keySet().stream()
-            .filter(datastreamInfo::equals)
-            .flatMap(dsInfo -> this.datastreams.get(dsInfo).getNotSentValues());
+        return () -> getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getNotSentValues();
     }
 
     public void setSent(String deviceId, String datastreamId, Map<Long, Boolean> values) {
-        values.forEach((at, sent) -> this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent));
+        values.forEach((at, sent) -> getDatastreamState(deviceId, datastreamId).setSent(at, sent));
     }
 
     public void setSent(String deviceId, String datastreamId, Long at, Boolean sent) {
-        this.datastreams.get(new DatastreamInfo(deviceId, datastreamId)).setSent(at, sent);
+        getDatastreamState(deviceId, datastreamId).setSent(at, sent);
     }
 
     public void removeHistoricValuesInMemory(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {
-        DatastreamState state = this.datastreams.get(new DatastreamInfo(deviceId, datastreamId));
-
-        if (state != null) {
-            state.removeHistoricValuesInMemory(datastreamId, deviceId, forgetTime, maxHistoricData);
-        }
+        getDatastreamState(deviceId, datastreamId).removeHistoricValuesInMemory(datastreamId, deviceId, forgetTime, maxHistoricData);
     }
 
     /**
@@ -374,14 +363,13 @@ public class State {
      */
     @SuppressWarnings("unused")
     public List<DatastreamValue> getAllValues(DatastreamInfo datastreamInfo) {
-        DatastreamState dsState = this.datastreams.get(datastreamInfo);
-        if (dsState != null) {
-            List<DatastreamValue> values = dsState.getStoredValues();
-            if (!values.isEmpty()) {
-                return values;
-            }
+        List<DatastreamValue> values = getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                .getStoredValues();
+        if (!values.isEmpty()) {
+            return values;
+        } else {
+            return createNotFoundValueArray(datastreamInfo);
         }
-        return createNotFoundValueArray(datastreamInfo);
     }
 
     /**
@@ -402,14 +390,14 @@ public class State {
      * @return number of values stored for the specified id's
      */
     public int getNumValues(DatastreamInfo datastreamInfo) {
-        DatastreamState dsState = this.datastreams.get(datastreamInfo);
-        if (dsState != null) {
-            List<DatastreamValue> values = dsState.getStoredValues();
-            if (!values.isEmpty()) {
-                return values.size();
-            }
+        List<DatastreamValue> values = getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                .getStoredValues();
+
+        if (!values.isEmpty()) {
+            return values.size();
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     /**
@@ -441,7 +429,7 @@ public class State {
      * @return true if datastream was refreshed, false otherwise
      */
     public boolean isRefreshed(String deviceId, String datastreamId) {
-        return this.datastreams.get(getKey(deviceId, datastreamId)).getRefreshed();
+        return getDatastreamState(deviceId, datastreamId).getRefreshed();
     }
 
     /**
@@ -454,7 +442,7 @@ public class State {
      */
     @SuppressWarnings("unused")
     public void sendImmediately(String deviceId, String datastreamId) {
-        this.datastreams.get(getKey(deviceId, datastreamId)).sendImmediately();
+        getDatastreamState(deviceId, datastreamId).sendImmediately();
     }
 
 
@@ -465,7 +453,7 @@ public class State {
      * @return true if datastream was marked to send immediately, false otherwise
      */
     public boolean isToSendImmediately(DatastreamInfo datastreamInfo) {
-        return this.datastreams.get(datastreamInfo).getSendImmediately();
+        return getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getSendImmediately();
     }
 
     /**
@@ -479,7 +467,8 @@ public class State {
     public boolean isTimeToCheckHistoricMaxDataInDatabase(DatastreamInfo datastreamInfo, long forgetPeriod) {
 
         // get lastTime historic data has been checked
-        long lastTimeChecked = this.datastreams.get(datastreamInfo).getLastHistoricMaxDataCheck();
+        long lastTimeChecked = getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
+                .getLastHistoricMaxDataCheck();
 
         // if more time than forgetPeriod have passed since last time historic data was checked, check again
         return System.currentTimeMillis() >= lastTimeChecked + (forgetPeriod * 1000);
@@ -493,7 +482,7 @@ public class State {
      * @param datastreamId String with the identifier of the datastream we want to mark.
      */
     public void refreshLastTimeMaxDataCheck(String deviceId, String datastreamId) {
-        this.datastreams.get(getKey(deviceId, datastreamId)).setLastTimeHistoricMaxDataCheck();
+        getDatastreamState(deviceId, datastreamId).setLastTimeHistoricMaxDataCheck();
     }
 
 
