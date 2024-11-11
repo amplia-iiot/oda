@@ -20,6 +20,7 @@
         <module>i2c</module>
         <module>lora</module>
 		<module>iec104</module>
+		<module>opcua</module>
     </modules>
 
     <parent>
