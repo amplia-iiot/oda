@@ -57,8 +57,12 @@ public class Activator implements BundleActivator {
     }
 
     void onServiceChanged() {
-        modbusConnectionsFinder.connect();
         configHandler.applyConfiguration();
+        try {
+            modbusConnectionsFinder.connect();
+        } catch (Exception e) {
+            LOGGER.error("Error connecting to modbus device : ", e);
+        }
     }
 
     @Override
