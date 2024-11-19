@@ -169,3 +169,15 @@ function setSent(state, deviceId, datastreamId, datastreamValue) {
 	valuesAlreadySent.put(datastreamValue.getAt(), true);
 	state.setSent(deviceId, datastreamId, valuesAlreadySent);
 }
+
+// SET NOT SENT VALUES AS ALREADY SENT
+function setNotSentValuesAsSent(State, deviceId, datastreamId) {
+
+	// coger todos los valores no enviados y marcarlos como enviados
+	var notSentValues = State.getNotSentValues(deviceId, datastreamId);
+
+	for each (var entry in notSentValues) {
+  		// indicar que los valores anteriores ya se han enviado para que el colector solo coja el ultimo valor
+		setSent(State, deviceId, datastreamId, entry);
+	}
+}

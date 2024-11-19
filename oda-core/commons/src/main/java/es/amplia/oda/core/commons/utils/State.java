@@ -331,6 +331,10 @@ public class State {
         return () -> getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getNotSentValues();
     }
 
+    public List<DatastreamValue> getNotSentValues(String deviceId, String datastreamId) {
+        return getDatastreamState(deviceId, datastreamId).getNotSentValues().collect(Collectors.toList());
+    }
+
     public void setSent(String deviceId, String datastreamId, Map<Long, Boolean> values) {
         values.forEach((at, sent) -> getDatastreamState(deviceId, datastreamId).setSent(at, sent));
     }
