@@ -137,7 +137,9 @@ function exists(state, deviceId, datastream) {
 
 // Check if current value is different than the last one stored
 function isValueDifferent(State, datastreamId, deviceId, currentValue) {
-    if(State.getLastValue(deviceId, datastreamId) != currentValue) {
+    var lastValue = State.getLastValue(deviceId, datastreamId).getValue();
+
+    if(lastValue != currentValue) {
 	    return true;
     } else {
 	    return false;
