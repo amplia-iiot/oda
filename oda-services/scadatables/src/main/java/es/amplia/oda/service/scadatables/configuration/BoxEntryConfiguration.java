@@ -7,7 +7,6 @@ import lombok.ToString;
 /**
  * Box variable configuration information.
  */
-@Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class BoxEntryConfiguration extends ScadaTableEntryConfiguration {
@@ -19,9 +18,9 @@ public class BoxEntryConfiguration extends ScadaTableEntryConfiguration {
      * @param datastreamId Datastream identifier.
      * @param deviceId     Device identifier.
      * @param feed         Feed identifier.
-     * @param isEvent      Indicates if it is an event or an interrogation command recollection response
+     * @param eventPublishing Indicates if it is an event and the way it will be published
      */
-    public BoxEntryConfiguration(String dataType, String datastreamId, String deviceId, String feed, boolean isEvent) {
-        super(dataType, datastreamId, deviceId, feed, null, null, isEvent);
+    public BoxEntryConfiguration(String dataType, String datastreamId, String deviceId, String feed, String eventPublishing) {
+        super(dataType, datastreamId, deviceId, feed, null, null, eventPublishing);
     }
 }

@@ -38,7 +38,7 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
     private static final String DEVICE_PROPERTY_NAME = "device";
     private static final String FEED_PROPERTY_NAME = "feed";
     private static final String TRANSFORMATION_PROPERTY_NAME = "transformation";
-    private static final String EVENT_PROPERTY_NAME = "event";
+    private static final String EVENT_PUBLISH_PROPERTY_NAME = "eventPublish";
     private static final String NASHORN_ENGINE_NAME = "nashorn";
 
     /**
@@ -87,18 +87,21 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
 
                 String feed = getValueByToken(FEED_PROPERTY_NAME, propertyTokens).orElse(null);
 
-                boolean isEvent = Boolean.parseBoolean(getValueByToken(EVENT_PROPERTY_NAME, propertyTokens).orElse(String.valueOf(false)));
+                String eventPublish = getValueByToken(EVENT_PUBLISH_PROPERTY_NAME, propertyTokens).orElse(null);
 
                 // create scada table config entry
-                ScadaTableEntryConfiguration newConfig = new BoxEntryConfiguration(dataType, datastreamId, deviceId, feed, isEvent);
+                ScadaTableEntryConfiguration newConfig = new BoxEntryConfiguration(dataType, datastreamId, deviceId, feed, eventPublish);
+
+                // check if signal is an event or a response from an interrogation command
+                boolean isEvent = newConfig.isEvent();
 
                 Optional<String> script = getValueByToken(TRANSFORMATION_PROPERTY_NAME, propertyTokens);
                 if (script.isPresent()) {
                     registerScript(newConfig, script.get(), datastreamId, index);
                 } else newConfig.setScript(null);
 
-                logger.info("Adding translate info: {}, {}, {}, {}, {}, isEvent = {}", dataType, index, datastreamId,
-                        deviceId, feed, isEvent);
+                logger.info("Adding translate info: {}, {}, {}, {}, {}, eventPublish = {}", dataType, index, datastreamId,
+                        deviceId, feed, eventPublish);
                 Map<Integer, String> pairAsduAddress = java.util.Collections.singletonMap(index, dataType);
 
                 // check if datastreamId and deviceId combination already exists in the table

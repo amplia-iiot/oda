@@ -1,5 +1,6 @@
 package es.amplia.oda.service.scadatables.internal;
 
+import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.service.scadatables.configuration.BoxEntryConfiguration;
@@ -36,22 +37,24 @@ public class ScadaTableInfoServiceTest {
         Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesEvents = new HashMap<>();
 
         ScadaTableEntryConfiguration entryBox = new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME,
-                "booxlean", "deviceId", "feed", false);
+                "booxlean", "deviceId", "feed", "dispatcher");
+
         // register script
         String script = "x*10";
         final ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName("nashorn");
         engine.eval(ScadaTablesConfigurationHandler.REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
         entryBox.setScript((Invocable) engine);
+
         // add entry to scadaTables
         scadaTablesRecollection.put(Collections.singletonMap(10, ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME), entryBox);
 
         ScadaTableEntryConfiguration entryBox2 = new BoxEntryConfiguration("M_ME_NC_1", "testDatastreamId",
-                null, null, false);
+                null, null, null);
         scadaTablesRecollection.put(Collections.singletonMap(11, "M_ME_NC_1"), entryBox2);
 
         ScadaTableEntryConfiguration entryBox3 = new BoxEntryConfiguration(ScadaTableEntryConfiguration.ANALOG_INPUT_TYPE_NAME,
-                "testDatastreamId2", null, null, true);
+                "testDatastreamId2", null, null, ScadaTableEntryConfiguration.EVENT_PUBLISH_DISPATCHER);
         scadaTablesEvents.put(Collections.singletonMap(12, ScadaTableEntryConfiguration.ANALOG_INPUT_TYPE_NAME), entryBox3);
 
         testScadaTableInfoService = new ScadaTableInfoService();
@@ -186,4 +189,17 @@ public class ScadaTableInfoServiceTest {
         assertEquals(2, transformedValue);
     }
 
+    @Test(expected = ConfigurationException.class)
+    public void testEventPublishTypeNotValid() {
+        new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, "booxlean",
+                "deviceId", "feed", "notValid");
+    }
+
+    @Test
+    public void testEventPublishTypeIgnoreCase() {
+        new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, "booxlean",
+                "deviceId", "feed", "DiSpaTcher");
+        new BoxEntryConfiguration(ScadaTableEntryConfiguration.ANALOG_INPUT_TYPE_NAME, "booxlean",
+                "deviceId", "feed", "StaTemAnaGer");
+    }
 }

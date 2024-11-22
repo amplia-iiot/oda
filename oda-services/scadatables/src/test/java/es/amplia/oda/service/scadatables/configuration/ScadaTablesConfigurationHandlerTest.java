@@ -51,15 +51,14 @@ public class ScadaTablesConfigurationHandlerTest {
                 Whitebox.getInternalState(testScadaTablesConfigurationHandler, "currentScadaTableEvents");
         assertEquals(2, scadaTableRecollection.size());
         assertEquals(0, scadaTableEvents.size());
-
     }
 
     @Test
     public void testLoadConfigurationData() {
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
             put("BinaryInput,10001", "datastream:batteryAlarm, feed: espontaneo, device: testDevice, " +
-                    "transformation: testTransformation, event: true");
-            put("BinaryInput,10011", "datastream:temperatureAlarm, feed: recoleccion, event: false");
+                    "transformation: testTransformation, eventPublish: dispatcher");
+            put("BinaryInput,10011", "datastream:temperatureAlarm, feed: recoleccion");
             put("BinaryInput,10015", "datastream:doorAlarm");
         }};
 
@@ -95,6 +94,7 @@ public class ScadaTablesConfigurationHandlerTest {
         ScadaTableEntryConfiguration scadaInfo3 = scadaTableRecollection.get(pairAsduAddress3);
         assertEquals("BinaryInput", scadaInfo3.getDataType());
         assertNull(scadaInfo3.getDeviceId());
+
         assertNull(scadaInfo3.getFeed());
         assertFalse(scadaInfo2.isEvent());
         assertNull(scadaInfo3.getScript());
@@ -121,8 +121,8 @@ public class ScadaTablesConfigurationHandlerTest {
 
         // we can have the same datastreamId associated to the same deviceId as long one it is an event and the other not
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
-            put("BinaryInput,10001", "datastream:batteryAlarm, device:deviceTest1, event: false");
-            put("BinaryInput,10011", "datastream:batteryAlarm, device:deviceTest1, event: true");
+            put("BinaryInput,10001", "datastream:batteryAlarm, device:deviceTest1");
+            put("BinaryInput,10011", "datastream:batteryAlarm, device:deviceTest1, eventPublish: statemanager");
         }};
 
         testScadaTablesConfigurationHandler.loadConfiguration(dic);
