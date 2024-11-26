@@ -191,5 +191,11 @@
             <groupId>es.amplia.oda.event</groupId>
             <artifactId>api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.service</groupId>
+            <artifactId>scadatables</artifactId>
+            <version>4.11.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -4,6 +4,9 @@ import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.comms.iec104.types.*;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.core.commons.utils.Event;
+import es.amplia.oda.event.api.EventDispatcher;
+import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfiguration;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.Getter;
@@ -12,12 +15,12 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ResponseHandler.class);
 
+    private final EventDispatcher eventDispatcher;
     private final EventPublisher eventPublisher;
     private final ScadaTableTranslator scadaTables;
 
@@ -27,10 +30,12 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private final int commonAddress;
 
     public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress,
-                                 EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
+                                 EventDispatcher eventDispatcher, EventPublisher eventPublisher,
+                                 ScadaTableTranslator scadaTables) {
         this.caches = caches;
         this.deviceId = deviceId;
         this.commonAddress = commonAddress;
+        this.eventDispatcher = eventDispatcher;
         this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
     }
@@ -65,9 +70,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         }
 
         // get cause of transmission
-        // spontaneous messages must be published right away
         short causeOfTransmission = message.getHeader().getCauseOfTransmission().getCause().getValue();
-        boolean isEvent = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
 
         // get ASDU information
         String valuesType = msg.getClass().getAnnotation(ASDU.class).name();
@@ -83,12 +86,14 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         Map<Integer, Value<?>> valuesParsed = parseASDU(valuesType, msgInfoStruct, msg);
 
         // process values parsed
-        processValuesParsed(valuesType, valuesParsed, isEvent, causeOfTransmission);
+        processValuesParsed(valuesType, valuesParsed, causeOfTransmission);
     }
 
-    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, boolean isEvent, short causeOfTransmission)
+    private void processValuesParsed(String valuesType, Map<Integer, Value<?>> valuesParsed, short causeOfTransmission)
     {
         if (!valuesParsed.isEmpty()) {
+
+            boolean isEvent = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
 
             valuesParsed.forEach((address, value) -> {
                 LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
@@ -111,29 +116,50 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                 // if no deviceId assigned in scadaTables, use the deviceId of the IEC104 connection
                 String finalDeviceId = datastreamInfo.getDeviceId() != null ? datastreamInfo.getDeviceId() : this.deviceId;
 
-                // if values comes from an event, pass to StateManager
+                // if values comes from an event, pass to StateManager or dispatcher
                 if (isEvent) {
 
-                    Map<Long, Object> datapointsMap = new HashMap<>();
-                    datapointsMap.put(transformedValue.getTimestamp(), transformedValue.getValue());
+                    String eventPublish = datastreamInfo.getEventPublish();
 
-                    Map<String, Map<Long, Object>> feedDatapointsMap = new HashMap<>();
-                    feedDatapointsMap.put(datastreamInfo.getFeed(), datapointsMap);
-
-                    Map<String, Map<String, Map<Long, Object>>> eventsByDatastreamId = new HashMap<>();
-                    eventsByDatastreamId.put(datastreamInfo.getDatastreamId(), feedDatapointsMap);
-
-                    eventPublisher.publishEvents(finalDeviceId, null, eventsByDatastreamId);
+                    if (eventPublish.equalsIgnoreCase(ScadaTableEntryConfiguration.EVENT_PUBLISH_DISPATCHER)) {
+                        publishImmmediately(datastreamInfo, finalDeviceId, transformedValue);
+                    } else if (eventPublish.equalsIgnoreCase(ScadaTableEntryConfiguration.EVENT_PUBLISH_STATEMANAGER)) {
+                        publishStateManager(datastreamInfo, finalDeviceId, transformedValue);
+                    } else {
+                        LOGGER.error("Event publish {} for datastreamId {} and deviceId {} not supported",
+                                eventPublish, datastreamInfo.getDatastreamId(), datastreamInfo.getDeviceId());
+                    }
                 }
                 // else, add it to the corresponding cache
                 else {
-                    // get cache corresponding to the signal deviceId
-                    Iec104Cache valuesCache = caches.get(finalDeviceId);
-                    // add value to this cache
-                    valuesCache.add(valuesType, transformedValue, address);
+                    addToCache(deviceId, valuesType, transformedValue, address);
                 }
             });
         }
+    }
+
+    private void publishImmmediately(ScadaTableTranslator.ScadaTranslationInfo datastreamInfo, String deviceId, Value<?> value) {
+        List<Event> eventsToPublishImmediately = Collections.singletonList(new Event(datastreamInfo.getDatastreamId(),
+                deviceId, null, datastreamInfo.getFeed(), value.getTimestamp(), value.getValue()));
+        eventDispatcher.publishImmediately(eventsToPublishImmediately);
+    }
+
+    private void publishStateManager(ScadaTableTranslator.ScadaTranslationInfo datastreamInfo, String deviceId, Value<?> value) {
+        Map<Long, Object> datapointsMap = new HashMap<>();
+        datapointsMap.put(value.getTimestamp(), value.getValue());
+        Map<String, Map<Long, Object>> feedDatapointsMap = new HashMap<>();
+        feedDatapointsMap.put(datastreamInfo.getFeed(), datapointsMap);
+        Map<String, Map<String, Map<Long, Object>>> eventsByDatastreamId = new HashMap<>();
+        eventsByDatastreamId.put(datastreamInfo.getDatastreamId(), feedDatapointsMap);
+
+        eventPublisher.publishEvents(deviceId, null, eventsByDatastreamId);
+    }
+
+    private void addToCache(String deviceId, String valuesType, Value<?> value, Integer address){
+        // get cache corresponding to the signal deviceId
+        Iec104Cache valuesCache = caches.get(deviceId);
+        // add value to this cache
+        valuesCache.add(valuesType, value, address);
     }
 
     private Map<Integer, Value<?>> parseASDU(String type, InformationStructure msgInfoStruct, final Object msg) {
@@ -510,18 +536,31 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     }
 
     private String translateCauseOfTransmission(Short cause) {
+
+        String causeDescription;
+        String causeNumber = "(" + cause.toString() + ")";
+
         switch (cause) {
             case 1:
-                return "Periodic";
+                causeDescription = "Periodic";
+                break;
+            case 2:
+                causeDescription = "Background interrogation";
+                break;
             case 3:
-                return "Spontaneous";
+                causeDescription = "Spontaneous";
+                break;
             case 7:
-                return "Confirmation activation";
+                causeDescription = "Confirmation activation";
+                break;
             case 20:
-                return "Interrogation command";
+                causeDescription = "Interrogation command";
+                break;
             default:
-                return "";
+                return causeNumber;
         }
+
+        return causeDescription + " " + causeNumber;
     }
 
 }

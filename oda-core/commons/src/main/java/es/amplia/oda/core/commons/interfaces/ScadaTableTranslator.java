@@ -43,6 +43,7 @@ public interface ScadaTableTranslator {
         String deviceId;
         String datastreamId;
         String feed;
+        String eventPublish;
     }
 
     ScadaTranslationInfo getTranslationInfo(ScadaInfo scadaInfo, boolean isEvent);

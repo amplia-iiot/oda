@@ -5,6 +5,7 @@ import es.amplia.oda.comms.iec104.codecs.*;
 import es.amplia.oda.comms.iec104.types.*;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.socket.SocketChannel;
 import lombok.Getter;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
@@ -35,6 +36,7 @@ public class Iec104ClientModule implements ClientModule {
 	private MessageChannel messageChannel;
     private final ProtocolOptions options;
     private final Map<String, Iec104Cache> cache;
+	private final EventDispatcher eventDispatcher;
 	private final EventPublisher eventPublisher;
 	private final ScadaTableTranslator scadaTables;
 	private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -51,12 +53,13 @@ public class Iec104ClientModule implements ClientModule {
 	private boolean connected;
 
     public Iec104ClientModule (Map<String, Iec104Cache> caches, ProtocolOptions options, String deviceId, int commonAddress,
-							   EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
+							   EventDispatcher eventDispatcher, EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
         this.cache = caches;
         this.options = options;
 		this.deviceId = deviceId;
 		this.connected = false;
 		this.commonAddress = commonAddress;
+		this.eventDispatcher = eventDispatcher;
 		this.eventPublisher = eventPublisher;
 		this.scadaTables = scadaTables;
 	}
@@ -187,7 +190,7 @@ public class Iec104ClientModule implements ClientModule {
     public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
         this.messageChannel = new Iec104MessageChannelHandler(this.options, this.messageManager);
 		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId, this.commonAddress,
-				this.eventPublisher, this.scadaTables);
+				this.eventDispatcher, this.eventPublisher, this.scadaTables);
 		// we replace the message channel introduced by neoscada library in Client class (handleInitChannel) with our message channel
 		socketChannel.pipeline().replace(MessageChannel.class, this.messageChannel.toString(), this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);

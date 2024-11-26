@@ -8,6 +8,7 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.iec104.internal.Iec104DatastreamsFactoryImpl;
 
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -22,7 +23,9 @@ public class Activator implements BundleActivator {
     private Iec104ConnectionsFactory connectionsFactory;
     private ServiceListenerBundle<ScadaTableInfo> serviceListenerBundle;
     private Iec104DatastreamsConfigurationUpdateHandler configHandler;
-    private EventPublisher eventPublisher;
+    private EventPublisherProxy eventPublisher;
+    private EventDispatcherProxy eventDispatcher;
+
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -30,12 +33,13 @@ public class Activator implements BundleActivator {
         LOGGER.info("Starting up IEC104 datastreams bundle");
 
         eventPublisher = new EventPublisherProxy(bundleContext);
+        eventDispatcher = new EventDispatcherProxy(bundleContext);
 
         serviceListenerBundle = new ServiceListenerBundle<>(bundleContext, ScadaTableInfo.class, this::onServiceChanged);
         ScadaTableTranslator translator = new ScadaTableTranslatorProxy(bundleContext);
 
         // initiate manager of IEC104 connections
-        connectionsFactory = new Iec104ConnectionsFactory(eventPublisher, translator);
+        connectionsFactory = new Iec104ConnectionsFactory(eventDispatcher, eventPublisher, translator);
 
         // init data streams factory
         Iec104DatastreamsFactory iec104DatastreamsFactory = new Iec104DatastreamsFactoryImpl(translator, connectionsFactory);
@@ -71,6 +75,7 @@ public class Activator implements BundleActivator {
         iec104DatastreamsManager.close();
         connectionsFactory.disconnect();
         eventPublisher.close();
+        eventDispatcher.close();
 
         LOGGER.info("IEC104 data streams bundle stopped");
     }

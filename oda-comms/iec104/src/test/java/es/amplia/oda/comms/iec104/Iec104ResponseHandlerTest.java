@@ -4,6 +4,7 @@ import es.amplia.oda.comms.iec104.master.Iec104ResponseHandler;
 import es.amplia.oda.comms.iec104.types.MeasuredValueNormalizedSingle;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,11 +34,11 @@ import static org.mockito.Mockito.when;
 public class Iec104ResponseHandlerTest {
 
     @Mock
+    EventDispatcher mockedEventDispatcher;
+    @Mock
     EventPublisher mockedEventPublisher;
-
     @Mock
     ChannelHandlerContext mockedChannelCtx;
-
     @Mock
     ScadaTableTranslator mockedScadaTablesTranslator;
 
@@ -48,6 +49,7 @@ public class Iec104ResponseHandlerTest {
     String TEST_DEVICE = "testDevice";
     String TEST_DATASTREAM_ID = "testDatastreamId";
     String TEST_FEED = "testFeed";
+    String TEST_EVENT_PUBLISH = "stateManager";
     Short TEST_VALUE = 2;
     Short TEST_COMMON_ADDRESS = 1;
     int TEST_ASDU_ADDRRES = 10;
@@ -58,7 +60,7 @@ public class Iec104ResponseHandlerTest {
     @Before
     public void prepareForTest() {
         responseHandler = new Iec104ResponseHandler(cache, TEST_DEVICE_CONNECTION, TEST_COMMON_ADDRESS,
-                mockedEventPublisher, mockedScadaTablesTranslator);
+                mockedEventDispatcher, mockedEventPublisher, mockedScadaTablesTranslator);
 
         // protocol options
         ProtocolOptions.Builder optionsBuilder = new ProtocolOptions.Builder();
@@ -90,7 +92,7 @@ public class Iec104ResponseHandlerTest {
 
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
-                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED);
+                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
         when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
         when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
@@ -126,7 +128,7 @@ public class Iec104ResponseHandlerTest {
 
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
-                new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED);
+                new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
         when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
         when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
@@ -160,7 +162,7 @@ public class Iec104ResponseHandlerTest {
 
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
-                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED);
+                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
         when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
         when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 
@@ -190,7 +192,7 @@ public class Iec104ResponseHandlerTest {
 
         // conditions
         ScadaTableTranslator.ScadaTranslationInfo translationInfo =
-                new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED);
+                new ScadaTableTranslator.ScadaTranslationInfo(null, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
         when(mockedScadaTablesTranslator.getTranslationInfo(any(), anyBoolean())).thenReturn(translationInfo);
         when(mockedScadaTablesTranslator.transformValue(anyInt(), any(), anyBoolean(), any())).thenReturn(TEST_VALUE);
 

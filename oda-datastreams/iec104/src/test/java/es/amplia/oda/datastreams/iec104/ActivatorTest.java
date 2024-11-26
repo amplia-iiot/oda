@@ -9,6 +9,7 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.iec104.internal.Iec104DatastreamsFactoryImpl;
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -46,6 +47,8 @@ public class ActivatorTest {
     private ServiceListenerBundle<ScadaTableInfo> mockedServiceListenerBundle;
     @Mock
     private EventPublisherProxy mockedEventPublisher;
+    @Mock
+    private EventDispatcherProxy mockedEventDispatcher;
 
     @Test
     public void testStart() throws Exception {
@@ -59,6 +62,7 @@ public class ActivatorTest {
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
+        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
 
         testActivator.start(mockedContext);
 
@@ -68,7 +72,8 @@ public class ActivatorTest {
         PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
                 .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
         PowerMockito.verifyNew(Iec104DatastreamsManager.class)
-                .withArguments(eq(mockedFactory), eq(mockedRegistrationManager), eq(mockedRegistrationManager), eq(mockedConnectionsFactory), any(ScadaTableTranslator.class));
+                .withArguments(eq(mockedFactory), eq(mockedRegistrationManager), eq(mockedRegistrationManager),
+                        eq(mockedConnectionsFactory), any(ScadaTableTranslator.class));
         PowerMockito.verifyNew(Iec104DatastreamsConfigurationUpdateHandler.class)
                 .withArguments(eq(mockedIec104DatastreamsManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
@@ -81,7 +86,7 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "serviceListenerBundle", mockedServiceListenerBundle);
         Whitebox.setInternalState(testActivator, "eventPublisher", mockedEventPublisher);
-
+        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
 
         testActivator.stop(mockedContext);
 
@@ -89,5 +94,7 @@ public class ActivatorTest {
         verify(mockedConfigurableBundle).close();
         verify(mockedIec104DatastreamsManager).close();
         verify(mockedConnectionsFactory).disconnect();
+        verify(mockedEventPublisher).close();
+        verify(mockedEventDispatcher).close();
     }
 }

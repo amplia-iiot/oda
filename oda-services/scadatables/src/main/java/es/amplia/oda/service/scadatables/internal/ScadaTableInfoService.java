@@ -162,7 +162,7 @@ public class ScadaTableInfoService implements ScadaTableInfo, ScadaTableTranslat
 
         if (scadaEntry != null) {
             return new ScadaTranslationInfo(scadaEntry.getDeviceId(), scadaEntry.getDatastreamId(),
-                    scadaEntry.getFeed());
+                    scadaEntry.getFeed(), scadaEntry.getEventPublish());
         }
 
         return null;

@@ -5,6 +5,7 @@ import es.amplia.oda.comms.iec104.master.Iec104ClientModule;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.configuration.Iec104DatastreamsConfiguration;
+import es.amplia.oda.event.api.EventDispatcher;
 import io.netty.channel.Channel;
 
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
@@ -37,6 +38,7 @@ public class Iec104ConnectionsFactory {
     private final Map<SocketAddress, ScheduledFuture<?>> connectionSchedules = new HashMap<>();
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
+    private final EventDispatcher eventDispatcher;
     private final EventPublisher eventPublisher;
     private final ScadaTableTranslator scadaTables;
 
@@ -46,8 +48,9 @@ public class Iec104ConnectionsFactory {
     private int interrogationCommandPolling;
 
 
-    Iec104ConnectionsFactory(EventPublisher eventPublisher, ScadaTableTranslator scadaTables)
+    Iec104ConnectionsFactory(EventDispatcher eventDispatcher, EventPublisher eventPublisher, ScadaTableTranslator scadaTables)
     {
+        this.eventDispatcher = eventDispatcher;
         this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
     }
@@ -171,13 +174,12 @@ public class Iec104ConnectionsFactory {
         }
     }
 
-    private Iec104ClientModule createClientModule (String deviceId, ProtocolOptions options, int commonAddress) {
+    private Iec104ClientModule createClientModule(String deviceId, ProtocolOptions options, int commonAddress) {
         Iec104ClientModule clientModule = new Iec104ClientModule(caches, options, deviceId, commonAddress,
-                this.eventPublisher, this.scadaTables);
+                this.eventDispatcher, this.eventPublisher, this.scadaTables);
 
         connections.put(deviceId, clientModule);
         commonAddresses.put(deviceId, commonAddress);
-
         return clientModule;
     }
 

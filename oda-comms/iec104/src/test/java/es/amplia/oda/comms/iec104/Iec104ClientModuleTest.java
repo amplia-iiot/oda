@@ -6,6 +6,7 @@ import es.amplia.oda.comms.iec104.slave.Iec104ServerModule;
 import es.amplia.oda.comms.iec104.types.*;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
+import es.amplia.oda.event.api.EventDispatcher;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
@@ -38,6 +39,8 @@ public class Iec104ClientModuleTest {
     @Mock
     private ProtocolOptions mockedOptions;
     @Mock
+    private EventDispatcher mockedEventDispatcher;
+    @Mock
     private EventPublisher mockedEventPublisher;
     @Mock
     private ScadaTableTranslator mockedScadaTranslator;
@@ -52,7 +55,7 @@ public class Iec104ClientModuleTest {
     @Before
     public void prepareForTest() {
         clientModule = new Iec104ClientModule(caches, mockedOptions, deviceId, commonAddress,
-                mockedEventPublisher, mockedScadaTranslator);
+                mockedEventDispatcher, mockedEventPublisher, mockedScadaTranslator);
     }
 
     @Test

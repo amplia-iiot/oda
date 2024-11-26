@@ -30,6 +30,7 @@ public class Iec104ReadOperatorProcessorTest {
     String TEST_FEED = "testFeed";
     String TEST_DEVICE_ID = "testDeviceId";
     String TEST_DATASTREAM_ID = "testDatastreamId";
+    String TEST_EVENT_PUBLISH = "dispatcher";
 
     @Test
     public void testRead(){
@@ -38,7 +39,7 @@ public class Iec104ReadOperatorProcessorTest {
         CollectedValue expectedValue = new CollectedValue(valueAt, 1, null, TEST_FEED);
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
         ScadaTableTranslator.ScadaTranslationInfo scadaTranslationInfo =
-                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED);
+                new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
         Iec104Cache cache = new Iec104Cache();
         Value<Integer> value = new Value<>(1, valueAt, null);
         cache.add("M_ME_NC_1", value, 106001);

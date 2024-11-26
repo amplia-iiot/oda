@@ -34,6 +34,7 @@ public class ScadaOperationDispatcherTest {
     private static final long TEST_AT = System.currentTimeMillis();
     private static final Object TEST_TYPE = null;
     private static final String TEST_FEED = "feed";
+    private static final String TEST_EVENT_PUBLISH = "stateManager";
     private static final String TEST_DEVICE_ID = "";
     private static final String TEST_DATASTREAM_ID = "testDatastream";
 
@@ -47,7 +48,7 @@ public class ScadaOperationDispatcherTest {
     private ScadaOperationDispatcher testOperationDispatcher;
 
     private final ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = new ScadaTableTranslator.ScadaTranslationInfo(
-            TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED);
+            TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
 
     @Test
     public void testProcessSelectOperation() throws ExecutionException, InterruptedException {
