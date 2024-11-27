@@ -1,5 +1,7 @@
 package es.amplia.oda.connector.http;
 
+import es.amplia.oda.comms.http.HttpClientFactory;
+import es.amplia.oda.comms.http.HttpClientFactoryProxy;
 import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -19,22 +21,28 @@ public class Activator implements BundleActivator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private DeviceInfoProviderProxy deviceInfoProvider;
+    private HttpClientFactoryProxy httpClientFactory;
     private HttpConnectorConfigurationUpdateHandler httpConfigHandler;
     private ConfigurableBundle configurableBundle;
     private ServiceRegistration<OpenGateConnector> httpConnectorRegistration;
     private ServiceListenerBundle<DeviceInfoProvider> deviceInfoProviderListener;
+    private ServiceListenerBundle<HttpClientFactory> httpClientFactoryServiceListener;
 
     @Override
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting HTTP connector bundle");
 
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
-        HttpConnector httpConnector = new HttpConnector(deviceInfoProvider);
+        httpClientFactory = new HttpClientFactoryProxy(bundleContext);
+        HttpConnector httpConnector = new HttpConnector(deviceInfoProvider, httpClientFactory);
         httpConfigHandler = new HttpConnectorConfigurationUpdateHandler(httpConnector);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, httpConfigHandler);
         httpConnectorRegistration = bundleContext.registerService(OpenGateConnector.class, httpConnector, null);
         deviceInfoProviderListener =
                 new ServiceListenerBundle<>(bundleContext, DeviceInfoProvider.class, this::onServiceChanged);
+        httpClientFactoryServiceListener = new ServiceListenerBundle<>(bundleContext, HttpClientFactory.class,
+                () -> onServiceChanged());
+
 
         LOGGER.info("HTTP connector bundle started");
     }
@@ -57,8 +65,10 @@ public class Activator implements BundleActivator {
 
         httpConnectorRegistration.unregister();
         deviceInfoProviderListener.close();
+        httpClientFactoryServiceListener.close();
         configurableBundle.close();
         deviceInfoProvider.close();
+        httpClientFactory.close();
 
         LOGGER.info("HTTP connector bundle stopped");
     }
