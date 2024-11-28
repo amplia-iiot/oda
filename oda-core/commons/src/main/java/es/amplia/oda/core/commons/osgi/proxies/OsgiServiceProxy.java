@@ -91,7 +91,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
             LOGGER.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
             return null;
         } else {
-            LOGGER.debug("Passing request to real implementation");
+            LOGGER.trace("Passing request to real implementation");
             return serviceMethod.apply(real);
         }
     }
@@ -106,7 +106,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
         if(real==null) {
             LOGGER.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
         } else {
-            LOGGER.debug("Passing request to real implementation");
+            LOGGER.trace("Passing request to real implementation");
             serviceMethod.accept(real);
         }
     }
@@ -123,7 +123,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
             LOGGER.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
             return Collections.emptyList();
         } else {
-            LOGGER.debug("Passing request to real implementations");
+            LOGGER.trace("Passing request to real implementations");
             return Arrays.stream(reals).filter(typeClassParameter::isInstance)
                     .map(typeClassParameter::cast)
                     .map(serviceMethod)
@@ -140,7 +140,7 @@ public class OsgiServiceProxy<S> implements AutoCloseable {
         if(reals==null) {
             LOGGER.warn(NO_SERVICE_IMPLEMENTATION_MESSAGE, typeClassParameter.getName());
         } else {
-            LOGGER.debug("Passing request to real implementations");
+            LOGGER.trace("Passing request to real implementations");
             Arrays.stream(reals).filter(typeClassParameter::isInstance)
                     .map(typeClassParameter::cast)
                     .forEach(serviceMethod);
