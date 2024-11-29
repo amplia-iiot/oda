@@ -1,8 +1,15 @@
 package es.amplia.oda.comms.http;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.EnumMap;
 import java.util.Map;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -13,6 +20,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +49,43 @@ public class HttpClient {
     private CloseableHttpClient httpClient;
     private RequestConfig requestTimeoutConfig;
 
-    public HttpClient(CloseableHttpClient httpClient) {
-        this.httpClient = httpClient;
+    public HttpClient() {
+        this(false);
+    }
+
+    public HttpClient(boolean insecure) {
+        if (insecure) {
+            this.httpClient = httpClientSSLNoVerify();
+        } else {
+            this.httpClient = HttpClients.createDefault();
+        }
         setTimeout(10000);
+    }
+
+    private CloseableHttpClient httpClientSSLNoVerify() {
+
+        TrustManager trm = new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        };
+
+        SSLContext sslContext;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[] { trm }, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
+
+        return HttpClients.custom().setSSLContext(sslContext).build();
     }
 
     public void setTimeout(int timeout) {

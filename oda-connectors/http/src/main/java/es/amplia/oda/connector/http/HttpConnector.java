@@ -1,7 +1,6 @@
 package es.amplia.oda.connector.http;
 
 import es.amplia.oda.comms.http.HttpClient;
-import es.amplia.oda.comms.http.HttpClientFactory;
 import es.amplia.oda.comms.http.HttpResponse;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
@@ -12,7 +11,6 @@ import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,7 +43,6 @@ public class HttpConnector implements OpenGateConnector {
 
 
     private final DeviceInfoProvider deviceInfoProvider;
-    private final HttpClientFactory httpFactory;
     private URL hostUrl;
     private String generalPath;
     private String collectionPath;
@@ -53,9 +50,8 @@ public class HttpConnector implements OpenGateConnector {
     private int compressionThreshold;
 
 
-    HttpConnector(DeviceInfoProvider deviceInfoProvider, HttpClientFactory httpClientFactory) {
+    HttpConnector(DeviceInfoProvider deviceInfoProvider) {
         this.deviceInfoProvider = deviceInfoProvider;
-        this.httpFactory = httpClientFactory;
     }
 
     public void loadConfiguration(ConnectorConfiguration configuration) {
@@ -95,7 +91,7 @@ public class HttpConnector implements OpenGateConnector {
         }
 
         try {
-            HttpClient client = this.httpFactory.createClient();
+            HttpClient client = new HttpClient();
             HashMap<String, String> headers = new HashMap<>();
             boolean compress = false;
 
@@ -114,7 +110,7 @@ public class HttpConnector implements OpenGateConnector {
                 String reason = httpResponse.getResponse();
                 LOGGER.error("Error sending HTTP message: {}, {}", statusCode, reason);
             }
-        } catch (IOException exception) {
+        } catch (Throwable exception) {
             LOGGER.error("Error sending HTTP message", exception);
         }
     }
