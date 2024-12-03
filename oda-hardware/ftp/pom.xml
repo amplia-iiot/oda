@@ -18,7 +18,7 @@
         <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
         <commons.version>3.9.0</commons.version>
-
+        <jsch.version>0.2.21</jsch.version>
     </properties>
 
     <build>
@@ -35,7 +35,7 @@
                         <Export-Package>${bundle.namespace}.*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package />
-                        <Embed-Dependency>commons-net</Embed-Dependency>
+                        <Embed-Dependency>commons-net,jsch</Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                         <Embed-Directory>lib</Embed-Directory>
                     </instructions>
@@ -54,6 +54,11 @@
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>
             <version>${commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mwiede</groupId>
+            <artifactId>jsch</artifactId>
+            <version>${jsch.version}</version>
         </dependency>
 
         <dependency>

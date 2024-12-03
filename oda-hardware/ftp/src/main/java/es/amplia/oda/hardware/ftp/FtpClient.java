@@ -6,6 +6,7 @@ import org.apache.commons.net.ProtocolCommandListener;
 import org.apache.commons.net.ftp.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -106,6 +107,11 @@ public class FtpClient {
         out.close();
     }
 
+    public void uploadFile(String source, String destination) throws IOException {
+        FileInputStream in = new FileInputStream(source);
+        ftpClient.storeFile(destination, in);
+        in.close();
+    }
 
     private FtpFile mapFtpFile(FTPFile fileFromFtpServer) {
         FtpFile newFtpFile = new FtpFile();
