@@ -5,18 +5,23 @@
     <artifactId>http</artifactId>
     <packaging>bundle</packaging>
 
-    <name>OpenGate Device Agent Connectors - HTTP</name>
-    <description>HTTP connector for OpenGate Device Agent artifacts</description>
+    <name>OpenGate Device Agent Communications - HTTP</name>
+    <description>HTTP communications for OpenGate Device Agent artifacts</description>
 
     <parent>
-        <artifactId>oda-connectors</artifactId>
-        <groupId>es.amplia.oda.connector</groupId>
+        <artifactId>oda-comms</artifactId>
+        <groupId>es.amplia.oda.comms</groupId>
         <version>4.11.1-SNAPSHOT</version>
     </parent>
 
     <properties>
         <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
+
+        <apache.httpclient.version>4.5.6</apache.httpclient.version>
+        <apache.httpcore.version>4.4.12</apache.httpcore.version>
+        <commons.codec.version>1.10</commons.codec.version>
+        <commons.logging.version>1.2</commons.logging.version>
     </properties>
 
     <build>
@@ -30,8 +35,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${bundle.symbolic.name}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
-                        <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>!*</Export-Package>
+                        <Export-Package>${bundle.namespace}.*,!*</Export-Package>
                         <Import-Package>!org.apache.avalon.framework.logger,!org.apache.log,!org.apache.log4j,*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                         <Embed-Dependency>httpclient, httpcore, commons-codec, commons-logging</Embed-Dependency>
@@ -78,20 +82,32 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${apache.httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>${apache.httpcore.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons.codec.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons.logging.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>es.amplia.oda.comms</groupId>
-            <artifactId>http</artifactId>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

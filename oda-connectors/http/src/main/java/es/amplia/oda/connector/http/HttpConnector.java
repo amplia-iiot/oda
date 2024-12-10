@@ -1,25 +1,21 @@
 package es.amplia.oda.connector.http;
 
+import es.amplia.oda.comms.http.HttpClient;
+import es.amplia.oda.comms.http.HttpResponse;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.entity.EntityBuilder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class HttpConnector implements OpenGateConnector {
@@ -94,33 +90,27 @@ public class HttpConnector implements OpenGateConnector {
             return;
         }
 
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            EntityBuilder entityBuilder =
-                    EntityBuilder.create().setBinary(payload).setContentType(getContentType(contentType));
+        try {
+            HttpClient client = new HttpClient();
+            HashMap<String, String> headers = new HashMap<>();
+            boolean compress = false;
 
             if (compressionEnabled && payload.length > compressionThreshold) {
                 LOGGER.debug("Compressing data");
-                entityBuilder.setContentEncoding(GZIP_ENCODING).gzipCompress();
+                compress = true;
             }
+            headers.put(API_KEY_HEADER_NAME, deviceInfoProvider.getApiKey());
 
-            HttpEntity entity = entityBuilder.build();
-
-            HttpPost httpPost = new HttpPost(url.toString());
-            httpPost.addHeader(API_KEY_HEADER_NAME, deviceInfoProvider.getApiKey());
-            httpPost.setEntity(entity);
-
-            CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
-
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpResponse httpResponse = client.post(url.toString(), payload, contentType, headers, compress);
+            
+            int statusCode = httpResponse.getStatusCode();
             if (isSuccessCode(statusCode)) {
                 LOGGER.debug("HTTP message sent");
             } else {
-                String reason = httpResponse.getStatusLine().getReasonPhrase();
+                String reason = httpResponse.getResponse();
                 LOGGER.error("Error sending HTTP message: {}, {}", statusCode, reason);
             }
-
-            httpResponse.close();
-        } catch (IOException exception) {
+        } catch (Throwable exception) {
             LOGGER.error("Error sending HTTP message", exception);
         }
     }
@@ -141,10 +131,6 @@ public class HttpConnector implements OpenGateConnector {
 
     private URL getUrl() throws MalformedURLException {
         return new URL(hostUrl, generalPath + "/" + deviceInfoProvider.getDeviceId() + collectionPath);
-    }
-
-    private org.apache.http.entity.ContentType getContentType(ContentType contentType) {
-        return CONTENT_TYPE_MAPPER.get(contentType);
     }
 
     private boolean isSuccessCode(int statusCode) {
