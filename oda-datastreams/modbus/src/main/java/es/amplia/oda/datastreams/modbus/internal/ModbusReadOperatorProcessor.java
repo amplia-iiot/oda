@@ -186,6 +186,7 @@ class ModbusReadOperatorProcessor {
                 // save values read in cache
                 modbusCache.setInputDiscreteValues(registerValues, i, at);
             } catch (ModbusException e) {
+                LOGGER.error("Error reading modbus registers from {} to {} : {}", i, numRegistersToRequest, e.getMessage());
                 // error reading registers, set all values in cache of that block to null
                 modbusCache.emptyInputDiscreteValues(i, numRegistersToRequest);
             }
@@ -255,6 +256,7 @@ class ModbusReadOperatorProcessor {
                 // save values read in cache
                 modbusCache.setCoilValues(registerValues, i, at);
             } catch (ModbusException e) {
+                LOGGER.error("Error reading modbus registers from {} to {} : {}", i, numRegistersToRequest, e.getMessage());
                 // error reading registers, set all values in cache of that block to null
                 modbusCache.emptyCoilValues(i, numRegistersToRequest);
             }
@@ -400,6 +402,7 @@ class ModbusReadOperatorProcessor {
                 // save values read in cache
                 modbusCache.setInputRegisterValues(registerValues, i, at);
             } catch (ModbusException e) {
+                LOGGER.error("Error reading modbus registers from {} to {} : {}", i, numRegistersToRequest, e.getMessage());
                 // error reading registers, set all values in cache of that block to null
                 modbusCache.emptyInputRegisterValues(i, numRegistersToRequest);
             }
@@ -545,6 +548,7 @@ class ModbusReadOperatorProcessor {
                 // save values read in cache
                 modbusCache.setHoldingRegisterValues(registerValues, i, at);
             } catch (ModbusException e) {
+                LOGGER.error("Error reading modbus registers from {} to {} : {}", i, numRegistersToRequest, e.getMessage());
                 // error reading registers, set all values in cache of that block to null
                 modbusCache.emptyHoldingRegisterValues(i, numRegistersToRequest);
             }
