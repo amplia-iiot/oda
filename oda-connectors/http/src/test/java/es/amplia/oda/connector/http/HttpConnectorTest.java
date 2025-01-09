@@ -31,6 +31,10 @@ import static es.amplia.oda.connector.http.HttpConnector.*;
 
 import static es.amplia.oda.core.commons.entities.ContentType.*;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -109,7 +113,7 @@ public class HttpConnectorTest {
         assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.toString(), httpEntity.getContentType().getValue());
+        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
         assertNull(httpEntity.getContentEncoding());
         byte[] buffer = new byte[TEST_PAYLOAD.length];
         assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
@@ -217,7 +221,7 @@ public class HttpConnectorTest {
         assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.toString(), httpEntity.getContentType().getValue());
+        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
         assertNull(httpEntity.getContentEncoding());
         byte[] buffer = new byte[TEST_PAYLOAD.length];
         assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
@@ -255,7 +259,7 @@ public class HttpConnectorTest {
         assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.toString(), httpEntity.getContentType().getValue());
+        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
         assertEquals(GZIP_ENCODING, httpEntity.getContentEncoding().getValue());
     }
 
@@ -290,7 +294,7 @@ public class HttpConnectorTest {
         assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.toString(), httpEntity.getContentType().getValue());
+        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
         assertNull(httpEntity.getContentEncoding());
     }
 

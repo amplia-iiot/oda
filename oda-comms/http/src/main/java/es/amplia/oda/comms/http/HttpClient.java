@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
@@ -19,32 +20,21 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import es.amplia.oda.core.commons.entities.ContentType;
-
 public class HttpClient {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClient.class);
 
-    private static final String UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE = "application/x-msgpack";
-    private static final String CBOR_MEDIA_TYPE = "application/cbor";
-    private static final Map<ContentType, org.apache.http.entity.ContentType> CONTENT_TYPE_MAPPER =
-            new EnumMap<>(ContentType.class);
-    static {
-        CONTENT_TYPE_MAPPER.put(ContentType.CBOR, org.apache.http.entity.ContentType.create(CBOR_MEDIA_TYPE));
-        CONTENT_TYPE_MAPPER.put(ContentType.JSON, org.apache.http.entity.ContentType.APPLICATION_JSON);
-        CONTENT_TYPE_MAPPER.put(ContentType.MESSAGE_PACK,
-                org.apache.http.entity.ContentType.create(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE));
-    }
-
     private static final String GZIP_ENCODING = "gzip";
     private static final int OK_HTTP_CODE = 200;
     private static final int CREATED_HTTP_CODE = 201;
+    private static final int FOUND_HTTP_CODE = 302;
 
     private CloseableHttpClient httpClient;
     private RequestConfig requestTimeoutConfig;
@@ -96,21 +86,17 @@ public class HttpClient {
                 .build();
     }
 
-    private org.apache.http.entity.ContentType getContentType(ContentType contentType) {
-        return CONTENT_TYPE_MAPPER.get(contentType);
-    }
-
     private boolean isSuccessCode(int statusCode) {
-        return statusCode == OK_HTTP_CODE || statusCode == CREATED_HTTP_CODE;
+        return statusCode == OK_HTTP_CODE || statusCode == CREATED_HTTP_CODE || statusCode == FOUND_HTTP_CODE;
     }
 
-    public HttpResponse post(String url, byte[] payload, ContentType contentType, Map<String, String> headers) throws IOException {
+    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return post(url, payload, contentType, headers, false);
     }
 
-    public HttpResponse post(String url, byte[] payload, ContentType contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
         EntityBuilder entityBuilder =
-                    EntityBuilder.create().setBinary(payload).setContentType(getContentType(contentType));
+                    EntityBuilder.create().setBinary(payload).setContentType(ContentType.create(contentType));
 
         if (compress) {
             LOGGER.debug("Compressing data");
@@ -122,18 +108,24 @@ public class HttpClient {
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(entity);
         httpPost.setConfig(requestTimeoutConfig);
-        headers.forEach( (h,v) -> httpPost.setHeader(h, v));
+        if (headers != null) headers.forEach( (h,v) -> httpPost.setHeader(h, v));
 
         CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
 
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         String response = null;
+        HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP POST message sent");
             entity = httpResponse.getEntity();
             if (entity != null) {
                 response = EntityUtils.toString(entity);
             }
+            Header[] headersResp = httpResponse.getAllHeaders();
+			for (int i = 0; i < headersResp.length; i++) {
+				Header h = headersResp[i];
+				rHeaders.put(h.getName(), h.getValue());
+			}
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP POST message: {}, {}", statusCode, response);
@@ -141,16 +133,16 @@ public class HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).build();
+        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
-    public HttpResponse put(String url, byte[] payload, ContentType contentType, Map<String, String> headers) throws IOException {
+    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return put(url, payload, contentType, headers, false);
     }
 
-    public HttpResponse put(String url, byte[] payload, ContentType contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
         EntityBuilder entityBuilder =
-                    EntityBuilder.create().setBinary(payload).setContentType(getContentType(contentType));
+                    EntityBuilder.create().setBinary(payload).setContentType(ContentType.create(contentType));
 
         if (compress) {
             LOGGER.debug("Compressing data");
@@ -168,12 +160,18 @@ public class HttpClient {
 
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         String response = null;
+        HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP PUT message sent");
             entity = httpResponse.getEntity();
             if (entity != null) {
                 response = EntityUtils.toString(entity);
             }
+            Header[] headersResp = httpResponse.getAllHeaders();
+			for (int i = 0; i < headersResp.length; i++) {
+				Header h = headersResp[i];
+				rHeaders.put(h.getName(), h.getValue());
+			}
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP PUT message: {}, {}", statusCode, response);
@@ -181,7 +179,7 @@ public class HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).build();
+        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
     public HttpResponse get(String url, Map<String, String> headers) throws IOException {

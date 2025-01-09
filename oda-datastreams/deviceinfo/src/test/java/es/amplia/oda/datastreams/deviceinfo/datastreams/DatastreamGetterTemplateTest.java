@@ -21,7 +21,7 @@ public class DatastreamGetterTemplateTest {
 
 	@Before
 	public void setUp() {
-		testTemplate = new DatastreamGetterTemplate(datastreamId, ()-> expectedState);
+		testTemplate = new DatastreamGetterTemplate(datastreamId, null, null, (a,b)-> expectedState);
 	}
 
 	@Test

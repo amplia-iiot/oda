@@ -6,51 +6,29 @@ import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.CommandProcessor;
 import es.amplia.oda.datastreams.deviceinfo.configuration.DeviceInfoConfiguration;
-
+import es.amplia.oda.datastreams.deviceinfo.datastreams.DatastreamGetterTemplate;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoDatastreamsGetter.class);
     private final CommandProcessor commandProcessor;
-    private final Bundle[] bundles;
+    private final BundleContext context;
 
     static final String DEVICE_ID_DATASTREAM_ID = "device.identifier";
     static final String SERIAL_NUMBER_DATASTREAM_ID = "device.serialNumber";
-    public static final String CLOCK_DATASTREAM_ID = "device.clock";
-    public static final String UPTIME_DATASTREAM_ID = "device.upTime";
-    public static final String CPU_TOTAL_DATASTREAM_ID = "device.cpu.total";
-    public static final String CPU_STATUS_DATASTREAM_ID = "device.cpu.status";
-    public static final String CPU_USAGE_DATASTREAM_ID = "device.cpu.usage";
-    public static final String RAM_TOTAL_DATASTREAM_ID = "device.ram.total";
-    public static final String RAM_USAGE_DATASTREAM_ID = "device.ram.usage";
-    public static final String DISK_TOTAL_DATASTREAM_ID = "device.storage.disk.total";
-    public static final String DISK_USAGE_DATASTREAM_ID = "device.storage.disk.usage";
-    public static final String SOFTWARE_DATASTREAM_ID = "device.software";
-    public static final String TEMPERATURE_STATUS_DATASTREAM_ID = "device.temperature.status";
-    public static final String TEMPERATURE_VALUE_DATASTREAM_ID = "device.temperature.value";
-
-    static final String CLOCK_SCRIPT = "obtainClock.sh";
-    static final String UPTIME_SCRIPT = "obtainUptime.sh";
-    static final String CPU_TOTAL_SCRIPT = "obtainCpuTotal.sh";
-    static final String CPU_STATUS_SCRIPT = "obtainCpuStatus.sh";
-    static final String CPU_USAGE_SCRIPT = "obtainCpuUsage.sh";
-    static final String RAM_TOTAL_SCRIPT = "obtainRamTotal.sh";
-    static final String RAM_USAGE_SCRIPT = "obtainRamUsage.sh";
-    static final String DISK_TOTAL_SCRIPT = "obtainDiskTotal.sh";
-    static final String DISK_USAGE_SCRIPT = "obtainDiskUsage.sh";
+    static final String SOFTWARE_DATASTREAM_ID = "device.software";
+    
     static final String SERIAL_NUMBER_SCRIPT = "obtainSerialNumber.sh";
-    static final String TEMPERATURE_STATUS_SCRIPT = "obtainTemperatureStatus.sh";
-    static final String TEMPERATURE_VALUE_SCRIPT = "obtainTemperatureValue.sh";
 
     private String path;
 
@@ -58,19 +36,45 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     private String apiKey;
     private String serialNumber;
 
+    private List<ServiceRegistration<DatastreamsGetter>> getters = new ArrayList<>();
 
-    DeviceInfoDatastreamsGetter(CommandProcessor commandProcessor, Bundle[] bundles) {
+    DeviceInfoDatastreamsGetter(CommandProcessor commandProcessor, BundleContext bundleContext) {
         this.commandProcessor = commandProcessor;
-        this.bundles = bundles;
+        this.context = bundleContext;
     }
 
     public void loadConfiguration(DeviceInfoConfiguration configuration) {
+        unregister();
         deviceId = configuration.getDeviceId();
         LOGGER.info("Load new device identifier: {}", deviceId);
         apiKey = configuration.getApiKey();
         LOGGER.info("Load new API key: {}", apiKey);
         path = configuration.getPath();
         LOGGER.info("Load new path to scripts directory: {}", path);
+
+        for (String dsId: configuration.getDsScript().keySet()) {
+            String []scriptType = configuration.getDsScript().get(dsId).split(";");
+
+            ServiceRegistration<DatastreamsGetter> dsGetter;
+            if (scriptType.length == 1) {
+                dsGetter = context.registerService(DatastreamsGetter.class,
+                        new DatastreamGetterTemplate(dsId, scriptType[0], this::executeStript), null);
+            } else {
+                dsGetter = context.registerService(DatastreamsGetter.class,
+                        new DatastreamGetterTemplate(dsId, scriptType[0], scriptType[1], this::executeStript), null);
+            }
+            getters.add(dsGetter);
+        }
+
+        getters.add(context.registerService(DatastreamsGetter.class,
+                        new DatastreamGetterTemplate(DEVICE_ID_DATASTREAM_ID, null,
+                                this::getDeviceId), null));
+        getters.add(context.registerService(DatastreamsGetter.class,
+                        new DatastreamGetterTemplate(SERIAL_NUMBER_DATASTREAM_ID, null,
+                                this::getSerialNumber), null));
+        getters.add(context.registerService(DatastreamsGetter.class,
+                        new DatastreamGetterTemplate(SOFTWARE_DATASTREAM_ID, null,
+                                this::getSoftware), null));
 
         try {
             LOGGER.info("Preparing scripts for run");
@@ -82,7 +86,10 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
                 }
             }
 
-            serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
+            String snScript = configuration.getDsScript().get(SERIAL_NUMBER_DATASTREAM_ID);
+
+            if ( (snScript != null) && !snScript.isEmpty() ) serialNumber = commandProcessor.execute(snScript);
+            else serialNumber = commandProcessor.execute(path + "/" + SERIAL_NUMBER_SCRIPT);
             LOGGER.info("Load new serial number: {}", serialNumber);
         } catch (CommandExecutionException ex) {
             LOGGER.error("Error executing serial number command '{}':", SERIAL_NUMBER_SCRIPT,
@@ -90,249 +97,67 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         }
     }
 
+    public void unregister() {
+        getters.forEach(getter -> getter.unregister());
+    }
     
-    public String getDeviceId() {
+    public String getDeviceId() {return getDeviceId(null, null);}
+    public String getDeviceId(String scriptToExecute, String type) {
         return (deviceId != null && !deviceId.equals("")) ? deviceId : serialNumber;
     }
 
-    
-    public String getApiKey() {
+    public String getApiKey() {return getApiKey(null, null);}
+    public String getApiKey(String scriptToExecute, String type) {
         return apiKey;
     }
 
-    
-    public Integer getCpuTotal() {
-        try {
-            String cpuTotalString = commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT);
-            if ( (cpuTotalString != null) && !cpuTotalString.isEmpty() ) {
-                int cpuTotal = Integer.parseInt(cpuTotalString);
-                LOGGER.debug("Getting actual cores quantity: {}", cpuTotal);
-                return cpuTotal;
-            } else {
-                LOGGER.warn("Executing CPU Total command '{}' return null", CPU_TOTAL_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing CPU Total command '{}':", CPU_TOTAL_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public String getClock() {
-        try {
-            String clock = commandProcessor.execute(path + "/" + CLOCK_SCRIPT);
-            LOGGER.debug("Getting actual hour: {}", clock);
-            return clock;
-        } catch (CommandExecutionException ex) {
-            LOGGER.error("Error executing Clock command '{}':", CLOCK_SCRIPT,
-                    ex);
-            return null;
-        }
-    }
-
-    
-    public Long getUptime() {
-        try {
-            String upTimeString = commandProcessor.execute(path + "/" + UPTIME_SCRIPT);
-            if ( (upTimeString != null) && !upTimeString.isEmpty() ) {
-                long uptime = Long.parseLong(upTimeString);
-                LOGGER.debug("Getting actual UpTime: {}", uptime);
-                return uptime;
-            } else {
-                LOGGER.warn("Executing UpTime command '{}' return null", UPTIME_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing UpTime command '{}':", UPTIME_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public String getCpuStatus() {
-        try {
-            String cpuStatus = commandProcessor.execute(path + "/" + CPU_STATUS_SCRIPT);
-            LOGGER.debug("Getting actual CPU Status: {}", cpuStatus);
-            return cpuStatus;
-        } catch (CommandExecutionException ex) {
-            LOGGER.error("Error executing CPU Status command '{}':", CPU_STATUS_SCRIPT,
-                    ex);
-            return null;
-        }
-    }
-
-    
-    public Integer getCpuUsage() {
-        try {
-            String cpuUsageString = commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT);
-            if ( (cpuUsageString != null) && !cpuUsageString.isEmpty() ) {
-                int cpuUsage = Integer.parseInt(cpuUsageString);
-                LOGGER.debug("Getting actual CPU Usage: {}", cpuUsage);
-                return cpuUsage;
-            } else {
-                LOGGER.warn("Executing CPU Usage command '{}' return null", CPU_USAGE_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing CPU Usage command '{}':", CPU_USAGE_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public Long getRamTotal() {
-        try {
-            String ramTotalString = commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT);
-            if ( (ramTotalString != null) && !ramTotalString.isEmpty() ) {
-                long ramTotal = Long.parseLong(ramTotalString);
-                LOGGER.debug("Getting actual RAM Usage: {}", ramTotal);
-                return ramTotal;
-            } else {
-                LOGGER.warn("Executing RAM Total command '{}' return null", RAM_TOTAL_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing RAM Total command '{}':", RAM_TOTAL_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public Integer getRamUsage() {
-        try {
-            String ramUsageString = commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT);
-            if ( (ramUsageString != null) && !ramUsageString.isEmpty() ) {
-                int ramUsage = Integer.parseInt(ramUsageString);
-                LOGGER.debug("Getting actual RAM Usage: {}", ramUsage);
-                return ramUsage;
-            } else {
-                LOGGER.warn("Executing RAM Usage command '{}' return null", RAM_USAGE_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing RAM Usage command '{}':", RAM_USAGE_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public Long getDiskTotal() {
-        try {
-            String diskTotalString = commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT);
-            if ( (diskTotalString != null) && !diskTotalString.isEmpty() ) {
-                long diskTotal = Long.parseLong(diskTotalString);
-                LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskTotal);
-                return diskTotal;
-            } else {
-                LOGGER.warn("Executing Disk Total command '{}' return null", DISK_TOTAL_SCRIPT);
-            }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing Disk Total command '{}':", DISK_TOTAL_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public Integer getDiskUsage() {
-        try {
-            String diskUsageString = commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT);
-            if ( (diskUsageString != null) && !diskUsageString.isEmpty() ) {
-                int diskUsage = Integer.parseInt(diskUsageString);
-                LOGGER.debug("Getting actual Disk Capacity Usage: {}", diskUsage);
-                return diskUsage;
-            } else {
-                LOGGER.warn("Executing Disk Usage command '{}' return null", DISK_USAGE_SCRIPT);
-            }
-        } catch (CommandExecutionException ex) {
-            LOGGER.error("Error executing Disk Usage command '{}':", DISK_USAGE_SCRIPT,
-                    ex);
-        }
-        return null;
-    }
-
-    
-    public List<Software> getSoftware() {
+    public List<Software> getSoftware() {return getSoftware(null, null);}
+    public List<Software> getSoftware(String scriptToExecute, String type) {
         List<Software> software = new ArrayList<>();
-        for (Bundle bundle: bundles) {
+        for (Bundle bundle: context.getBundles()) {
             software.add(new Software(bundle.getSymbolicName(), bundle.getVersion().toString(), "SOFTWARE"));
         }
         LOGGER.debug("Getting actual used Software: {}", software);
         return software;
     }
 
-    
-    public String getTemperatureStatus() {
-        try {
-            String temperatureStatus = commandProcessor.execute(path + "/" + TEMPERATURE_STATUS_SCRIPT);
-            LOGGER.debug("Getting actual Temperature Status: {}", temperatureStatus);
-            return temperatureStatus;
-        } catch (CommandExecutionException ex) {
-            LOGGER.error("Error executing Temperature Status command '{}':", TEMPERATURE_STATUS_SCRIPT,
-                    ex);
-            return null;
-        }
+    public String getSerialNumber(String scriptToExecute, String type) {
+        return this.serialNumber;
     }
 
-    
-    public Integer getTemperatureValue() {
+    public Object executeStript (String scriptToExecute, String type) {
         try {
-            String tempValueString = commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT);
-            if ( (tempValueString != null) && !tempValueString.isEmpty() ) {
-                int temperatureValue = Integer.parseInt(tempValueString);
-                LOGGER.debug("Getting actual Temperature: {}", temperatureValue);
-                return temperatureValue;
+            String value = commandProcessor.execute(scriptToExecute);
+            if ( (type != null) && !type.equals("STRING") ) {
+                if ( (value != null) && !value.isEmpty() ) {
+                    Object ret = null;
+                    if ("BOOLEAN".equals(type)) {
+                        ret = Boolean.parseBoolean(value);
+                    } else if ("INTEGER".equals(type)) {
+                        ret = Integer.parseInt(value);
+                    } else if ("LONG".equals(type)) {
+                        ret = Long.parseLong(value);
+                    } else if ("FLOAT".equals(type)) {
+                        ret = Float.parseFloat(value);
+                    } else if ("DOUBLE".equals(type)) {
+                        ret = Double.parseDouble(value);
+                    } else {
+                        ret = value;
+                    }
+                    LOGGER.debug("Script {} returned value: {}", scriptToExecute, ret);
+                    return ret;
+                } else {
+                    LOGGER.warn("Executing script '{}' return null", scriptToExecute);
+                }
             } else {
-                LOGGER.warn("Executing Temperature command '{}' return null", TEMPERATURE_VALUE_SCRIPT);
+                LOGGER.debug("Script {} returned value: {}", scriptToExecute, value);
+                return value;
             }
-        } catch (CommandExecutionException | NumberFormatException ex) {
-            LOGGER.error("Error executing Temperature command '{}':", TEMPERATURE_VALUE_SCRIPT,
+        } catch (Throwable ex) {
+            LOGGER.error("Error executing script '{}':", scriptToExecute,
                     ex);
         }
         return null;
     }
 
-    public String getSerialNumber() {
-        return this.serialNumber;
-    }
-
-
-    DatastreamsGetter getDatastreamsGetterForDeviceId() {
-        return new DatastreamsGetter() {
-            
-            public String getDatastreamIdSatisfied() {
-                return DEVICE_ID_DATASTREAM_ID;
-            }
-            
-            public List<String> getDevicesIdManaged() {
-                return Collections.singletonList("");
-            }
-            
-            public CompletableFuture<CollectedValue> get(String device) {
-                return CompletableFuture.completedFuture(
-                    new CollectedValue(System.currentTimeMillis(), getDeviceId())
-                );
-            }
-        };
-    }
-
-    DatastreamsGetter getDatastreamsGetterForSerialNumber() {
-        return new DatastreamsGetter() {
-            
-            public String getDatastreamIdSatisfied() {
-                return SERIAL_NUMBER_DATASTREAM_ID;
-            }
-
-            public List<String> getDevicesIdManaged() {
-                return Collections.singletonList("");
-            }
-
-            public CompletableFuture<CollectedValue> get(String device) {
-                return CompletableFuture.completedFuture(
-                    new CollectedValue(System.currentTimeMillis(), getSerialNumber())
-                );
-            }
-        };
-    }
 }

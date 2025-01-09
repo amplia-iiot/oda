@@ -219,7 +219,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public String getClock() {
 		try {
 			String clock = commandProcessor.execute(path + "/" + CLOCK_SCRIPT);
@@ -232,7 +231,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Long getUptime() {
 		try {
 			long uptime = Long.parseLong(commandProcessor.execute(path + "/" + UPTIME_SCRIPT));
@@ -245,7 +243,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Integer getTemperatureValue() {
 		try {
 			int temperatureValue = Integer.parseInt(commandProcessor.execute(path + "/" + TEMPERATURE_VALUE_SCRIPT));
@@ -258,7 +255,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public String getTemperatureStatus() {
 		try {
 			String temperatureStatus = commandProcessor.execute(path + "/" + TEMPERATURE_STATUS_SCRIPT);
@@ -271,7 +267,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public String getCpuStatus() {
 		try {
 			String cpuStatus = commandProcessor.execute(path + "/" + CPU_STATUS_SCRIPT);
@@ -284,7 +279,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Integer getCpuUsage() {
 		try {
 			int cpuUsage = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_USAGE_SCRIPT));
@@ -297,7 +291,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Integer getCpuTotal() {
 		try {
 			int cpuTotal = Integer.parseInt(commandProcessor.execute(path + "/" + CPU_TOTAL_SCRIPT));
@@ -310,7 +303,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Integer getRamUsage() {
 		try {
 			int ramUsage = Integer.parseInt(commandProcessor.execute(path + "/" + RAM_USAGE_SCRIPT));
@@ -323,7 +315,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Long getRamTotal() {
 		try {
 			long ramTotal = Long.parseLong(commandProcessor.execute(path + "/" + RAM_TOTAL_SCRIPT));
@@ -336,7 +327,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Integer getDiskUsage() {
 		try {
 			int diskUsage = Integer.parseInt(commandProcessor.execute(path + "/" + DISK_USAGE_SCRIPT));
@@ -349,7 +339,6 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 		}
 	}
 
-	@Override
 	public Long getDiskTotal() {
 		try {
 			long diskTotal = Long.parseLong(commandProcessor.execute(path + "/" + DISK_TOTAL_SCRIPT));
