@@ -13,6 +13,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
@@ -28,7 +29,7 @@ public class DeviceInfoConfigurationHandlerTest {
     private static final String TEST_SOURCE  = "way-to-bundles";
     private static final String TEST_PATH = "way-to-scripts";
     private static final DeviceInfoConfiguration TEST_CONFIGURATION =
-            new DeviceInfoConfiguration(TEST_DEVICE_ID, TEST_API_KEY, TEST_SOURCE, TEST_PATH);
+            new DeviceInfoConfiguration(TEST_DEVICE_ID, TEST_API_KEY, TEST_SOURCE, TEST_PATH, new HashMap<>());
 
     private static final String CURRENT_CONFIGURATION_FIELD_NAME = "currentConfiguration";
 

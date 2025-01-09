@@ -224,12 +224,10 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         return software;
     }
 
-    @Override
     public String getTemperatureStatus() {
         return "CANNOT GET A MEASURE: OWA450 have not any temperature device to check internal status";
     }
 
-    @Override
     public Integer getTemperatureValue() {
         return null;
     }

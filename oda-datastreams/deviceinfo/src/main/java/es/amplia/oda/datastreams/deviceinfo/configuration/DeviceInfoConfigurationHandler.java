@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandler {
 
@@ -34,9 +36,13 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
         String deviceId = (String) props.get(DEVICE_ID_PROPERTY_NAME);
+        props.remove(DEVICE_ID_PROPERTY_NAME);
         String apiKey = (String) props.get(API_KEY_PROPERTY_NAME);
+        props.remove(API_KEY_PROPERTY_NAME);
         String source = (String) props.get(SOURCE_PROPERTY_NAME);
+        props.remove(SOURCE_PROPERTY_NAME);
         String path = (String) props.get(PATH_PROPERTY_NAME);
+        props.remove(PATH_PROPERTY_NAME);
 
         if (apiKey == null) {
             throw new ConfigurationException("Missing required field \"apiKey\"");
@@ -48,7 +54,14 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
             throw new ConfigurationException("Missing required field \"path\"");
         }
 
-        currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, source, path);
+        Enumeration<String> keys = props.keys();
+        HashMap<String, String> scripts = new HashMap<>();
+        while (keys.hasMoreElements()) {
+            String datastremId = keys.nextElement();
+            scripts.put(datastremId, (String) props.get(datastremId));
+        }
+
+        currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, source, path, scripts);
     }
 
     @Override

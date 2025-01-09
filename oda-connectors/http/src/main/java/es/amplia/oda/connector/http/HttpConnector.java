@@ -24,13 +24,12 @@ public class HttpConnector implements OpenGateConnector {
 
     static final String UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE = "application/x-msgpack";
     static final String CBOR_MEDIA_TYPE = "application/cbor";
-    private static final Map<ContentType, org.apache.http.entity.ContentType> CONTENT_TYPE_MAPPER =
+    private static final Map<ContentType, String> CONTENT_TYPE_MAPPER =
             new EnumMap<>(ContentType.class);
     static {
-        CONTENT_TYPE_MAPPER.put(ContentType.CBOR, org.apache.http.entity.ContentType.create(CBOR_MEDIA_TYPE));
-        CONTENT_TYPE_MAPPER.put(ContentType.JSON, org.apache.http.entity.ContentType.APPLICATION_JSON);
-        CONTENT_TYPE_MAPPER.put(ContentType.MESSAGE_PACK,
-                org.apache.http.entity.ContentType.create(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE));
+        CONTENT_TYPE_MAPPER.put(ContentType.CBOR, CBOR_MEDIA_TYPE);
+        CONTENT_TYPE_MAPPER.put(ContentType.JSON, org.apache.http.entity.ContentType.APPLICATION_JSON.getMimeType());
+        CONTENT_TYPE_MAPPER.put(ContentType.MESSAGE_PACK, UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE);
     }
     static final String HTTP_PROTOCOL = "http";
     static final String API_KEY_HEADER_NAME = "X-ApiKey";
@@ -68,6 +67,10 @@ public class HttpConnector implements OpenGateConnector {
         compressionThreshold = configuration.getCompressionThreshold();
     }
 
+    private String getContentType(ContentType contentType) {
+        return CONTENT_TYPE_MAPPER.get(contentType);
+    }
+
     @Override
     public void uplink(byte[] payload, ContentType contentType) {
         if (!isConfigured()) {
@@ -101,7 +104,7 @@ public class HttpConnector implements OpenGateConnector {
             }
             headers.put(API_KEY_HEADER_NAME, deviceInfoProvider.getApiKey());
 
-            HttpResponse httpResponse = client.post(url.toString(), payload, contentType, headers, compress);
+            HttpResponse httpResponse = client.post(url.toString(), payload, getContentType(contentType), headers, compress);
             
             int statusCode = httpResponse.getStatusCode();
             if (isSuccessCode(statusCode)) {
