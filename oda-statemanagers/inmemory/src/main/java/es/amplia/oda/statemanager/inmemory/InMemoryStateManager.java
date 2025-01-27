@@ -1,5 +1,6 @@
 package es.amplia.oda.statemanager.inmemory;
 
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.interfaces.StateManager;
@@ -31,6 +32,7 @@ public class InMemoryStateManager implements StateManager {
     private static final String VALUE_NOT_FOUND_ERROR = "Datastream has no value to set";
 
     private final DatastreamsSettersFinder datastreamsSettersFinder;
+    private final DatastreamsGettersFinder datastreamsGettersFinder;
     private final EventDispatcher eventDispatcher;
     private final RuleEngine ruleEngine;
     private final Serializer serializer;
@@ -44,8 +46,10 @@ public class InMemoryStateManager implements StateManager {
     private long forgetPeriod;
 
 
-    InMemoryStateManager(DatastreamsSettersFinder datastreamsSettersFinder, EventDispatcher eventDispatcher,
-                         RuleEngine ruleEngine, Serializer serializer, ExecutorService executor, Scheduler scheduler) {
+    InMemoryStateManager(DatastreamsGettersFinder datastreamsGettersFinder, DatastreamsSettersFinder datastreamsSettersFinder,
+                         EventDispatcher eventDispatcher, RuleEngine ruleEngine, Serializer serializer,
+                         ExecutorService executor, Scheduler scheduler) {
+        this.datastreamsGettersFinder = datastreamsGettersFinder;
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
         this.ruleEngine = ruleEngine;
@@ -117,14 +121,37 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDeviceInformation(String deviceId) {
-        LOGGER.debug("Get device info for device {}", deviceId);
-        List<DatastreamInfo> stored = state.getStoredValues();
-        return CompletableFuture.completedFuture(stored.stream()
-                .filter(datastreamInfo -> deviceId.equals(datastreamInfo.getDeviceId()))
-                .flatMap(this::getStreamOfDatapointsToSend)
-                .collect(Collectors.toSet()))
-                .thenApply(this::setSent);
+        LOGGER.debug("Get device info for device '{}'", deviceId);
+
+        Set<CompletableFuture<DatastreamValue>> values =
+                datastreamsGettersFinder.getGettersOfDevice(deviceId).stream()
+                        .map(datastreamsGetter -> getValueFromGetFutureHandlingExceptions(deviceId, datastreamsGetter))
+                        .collect(Collectors.toSet());
+
+        return allOf(values);
     }
+
+    private CompletableFuture<DatastreamValue> getValueFromGetFutureHandlingExceptions(String deviceId, DatastreamsGetter datastreamsGetter) {
+        String datastreamId = datastreamsGetter.getDatastreamIdSatisfied();
+        try {
+            CompletableFuture<DatastreamsGetter.CollectedValue> getFuture = datastreamsGetter.get(deviceId);
+            return getFuture.handle((ok,error)-> {
+                if (ok != null) {
+                    return new DatastreamValue(deviceId, datastreamId, ok.getFeed(), ok.getAt(), ok.getValue(),
+                            DatastreamValue.Status.OK, null, false, false);
+                } else {
+                    return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), null,
+                            DatastreamValue.Status.PROCESSING_ERROR, error.getMessage(), false, false);
+                }
+            });
+        } catch (Exception e) {
+            return CompletableFuture.completedFuture(new DatastreamValue(deviceId, datastreamId, null,
+                    System.currentTimeMillis(), null, DatastreamValue.Status.PROCESSING_ERROR,
+                    e.getMessage(), false, false));
+        }
+    }
+
+
 
     private synchronized Stream<DatastreamValue> getStreamOfDatapointsToSend(DatastreamInfo datastreamInfo) {
         if (!this.state.exists(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {

@@ -1,6 +1,7 @@
 package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -37,6 +38,10 @@ public class ActivatorTest {
     @Mock
     private DatastreamsSettersFinderImpl mockedSettersFinder;
     @Mock
+    private ServiceLocatorOsgi<DatastreamsGetter> mockedGetterLocator;
+    @Mock
+    private DatastreamsGettersFinderImpl mockedGettersFinder;
+    @Mock
     private EventDispatcherProxy mockedEventDispatcherProxy;
     @Mock
     private InMemoryStateManager mockedStateManager;
@@ -59,8 +64,10 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ServiceLocatorOsgi.class).withAnyArguments().thenReturn(mockedSetterLocator);
+        PowerMockito.whenNew(ServiceLocatorOsgi.class).withArguments(any(BundleContext.class), eq(DatastreamsSetter.class)).thenReturn(mockedSetterLocator);
         PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockedSettersFinder);
+        PowerMockito.whenNew(ServiceLocatorOsgi.class).withArguments(any(BundleContext.class), eq(DatastreamsGetter.class)).thenReturn(mockedGetterLocator);
+        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedGettersFinder);
         PowerMockito.whenNew(InMemoryStateManager.class).withAnyArguments().thenReturn(mockedStateManager);
         PowerMockito.whenNew(RuleEngineProxy.class).withAnyArguments().thenReturn(mockedRuleEngine);
         PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcherProxy);
@@ -72,9 +79,12 @@ public class ActivatorTest {
 
         testActivator.start(mockedContext);
 
+        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
+        PowerMockito.verifyNew(DatastreamsGettersFinderImpl.class).withArguments(eq(mockedGetterLocator));
         PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
         PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSetterLocator));
-        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedSettersFinder),
+
+        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedGettersFinder), eq(mockedSettersFinder),
                 eq(mockedEventDispatcherProxy), eq(mockedRuleEngine), eq(mockedSerializer),
                 eq(mockedExecutorService), eq(mockedScheduler));
         PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
@@ -85,6 +95,7 @@ public class ActivatorTest {
 
     @Test
     public void testStop() {
+        Whitebox.setInternalState(testActivator, "datastreamsGettersFinder", mockedGettersFinder);
         Whitebox.setInternalState(testActivator, "datastreamsSettersFinder", mockedSettersFinder);
         Whitebox.setInternalState(testActivator, "stateManagerRegistration", mockedRegistration);
         Whitebox.setInternalState(testActivator, "ruleEngine", mockedRuleEngine);
@@ -97,6 +108,7 @@ public class ActivatorTest {
         verify(mockedBundle).close();
         verify(mockedEventDispatcherProxy).close();
         verify(mockedRegistration).unregister();
+        verify(mockedGettersFinder).close();
         verify(mockedSettersFinder).close();
         verify(mockedRuleEngine).close();
         verify(mockedScheduler).close();
