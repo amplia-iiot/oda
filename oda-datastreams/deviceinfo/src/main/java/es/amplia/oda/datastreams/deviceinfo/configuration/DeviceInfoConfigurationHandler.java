@@ -1,20 +1,14 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
-import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 
 public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoConfigurationHandler.class);
 
 
     static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
@@ -66,11 +60,7 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
 
     @Override
     public void applyConfiguration() {
-        try {
             scriptsLoader.load(currentConfiguration.getSource(), currentConfiguration.getPath());
             deviceInfoDatastreamsGetter.loadConfiguration(currentConfiguration);
-        } catch (CommandExecutionException | IOException e) {
-            LOGGER.error(e.getMessage());
-        }
     }
 }

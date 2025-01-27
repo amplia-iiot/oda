@@ -1,9 +1,7 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
-import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,15 +9,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.io.IOException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DeviceInfoConfigurationHandlerTest {
@@ -39,10 +36,6 @@ public class DeviceInfoConfigurationHandlerTest {
     private ScriptsLoader mockedScriptsLoader;
     @InjectMocks
     private DeviceInfoConfigurationHandler testHandler;
-    @Mock
-    private CommandExecutionException mockedCommandException;
-    @Mock
-    private IOException mockedIOException;
 
     @Test
     public void testLoadConfiguration() {
@@ -114,37 +107,17 @@ public class DeviceInfoConfigurationHandlerTest {
     }
 
     @Test(expected = ConfigurationException.class)
-    public void testLoadDefaultConfiguration() throws Exception {
+    public void testLoadDefaultConfiguration() {
         testHandler.loadDefaultConfiguration();
     }
 
     @Test
-    public void testApplyConfiguration() throws CommandExecutionException, IOException {
+    public void testApplyConfiguration() {
         Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
 
         testHandler.applyConfiguration();
 
         verify(mockedScriptsLoader).load(eq(TEST_SOURCE), eq(TEST_PATH));
         verify(mockedDeviceInfoDatastreamsGetter).loadConfiguration(eq(TEST_CONFIGURATION));
-    }
-
-    @Test
-    public void testApplyConfigurationCommandException() throws CommandExecutionException, IOException {
-        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
-        doThrow(mockedCommandException).when(mockedScriptsLoader).load(anyString(), anyString());
-
-        testHandler.applyConfiguration();
-
-        verify(mockedDeviceInfoDatastreamsGetter, times(0)).loadConfiguration(eq(TEST_CONFIGURATION));
-    }
-
-    @Test
-    public void testApplyConfigurationIOException() throws CommandExecutionException, IOException {
-        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, TEST_CONFIGURATION);
-        doThrow(mockedIOException).when(mockedScriptsLoader).load(anyString(), anyString());
-
-        testHandler.applyConfiguration();
-
-        verify(mockedDeviceInfoDatastreamsGetter, times(0)).loadConfiguration(eq(TEST_CONFIGURATION));
     }
 }

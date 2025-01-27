@@ -18,7 +18,6 @@ public class Activator implements BundleActivator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private ConfigurableBundle configurableBundle;
-    private ScriptsLoader scriptsLoader;
     private DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter;
 
     private ServiceRegistration<DeviceInfoProvider> deviceIdProviderRegistration;
@@ -29,7 +28,7 @@ public class Activator implements BundleActivator {
 
         CommandProcessor commandProcessor = new CommandProcessorImpl();
         deviceInfoDatastreamsGetter = new DeviceInfoDatastreamsGetter(commandProcessor, bundleContext);
-        scriptsLoader = new ScriptsLoader(commandProcessor);
+        ScriptsLoader scriptsLoader = new ScriptsLoader();
         ConfigurationUpdateHandler configHandler = new DeviceInfoConfigurationHandler(deviceInfoDatastreamsGetter, scriptsLoader);
         deviceIdProviderRegistration =
                 bundleContext.registerService(DeviceInfoProvider.class, deviceInfoDatastreamsGetter, null);
@@ -46,11 +45,6 @@ public class Activator implements BundleActivator {
         deviceInfoDatastreamsGetter.unregister();
         deviceIdProviderRegistration.unregister();
         configurableBundle.close();
-        try {
-            scriptsLoader.close();
-        } catch (Exception e) {
-            LOGGER.error("Error trying to close scripts loader", e);
-        }
 
         LOGGER.info("Datastreams Getter Device stopped");
     }
