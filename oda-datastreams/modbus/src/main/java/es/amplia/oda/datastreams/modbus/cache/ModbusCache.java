@@ -17,6 +17,12 @@ public class ModbusCache {
     Map<Integer, ModbusCacheRegister> inputRegisterCache = new HashMap<>();
     Map<Integer, ModbusCacheRegister> inputDiscreteCache = new HashMap<>();
 
+    String deviceId;
+
+    public ModbusCache(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
     public void setHoldingRegisterValues(Register[] values, int startAddress, long at){
         if (values != null) {
             for (int i = 0; i < values.length; i++) {
@@ -108,8 +114,8 @@ public class ModbusCache {
 
         // check if any of the registers is null
         if (modbusRegistersFromCache.contains(null)) {
-            log.error("Can't retrieve value from cache : at least one of the {} registers starting " +
-                    "from address {} is null", numValues, modbusAddress);
+            log.error("Can't retrieve value from cache of device {} : at least one of the {} registers starting " +
+                    "from address {} is null", this.deviceId, numValues, modbusAddress);
             return null;
         }
 
@@ -117,8 +123,8 @@ public class ModbusCache {
         long at = modbusRegistersFromCache.get(0).getAt();
         for (ModbusCacheRegister register : modbusRegistersFromCache) {
             if (register.getAt() != at) {
-                log.error("Can't retrieve value from cache : at least one of the {} registers starting " +
-                        "from address {} has a different date time than the rest", numValues, modbusAddress);
+                log.error("Can't retrieve value from cache of device {} : at least one of the {} registers starting " +
+                        "from address {} has a different date time than the rest", this.deviceId, numValues, modbusAddress);
                 return null;
             }
         }
