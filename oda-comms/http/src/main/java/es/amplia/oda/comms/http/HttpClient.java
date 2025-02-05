@@ -108,7 +108,9 @@ public class HttpClient {
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(entity);
         httpPost.setConfig(requestTimeoutConfig);
-        if (headers != null) headers.forEach( (h,v) -> httpPost.setHeader(h, v));
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(httpPost::setHeader);
+        }
 
         CloseableHttpResponse httpResponse = httpClient.execute(httpPost);
 
@@ -154,7 +156,9 @@ public class HttpClient {
         HttpPut httpPut = new HttpPut(url);
         httpPut.setEntity(entity);
         httpPut.setConfig(requestTimeoutConfig);
-        headers.forEach( (h,v) -> httpPut.setHeader(h, v));
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(httpPut::setHeader);
+        }
 
         CloseableHttpResponse httpResponse = httpClient.execute(httpPut);
 
@@ -185,7 +189,9 @@ public class HttpClient {
     public HttpResponse get(String url, Map<String, String> headers) throws IOException {
         HttpGet httpGet = new HttpGet(url);
         httpGet.setConfig(requestTimeoutConfig);
-        headers.forEach( (h,v) -> httpGet.setHeader(h, v));
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(httpGet::setHeader);
+        }
 
         CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
 
@@ -210,7 +216,9 @@ public class HttpClient {
     public HttpResponse delete(String url, Map<String, String> headers) throws IOException {
         HttpDelete httpDelete = new HttpDelete(url);
         httpDelete.setConfig(requestTimeoutConfig);
-        headers.forEach( (h,v) -> httpDelete.setHeader(h, v));
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(httpDelete::setHeader);
+        }
 
         CloseableHttpResponse httpResponse = httpClient.execute(httpDelete);
 
