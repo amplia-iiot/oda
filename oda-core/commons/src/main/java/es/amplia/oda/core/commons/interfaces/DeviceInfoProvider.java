@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface DeviceInfoProvider {
     String getDeviceId(); //Must return the device Id of ODA
+    void setDeviceId(String deviceId);
     String getApiKey();
     List<Software> getSoftware();
 }

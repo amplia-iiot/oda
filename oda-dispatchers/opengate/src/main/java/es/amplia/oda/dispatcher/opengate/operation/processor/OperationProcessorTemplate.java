@@ -32,7 +32,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
                     translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse,
                             request.getPath()));
         } else {
-            return future.applyToEither(timeout(3), r -> translateToOutput(r, request.getId(), deviceIdForResponse, request.getPath()));
+            return future.applyToEither(timeout(80), r -> translateToOutput(r, request.getId(), deviceIdForResponse, request.getPath()));
         }
     }
 

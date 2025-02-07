@@ -71,6 +71,8 @@ public class FtpClient {
             ftpClient.enterLocalPassiveMode();
         }
 
+        ftpClient.setRemoteVerificationEnabled(false);
+
         return true;
     }
 

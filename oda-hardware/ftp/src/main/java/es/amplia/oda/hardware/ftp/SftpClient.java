@@ -20,6 +20,10 @@ public class SftpClient {
     private Session session;
     private ChannelSftp channel;
 
+    public static final int OVERWRITE = ChannelSftp.OVERWRITE;
+    public static final int RESUME = ChannelSftp.RESUME;
+    public static final int APPEND = ChannelSftp.APPEND;
+
     public SftpClient (String server, String user, String password, String privateKeyPath) {
         this(server, 22, user, password, privateKeyPath);
     }
@@ -33,6 +37,9 @@ public class SftpClient {
     }
 
     public void connect() throws Exception {
+        connect(10000);
+    }
+    public void connect(int timeout) throws Exception {
         JSch jsch = new JSch();
         if (privateKeyPath != null && !privateKeyPath.equals(""))
             jsch.addIdentity(privateKeyPath);
@@ -42,6 +49,7 @@ public class SftpClient {
             session.setPassword(password);
 
         session.setConfig("StrictHostKeyChecking", "no");
+        session.setTimeout(timeout);
         session.connect();
         channel = (ChannelSftp) session.openChannel("sftp");
         channel.connect();
@@ -58,6 +66,14 @@ public class SftpClient {
 
     public void uploadFile(String source, String destination) throws Exception {
         channel.put(source, destination);
+    }
+
+    public void uploadFile(String source, String destination, int mode) throws Exception {
+        channel.put(source, destination, null, mode);
+    }
+
+    public void moveFile(String oldPath, String newPath) throws Exception {
+        channel.rename(oldPath, newPath);
     }
 
 }

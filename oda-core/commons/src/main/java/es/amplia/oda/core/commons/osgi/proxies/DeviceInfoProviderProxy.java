@@ -18,6 +18,9 @@ public class DeviceInfoProviderProxy implements DeviceInfoProvider, AutoCloseabl
     @Override
     public String getDeviceId() { return proxy.callFirst(DeviceInfoProvider::getDeviceId); }
     @Override
+    public void setDeviceId(String deviceId) {proxy.consumeFirst(devInfo -> devInfo.setDeviceId(deviceId));
+    }
+    @Override
     public String getApiKey() { return proxy.callFirst(DeviceInfoProvider::getApiKey); }
     @Override
     public List<Software> getSoftware() { return proxy.callFirst(DeviceInfoProvider::getSoftware); }
@@ -26,4 +29,5 @@ public class DeviceInfoProviderProxy implements DeviceInfoProvider, AutoCloseabl
     public void close() {
         proxy.close();
     }
+
 }

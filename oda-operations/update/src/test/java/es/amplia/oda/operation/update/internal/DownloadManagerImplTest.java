@@ -1,7 +1,13 @@
 package es.amplia.oda.operation.update.internal;
 
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOperationType;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOption;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
+import es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import es.amplia.oda.operation.update.FileManager;
+import es.amplia.oda.operation.update.FileManager.FileException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -16,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -29,17 +36,21 @@ import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.API_KEY_HEADER;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ DownloadManagerImpl.class, HttpClientBuilder.class, DataInputStream.class })
+@PowerMockIgnore({ "javax.net.ssl.*", "javax.security.*" })
 public class DownloadManagerImplTest {
 
     private static final String DOWNLOAD_FOLDER = "downloads/";
     private static final String DOWNLOADED_FILE_1 = "/path/to/downloaded/file1.jar";
     private static final String NAME_1 = "testBundle1";
     private static final String VERSION_1 = "1.0.0";
-    private static final String URL_1 = "http://www.platform.com/url/to/deploymentelement.jar";
+    private static final String URL_1 = "https://www.platform.com/url/to/deploymentelement.jar";
     private static final DeploymentElement deploymentElement1 =
             new DeploymentElement(NAME_1, VERSION_1, DeploymentElementType.SOFTWARE, URL_1, "deploy/", 1L,
                     DeploymentElementOperationType.INSTALL,

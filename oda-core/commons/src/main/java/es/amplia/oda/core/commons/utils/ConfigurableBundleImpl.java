@@ -73,6 +73,7 @@ public class ConfigurableBundleImpl implements ConfigurableBundle {
 
                 configurationEvent = CONFIGURATION_UPDATED_EVENT;
                 handler.loadConfiguration(innerProps);
+                handler.notifyConfigurationFilePath(filename);
                 configurationMessage = CONFIGURATION_UPDATED_MESSAGE;
             }
             else {

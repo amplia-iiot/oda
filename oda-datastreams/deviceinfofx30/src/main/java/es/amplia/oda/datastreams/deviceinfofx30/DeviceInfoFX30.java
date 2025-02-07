@@ -116,6 +116,11 @@ public class DeviceInfoFX30 implements DeviceInfoProvider {
 	}
 
 	@Override
+	public void setDeviceId(String deviceId) {
+        LOGGER.error("This bundle cannot set DeviceId");
+    }
+
+	@Override
 	public String getApiKey() {
 		return apiKey;
 	}

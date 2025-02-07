@@ -16,7 +16,6 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoConfigurationHandler.class);
 
-
     static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
     static final String API_KEY_PROPERTY_NAME = "apiKey";
     static final String SOURCE_PROPERTY_NAME = "source";
@@ -62,6 +61,11 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
         }
 
         currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, source, path, scripts);
+    }
+
+    @Override
+    public void notifyConfigurationFilePath(String path) {
+        deviceInfoDatastreamsGetter.setConfigFilePath(path);
     }
 
     @Override

@@ -14,9 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
 
@@ -37,6 +44,8 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     private String serialNumber;
 
     private List<ServiceRegistration<DatastreamsGetter>> getters = new ArrayList<>();
+
+    private String configFilePath = "";
 
     DeviceInfoDatastreamsGetter(CommandProcessor commandProcessor, BundleContext bundleContext) {
         this.commandProcessor = commandProcessor;
@@ -99,6 +108,26 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
 
     public void unregister() {
         getters.forEach(getter -> getter.unregister());
+    }
+
+    public void setConfigFilePath (String path) {
+        this.configFilePath = path.replace("file:", "");
+    }
+
+    public void setDeviceId(String deviceId) {
+        if (deviceId.equals(this.deviceId)) {
+            LOGGER.info("Setting deviceId to the same identifier: {}", deviceId);
+        } else {
+            try {
+                Path cfgPath = Paths.get(this.configFilePath);
+                Stream<String> lines = Files.lines(cfgPath);
+                List<String> list = lines.map(line -> line.startsWith("deviceId=") ? "deviceId="+deviceId : line).collect(Collectors.toList());
+                lines.close();
+                Files.write(cfgPath, list);
+            } catch (IOException e) {
+                LOGGER.error("Error updating deviceId to configuration file", e);
+            }
+        }
     }
     
     public String getDeviceId() {return getDeviceId(null, null);}

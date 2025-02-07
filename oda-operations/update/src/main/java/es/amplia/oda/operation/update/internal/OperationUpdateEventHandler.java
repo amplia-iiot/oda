@@ -19,7 +19,7 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 
 public class OperationUpdateEventHandler implements EventHandler, OperationConfirmationProcessor {
 
-    static final long OPERATION_TIMEOUT = 10;
+    static final long OPERATION_TIMEOUT = 75;
 
     static final String INSTALL_BUNDLE_EVENT = "org/osgi/framework/BundleEvent/INSTALLED";
     static final String UNINSTALL_BUNDLE_EVENT = "org/osgi/framework/BundleEvent/UNINSTALLED";

@@ -28,6 +28,14 @@ public interface ConfigurationUpdateHandler {
     }
 
     /**
+     * Notify the configurable its own configuration file path
+     * @param path
+     */
+    default void notifyConfigurationFilePath(String path) {
+        // By default do nothing
+    }
+
+    /**
      * Apply configuration.
      * @throws RuntimeException Exception applying configuration.
      */
