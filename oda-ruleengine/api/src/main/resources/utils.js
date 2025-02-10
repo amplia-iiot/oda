@@ -183,3 +183,8 @@ function setNotSentValuesAsSent(State, deviceId, datastreamId) {
 		setSent(State, deviceId, datastreamId, entry);
 	}
 }
+
+// SET VALUE AS ERROR
+function setError(state, deviceId, datastreamId, at, error) {
+	state.setProcessingError(deviceId, datastreamId, at, error);
+}

@@ -84,6 +84,15 @@ public class State {
             });
         }
 
+        public void setProcessingError(long at, String error) {
+            this.storedValues.forEach(datastreamValue -> {
+                if (datastreamValue.getAt() == at) {
+                    datastreamValue.setStatus(DatastreamValue.Status.PROCESSING_ERROR);
+                    datastreamValue.setError(error);
+                }
+            });
+        }
+
         public void sendImmediately() {
             this.sendImmediately = true;
         }
@@ -339,8 +348,15 @@ public class State {
         values.forEach((at, sent) -> getDatastreamState(deviceId, datastreamId).setSent(at, sent));
     }
 
+    public void setProcessingError(String deviceId, String datastreamId, Map<Long, String> values) {
+        values.forEach((at, error) -> getDatastreamState(deviceId, datastreamId).setProcessingError(at, error));
+    }
+
     public void setSent(String deviceId, String datastreamId, Long at, Boolean sent) {
         getDatastreamState(deviceId, datastreamId).setSent(at, sent);
+    }
+    public void setProcessingError(String deviceId, String datastreamId, Long at, String error) {
+        getDatastreamState(deviceId, datastreamId).setProcessingError(at, error);
     }
 
     public void removeHistoricValuesInMemory(String datastreamId, String deviceId, long forgetTime, int maxHistoricData) {

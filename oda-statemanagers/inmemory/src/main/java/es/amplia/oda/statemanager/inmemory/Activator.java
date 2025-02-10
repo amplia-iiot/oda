@@ -1,6 +1,7 @@
 package es.amplia.oda.statemanager.inmemory;
 
 import es.amplia.oda.core.commons.entities.ContentType;
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
@@ -20,6 +21,7 @@ public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
+    private DatastreamsGettersFinder datastreamsGettersFinder;
     private DatastreamsSettersFinder datastreamsSettersFinder;
     private RuleEngineProxy ruleEngine;
     private EventDispatcherProxy eventDispatcher;
@@ -40,14 +42,19 @@ public class Activator implements BundleActivator {
                 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(MAX_SIZE_THREADS_QUEUE));
         // create scheduler to manage periodic tasks
         scheduler = new SchedulerImpl(executorService);
+        // create finders
+        ServiceLocator<DatastreamsGetter> datastreamsGettersLocator =
+                new ServiceLocatorOsgi<>(bundleContext, DatastreamsGetter.class);
+        datastreamsGettersFinder = new DatastreamsGettersFinderImpl(datastreamsGettersLocator);
         ServiceLocator<DatastreamsSetter> datastreamsSettersLocator =
                 new ServiceLocatorOsgi<>(bundleContext, DatastreamsSetter.class);
         datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
+
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
         SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
-        InMemoryStateManager inMemoryStateManager =
-                new InMemoryStateManager(datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler);
+        InMemoryStateManager inMemoryStateManager = new InMemoryStateManager(datastreamsGettersFinder,
+                datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler);
         ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationUpdateHandler);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);
@@ -61,6 +68,7 @@ public class Activator implements BundleActivator {
 
         configurableBundle.close();
         stateManagerRegistration.unregister();
+        datastreamsGettersFinder.close();
         datastreamsSettersFinder.close();
         ruleEngine.close();
         eventDispatcher.close();

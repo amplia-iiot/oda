@@ -1,5 +1,6 @@
 package es.amplia.oda.statemanager.inmemory;
 
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.*;
@@ -56,6 +57,10 @@ public class InMemoryStateManagerTest {
     private final State testState = new State();
 
     @Mock
+    private DatastreamsGettersFinder mockedGettersFinder;
+    @Mock
+    private DatastreamsGetter mockedGetter1;
+    @Mock
     private DatastreamsSettersFinder mockedSettersFinder;
     @Mock
     private EventDispatcher mockedEventDispatcher;
@@ -80,7 +85,8 @@ public class InMemoryStateManagerTest {
 
     @Before
     public void setUp() {
-        testStateManager = new InMemoryStateManager(mockedSettersFinder, mockedEventDispatcher, mockedEngine, mockedSerializer, executor, scheduler);
+        testStateManager = new InMemoryStateManager(mockedGettersFinder, mockedSettersFinder, mockedEventDispatcher,
+                mockedEngine, mockedSerializer, executor, scheduler);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
                 new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
@@ -214,6 +220,11 @@ public class InMemoryStateManagerTest {
 
     @Test
     public void testGetDeviceInformation() throws ExecutionException, InterruptedException {
+        when(mockedGettersFinder.getGettersOfDevice(any())).thenReturn(Collections.singletonList(mockedGetter1));
+        when(mockedGetter1.getDatastreamIdSatisfied()).thenReturn(TEST_DATASTREAM_ID);
+        when(mockedGetter1.get(anyString())).thenReturn(CompletableFuture.completedFuture(
+                new DatastreamsGetter.CollectedValue(TEST_AT_NEW, TEST_VALUE_NEW)));
+
         CompletableFuture<Set<DatastreamValue>> future =
                 testStateManager.getDeviceInformation(TEST_DEVICE_ID);
         Set<DatastreamValue> values = future.get();

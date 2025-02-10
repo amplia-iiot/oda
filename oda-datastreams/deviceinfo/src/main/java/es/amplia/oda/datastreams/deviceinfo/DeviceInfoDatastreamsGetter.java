@@ -43,7 +43,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     private String apiKey;
     private String serialNumber;
 
-    private List<ServiceRegistration<DatastreamsGetter>> getters = new ArrayList<>();
+    private final List<ServiceRegistration<DatastreamsGetter>> getters = new ArrayList<>();
 
     private String configFilePath = "";
 
@@ -107,7 +107,8 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     }
 
     public void unregister() {
-        getters.forEach(getter -> getter.unregister());
+        getters.forEach(ServiceRegistration::unregister);
+        getters.clear();
     }
 
     public void setConfigFilePath (String path) {
@@ -132,7 +133,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
     
     public String getDeviceId() {return getDeviceId(null, null);}
     public String getDeviceId(String scriptToExecute, String type) {
-        return (deviceId != null && !deviceId.equals("")) ? deviceId : serialNumber;
+        return (deviceId != null && !deviceId.isEmpty()) ? deviceId : serialNumber;
     }
 
     public String getApiKey() {return getApiKey(null, null);}

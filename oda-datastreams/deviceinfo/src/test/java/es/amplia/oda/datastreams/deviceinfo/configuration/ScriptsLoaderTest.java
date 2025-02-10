@@ -1,7 +1,7 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
-import es.amplia.oda.core.commons.utils.CommandExecutionException;
-import es.amplia.oda.core.commons.utils.CommandProcessor;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,22 +11,24 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Enumeration;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.*;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ScriptsLoader.class)
 public class ScriptsLoaderTest {
-	@Mock
-	private CommandProcessor mockedCommandProcessor;
+
 	@InjectMocks
 	private ScriptsLoader scriptsLoader;
 	@Mock
@@ -40,52 +42,144 @@ public class ScriptsLoaderTest {
 	@Mock
 	private InputStream mockedInputStream;
 
+	String sourceDir = "tempSource";
+	String destDir = "tempDest";
+
+
+	@Before
+	public void start() throws IOException {
+		Path sourceDirPath = Paths.get(sourceDir);
+		Path destDirPath = Paths.get(destDir);
+
+		if (Files.exists(sourceDirPath)) {
+			File dir = new File(String.valueOf(sourceDirPath));
+			for (File insideDirFile : Objects.requireNonNull(dir.listFiles())) {
+				Files.delete(Paths.get(insideDirFile.getPath()));
+			}
+			Files.delete(sourceDirPath);
+		}
+		if (Files.exists(destDirPath)) {
+			File dir = new File(String.valueOf(destDirPath));
+			for (File insideDirFile : Objects.requireNonNull(dir.listFiles())) {
+				Files.delete(Paths.get(insideDirFile.getPath()));
+			}
+			Files.delete(destDirPath);
+		}
+
+		Files.createDirectories(sourceDirPath);
+		Files.createDirectories(destDirPath);
+	}
+
+	@After
+	public void end() throws IOException {
+		Path sourceDirPath = Paths.get(sourceDir);
+		Path destDirPath = Paths.get(destDir);
+
+		if (Files.exists(sourceDirPath)) {
+			File dir = new File(String.valueOf(sourceDirPath));
+			File[] filesInDir = dir.listFiles();
+			if (filesInDir != null) {
+				for (File insideDirFile : filesInDir) {
+					if (insideDirFile == mockedFile) {
+						continue;
+					}
+					Files.delete(Paths.get(insideDirFile.getPath()));
+				}
+			}
+			Files.delete(sourceDirPath);
+		}
+		if (Files.exists(destDirPath)) {
+			File dir = new File(String.valueOf(destDirPath));
+			File[] filesInDir = dir.listFiles();
+			if (filesInDir != null) {
+				for (File insideDirFile : filesInDir) {
+					if (insideDirFile == mockedFile) {
+						continue;
+					}
+					Files.delete(Paths.get(insideDirFile.getPath()));
+				}
+			}
+			Files.delete(destDirPath);
+		}
+	}
+
 	@Test
 	public void testLoad() throws Exception {
-		File result = new File("temp");
-		result.createNewFile();
-		FileOutputStream fos = new FileOutputStream(result);
-		long init = result.length();
+
+		File resultFile = new File(sourceDir + File.separator + "temp");
+		Files.createFile(resultFile.toPath());
+
+		//
 		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-		whenNew(JarFile.class).withAnyArguments().thenReturn(mockedJarFile);
-		whenNew(FileOutputStream.class).withAnyArguments().thenReturn(fos);
+		when(mockedFile.exists()).thenReturn(false);
 		File[] files = new File[1];
 		files[0] = mockedFile;
 		when(mockedFile.listFiles()).thenReturn(files);
+
+		//
 		when(mockedFile.getName()).thenReturn("es.amplia.oda.datastreams.deviceinfo");
-		when(mockedCommandProcessor.execute(contains("mkdir"))).thenReturn(null);
-		when(mockedCommandProcessor.execute(contains("cp"))).thenReturn(null);
+
+		//
+		when(mockedFile.toPath()).thenReturn(Paths.get(sourceDir + File.separator + "temp"));
+		whenNew(JarFile.class).withAnyArguments().thenReturn(mockedJarFile);
 		when(mockedJarFile.entries()).thenReturn(mockedEnumeration);
 		when(mockedEnumeration.hasMoreElements()).thenReturn(true, false);
 		when(mockedEnumeration.nextElement()).thenReturn(mockedJarEntry);
 		when(mockedJarEntry.getName()).thenReturn(".sh");
+
+		// create file to copy
+		FileOutputStream fos = new FileOutputStream(resultFile);
+		whenNew(FileOutputStream.class).withAnyArguments().thenReturn(fos);
+
+		//
 		when(mockedJarFile.getInputStream(any())).thenReturn(mockedInputStream);
 		when(mockedInputStream.available()).thenReturn(1, 0);
 		when(mockedInputStream.read()).thenReturn(0);
 
-		scriptsLoader.load("deploy", "tests");
+		// call method
+		scriptsLoader.load(sourceDir, destDir);
 
-		assertTrue(result.length() > init);
-		result.delete();
-	}
+		// assertions
+		verify(mockedJarFile, times(1)).entries();
+		verify(mockedJarEntry, atLeast(1)).getName();
+		verify(mockedInputStream, atLeast(1)).available();
 
-	@Test(expected = CommandExecutionException.class)
-	public void testLoadWithNoJarToExtract() throws Exception {
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-		File[] files = new File[1];
-		files[0] = mockedFile;
-		when(mockedFile.listFiles()).thenReturn(files);
-		when(mockedFile.getName()).thenReturn("another.package");
-
-		scriptsLoader.load("deploy", "tests");
+		// clean files created
+		resultFile.delete();
 	}
 
 	@Test
-	public void testClose() throws Exception {
-		when(mockedCommandProcessor.execute(any())).thenReturn(null);
+	public void testLoadDirAlreadyExists() throws Exception {
 
-		scriptsLoader.close();
+		//
+		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
+		when(mockedFile.exists()).thenReturn(true);
 
-		verify(mockedCommandProcessor, times(1)).execute(any());
+		// call method
+		scriptsLoader.load(sourceDir, destDir);
+
+		verify(mockedFile, times(0)).listFiles();
+		verify(mockedFile, times(0)).getName();
+
+	}
+
+	@Test
+	public void testLoadJarNotExist() throws Exception {
+
+		//
+		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
+		when(mockedFile.exists()).thenReturn(false);
+		File[] files = new File[1];
+		files[0] = mockedFile;
+		when(mockedFile.listFiles()).thenReturn(files);
+
+		// bundle to search for not exist
+		when(mockedFile.getName()).thenReturn("notExist");
+
+		// call method
+		scriptsLoader.load(sourceDir, destDir);
+
+		verify(mockedFile, times(0)).toPath();
+
 	}
 }

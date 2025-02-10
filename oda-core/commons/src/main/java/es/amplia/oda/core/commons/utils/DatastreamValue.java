@@ -1,13 +1,9 @@
 package es.amplia.oda.core.commons.utils;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 @Data
-//@AllArgsConstructor
-@RequiredArgsConstructor
 public class DatastreamValue {
     public enum Status {
         OK("Successful"),
@@ -26,14 +22,28 @@ public class DatastreamValue {
         }
     }
 
+
+    public DatastreamValue(String deviceId, String datastreamId, String feed, Long at, Object value, Status status,
+                           String error, @NonNull Boolean sent, @NonNull Boolean processed) {
+        this.deviceId = deviceId;
+        this.datastreamId = datastreamId;
+        this.feed = feed;
+        this.at = at;
+        this.value = value;
+        this.status = status;
+        this.error = error;
+        this.sent = sent;
+        this.processed = processed;
+    }
+
     private final String deviceId;
     private final String datastreamId;
     private final String feed;
     private final Long at;
     private Long date = System.currentTimeMillis();
     private final Object value;
-    private final Status status;
-    private final String error;
+    private Status status;
+    private String error;
     @NonNull
     private Boolean sent;
     @NonNull
