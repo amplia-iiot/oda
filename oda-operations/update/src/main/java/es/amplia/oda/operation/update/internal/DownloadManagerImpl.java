@@ -3,7 +3,6 @@ package es.amplia.oda.operation.update.internal;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.operation.update.DownloadManager;
 import es.amplia.oda.operation.update.FileManager;
-
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -13,9 +12,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -58,10 +64,35 @@ public class DownloadManagerImpl implements DownloadManager {
         String localFilePath = getDeploymentElementLocalFilePath(deploymentElement);
         String remoteUrl = deploymentElement.getDownloadUrl();
 
+        if (remoteUrl.startsWith("http://")) remoteUrl = remoteUrl.replace("http://", "https://");
+
         HttpGet httpGet = new HttpGet(remoteUrl);
         httpGet.addHeader(API_KEY_HEADER, deviceInfoProvider.getApiKey());
 
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        // For adding SSL No Verification
+        TrustManager trm = new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        };
+
+        SSLContext sslContext;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[] { trm }, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(sslContext).build();
              CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
              DataInputStream reader = new DataInputStream(httpResponse.getEntity().getContent());
              DataOutputStream writer = new DataOutputStream(new FileOutputStream(new File(localFilePath)))) {
@@ -80,6 +111,7 @@ public class DownloadManagerImpl implements DownloadManager {
                 writer.write(buffer, 0, n);
             }
 
+            logger.debug("File downloaded " + localFilePath);
             downloadedFiles.put(deploymentElement, localFilePath);
         } catch (IOException exception) {
             throw new DownloadException(String.format("Error downloading file %s to %s: %s", remoteUrl, localFilePath,
@@ -106,6 +138,7 @@ public class DownloadManagerImpl implements DownloadManager {
         if (downloadedFiles.containsKey(deploymentElement)) {
             return downloadedFiles.get(deploymentElement);
         }
+        logger.warn("No file found for deployment element " + deploymentElement.getDownloadUrl());
         return null;
     }
 

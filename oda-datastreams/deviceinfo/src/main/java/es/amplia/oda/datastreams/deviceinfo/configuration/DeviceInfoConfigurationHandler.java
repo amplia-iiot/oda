@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceInfoConfigurationHandler.class);
 
     static final String DEVICE_ID_PROPERTY_NAME = "deviceId";
     static final String API_KEY_PROPERTY_NAME = "apiKey";
@@ -56,6 +57,11 @@ public class DeviceInfoConfigurationHandler implements ConfigurationUpdateHandle
         }
 
         currentConfiguration = new DeviceInfoConfiguration(deviceId, apiKey, source, path, scripts);
+    }
+
+    @Override
+    public void notifyConfigurationFilePath(String path) {
+        deviceInfoDatastreamsGetter.setConfigFilePath(path);
     }
 
     @Override

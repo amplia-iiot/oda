@@ -92,6 +92,10 @@ public class DeviceInfoOwa450DatastreamsGetter implements DeviceInfoProvider {
         return (deviceId != null && !deviceId.equals("")) ? deviceId : serialNumber;
     }
 
+    public void setDeviceId(String deviceId) {
+        LOGGER.error("This bundle cannot set DeviceId");
+    }
+
     
     public String getApiKey() {
         return apiKey;
