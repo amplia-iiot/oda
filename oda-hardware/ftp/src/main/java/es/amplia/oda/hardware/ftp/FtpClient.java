@@ -90,7 +90,7 @@ public class FtpClient {
     public void changeDir(String path) throws IOException {
         boolean result = ftpClient.changeWorkingDirectory(path);
         if (!result) {
-            log.error("Error changing working directory in Ftp server");
+            throw new IOException("Error changing working directory in Ftp server");
         }
     }
 
