@@ -115,6 +115,13 @@ public class FtpClient {
         in.close();
     }
 
+    public void deleteFile(String fileToRemove) throws IOException {
+        boolean result = ftpClient.deleteFile(fileToRemove);
+        if (!result) {
+            throw new IOException("Error deleting file " + fileToRemove + " in Ftp server");
+        }
+    }
+
     private FtpFile mapFtpFile(FTPFile fileFromFtpServer) {
         FtpFile newFtpFile = new FtpFile();
         newFtpFile.setName(fileFromFtpServer.getName());
