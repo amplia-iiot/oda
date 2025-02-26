@@ -1,9 +1,6 @@
 package es.amplia.oda.datastreams.mqtt;
 
-import es.amplia.oda.comms.mqtt.api.MqttClient;
-import es.amplia.oda.comms.mqtt.api.MqttException;
-import es.amplia.oda.comms.mqtt.api.MqttMessage;
-import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
+import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.core.commons.interfaces.AbstractDatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
@@ -59,6 +56,9 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
             Map<String, Map<String, Map<Long, Object>>> events = new HashMap<>();
             try {
                 LOGGER.debug("Message arrived to the {} topic", topic);
+                // increase counter
+                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
+
                 OutputDatastream event =
                         serializer.deserialize(mqttMessage.getPayload(), OutputDatastream.class);
                 String deviceId = event.getDevice()!=null?event.getDevice():extractDeviceIdFromTopic(topic);
@@ -80,7 +80,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 publish(deviceId, Arrays.asList(path), events); // Añadir deviceId del ODA al path
 
             } catch (Exception e) {
-                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e);
+                LOGGER.error("Error dispatching device event from MQTT message {}: {}", mqttMessage, e.getMessage());
             }
         }
 
@@ -106,8 +106,10 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
         public void messageArrived(String topic, MqttMessage mqttMessage) {
             try {
                 LOGGER.debug("Response arrived to the {} topic", topic);
-                OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
+                // increase counter
+                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
 
+                OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
                 String[] path = resp.getOperation().getResponse().getPath();
                 String deviceId = resp.getOperation().getResponse().getDeviceId();
                 resp.getOperation().getResponse().setPath(addDeviceIdToPath(path, deviceId));
@@ -115,7 +117,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
                 responseDispatcher.publishResponse(resp);
 
             } catch (Exception e) {
-                LOGGER.error("Error dispatching device response from MQTT message {}: {}", mqttMessage, e);
+                LOGGER.error("Error dispatching device response from MQTT message {}: {}", mqttMessage, e.getMessage());
             }
         }
 

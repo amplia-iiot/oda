@@ -85,6 +85,10 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     public void messageArrived(String topic, MqttMessage message) {
         LOGGER.debug("Messaged arrived to topic {}", topic);
         LOGGER.trace("Mqtt message content: {}", message);
+
+        // increase counter
+        MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
+
         try {
             // In MQTT v5 contentType should come from MqttProperties Content-Format
             ContentType contentType = ContentType.JSON;
@@ -117,6 +121,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             LOGGER.trace("Mqtt message content: {}", message );
             try {
                 client.publish(topic, message, contentType);
+                // increase counter
+                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_SENT, topic, 1);
             } catch (MqttException e) {
                 LOGGER.warn("Cannot send the message: " + message + ", on topic: " + topic, e);
             }

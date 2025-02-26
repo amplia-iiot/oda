@@ -12,7 +12,9 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -22,7 +24,8 @@ import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MqttCounters.class)
 public class MqttConnectorTest {
 
     private static final String TEST_USERNAME = "testUser";
@@ -55,7 +58,6 @@ public class MqttConnectorTest {
     private Dispatcher mockedDispatcher;
     @InjectMocks
     private MqttConnector testConnector;
-
     @Mock
     private MqttClient mockedMqttClient;
     @Mock
@@ -70,6 +72,8 @@ public class MqttConnectorTest {
         Whitebox.setInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME, TEST_RESPONSE_TOPIC);
         Whitebox.setInternalState(testConnector, QOS_FIELD_NAME, TEST_QOS);
         Whitebox.setInternalState(testConnector, RETAINED_FIELD_NAME, TEST_RETAINED);
+
+        PowerMockito.mockStatic(MqttCounters.class);
     }
 
     @Test
