@@ -246,8 +246,8 @@ public class CounterEngine {
 				for (Pattern template : categoryTemplates) {
 					Matcher matcher = template.matcher(counterKey);
 					if (matcher.matches())
-						if (!categories.containsKey(matcher.group(1)))
-							categories.put(matcher.group(1), new Integer(0));
+						if (!categories.containsKey(counterKey))
+							categories.put(counterKey, 0);
 				}
 			}
 		}
