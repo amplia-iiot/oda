@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import es.amplia.oda.comms.mqtt.api.MqttCounters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,8 @@ public class MqttOperationSender implements OperationSender{
             LOGGER.debug("Sending message to topic {}", finalTopic);
             LOGGER.trace("Mqtt message content: {}", message);
             this.mqttClient.publish(finalTopic, message, ContentType.JSON);
+            // increase counter
+            MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_DATASTREAMS_SENT, MqttCounters.MqttTopicType.REQUEST, 1);
         } catch (IOException e) {
             LOGGER.error("Error parsing downlink message {}", operation, e);
         }
@@ -58,5 +61,5 @@ public class MqttOperationSender implements OperationSender{
         if ( (path.length == 2) && (this.nextLevelOdaIds.contains(path[1])) ) return true;
         return false;
     }
-    
+
 }

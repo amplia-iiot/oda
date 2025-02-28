@@ -87,7 +87,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         LOGGER.trace("Mqtt message content: {}", message);
 
         // increase counter
-        MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
+        incrCounter(MqttCounters.MqttCounterType.MQTT_CONNECTOR_RECEIVED, topic, 1);
 
         try {
             // In MQTT v5 contentType should come from MqttProperties Content-Format
@@ -122,7 +122,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
             try {
                 client.publish(topic, message, contentType);
                 // increase counter
-                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_SENT, topic, 1);
+                incrCounter(MqttCounters.MqttCounterType.MQTT_CONNECTOR_SENT, topic, 1);
             } catch (MqttException e) {
                 LOGGER.warn("Cannot send the message: " + message + ", on topic: " + topic, e);
             }
@@ -191,4 +191,24 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     public void onSuccess() {
         LOGGER.info("Subscribed to request topic: " + requestTopic);
     }
+
+    private void incrCounter(MqttCounters.MqttCounterType counterType, String topic, int number) {
+        MqttCounters.MqttTopicType topicType;
+
+        if (MqttCounters.compareTopics(this.iotTopic, topic)) {
+            topicType = MqttCounters.MqttTopicType.IOT;
+        } else if (MqttCounters.compareTopics(this.requestTopic, topic)) {
+            topicType = MqttCounters.MqttTopicType.REQUEST;
+        } else if (MqttCounters.compareTopics(this.responseTopic, topic)) {
+            topicType = MqttCounters.MqttTopicType.RESPONSE;
+        } else {
+           LOGGER.error("Can't increment counter as topic '{}' is not one of the topics configured in bundle", topic);
+           return;
+        }
+
+        // increase counter
+        MqttCounters.incrCounter(counterType, topicType, number);
+    }
+
+
 }

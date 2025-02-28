@@ -6,9 +6,8 @@ import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
-import es.amplia.oda.dispatcher.opengate.datastreamdomain.*;
+import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
 import es.amplia.oda.event.api.ResponseDispatcher;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
             try {
                 LOGGER.debug("Message arrived to the {} topic", topic);
                 // increase counter
-                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
+                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_DATASTREAMS_RECEIVED, MqttCounters.MqttTopicType.EVENT,1);
 
                 OutputDatastream event =
                         serializer.deserialize(mqttMessage.getPayload(), OutputDatastream.class);
@@ -107,7 +106,7 @@ class MqttDatastreamsEvent extends AbstractDatastreamsEvent {
             try {
                 LOGGER.debug("Response arrived to the {} topic", topic);
                 // increase counter
-                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_RECEIVED, topic, 1);
+                MqttCounters.incrCounter(MqttCounters.MqttCounterType.MQTT_DATASTREAMS_RECEIVED, MqttCounters.MqttTopicType.RESPONSE, 1);
 
                 OperationResponse resp = serializer.deserialize(mqttMessage.getPayload(), OperationResponse.class);
                 String[] path = resp.getOperation().getResponse().getPath();

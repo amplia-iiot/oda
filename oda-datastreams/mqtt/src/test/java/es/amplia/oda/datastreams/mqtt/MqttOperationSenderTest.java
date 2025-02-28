@@ -1,27 +1,34 @@
 package es.amplia.oda.datastreams.mqtt;
 
 import es.amplia.oda.comms.mqtt.api.MqttClient;
+import es.amplia.oda.comms.mqtt.api.MqttCounters;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.operation.request.Operation;
 import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
 import es.amplia.oda.core.commons.utils.operation.request.Request;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(MqttCounters.class)
 public class MqttOperationSenderTest {
 
     private static final String TEST_REQUEST_TOPIC = "test/request/topic";
@@ -42,6 +49,11 @@ public class MqttOperationSenderTest {
     private Serializer mockedSerializer;
     
     private MqttOperationSender testHandler;
+
+    @Before
+    public void setUp() {
+        PowerMockito.mockStatic(MqttCounters.class);
+    }
 
     @Test
     public void testConstructor() {
