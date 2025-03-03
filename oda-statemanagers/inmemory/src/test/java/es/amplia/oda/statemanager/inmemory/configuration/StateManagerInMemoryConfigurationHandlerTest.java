@@ -14,7 +14,6 @@ import java.util.Hashtable;
 
 import static es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfigurationHandler.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 @RunWith(PowerMockRunner.class)
@@ -25,6 +24,9 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 	public static final String MAX_DATA_PROPERTY_VALUE = "123";
 	public static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "600";
 	public static final String PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "10";
+	public static final String TASKS_PROCESSING_THREADS_PROPERTY_VALUE = "1";
+	public static final String TASKS_PROCESSING_QUEUE_SIZE_PROPERTY_VALUE = "10";
+
 
 
 	@Mock
@@ -37,7 +39,9 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 					DATABASE_PATH_PROPERTY_VALUE,
 					Integer.parseInt(MAX_DATA_PROPERTY_VALUE),
 					Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
-					Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE)
+					Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
+					Integer.parseInt(TASKS_PROCESSING_THREADS_PROPERTY_VALUE),
+					Integer.parseInt(TASKS_PROCESSING_QUEUE_SIZE_PROPERTY_VALUE)
 			);
 
 	@Test

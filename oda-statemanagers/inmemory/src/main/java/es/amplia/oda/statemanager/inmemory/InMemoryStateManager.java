@@ -17,10 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,7 +35,7 @@ public class InMemoryStateManager implements StateManager {
     private final Serializer serializer;
     private final State state = new State();
     private DatabaseHandler database;
-    private final ExecutorService executor;
+    private ExecutorService executor;
 
     private final Scheduler scheduler;
     private int maxHistoricalData;
@@ -399,17 +396,47 @@ public class InMemoryStateManager implements StateManager {
         // get from database the datastreams stored and load it into memory
         Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
         this.state.loadData(collectData);
+
+        // update executor size
+        updatePendingTasksProcessor(config.getNumThreads(), config.getTaskQueueSize());
     }
 
     @Override
     public void onReceivedEvents(List<Event> events) {
+        LOGGER.debug("Processing event thread pool - num threads = {}, queue (occupied size = {}, remaining capacity = {})",
+                ((ThreadPoolExecutor) executor).getPoolSize(),
+                ((ThreadPoolExecutor) executor).getQueue().size(),
+                ((ThreadPoolExecutor) executor).getQueue().remainingCapacity());
+
         try {
             executor.execute(() -> processEvents(events));
-            LOGGER.debug("Thread pool queue - pending tasks = {}, remaining capacity = {}",
-                    ((ThreadPoolExecutor) executor).getQueue().size(),
-                    ((ThreadPoolExecutor) executor).getQueue().remainingCapacity());
         } catch (RejectedExecutionException e) {
-            LOGGER.error("Can't add task to thread pool, reached max size", e);
+            LOGGER.error("Can't add task to processing events thread pool, reached pending tasks max capacity");
         }
     }
+
+    private void updatePendingTasksProcessor(int numThreads, int sizeQueue) {
+        LOGGER.debug("Updating processing events thread pool - new num threads = {}, queue new total size = {}", numThreads, sizeQueue);
+
+        // create new executor with new queue
+        ExecutorService newExecutor = new ThreadPoolExecutor(numThreads, numThreads, 0L,
+                TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(sizeQueue));
+
+        // change executors so new tasks are added to the new executor
+        ExecutorService oldExecutor = this.executor;
+        this.executor = newExecutor;
+
+        // stop old executor to not accept new tasks
+        // this also executes all pending tasks in queue
+        oldExecutor.shutdown();
+
+        /*
+        // get current pending tasks and pass it to new queue
+        BlockingQueue<Runnable> oldQueue = ((ThreadPoolExecutor) oldExecutor).getQueue();
+
+        for (Runnable pendingTask : oldQueue) {
+            this.executor.submit(pendingTask);
+        }*/
+    }
+
 }
