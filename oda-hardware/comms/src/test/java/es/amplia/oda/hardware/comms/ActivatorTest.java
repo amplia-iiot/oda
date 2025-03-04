@@ -2,10 +2,8 @@ package es.amplia.oda.hardware.comms;
 
 import es.amplia.oda.core.commons.utils.CommandProcessorImpl;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.core.commons.utils.ScriptsLoader;
 import es.amplia.oda.core.commons.utils.ScriptsLoaderImpl;
 import es.amplia.oda.hardware.comms.configuration.CommsConfigurationUpdateHandler;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -15,9 +13,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.concurrent.Executors;
-
-import static es.amplia.oda.hardware.comms.Activator.NUM_THREADS;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 

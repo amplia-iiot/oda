@@ -102,6 +102,7 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcherProxy);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedBundle);
         Whitebox.setInternalState(testActivator, "scheduler", mockedScheduler);
+        Whitebox.setInternalState(testActivator, "inMemoryStateManager", mockedStateManager);
 
         testActivator.stop(mockedContext);
 
@@ -112,5 +113,6 @@ public class ActivatorTest {
         verify(mockedSettersFinder).close();
         verify(mockedRuleEngine).close();
         verify(mockedScheduler).close();
+        verify(mockedStateManager).close();
     }
 }

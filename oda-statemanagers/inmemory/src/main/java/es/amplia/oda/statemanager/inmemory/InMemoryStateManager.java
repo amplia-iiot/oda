@@ -167,7 +167,7 @@ public class InMemoryStateManager implements StateManager {
         values.forEach(datastreamValue -> {
             if (this.state.exists(datastreamValue.getDeviceId(), datastreamValue.getDatastreamId()) ) {
                 setSentInState(datastreamValue);
-                database.updateDataAsSent(
+                this.database.updateDataAsSent(
                     datastreamValue.getDeviceId(),
                     datastreamValue.getDatastreamId(),
                     datastreamValue.getAt());
@@ -384,10 +384,20 @@ public class InMemoryStateManager implements StateManager {
 
     @Override
     public void close() {
-        database.close();
+        // stop thread pool executor
+        this.executor.shutdownNow();
+
+        // close database connection
+        if(this.database != null) {
+            this.database.close();
+        }
     }
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {
+        if(this.database != null) {
+            this.database.close();
+        }
+
         this.forgetTime = config.getForgetTime();
         this.forgetPeriod = config.getForgetPeriod();
         this.maxHistoricalData = config.getMaxData();

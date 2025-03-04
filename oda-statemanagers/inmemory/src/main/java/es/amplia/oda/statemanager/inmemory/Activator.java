@@ -31,6 +31,7 @@ public class Activator implements BundleActivator {
     private static final int MAX_SIZE_THREADS_QUEUE = 1000;
 
     private Scheduler scheduler;
+    private InMemoryStateManager inMemoryStateManager;
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     @Override
@@ -53,7 +54,7 @@ public class Activator implements BundleActivator {
         eventDispatcher = new EventDispatcherProxy(bundleContext);
         ruleEngine = new RuleEngineProxy(bundleContext);
         SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
-        InMemoryStateManager inMemoryStateManager = new InMemoryStateManager(datastreamsGettersFinder,
+        inMemoryStateManager = new InMemoryStateManager(datastreamsGettersFinder,
                 datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler);
         ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationUpdateHandler);
@@ -73,6 +74,7 @@ public class Activator implements BundleActivator {
         ruleEngine.close();
         eventDispatcher.close();
         scheduler.close();
+        inMemoryStateManager.close();
 
         LOGGER.info("In Memory State Manager is stopped");
     }
