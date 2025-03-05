@@ -6,8 +6,10 @@ import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.interfaces.SerializerProvider;
 import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
-import es.amplia.oda.dispatcher.opengate.domain.*;
-
+import es.amplia.oda.dispatcher.opengate.domain.OperationResultCode;
+import es.amplia.oda.dispatcher.opengate.domain.Output;
+import es.amplia.oda.dispatcher.opengate.domain.OutputOperation;
+import es.amplia.oda.dispatcher.opengate.domain.Response;
 import es.amplia.oda.dispatcher.opengate.domain.custom.InputCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.InputGeneralOperation;
@@ -27,12 +29,9 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.DISCOVER_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.GET_DEVICE_PARAMETERS_OPERATION_NAME;
-import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.REFRESH_INFO_OPERATION_NAME;
-import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.SET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetClockEquipmentProcessor.SET_CLOCK_EQUIPMENT_OPERATION_NAME;
-import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.SYNCHRONIZE_CLOCK_OPERATION_NAME;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.SET_DEVICE_PARAMETERS_OPERATION_NAME;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.UpdateProcessor.UPDATE_OPERATION_NAME;
 
 class OpenGateOperationDispatcher implements Dispatcher {
@@ -74,7 +73,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
             if ( (path != null) && (path.length > 0) && operationSender.isForNextLevel(path, deviceId)) {
                 LOGGER.debug("Sending operation to level down: {}", basicOperation);
                 try {
-                    operationSender.downlink((OperationRequest<Object>)basicOperation);
+                    operationSender.downlink(basicOperation);
                     return null;
                 } catch (Throwable e) {
                     LOGGER.error("Error sending operation to level down", e);
@@ -88,6 +87,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
         } catch (Exception e) {
             LOGGER.error("Could not deserialize input as Basic Operation", e);
         }
+
         InputUpdateOperation openGateUpdateOperation = null;
         InputSetOrConfigureOperation openGateInputSetOrConfigureOperation = null;
         InputGetOperation openGateInputGetOperation = null;
@@ -132,7 +132,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
             try {
                 openGateInputSetOrConfigureOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputSetOrConfigureOperation.class);
                 LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "set or configure operation", openGateInputSetOrConfigureOperation);
-                if(openGateInputSetOrConfigureOperation == null || openGateInputSetOrConfigureOperation.getOperation() == null) {
+                if (openGateInputSetOrConfigureOperation == null || openGateInputSetOrConfigureOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
                 return processSetOrConfigureOperation(openGateInputSetOrConfigureOperation, contentType);
@@ -153,13 +153,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
             try {
                 openGateInputCustomOperation = serializerProvider.getSerializer(contentType).deserialize(input, InputCustomOperation.class);
                 LOGGER.debug(OPERATION_RECEIVED_EXCEPTION_MESSAGE, "custom operation", openGateInputCustomOperation);
-                if(openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
+                if (openGateInputCustomOperation == null || openGateInputCustomOperation.getOperation() == null) {
                     throw new IllegalArgumentException(NO_OPERATION_SPECIFIED_EXCEPTION_MESSAGE);
                 }
                 return processCustomOperation(openGateInputCustomOperation, contentType);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 LOGGER.debug("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
-                openGateInputCustomOperation = null;
             }
         }
 

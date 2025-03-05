@@ -1,15 +1,17 @@
 package es.amplia.oda.operation.refreshinfo;
 
 import es.amplia.oda.core.commons.interfaces.StateManager;
+import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
-import es.amplia.oda.core.commons.utils.DatastreamValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 class OperationRefreshInfoImpl implements OperationRefreshInfo {
@@ -28,17 +30,19 @@ class OperationRefreshInfoImpl implements OperationRefreshInfo {
 
         CompletableFuture<Result> value = stateManager.getDeviceInformation(deviceId).thenApply(this::createResult);
 
-        try{
+        try {
             Map<String, List<RefreshInfoValue>> result = value.get().getValues();
-            for (Map.Entry<String, List<RefreshInfoValue>> entry: result.entrySet()){
+            for (Map.Entry<String, List<RefreshInfoValue>> entry : result.entrySet()) {
                 List<Event> events = new ArrayList<>();
                 for (RefreshInfoValue item : entry.getValue()) {
-                    Event event = new Event(item.getDatastreamId(), deviceId, null, item.getFeed(), item.getAt(), item.getValue());
-                    events.add(event);
+                    if (item.getDatastreamId() != null && item.getValue() != null) {
+                        Event event = new Event(item.getDatastreamId(), deviceId, null, item.getFeed(), item.getAt(), item.getValue());
+                        events.add(event);
+                    }
                 }
                 stateManager.publishValues(events);
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             LOGGER.error("Fail trying to create the event to send the iot data {}", e.getMessage());
         }
 
