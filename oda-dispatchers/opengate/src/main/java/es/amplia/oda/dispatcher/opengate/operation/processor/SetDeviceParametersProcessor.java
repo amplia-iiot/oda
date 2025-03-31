@@ -6,13 +6,16 @@ import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrCon
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.Result;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.ResultCode;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableResult;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableValue;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationSetDeviceParameters.*;
 
 public class SetDeviceParametersProcessor  extends OperationProcessorTemplate<List<VariableValue>, Result> {
 
@@ -57,7 +60,7 @@ public class SetDeviceParametersProcessor  extends OperationProcessorTemplate<Li
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, List<VariableValue> params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, List<VariableValue> params) {
         return operationSetDeviceParameters.setDeviceParameters(deviceIdForOperations, params);
     }
 

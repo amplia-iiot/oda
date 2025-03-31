@@ -3,6 +3,7 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
+import es.amplia.oda.operation.api.OperationRefreshInfo.Result;
 
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationRefreshInfo.*;
 
 public class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Result> {
 
@@ -31,7 +31,7 @@ public class RefreshInfoProcessor extends OperationProcessorTemplate<Void, Resul
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, Void params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, Void params) {
         return operationRefreshInfo.refreshInfo(deviceIdForOperations);
     }
 

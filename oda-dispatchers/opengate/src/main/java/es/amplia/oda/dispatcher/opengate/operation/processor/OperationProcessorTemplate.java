@@ -26,7 +26,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
     private CompletableFuture<Output> processRequest(String deviceIdForOperations, String deviceIdForResponse, Request request) {
         T params = parseParameters(request);
-        CompletableFuture<R> future = processOperation(deviceIdForOperations, params);
+        CompletableFuture<R> future = processOperation(deviceIdForOperations, request.getId(), params);
         if (future == null) {
             return CompletableFuture.completedFuture(
                     translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse,
@@ -65,7 +65,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
     abstract T parseParameters(Request request);
 
-    abstract CompletableFuture<R> processOperation(String deviceIdForOperations, T params);
+    abstract CompletableFuture<R> processOperation(String deviceIdForOperations, String operationId, T params);
 
     abstract Output translateToOutput(R result, String requestId, String deviceId, String[] path);
 }

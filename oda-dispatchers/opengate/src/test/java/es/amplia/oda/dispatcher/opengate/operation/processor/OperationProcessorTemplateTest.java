@@ -18,6 +18,9 @@ import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSI
 
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,7 +63,7 @@ public class OperationProcessorTemplateTest {
         }
 
         @Override
-        CompletableFuture<TestResult> processOperation(String deviceIdForOperations, TestParams params) {
+        CompletableFuture<TestResult> processOperation(String deviceIdForOperations, String operationId, TestParams params) {
             return innerProcessor.processOperation(deviceIdForOperations, params);
         }
 
