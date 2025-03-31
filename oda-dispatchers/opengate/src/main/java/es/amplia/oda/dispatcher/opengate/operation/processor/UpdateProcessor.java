@@ -60,7 +60,11 @@ public class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateO
 
     @Override
     CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, ParameterUpdateOperation params) {
+<<<<<<< HEAD
         return operationUpdate.update(operationId, params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
+=======
+        return operationUpdate.update(params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
+>>>>>>> f4393732... ODA-490] Primera versión funcional con soft-reboot (solo reinicia los bundles de amplia)
     }
 
     @Override
