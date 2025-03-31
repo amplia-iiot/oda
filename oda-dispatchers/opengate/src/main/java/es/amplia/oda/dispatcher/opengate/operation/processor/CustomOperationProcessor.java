@@ -1,21 +1,23 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.core.commons.utils.ServiceLocator;
-import es.amplia.oda.dispatcher.opengate.domain.*;
+import es.amplia.oda.dispatcher.opengate.domain.OperationResultCode;
+import es.amplia.oda.dispatcher.opengate.domain.Output;
+import es.amplia.oda.dispatcher.opengate.domain.OutputOperation;
+import es.amplia.oda.dispatcher.opengate.domain.Response;
 import es.amplia.oda.dispatcher.opengate.domain.Step;
+import es.amplia.oda.dispatcher.opengate.domain.StepResultCode;
 import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.CustomOperation;
+import es.amplia.oda.operation.api.CustomOperation.Result;
+import es.amplia.oda.operation.api.CustomOperation.Status;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.CustomOperation.*;
 
 class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Object>, Result> {
 
@@ -47,17 +49,18 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, Map<String, Object> params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, Map<String, Object> params) {
         return operationServiceLocator.findAll().stream()
                 .filter(operation -> customOperationName.equals(operation.getOperationSatisfied()))
                 .findFirst()
-                .map(operation -> operation.execute(deviceIdForOperations, params))
+                .map(operation -> operation.execute(deviceIdForOperations, operationId, params))
                 // Returning null to notify operation is not supported
                 .orElse(null);
     }
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
+        if (result == null) return null;
         List<Step> steps = translateCustomSteps(result);
         Response response = new Response(requestId, deviceId, path, customOperationName, getOperationResult(result),
                 result.getDescription(), steps);

@@ -5,13 +5,13 @@ import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.dispatcher.opengate.domain.update.ParameterUpdateOperation;
 import es.amplia.oda.dispatcher.opengate.domain.update.RequestUpdateOperation;
 import es.amplia.oda.operation.api.OperationUpdate;
+import es.amplia.oda.operation.api.OperationUpdate.Result;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationUpdate.*;
 
 public class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateOperation, Result> {
 
@@ -59,7 +59,7 @@ public class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateO
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, ParameterUpdateOperation params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, ParameterUpdateOperation params) {
         return operationUpdate.update(params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
     }
 

@@ -3,9 +3,6 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
-import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.CustomOperation;
 import lombok.Value;
 import org.junit.Before;
@@ -97,13 +94,13 @@ public class CustomOperationProcessorTest {
         when(mockedOperation1.getOperationSatisfied()).thenReturn("otherOperation");
         when(mockedOperation2.getOperationSatisfied()).thenReturn(TEST_CUSTOM_OPERATION_NAME);
 
-        testProcessor.processOperation(TEST_DEVICE_ID, params);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, params);
 
         verify(mockedOperationServiceLocator).findAll();
         verify(mockedOperation1).getOperationSatisfied();
         verify(mockedOperation2).getOperationSatisfied();
-        verify(mockedOperation2).execute(eq(TEST_DEVICE_ID), eq(params));
-        verify(mockedOperation1, never()).execute(anyString(), any());
+        verify(mockedOperation2).execute(eq(TEST_DEVICE_ID), eq(TEST_ID), eq(params));
+        verify(mockedOperation1, never()).execute(anyString(), anyString(), any());
     }
 
     @Test
@@ -114,13 +111,13 @@ public class CustomOperationProcessorTest {
         when(mockedOperation1.getOperationSatisfied()).thenReturn("otherOperation");
         when(mockedOperation2.getOperationSatisfied()).thenReturn("otherOperation2");
 
-        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, null));
+        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null));
 
         verify(mockedOperationServiceLocator).findAll();
         verify(mockedOperation1).getOperationSatisfied();
         verify(mockedOperation2).getOperationSatisfied();
-        verify(mockedOperation1, never()).execute(anyString(), any());
-        verify(mockedOperation2, never()).execute(anyString(), any());
+        verify(mockedOperation1, never()).execute(anyString(), anyString(), any());
+        verify(mockedOperation2, never()).execute(anyString(), anyString(), any());
     }
 
     @Test
@@ -129,7 +126,7 @@ public class CustomOperationProcessorTest {
 
         when(mockedOperationServiceLocator.findAll()).thenReturn(Collections.emptyList());
 
-        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, null));
+        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null));
 
         verify(mockedOperationServiceLocator).findAll();
     }

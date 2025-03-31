@@ -1,11 +1,12 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
 import es.amplia.oda.dispatcher.opengate.domain.*;
-import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
+import es.amplia.oda.operation.api.OperationSynchronizeClock.Result;
+import es.amplia.oda.operation.api.OperationSynchronizeClock.ResultCode;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationSynchronizeClock.*;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
@@ -67,7 +67,7 @@ public class SynchronizeClockProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, TEST_SOURCE);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, TEST_SOURCE);
 
         verify(mockedSynchronizeClock).synchronizeClock(eq(TEST_DEVICE_ID), eq(TEST_SOURCE));
     }

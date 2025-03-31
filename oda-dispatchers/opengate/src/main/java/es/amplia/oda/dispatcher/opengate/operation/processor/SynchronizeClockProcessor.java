@@ -6,13 +6,14 @@ import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrCon
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSynchronizeClock;
+import es.amplia.oda.operation.api.OperationSynchronizeClock.Result;
+import es.amplia.oda.operation.api.OperationSynchronizeClock.ResultCode;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationSynchronizeClock.*;
 
 public class SynchronizeClockProcessor extends OperationProcessorTemplate<String, Result> {
 
@@ -55,7 +56,7 @@ public class SynchronizeClockProcessor extends OperationProcessorTemplate<String
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, String params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, String params) {
         return operationSynchronizeClock.synchronizeClock(deviceIdForOperations, params);
     }
 

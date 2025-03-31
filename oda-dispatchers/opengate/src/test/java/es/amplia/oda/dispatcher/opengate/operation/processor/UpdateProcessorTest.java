@@ -4,6 +4,15 @@ import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.update.ParameterUpdateOperation;
 import es.amplia.oda.dispatcher.opengate.domain.update.RequestUpdateOperation;
 import es.amplia.oda.operation.api.OperationUpdate;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOperationType;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOption;
+import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
+import es.amplia.oda.operation.api.OperationUpdate.Result;
+import es.amplia.oda.operation.api.OperationUpdate.StepResult;
+import es.amplia.oda.operation.api.OperationUpdate.StepResultCodes;
+import es.amplia.oda.operation.api.OperationUpdate.UpdateStepName;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,7 +22,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.UpdateProcessor.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
@@ -143,7 +151,7 @@ public class UpdateProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, TEST_BUNDLE_PARAM);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, TEST_BUNDLE_PARAM);
 
         verify(mockedUpdate).update(eq(TEST_BUNDLE_NAME), eq(TEST_BUNDLE_VERSION), eq(TEST_DEPLOYMENT_ELEMENTS));
     }
