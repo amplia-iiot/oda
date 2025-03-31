@@ -4,6 +4,8 @@ import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.general.ParameterGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.operation.api.OperationDiscover;
+import es.amplia.oda.operation.api.OperationDiscover.Result;
+import es.amplia.oda.operation.api.OperationDiscover.ResultCode;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,8 +18,6 @@ import java.util.List;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.DiscoverProcessor.*;
-import static es.amplia.oda.operation.api.OperationDiscover.*;
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
@@ -46,7 +46,7 @@ public class DiscoverProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, null);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null);
 
         verify(mockedDiscover).discover();
     }

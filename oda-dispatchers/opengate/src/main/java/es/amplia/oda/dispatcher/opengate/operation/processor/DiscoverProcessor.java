@@ -28,7 +28,7 @@ public class DiscoverProcessor extends OperationProcessorTemplate<Void, Operatio
 	}
 
 	@Override
-	CompletableFuture<OperationDiscover.Result> processOperation(String deviceIdForOperations, Void params) {
+	CompletableFuture<OperationDiscover.Result> processOperation(String deviceIdForOperations, String operationId, Void params) {
 		return operationDiscover.discover();
 	}
 

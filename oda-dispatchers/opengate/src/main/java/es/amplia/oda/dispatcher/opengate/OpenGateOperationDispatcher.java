@@ -175,10 +175,15 @@ class OpenGateOperationDispatcher implements Dispatcher {
     }
 
     private byte[] serializeOutput(Output output, ContentType contentType) {
+        if (output == null) {
+            LOGGER.debug("Response output null, the response will send later");
+            return null;
+        }
         try {
             LOGGER.debug("Operation processed: {}", output);
             return serializerProvider.getSerializer(contentType).serialize(output);
         } catch (IOException e) {
+            LOGGER.error("Error serializing Output", e);
             throw new IllegalArgumentException("Error serializing output " + output + " with content type " +
                     contentType);
         }

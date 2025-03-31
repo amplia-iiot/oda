@@ -5,6 +5,8 @@ import es.amplia.oda.dispatcher.opengate.domain.setclock.Datetime;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.ParameterSetClockOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.RequestSetClockOperation;
 import es.amplia.oda.operation.api.OperationSetClock;
+import es.amplia.oda.operation.api.OperationSetClock.Result;
+import es.amplia.oda.operation.api.OperationSetClock.ResultCode;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,8 +20,6 @@ import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetClockEquipmentProcessor.SET_CLOCK_EQUIPMENT_OPERATION_NAME;
-import static es.amplia.oda.operation.api.OperationSetClock.*;
-
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class SetClockEquipmentProcessorTest {
 
+    private static final String TEST_ID = "testOperationId";
     private static final String TEST_DEVICE_ID = "testDevice";
     private static final String[] TEST_PATH = new String[] { "path", "to", "device" };
     private static final Long TEST_TIMESTAMP = 123567789L;
@@ -121,7 +122,7 @@ public class SetClockEquipmentProcessorTest {
         when(mockedOperationSetClock.setClock(anyString(), anyLong())).thenReturn(expectedResult);
 
         CompletableFuture<Result> result =
-                testProcessor.processOperation(TEST_DEVICE_ID, TEST_TIMESTAMP);
+                testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, TEST_TIMESTAMP);
 
         assertEquals(expectedResult, result);
     }

@@ -32,7 +32,6 @@ public class Activator implements BundleActivator {
 
     private Scheduler scheduler;
     private InMemoryStateManager inMemoryStateManager;
-    private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -42,7 +41,7 @@ public class Activator implements BundleActivator {
         ExecutorService executor = new ThreadPoolExecutor(NUM_THREADS, NUM_THREADS,
                 0L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(MAX_SIZE_THREADS_QUEUE));
         // create scheduler to manage periodic tasks
-        scheduler = new SchedulerImpl(executorService);
+        scheduler = new SchedulerImpl(Executors.newScheduledThreadPool(1));
         // create finders
         ServiceLocator<DatastreamsGetter> datastreamsGettersLocator =
                 new ServiceLocatorOsgi<>(bundleContext, DatastreamsGetter.class);

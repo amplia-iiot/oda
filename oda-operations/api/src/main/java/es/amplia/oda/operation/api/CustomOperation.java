@@ -53,7 +53,7 @@ public interface CustomOperation {
         NOT_EXECUTED
     }
 
-    CompletableFuture<Result> execute(String deviceId, Map<String, Object> params);
+    CompletableFuture<Result> execute(String deviceId, String operationId, Map<String, Object> params);
 
     String getOperationSatisfied();
 }

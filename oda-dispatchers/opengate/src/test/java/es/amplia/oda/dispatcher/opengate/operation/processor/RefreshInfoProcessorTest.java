@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.SUCCESS_RESULT;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.RefreshInfoProcessor.*;
 
 import static org.junit.Assert.*;
@@ -51,7 +52,7 @@ public class RefreshInfoProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, null);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null);
 
         verify(mockedRefreshInfo).refreshInfo(eq(TEST_DEVICE_ID));
     }

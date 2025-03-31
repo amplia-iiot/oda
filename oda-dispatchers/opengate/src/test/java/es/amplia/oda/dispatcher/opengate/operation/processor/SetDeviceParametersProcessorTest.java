@@ -5,6 +5,10 @@ import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ParameterSetOrCon
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.RequestSetOrConfigureOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setorconfigure.ValueSetting;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.Result;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.ResultCode;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableResult;
+import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableValue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +19,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationSetDeviceParameters.*;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.ERROR_RESULT;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.SUCCESS_RESULT;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.*;
 
 import static org.junit.Assert.*;
@@ -57,7 +62,6 @@ public class SetDeviceParametersProcessorTest {
 
         assertNotNull(variableValues);
         assertEquals(2, variableValues.size());
-        VariableValue variableValue = variableValues.get(0);
         assertEquals(TEST_DATASTREAM, variableValues.get(0).getValue());
         assertEquals(TEST_VALUE, variableValues.get(1).getValue());
     }
@@ -94,7 +98,7 @@ public class SetDeviceParametersProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, Collections.singletonList(TEST_VARIABLE_VALUE));
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, Collections.singletonList(TEST_VARIABLE_VALUE));
 
         verify(mockedSetDeviceParameters).setDeviceParameters(eq(TEST_DEVICE_ID), eq(TEST_VARIABLE_VALUES));
     }
