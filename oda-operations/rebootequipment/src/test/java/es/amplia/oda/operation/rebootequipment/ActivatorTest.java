@@ -1,6 +1,8 @@
 package es.amplia.oda.operation.rebootequipment;
 
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
+import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.event.api.ResponseDispatcherProxy;
 import es.amplia.oda.operation.api.CustomOperation;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
@@ -37,6 +39,10 @@ public class ActivatorTest {
     private ResponseDispatcherProxy mockedResponseDispatcher;
     @Mock
     private OpenGateConnectorProxy mockedOgConnector;
+    @Mock
+    private DatastreamsGettersFinderImpl mockedDatastreamsGettersFinder;
+    @Mock
+    private EventDispatcherProxy mockedEventDispatcher;
 
     @Test
     public void testStart() throws Exception {
@@ -53,6 +59,8 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "eventHandlerServiceRegistration", mockedEventHandlerServiceRegistration);
         Whitebox.setInternalState(testActivator, "responseDispatcher", mockedResponseDispatcher);
         Whitebox.setInternalState(testActivator, "ogConnector", mockedOgConnector);
+        Whitebox.setInternalState(testActivator, "datastreamsGettersFinder", mockedDatastreamsGettersFinder);
+        Whitebox.setInternalState(testActivator, "eventDispatcher", mockedEventDispatcher);
 
         testActivator.stop(mockedContext);
 
@@ -60,5 +68,7 @@ public class ActivatorTest {
         verify(mockedEventHandlerServiceRegistration).unregister();
         verify(mockedResponseDispatcher).close();
         verify(mockedOgConnector).close();
+        verify(mockedDatastreamsGettersFinder).close();
+        verify(mockedEventDispatcher).close();
     }
 }
