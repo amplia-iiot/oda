@@ -1,31 +1,26 @@
 package es.amplia.oda.comms.http;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpClient {
 
@@ -37,7 +32,7 @@ public class HttpClient {
     private static final int FOUND_HTTP_CODE = 302;
 
     private CloseableHttpClient httpClient;
-    private RequestConfig requestTimeoutConfig;
+    private RequestConfig customConfig;
 
     public HttpClient() {
         this(false);
@@ -79,10 +74,19 @@ public class HttpClient {
     }
 
     public void setTimeout(int timeout) {
-        this.requestTimeoutConfig = RequestConfig.custom()
+        this.customConfig = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setSocketTimeout(timeout)
+                .build();
+    }
+
+    public void setRequestCustomConfig(HttpConfig customConfig) {
+        this.customConfig = RequestConfig.custom()
+                .setConnectTimeout(customConfig.getTimeout())
+                .setConnectionRequestTimeout(customConfig.getTimeout())
+                .setSocketTimeout(customConfig.getTimeout())
+                .setCookieSpec(HttpConfig.getCookiesSpec(customConfig.getCookiesPolicy()))
                 .build();
     }
 
@@ -107,7 +111,7 @@ public class HttpClient {
 
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(entity);
-        httpPost.setConfig(requestTimeoutConfig);
+        httpPost.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
             headers.forEach(httpPost::setHeader);
         }
@@ -155,7 +159,7 @@ public class HttpClient {
 
         HttpPut httpPut = new HttpPut(url);
         httpPut.setEntity(entity);
-        httpPut.setConfig(requestTimeoutConfig);
+        httpPut.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
             headers.forEach(httpPut::setHeader);
         }
@@ -188,7 +192,7 @@ public class HttpClient {
 
     public HttpResponse get(String url, Map<String, String> headers) throws IOException {
         HttpGet httpGet = new HttpGet(url);
-        httpGet.setConfig(requestTimeoutConfig);
+        httpGet.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
             headers.forEach(httpGet::setHeader);
         }
@@ -215,7 +219,7 @@ public class HttpClient {
 
     public HttpResponse delete(String url, Map<String, String> headers) throws IOException {
         HttpDelete httpDelete = new HttpDelete(url);
-        httpDelete.setConfig(requestTimeoutConfig);
+        httpDelete.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
             headers.forEach(httpDelete::setHeader);
         }
