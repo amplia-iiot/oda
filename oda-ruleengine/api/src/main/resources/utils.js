@@ -188,3 +188,9 @@ function setNotSentValuesAsSent(State, deviceId, datastreamId) {
 function setError(state, deviceId, datastreamId, at, error) {
 	state.setProcessingError(deviceId, datastreamId, at, error);
 }
+
+// SET VALUE AND SEND IMMEDIATELY
+function setValueAndSend(State, deviceId, datastreamId, feed, value) {
+    setValue(State, deviceId, datastreamId, feed, value);
+    sendImmediately(State, deviceId, datastreamId);
+}
