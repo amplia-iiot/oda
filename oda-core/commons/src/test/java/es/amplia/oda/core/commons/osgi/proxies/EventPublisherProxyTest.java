@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -89,7 +88,7 @@ public class EventPublisherProxyTest {
         assertEquals(TEST_PATH, capturedEvents.get(1).getPath());
         assertEquals(null,  capturedEvents.get(1).getFeed());
         assertEquals(TEST_DATASTREAM_ID_2, capturedEvents.get(1).getDatastreamId());
-        assertNull(capturedEvents.get(1).getAt());
+        assertNotNull(capturedEvents.get(1).getAt());
         assertEquals(TEST_VALUE_2, capturedEvents.get(1).getValue());
     }
 
