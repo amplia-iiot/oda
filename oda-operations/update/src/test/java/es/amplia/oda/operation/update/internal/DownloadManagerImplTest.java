@@ -5,10 +5,7 @@ import es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOperationType;
 import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOption;
 import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
-import es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import es.amplia.oda.operation.update.FileManager;
-import es.amplia.oda.operation.update.FileManager.FileException;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -31,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.API_KEY_HEADER;

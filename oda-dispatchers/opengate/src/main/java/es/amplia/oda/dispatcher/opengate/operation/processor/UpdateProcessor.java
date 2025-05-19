@@ -60,11 +60,12 @@ public class UpdateProcessor extends OperationProcessorTemplate<ParameterUpdateO
 
     @Override
     CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, ParameterUpdateOperation params) {
-        return operationUpdate.update(params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
+        return operationUpdate.update(operationId, params.getBundleName(), params.getBundleVersion(), params.getDeploymentElements());
     }
 
     @Override
     Output translateToOutput(Result result, String requestId, String deviceId, String[] path) {
+        if (result == null) return null;
         List<Step> steps = result.getSteps().stream()
                 .map(r -> new Step(translate(r.getName()), translate(r.getCode()), r.getDescription(), null, null))
                 .collect(Collectors.toList());

@@ -1,6 +1,7 @@
 package es.amplia.oda.operation.update.operations;
 
 import es.amplia.oda.operation.api.OperationUpdate;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
 import es.amplia.oda.operation.update.DeploymentElementOperation;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
@@ -37,6 +38,9 @@ public class DeploymentElementOperationFactory {
                         || deploymentElement.getPath().startsWith(rulesUtilsPath)) {
                     return new UpgradeRuleDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                             operationConfirmationProcessor);
+                } else if (deploymentElement.getType().equals(DeploymentElementType.SOFTWARE)) {
+                    return new UpgradeSoftwareDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
+                        operationConfirmationProcessor);
                 }
                 return new UpgradeDeploymentElementOperation(deploymentElement, localFile, installFolder, fileManager,
                         operationConfirmationProcessor);

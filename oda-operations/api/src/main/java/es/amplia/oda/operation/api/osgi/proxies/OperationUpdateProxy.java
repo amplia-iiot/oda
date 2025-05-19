@@ -17,8 +17,8 @@ public class OperationUpdateProxy implements OperationUpdate, AutoCloseable {
     }
 
     @Override
-    public CompletableFuture<Result> update(String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements) {
-        return proxy.callFirst(op -> op.update(bundleName, bundleVersion, deploymentElements));
+    public CompletableFuture<Result> update(String operationId, String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements) {
+        return proxy.callFirst(op -> op.update(operationId, bundleName, bundleVersion, deploymentElements));
     }
     
     @Override

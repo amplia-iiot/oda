@@ -13,5 +13,7 @@ public interface DeploymentElementOperation {
 
     void execute() throws DeploymentElementOperationException;
 
+    void executePostSuccessfulOperation() throws DeploymentElementOperationException;
+
     void rollback(String backupFile) throws DeploymentElementOperationException;
 }

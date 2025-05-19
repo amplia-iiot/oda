@@ -112,5 +112,5 @@ public interface OperationUpdate {
         }
     }
 
-    CompletableFuture<Result> update(String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements);
+    CompletableFuture<Result> update(String operationId, String bundleName, String bundleVersion, List<DeploymentElement> deploymentElements);
 }
