@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.MapBasedDictionary;
+import es.amplia.oda.event.api.ResponseDispatcherProxy;
 import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.update.configuration.UpdateConfigurationHandler;
 import es.amplia.oda.operation.update.internal.*;
@@ -27,6 +28,7 @@ public class Activator implements BundleActivator {
     private ConfigurableBundle configurableUpdate;
     private ServiceRegistration<EventHandler> eventHandlerServiceRegistration;
     private ServiceRegistration<OperationUpdate> operationUpdateRegistration;
+    private ResponseDispatcherProxy responseDispatcher;
 
     @Override
     public void start(BundleContext bundleContext) {
@@ -46,8 +48,9 @@ public class Activator implements BundleActivator {
         DeploymentElementOperationFactory deploymentElementOperationFactory =
                 new DeploymentElementOperationFactory(fileManager, operationUpdateEventHandler);
         InstallManager installManager = new InstallManagerImpl(deploymentElementOperationFactory);
+        responseDispatcher = new ResponseDispatcherProxy(bundleContext);
         OperationUpdateImpl operationUpdate =
-                new OperationUpdateImpl(backupManager, downloadManager, installManager);
+                new OperationUpdateImpl(backupManager, downloadManager, installManager, responseDispatcher, bundleContext);
         UpdateConfigurationHandler configHandler = new UpdateConfigurationHandler(operationUpdate);
         operationUpdateRegistration = bundleContext.registerService(OperationUpdate.class, operationUpdate, null);
         configurableUpdate = new ConfigurableBundleImpl(bundleContext, configHandler,
@@ -63,6 +66,7 @@ public class Activator implements BundleActivator {
         operationUpdateRegistration.unregister();
         eventHandlerServiceRegistration.unregister();
         configurableUpdate.close();
+        responseDispatcher.close();
 
         logger.info("Operation Update Activator stopped");
     }

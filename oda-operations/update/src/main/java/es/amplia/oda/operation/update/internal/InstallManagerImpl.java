@@ -1,7 +1,10 @@
 package es.amplia.oda.operation.update.internal;
 
 import es.amplia.oda.operation.api.OperationUpdate;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
+import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
 import es.amplia.oda.operation.update.DeploymentElementOperation;
+import es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import es.amplia.oda.operation.update.InstallManager;
 import es.amplia.oda.operation.update.operations.DeploymentElementOperationFactory;
 
@@ -10,9 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
-import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 
 public class InstallManagerImpl implements InstallManager {
 
@@ -92,7 +92,16 @@ public class InstallManagerImpl implements InstallManager {
     }
 
     @Override
-    public void clearInstalledDeploymentElements() {
+    public void clearInstalledDeploymentElements(OperationResultCodes result) {
+        if (result.equals(OperationResultCodes.SUCCESSFUL)) {
+            installedDeploymentElements.values().forEach(o -> {
+                try {
+                    o.executePostSuccessfulOperation();
+                } catch (DeploymentElementOperationException e) {
+                    logger.error("Error executing post acction after SUCCESSFUL operation", e);
+                }
+            });
+        }
         installedDeploymentElements.clear();
     }
 

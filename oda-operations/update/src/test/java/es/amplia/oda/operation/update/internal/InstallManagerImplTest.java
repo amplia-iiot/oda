@@ -1,6 +1,11 @@
 package es.amplia.oda.operation.update.internal;
 
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOperationType;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementOption;
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
 import es.amplia.oda.operation.update.DeploymentElementOperation;
+import es.amplia.oda.operation.update.InstallManager.InstallException;
 import es.amplia.oda.operation.update.operations.DeploymentElementOperationFactory;
 
 import org.junit.Before;
@@ -17,9 +22,10 @@ import java.util.Map;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
-import static es.amplia.oda.operation.update.internal.InstallManagerImpl.*;
-
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -245,7 +251,7 @@ public class InstallManagerImplTest {
     public void testClearInstalledDeploymentElements() {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedInstalledElements);
 
-        testInstallManager.clearInstalledDeploymentElements();
+        testInstallManager.clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
 
         verify(spiedInstalledElements).clear();
     }

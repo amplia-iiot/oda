@@ -155,6 +155,7 @@ class RebootEquipmentImpl implements EventHandler, CustomOperation {
         sendResponse(null, operationId, steps);
 
         try {
+            // Espera para que se envíe el paso antes de parar todos los bundles
             Thread.sleep(2000);
         } catch (InterruptedException e) {
         }

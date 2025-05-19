@@ -153,7 +153,7 @@ public class UpdateProcessorTest {
     public void testProcessOperation() {
         testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, TEST_BUNDLE_PARAM);
 
-        verify(mockedUpdate).update(eq(TEST_BUNDLE_NAME), eq(TEST_BUNDLE_VERSION), eq(TEST_DEPLOYMENT_ELEMENTS));
+        verify(mockedUpdate).update(eq(TEST_ID), eq(TEST_BUNDLE_NAME), eq(TEST_BUNDLE_VERSION), eq(TEST_DEPLOYMENT_ELEMENTS));
     }
 
     @Test
