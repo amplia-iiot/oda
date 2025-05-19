@@ -26,7 +26,11 @@ public class UpgradeSoftwareDeploymentElementOperation extends DeploymentElement
     @Override
     protected void executeSpecificOperation(FileManager fileManager)
             throws FileException, DeploymentElementOperationException {
+<<<<<<< HEAD
         installedFile = fileManager.find(installFolder, getName() + "-" + deploymentElement.getOldVersion());
+=======
+        installedFile = fileManager.find(installFolder, getName());
+>>>>>>> ae20a146... [ODA-494] Primera versión que permite actualizar el bundle de UPDATE a sí mismo
         if (installedFile == null) {
             throw new DeploymentElementOperationException("Deployment element file to upgrade is not found");
         }
