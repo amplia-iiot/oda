@@ -1,6 +1,7 @@
 package es.amplia.oda.operation.get;
 
 import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 
 import org.junit.Test;
@@ -32,10 +33,13 @@ public class ActivatorTest {
     private OperationGetDeviceParametersImpl mockedGetDeviceParametersImpl;
     @Mock
     private ServiceRegistration<OperationGetDeviceParameters> mockedRegistration;
+    @Mock
+    private DatastreamsGettersFinderImpl mockedDatastreamsGettersFinder;
 
     @Test
     public void testStart() throws Exception {
         PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
+        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedDatastreamsGettersFinder);
         PowerMockito.whenNew(OperationGetDeviceParametersImpl.class).withAnyArguments()
                 .thenReturn(mockedGetDeviceParametersImpl);
         when(mockedContext.registerService(eq(OperationGetDeviceParameters.class), any(OperationGetDeviceParameters.class), any()))
@@ -44,7 +48,7 @@ public class ActivatorTest {
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationGetDeviceParametersImpl.class).withArguments(mockedStateManager);
+        PowerMockito.verifyNew(OperationGetDeviceParametersImpl.class).withArguments(mockedStateManager, mockedDatastreamsGettersFinder);
         when(mockedContext.registerService(eq(OperationGetDeviceParameters.class), eq(mockedGetDeviceParametersImpl), any()));
     }
 
@@ -52,10 +56,12 @@ public class ActivatorTest {
     public void testStop() {
         Whitebox.setInternalState(testActivator, "stateManager", mockedStateManager);
         Whitebox.setInternalState(testActivator, "registration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "datastreamsGettersFinder", mockedDatastreamsGettersFinder);
 
         testActivator.stop(mockedContext);
 
         verify(mockedRegistration).unregister();
         verify(mockedStateManager).close();
+        verify(mockedDatastreamsGettersFinder).close();
     }
 }

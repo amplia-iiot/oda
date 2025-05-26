@@ -82,7 +82,7 @@ public class ActivatorTest {
         verifyNew(DownloadManagerImpl.class).withArguments(any(), any());
         verifyNew(DeploymentElementOperationFactory.class).withArguments(eq(mockedFileManagerImpl), any());
         verifyNew(InstallManagerImpl.class).withArguments(mockedDeploymentElementOperationFactory);
-        verifyNew(OperationUpdateImpl.class).withArguments(mockedBackupManagerImpl, mockedDownloadManagerImpl, mockedInstallManagerImpl, mockedDispatcher);
+        verifyNew(OperationUpdateImpl.class).withArguments(mockedBackupManagerImpl, mockedDownloadManagerImpl, mockedInstallManagerImpl, mockedDispatcher, mockedContext);
         verifyNew(UpdateConfigurationHandler.class).withArguments(mockedOperationUpdateImpl);
         verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedUpdateConfigurationHandler), any());
     }

@@ -26,7 +26,7 @@ public class UpgradeSoftwareDeploymentElementOperation extends DeploymentElement
     @Override
     protected void executeSpecificOperation(FileManager fileManager)
             throws FileException, DeploymentElementOperationException {
-        installedFile = fileManager.find(installFolder, getName());
+        installedFile = fileManager.find(installFolder, getName() + "-" + deploymentElement.getOldVersion());
         if (installedFile == null) {
             throw new DeploymentElementOperationException("Deployment element file to upgrade is not found");
         }

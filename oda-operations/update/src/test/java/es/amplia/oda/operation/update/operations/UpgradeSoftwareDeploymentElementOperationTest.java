@@ -23,18 +23,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class UpgradeDeploymentElementOperationTest {
+public class UpgradeSoftwareDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
     private static final String TEST_VERSION = "1.0.0";
+    private static final String TEST_OLD_VERSION = "0.0.9";
     private static final DeploymentElement UPGRADE_DEPLOYMENT_ELEMENT =
-            new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.CONFIGURATION, "", "", 1L,
+            new DeploymentElement(TEST_NAME, TEST_VERSION, DeploymentElementType.SOFTWARE, "", "", 1L,
                     DeploymentElementOperationType.UPGRADE, Collections.EMPTY_LIST,
-                    0L, "0.0.9", DeploymentElementOption.MANDATORY);
-    private static final String LOCAL_FILE = "path/to/local/file.cfg";
+                    0L, TEST_OLD_VERSION, DeploymentElementOption.MANDATORY);
+    private static final String LOCAL_FILE = "path/to/local/file.jar";
     private static final String INSTALL_FOLDER = "path/to/install/folder";
-    private static final String PATH_TO_BACKUP_CFG = "path/to/backup.cfg";
-    private static final String PATH_TO_UPGRADED_CFG = "path/to/upgraded.cfg";
+    private static final String PATH_TO_BACKUP_JAR = "path/to/backup.jar";
+    private static final String PATH_TO_UPGRADED_JAR = "path/to/upgraded.jar";
 
     private static final String FILE_EXCEPTION_MESSAGE = "File exception must be thrown";
     private static final String UPGRADED_FILE_FIELD_NAME = "upgradedFile";
@@ -44,11 +45,11 @@ public class UpgradeDeploymentElementOperationTest {
     @Mock
     private OperationConfirmationProcessor mockedOperationConfirmationProcessor;
 
-    private UpgradeDeploymentElementOperation testUpgradeOperation;
+    private UpgradeSoftwareDeploymentElementOperation testUpgradeOperation;
 
     @Before
     public void setUp() {
-        testUpgradeOperation = new UpgradeDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, INSTALL_FOLDER,
+        testUpgradeOperation = new UpgradeSoftwareDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, INSTALL_FOLDER,
                 mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
@@ -56,11 +57,10 @@ public class UpgradeDeploymentElementOperationTest {
     public void testExecuteSpecificOperation() throws DeploymentElementOperationException, FileException {
         String oldVersion = "/path/to/last/version";
 
-        when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME))).thenReturn(oldVersion);
+        when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME + "-" + TEST_OLD_VERSION))).thenReturn(oldVersion);
 
         testUpgradeOperation.executeSpecificOperation(mockedFileManager);
 
-        verify(mockedFileManager).delete(eq(oldVersion));
         verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(INSTALL_FOLDER));
     }
 
@@ -77,7 +77,7 @@ public class UpgradeDeploymentElementOperationTest {
     public void testExecuteFileException() throws DeploymentElementOperationException, FileException {
         String oldVersion = "/path/to/last/version";
 
-        when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME))).thenReturn(oldVersion);
+        when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME + "-" + TEST_OLD_VERSION))).thenReturn(oldVersion);
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(INSTALL_FOLDER));
 
         testUpgradeOperation.executeSpecificOperation(mockedFileManager);
@@ -87,32 +87,32 @@ public class UpgradeDeploymentElementOperationTest {
 
     @Test
     public void testRollbackSpecificOperation() throws FileException {
-        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_CFG);
+        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_JAR);
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG);
+        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR);
 
-        verify(mockedFileManager).delete(eq(PATH_TO_UPGRADED_CFG));
-        verify(mockedFileManager).copy(eq(PATH_TO_BACKUP_CFG), eq(INSTALL_FOLDER));
+        verify(mockedFileManager).delete(eq(PATH_TO_UPGRADED_JAR));
+        verify(mockedFileManager).copy(eq(PATH_TO_BACKUP_JAR), eq(INSTALL_FOLDER));
     }
 
     @Test(expected = FileException.class)
     public void testRollbackSpecificOperationDeleteFileException() throws FileException {
-        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_CFG);
+        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_JAR);
 
-        doThrow(new FileException("")).when(mockedFileManager).delete(eq(PATH_TO_UPGRADED_CFG));
+        doThrow(new FileException("")).when(mockedFileManager).delete(eq(PATH_TO_UPGRADED_JAR));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG);
+        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR);
 
         fail(FILE_EXCEPTION_MESSAGE);
     }
 
     @Test(expected = FileException.class)
     public void testRollbackSpecificOperationCopyFileException() throws FileException {
-        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_CFG);
+        Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_JAR);
 
-        doThrow(new FileException("")).when(mockedFileManager).copy(eq(PATH_TO_BACKUP_CFG), eq(INSTALL_FOLDER));
+        doThrow(new FileException("")).when(mockedFileManager).copy(eq(PATH_TO_BACKUP_JAR), eq(INSTALL_FOLDER));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG);
+        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR);
 
         fail(FILE_EXCEPTION_MESSAGE);
     }

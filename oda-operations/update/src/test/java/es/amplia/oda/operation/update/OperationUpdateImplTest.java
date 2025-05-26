@@ -257,7 +257,7 @@ public class OperationUpdateImplTest {
 
     @Test
     public void testLoadConfiguration() {
-        UpdateConfiguration config = UpdateConfiguration.builder().rulesPath("the/correct/path").build();
+        UpdateConfiguration config = UpdateConfiguration.builder().rulesPath("the/correct/path").backupPath("backup/path").build();
 
         operationUpdate.loadConfiguration(config);
 
