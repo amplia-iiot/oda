@@ -9,7 +9,7 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public abstract class DeploymentElementOperationBase implements DeploymentElementOperation {
 
-    private final OperationUpdate.DeploymentElement deploymentElement;
+    protected final OperationUpdate.DeploymentElement deploymentElement;
 
     private final FileManager fileManager;
 

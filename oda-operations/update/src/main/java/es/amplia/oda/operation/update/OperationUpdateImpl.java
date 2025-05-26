@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -226,12 +228,34 @@ public class OperationUpdateImpl implements OperationUpdate {
 
         File updateBackupPath = new File(config.getBackupPath());
         if (updateBackupPath.exists()) {
+            LOGGER.debug("Backup folder found: {}", config.getBackupPath());
             String[] backups = updateBackupPath.list();
             Arrays.asList(backups).forEach(f -> {
-                if (f.startsWith("es.amplia.oda.operation.update") && f.endsWith(".jar")) { // Así nos aseguramos de que es un fichero de software
+                LOGGER.debug("Found file {} in Backup folder", f);
+                if (f.startsWith(context.getBundle().getSymbolicName()) && f.endsWith(".jar")) { // Así nos aseguramos de que es un fichero de software
+                    LOGGER.info("Found UPDATE bundle {} in Backup folder", f);
                     String version = f.split("-")[1].replace(".jar", "");
                     String []vArray = version.split("\\.");
+                    LOGGER.info("   With version: mayor {}, minor {} & bugfix {}", vArray[0], vArray[1], vArray[2]);
                     if ( (Integer.parseInt(vArray[0]) <= 4) && (Integer.parseInt(vArray[1]) <= 12) ) {
+                        // Al ser una versión antigua borramos todo lo que haya en la carpeta de 'bakcup' y en la de 'download'
+                        Arrays.asList(backups).forEach(fb -> {
+                            File backupFile = new File(config.getBackupPath() + "/" + fb);
+                            try {
+                                Files.delete(backupFile.toPath());
+                            } catch (IOException e) {
+                                LOGGER.error("Error deleting backup file " + f, e);
+                            }
+                        });
+                        Arrays.asList((new File(config.getDownloadsPath())).list()).forEach(fd -> {
+                            File downloadFile = new File(config.getDownloadsPath() + "/" + fd);
+                            try {
+                                Files.delete(downloadFile.toPath());
+                            } catch (IOException e) {
+                                LOGGER.error("Error deleting backup file " + f, e);
+                            }
+                        });
+
                         // Al ser una versión antigua reiniciamos todos los bundles para que finalice la máquina virtual y termine el hilo que espera por el inicio del nuevo bundle
                         Thread t = new Thread(new Runnable() {
 
@@ -259,8 +283,8 @@ public class OperationUpdateImpl implements OperationUpdate {
                             
                         });
                         t.run();
-                        File updateBackupFile = new File(f);
-                        updateBackupFile.delete();
+
+                        return;
                     }
                 }
             });

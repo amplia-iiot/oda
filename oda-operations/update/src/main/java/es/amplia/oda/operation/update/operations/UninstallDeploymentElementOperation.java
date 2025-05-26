@@ -6,6 +6,8 @@ import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
+import es.amplia.oda.operation.api.OperationUpdate.DeploymentElementType;
+
 public class UninstallDeploymentElementOperation extends DeploymentElementOperationBase {
 
     private final String installFolder;
@@ -20,7 +22,8 @@ public class UninstallDeploymentElementOperation extends DeploymentElementOperat
     @Override
     protected void executeSpecificOperation(FileManager fileManager)
             throws DeploymentElementOperationException, FileException {
-        String installedFile = fileManager.find(installFolder, getName());
+        String fileToFind = deploymentElement.getType().equals(DeploymentElementType.CONFIGURATION)?getName():getName() + "-" + getVersion();
+        String installedFile = fileManager.find(installFolder, fileToFind);
         if (installedFile == null) {
             throw new DeploymentElementOperationException("Deployment element file to uninstall is not found");
         }
