@@ -12,7 +12,6 @@
         <artifactId>oda-operations</artifactId>
         <groupId>es.amplia.oda.operation</groupId>
         <version>4.12.4-SNAPSHOT</version>
-    </parent>
 
     <properties>
         <bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
