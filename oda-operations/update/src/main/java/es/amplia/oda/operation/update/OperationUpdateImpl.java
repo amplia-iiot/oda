@@ -178,10 +178,11 @@ public class OperationUpdateImpl implements OperationUpdate {
         for (DeploymentElement deploymentElement : deploymentElements) {
             String name = deploymentElement.getName();
             String version = deploymentElement.getVersion();
+            DeploymentElementOperationType opType = deploymentElement.getOperation();
 
             StepResult beginInstallStepResult =
                     new StepResult(UpdateStepName.BEGININSTALL, StepResultCodes.SUCCESSFUL,
-                            String.format("Begin installing %s-%s", name, version));
+                            String.format("Begin %s %s-%s", opTypeToIng(opType), name, version));
             result.getSteps().add(beginInstallStepResult);
 
             try {
@@ -190,15 +191,37 @@ public class OperationUpdateImpl implements OperationUpdate {
 
                 StepResult endInstallStepResult =
                         new StepResult(UpdateStepName.ENDINSTALL, StepResultCodes.SUCCESSFUL,
-                                String.format("%s-%s installed", name, version));
+                                String.format("%s-%s %s", name, version, opTypeToEd(opType)));
                 result.getSteps().add(endInstallStepResult);
             } catch (InstallException exception) {
                 StepResult errorInstallStepResult =
                         new StepResult(UpdateStepName.ENDINSTALL, StepResultCodes.ERROR,
-                                String.format("Error installing %s-%s: %s", name, version, exception.getMessage()));
+                                String.format("Error %s %s-%s: %s", opTypeToIng(opType), name, version, exception.getMessage()));
                 result.getSteps().add(errorInstallStepResult);
-                throw new UpdateOperationException(String.format("Error installing %s-%s", name, version));
+                throw new UpdateOperationException(String.format("Error %s %s-%s", opTypeToIng(opType), name, version));
             }
+        }
+    }
+
+    private String opTypeToIng (DeploymentElementOperationType type) {
+        switch (type) {
+            case UPGRADE:
+                return "upgrading";
+            case UNINSTALL:
+                return "uninstalling";
+            default:
+                return "installing";
+        }
+    }
+
+    private String opTypeToEd (DeploymentElementOperationType type) {
+        switch (type) {
+            case UPGRADE:
+                return "upgraded";
+            case UNINSTALL:
+                return "uninstalled";
+            default:
+                return "installed";
         }
     }
 

@@ -107,10 +107,10 @@ public class OperationUpdateImplTest {
         steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
         steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
         steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-2.0.0", null, null));
-        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement3-3.3.3", null, null));
-        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement3-3.3.3 installed", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement3-3.3.3 uninstalled", null, null));
         steps.add(new Step(UpdateStepName.ENDUPDATE.toString(), StepResultCode.SUCCESSFUL, "", null, null));
         OperationResponse resp = new OperationResponse("9.0", new Operation
                         (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.SUCCESSFUL, "", steps)));
@@ -207,12 +207,12 @@ public class OperationUpdateImplTest {
         steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
         steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
         steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-2.0.0", null, null));
-        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement3-3.3.3", null, null));
-        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.ERROR, "Error installing testDeploymentElement3-3.3.3: ", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.ERROR, "Error uninstalling testDeploymentElement3-3.3.3: ", null, null));
         OperationResponse resp = new OperationResponse("9.0", new Operation
-                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Error installing testDeploymentElement3-3.3.3", steps)));
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Error uninstalling testDeploymentElement3-3.3.3", steps)));
 
         verify(mockedDispatcher).publishResponse(resp);
 
@@ -246,9 +246,9 @@ public class OperationUpdateImplTest {
         steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
         steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
         steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-2.0.0", null, null));
-        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 installed", null, null));
-        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement3-3.3.3", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
         OperationResponse resp = new OperationResponse("9.0", new Operation
                         (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Unknown exception making update operation", steps)));
 
