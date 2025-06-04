@@ -1,6 +1,11 @@
 package es.amplia.oda.operation.get;
 
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
+import es.amplia.oda.core.commons.utils.ServiceLocator;
+import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 
 import org.osgi.framework.BundleActivator;
@@ -16,13 +21,17 @@ public class Activator implements BundleActivator {
 
     private StateManagerProxy stateManager;
     private ServiceRegistration<OperationGetDeviceParameters> registration;
+    private DatastreamsGettersFinder datastreamsGettersFinder;
 
     @Override
     public void start(BundleContext bundleContext) {
         LOGGER.info("Starting Operation Get Activator");
 
         stateManager = new StateManagerProxy(bundleContext);
-        OperationGetDeviceParameters getter = new OperationGetDeviceParametersImpl(stateManager);
+        ServiceLocator<DatastreamsGetter> datastreamsGettersLocator =
+                new ServiceLocatorOsgi<>(bundleContext, DatastreamsGetter.class);
+        datastreamsGettersFinder = new DatastreamsGettersFinderImpl(datastreamsGettersLocator);
+        OperationGetDeviceParameters getter = new OperationGetDeviceParametersImpl(stateManager, datastreamsGettersFinder);
         registration = bundleContext.registerService(OperationGetDeviceParameters.class, getter, null);
 
         LOGGER.info("Operation Get Activator started");
@@ -34,6 +43,7 @@ public class Activator implements BundleActivator {
 
         registration.unregister();
         stateManager.close();
+        datastreamsGettersFinder.close();
 
         LOGGER.info("Operation Get Activator stopped");
     }
