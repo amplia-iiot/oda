@@ -52,6 +52,7 @@ public class Iec104ResponseHandlerTest {
     String TEST_EVENT_PUBLISH = "stateManager";
     Short TEST_VALUE = 2;
     Short TEST_COMMON_ADDRESS = 1;
+    char[] TEST_QUALITY_BITS = {1, 1, 1, 1};
     int TEST_ASDU_ADDRRES = 10;
     ProtocolOptions protocolOptions;
     ASDUAddress commonAddress;
@@ -59,7 +60,7 @@ public class Iec104ResponseHandlerTest {
 
     @Before
     public void prepareForTest() {
-        responseHandler = new Iec104ResponseHandler(cache, TEST_DEVICE_CONNECTION, TEST_COMMON_ADDRESS,
+        responseHandler = new Iec104ResponseHandler(cache, TEST_DEVICE_CONNECTION, TEST_COMMON_ADDRESS, TEST_QUALITY_BITS,
                 mockedEventDispatcher, mockedEventPublisher, mockedScadaTablesTranslator);
 
         // protocol options

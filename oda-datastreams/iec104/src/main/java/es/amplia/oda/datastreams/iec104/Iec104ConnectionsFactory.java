@@ -88,7 +88,7 @@ public class Iec104ConnectionsFactory {
         this.interrogationCommandPolling = polling;
     }
 
-    public void createConnections(List<Iec104DatastreamsConfiguration> configuration) {
+    public void createConnections(List<Iec104DatastreamsConfiguration> configuration, char[] qualityBitsMask) {
         disconnect();
         deleteConnections();
         HashMap<SocketAddress, List<Iec104ClientModule>> newConnections = new HashMap<>();
@@ -106,7 +106,7 @@ public class Iec104ConnectionsFactory {
 
         // create connection
         LOGGER.info("Creating IEC104 connections");
-        configuration.forEach(c -> createNewConnection(c, newConnections, options));
+        configuration.forEach(c -> createNewConnection(c, newConnections, options, qualityBitsMask));
 
         newConnections.entrySet().forEach(e -> {
             Client client = new Client(e.getKey(), new ConnectionStateListener() {
@@ -151,7 +151,7 @@ public class Iec104ConnectionsFactory {
     }
 
     private void createNewConnection(Iec104DatastreamsConfiguration currentConfiguration, HashMap<SocketAddress,
-            List<Iec104ClientModule>> newConnections, ProtocolOptions options) {
+            List<Iec104ClientModule>> newConnections, ProtocolOptions options, char[] qualityBitsMask) {
         String deviceId = currentConfiguration.getDeviceId();
         String remoteAddress = currentConfiguration.getIpAddress();
         int port = currentConfiguration.getIpPort();
@@ -167,15 +167,16 @@ public class Iec104ConnectionsFactory {
                 clientModules = new ArrayList<>();
                 newConnections.put(socketAddress, clientModules);
             }
-            clientModules.add(createClientModule(deviceId, options, commonAddress));
+            clientModules.add(createClientModule(deviceId, options, commonAddress, qualityBitsMask));
             LOGGER.info("Configured IEC104 client {} to {} at port:{}", deviceId, remoteAddress, port);
         } catch (IOException e) {
             LOGGER.error("Error creating IEC104 connection {}", e.getMessage());
         }
     }
 
-    private Iec104ClientModule createClientModule(String deviceId, ProtocolOptions options, int commonAddress) {
-        Iec104ClientModule clientModule = new Iec104ClientModule(caches, options, deviceId, commonAddress,
+    private Iec104ClientModule createClientModule(String deviceId, ProtocolOptions options, int commonAddress,
+                                                  char[] qualityBitsMask) {
+        Iec104ClientModule clientModule = new Iec104ClientModule(caches, options, deviceId, commonAddress, qualityBitsMask,
                 this.eventDispatcher, this.eventPublisher, this.scadaTables);
 
         connections.put(deviceId, clientModule);

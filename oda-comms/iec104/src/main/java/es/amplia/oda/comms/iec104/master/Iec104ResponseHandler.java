@@ -28,13 +28,14 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     @Getter
     private final String deviceId;
     private final int commonAddress;
+    private final char[] qualityBitsMask;
 
-    public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress,
-                                 EventDispatcher eventDispatcher, EventPublisher eventPublisher,
-                                 ScadaTableTranslator scadaTables) {
+    public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress, char[] qualityBitsMask,
+                                 EventDispatcher eventDispatcher, EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
         this.caches = caches;
         this.deviceId = deviceId;
         this.commonAddress = commonAddress;
+        this.qualityBitsMask = qualityBitsMask;
         this.eventDispatcher = eventDispatcher;
         this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
@@ -98,7 +99,11 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
             valuesParsed.forEach((address, value) -> {
                 LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
                         valuesType, address, value.getValue(), translateCauseOfTransmission(causeOfTransmission), this.deviceId);
-                LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
+
+                // check quality bits
+                if (!checkQualityBits(value.getQualityInformation())) {
+                    return;
+                }
 
                 // get datastreamId, deviceId and feed from scada tables
                 ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(
@@ -563,4 +568,47 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         return causeDescription + " " + causeNumber;
     }
 
+    private boolean checkQualityBits(QualityInformation qualityBitsReceived) {
+        boolean isValueValid = true;
+
+        if (qualityBitsReceived != null) {
+            //LOGGER.debug("Quality information {}", qualityBitsReceived);
+            char[] qualityBitsReceivedArray = new char[]{booleanToChar(qualityBitsReceived.isValid()),
+                    booleanToChar(qualityBitsReceived.isTopical()), booleanToChar(qualityBitsReceived.isSubstituted()),
+                    booleanToChar(qualityBitsReceived.isBlocked())};
+
+            for (int i = 0; i < this.qualityBitsMask.length; i++) {
+                char qualityBitFromMask = this.qualityBitsMask[i];
+
+                // if it is *, we don't care what value has
+                // if it isn't it must be equal to the mask
+                if (qualityBitFromMask == '*') {
+                    continue;
+                }
+
+                if (qualityBitFromMask != qualityBitsReceivedArray[i]) {
+                    isValueValid = false;
+                    break;
+                }
+            }
+
+            if (!isValueValid) {
+                LOGGER.warn("Discarding value because its quality bits (valid = {}, topical = {}, substituted = {}, " +
+                                "blocked = {}) don't comply with quality bits mask (valid = {}, topical = {}," +
+                                "substituted = {}, blocked = {})", qualityBitsReceivedArray[0], qualityBitsReceivedArray[1],
+                        qualityBitsReceivedArray[2], qualityBitsReceivedArray[3], this.qualityBitsMask[0],
+                        this.qualityBitsMask[1], this.qualityBitsMask[2], this.qualityBitsMask[3]);
+            }
+        }
+
+        return isValueValid;
+    }
+
+    private char booleanToChar(boolean bool) {
+        if (bool) {
+            return '1';
+        } else {
+            return '0';
+        }
+    }
 }

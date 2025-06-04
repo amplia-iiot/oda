@@ -50,11 +50,12 @@ public class Iec104ClientModuleTest {
     private MessageManager mockedManager;
     String deviceId = "testDevice";
     int commonAddress = 1;
+    char[] qualityBitsMask = {1, 1, 1, 1};
 
 
     @Before
     public void prepareForTest() {
-        clientModule = new Iec104ClientModule(caches, mockedOptions, deviceId, commonAddress,
+        clientModule = new Iec104ClientModule(caches, mockedOptions, deviceId, commonAddress, qualityBitsMask,
                 mockedEventDispatcher, mockedEventPublisher, mockedScadaTranslator);
     }
 

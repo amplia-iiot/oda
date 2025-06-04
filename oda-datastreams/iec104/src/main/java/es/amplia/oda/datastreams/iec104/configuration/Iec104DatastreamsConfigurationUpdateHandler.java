@@ -17,13 +17,13 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
     private static final String INITIAL_POLLING_TIME_PROPERTY_NAME = "initialPollingTime";
     private static final String CONNECTION_INITIAL_DELAY_PROPERTY_NAME = "connectionInitialDelay";
     private static final String CONNECTION_RETRY_DELAY_PROPERTY_NAME = "connectionRetryDelay";
-
+    private static final String QUALITY_BITS_MASK_PROPERTY_NAME = "qualityBitsMask";
     private static final int DEFAULT_INITIAL_DELAY = 10;
     private static final int DEFAULT_RETRY_DELAY = 300;
 
     private static final int KEY_FIELDS_SIZE = 3;
     private static final String KEY_FIELDS_DELIMITER = ";";
-
+    private static final char [] DEFAULT_QUALITY_BITS_MASK = {'*','*','*','*'};
 
     private final Iec104DatastreamsManager iec104DatastreamsManager;
     private final List<Iec104DatastreamsConfiguration> currentIec104DatastreamsConfigurations = new ArrayList<>();
@@ -31,6 +31,7 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
     private int iec104PollingInitialDelay;
     private int initialDelay;
     private int retryDelay;
+    char[] qualityBitsMask = new char[4];
 
 
     public Iec104DatastreamsConfigurationUpdateHandler(Iec104DatastreamsManager iec104DatastreamsManager) {
@@ -51,13 +52,23 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
         retryDelay = Optional.ofNullable((String) props.get(CONNECTION_RETRY_DELAY_PROPERTY_NAME))
                     .map(Integer::parseInt)
                     .orElse(DEFAULT_RETRY_DELAY);
+
+        // parse quality bits mask
+        if (!parseQualityBits((String) props.get(QUALITY_BITS_MASK_PROPERTY_NAME))) {
+            LOGGER.warn("Invalid quality bits mask. Using default mask {}", DEFAULT_QUALITY_BITS_MASK);
+            this.qualityBitsMask = DEFAULT_QUALITY_BITS_MASK.clone();
+        } else {
+            LOGGER.debug("Quality bits mask to apply {}", this.qualityBitsMask);
+        }
+
         LOGGER.debug("Initial polling time of {} milliseconds, after this polling time of {} milliseconds",
                 this.iec104PollingInitialDelay, this.iec104Polling);
+
         mappedProperties.remove(POLLING_TIME_PROPERTY_NAME);
         mappedProperties.remove(INITIAL_POLLING_TIME_PROPERTY_NAME);
         mappedProperties.remove(CONNECTION_INITIAL_DELAY_PROPERTY_NAME);
         mappedProperties.remove(CONNECTION_RETRY_DELAY_PROPERTY_NAME);
-
+        mappedProperties.remove(QUALITY_BITS_MASK_PROPERTY_NAME);
         if (this.iec104PollingInitialDelay <= 0 ||  this.iec104Polling <= 0) {
             LOGGER.error("Initial delay or polling times are not bigger than zero");
             return;
@@ -90,6 +101,30 @@ public class Iec104DatastreamsConfigurationUpdateHandler implements Configuratio
     @Override
     public void applyConfiguration() {
         LOGGER.info("IEC104 datastreams applying configuration");
-        iec104DatastreamsManager.loadConfiguration(currentIec104DatastreamsConfigurations, iec104PollingInitialDelay, iec104Polling, initialDelay, retryDelay);
+        iec104DatastreamsManager.loadConfiguration(currentIec104DatastreamsConfigurations, iec104PollingInitialDelay,
+                iec104Polling, initialDelay, retryDelay, qualityBitsMask);
+    }
+
+    private boolean parseQualityBits(String qualityBitsMaskString) {
+        if (qualityBitsMaskString == null) {
+            return false;
+        }
+
+        if (qualityBitsMaskString.length() != qualityBitsMask.length) {
+            LOGGER.error("Parameter qualityBitsMask must be {} characters", qualityBitsMask.length);
+            return false;
+        }
+
+        for (int i = 0; i < qualityBitsMaskString.length(); i++) {
+            char qualityBit = qualityBitsMaskString.charAt(i);
+            if (qualityBit == '1' || qualityBit == '0' || qualityBit == '*') {
+                this.qualityBitsMask[i] = qualityBit;
+            } else {
+                LOGGER.error("Invalid character in qualityBitsMask parameter. Valid characters are '0', '1' or '*'");
+                return false;
+            }
+        }
+
+        return true;
     }
 }

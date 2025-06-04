@@ -36,6 +36,8 @@ public class Iec104ConnectionsFactoryTest {
     @InjectMocks
     private Iec104ConnectionsFactory testIec104ConnectionsFactory;
 
+    char[] TEST_QUALITY_BITS = {1, 1, 1, 1};
+
     @Test
     public void testCreateConnections()
     {
@@ -51,7 +53,7 @@ public class Iec104ConnectionsFactoryTest {
 
         // condition
         when(mockedScadaTables.getRecollectionDeviceIds()).thenReturn(Arrays.asList("testDeviceIdSignal1", "testDeviceIdSignal2"));
-        testIec104ConnectionsFactory.createConnections(configurations);
+        testIec104ConnectionsFactory.createConnections(configurations, TEST_QUALITY_BITS);
 
         // checks
         Map<SocketAddress, Client> clients  = (Map<SocketAddress, Client>) Whitebox.getInternalState(testIec104ConnectionsFactory,"clients");

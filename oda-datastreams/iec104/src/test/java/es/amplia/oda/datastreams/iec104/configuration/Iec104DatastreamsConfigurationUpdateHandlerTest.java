@@ -61,11 +61,13 @@ public class Iec104DatastreamsConfigurationUpdateHandlerTest {
         Whitebox.setInternalState(testConfigHandler, "currentIec104DatastreamsConfigurations", currentConfiguration);
         Whitebox.setInternalState(testConfigHandler, "iec104Polling", 10000);
         Whitebox.setInternalState(testConfigHandler, "iec104PollingInitialDelay", 1000);
-
+        char[] qualityBitsMask = {1, 1, 1, 1};
+        Whitebox.setInternalState(testConfigHandler, "qualityBitsMask", qualityBitsMask);
 
         testConfigHandler.applyConfiguration();
 
-        verify(mockedIec104DatastreamsManager).loadConfiguration(currentConfiguration, 1000, 10000, 0, 0);
+        verify(mockedIec104DatastreamsManager).loadConfiguration(currentConfiguration, 1000,
+                10000, 0, 0, qualityBitsMask);
     }
 
     @Test

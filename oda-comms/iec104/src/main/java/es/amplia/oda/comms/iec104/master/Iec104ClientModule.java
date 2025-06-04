@@ -49,16 +49,20 @@ public class Iec104ClientModule implements ClientModule {
 
 	private final int commonAddress;
 
+	private final char[] qualityBitsMask;
+
 	@Getter
 	private boolean connected;
 
     public Iec104ClientModule (Map<String, Iec104Cache> caches, ProtocolOptions options, String deviceId, int commonAddress,
-							   EventDispatcher eventDispatcher, EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
+							   char[] qualityBitsMask, EventDispatcher eventDispatcher, EventPublisher eventPublisher,
+							   ScadaTableTranslator scadaTables) {
         this.cache = caches;
         this.options = options;
 		this.deviceId = deviceId;
 		this.connected = false;
 		this.commonAddress = commonAddress;
+		this.qualityBitsMask = qualityBitsMask;
 		this.eventDispatcher = eventDispatcher;
 		this.eventPublisher = eventPublisher;
 		this.scadaTables = scadaTables;
@@ -190,7 +194,7 @@ public class Iec104ClientModule implements ClientModule {
     public void initializeChannel(SocketChannel socketChannel, MessageChannel messageChannel) {
         this.messageChannel = new Iec104MessageChannelHandler(this.options, this.messageManager);
 		Iec104ResponseHandler respHandler = new Iec104ResponseHandler(cache, this.deviceId, this.commonAddress,
-				this.eventDispatcher, this.eventPublisher, this.scadaTables);
+				this.qualityBitsMask, this.eventDispatcher, this.eventPublisher, this.scadaTables);
 		// we replace the message channel introduced by neoscada library in Client class (handleInitChannel) with our message channel
 		socketChannel.pipeline().replace(MessageChannel.class, this.messageChannel.toString(), this.messageChannel);
 		socketChannel.pipeline().addLast(respHandler);
