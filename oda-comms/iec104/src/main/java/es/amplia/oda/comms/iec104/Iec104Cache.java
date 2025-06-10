@@ -21,10 +21,17 @@ public class Iec104Cache {
 	// map is <Type(ASDU), Map<Index(IECAddress), Value>>
 	private final Map<String, Map<Integer, Iec104CacheValue>> cache = new HashMap<>();
 
+	private final String deviceId;
+
+	public Iec104Cache(String deviceId) {
+		this.deviceId = deviceId;
+	}
 
 	public <T> void add(String typeId, Value<T> value, int index) {
-		LOGGER.debug("Adding data to cache with SCADA type {} with index {} and value {}", typeId, index, value.getValue());
-		LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
+		LOGGER.debug("Adding data to cache of device {} with SCADA type {} with index {} and value {}", this.deviceId,
+				typeId, index, value.getValue());
+		//LOGGER.debug("Quality information {}, overflow {}", value.getQualityInformation(), value.isOverflow());
+
 		// get from cache the Map associated to the type(ASDU) indicated
 		Map<Integer, Iec104CacheValue> contain = cache.get(typeId);
 

@@ -137,7 +137,7 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                 }
                 // else, add it to the corresponding cache
                 else {
-                    addToCache(deviceId, valuesType, transformedValue, address);
+                    addToCache(finalDeviceId, valuesType, transformedValue, address);
                 }
             });
         }

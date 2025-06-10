@@ -53,7 +53,7 @@ public class ActivatorTest {
 		testActivator.start(mockedContext);
 
 		PowerMockito.verifyNew(ScadaDispatcherProxy.class).withArguments(eq(mockedContext));
-		PowerMockito.verifyNew(Iec104Cache.class).withNoArguments();
+		PowerMockito.verifyNew(Iec104Cache.class).withArguments(null);
 		PowerMockito.verifyNew(Iec104Connector.class).withArguments(eq(mockedCache), eq(mockedDispatcher));
 		PowerMockito.verifyNew(Iec104ConnectorConfigurationUpdateHandler.class).withArguments(mockedConnector);
 		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigurationHandler));

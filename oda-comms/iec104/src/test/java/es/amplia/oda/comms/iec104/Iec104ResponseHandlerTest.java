@@ -74,7 +74,7 @@ public class Iec104ResponseHandlerTest {
         commonAddress = ASDUAddress.parse(protocolOptions, buffer);
 
         // ini caches
-        cache.put(TEST_DEVICE, new Iec104Cache());
+        cache.put(TEST_DEVICE, new Iec104Cache(TEST_DEVICE));
     }
 
     @Test

@@ -40,7 +40,7 @@ public class Iec104ReadOperatorProcessorTest {
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
         ScadaTableTranslator.ScadaTranslationInfo scadaTranslationInfo =
                 new ScadaTableTranslator.ScadaTranslationInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_EVENT_PUBLISH);
-        Iec104Cache cache = new Iec104Cache();
+        Iec104Cache cache = new Iec104Cache(TEST_DEVICE_ID);
         Value<Integer> value = new Value<>(1, valueAt, null);
         cache.add("M_ME_NC_1", value, 106001);
 
@@ -66,7 +66,7 @@ public class Iec104ReadOperatorProcessorTest {
     public void testReadNoInfoInScadaTables(){
 
         long valueAt = System.currentTimeMillis();
-        Iec104Cache cache = new Iec104Cache();
+        Iec104Cache cache = new Iec104Cache(TEST_DEVICE_ID);
         Value<Integer> value = new Value<>(1, valueAt, null);
         cache.add("M_ME_NC_1", value, 106001);
 
@@ -88,7 +88,7 @@ public class Iec104ReadOperatorProcessorTest {
         long valueAt = System.currentTimeMillis();
         CollectedValue expectedValue = new CollectedValue(valueAt, 1, null, TEST_FEED);
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
-        Iec104Cache cache = new Iec104Cache();
+        Iec104Cache cache = new Iec104Cache(TEST_DEVICE_ID);
         Value<Integer> value = new Value<>(1, valueAt, null);
         cache.add("M_ME_NC_1", value, 106001);
 
@@ -109,7 +109,7 @@ public class Iec104ReadOperatorProcessorTest {
     public void testReadNoValueInCache(){
 
         ScadaTableTranslator.ScadaInfo scadaInfo = new ScadaTableTranslator.ScadaInfo(106001, "M_ME_NC_1");
-        Iec104Cache cache = new Iec104Cache();
+        Iec104Cache cache = new Iec104Cache(TEST_DEVICE_ID);
 
         // conditions
         when(mockedConnectionsFactory.getCache(anyString())).thenReturn(cache);

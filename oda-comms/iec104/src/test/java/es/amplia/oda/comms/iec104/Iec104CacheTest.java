@@ -34,7 +34,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Iec104CacheTest.class)
 public class Iec104CacheTest {
-	private final Iec104Cache testCache = new Iec104Cache();
+	private final Iec104Cache testCache = new Iec104Cache(null);
 	private static Map<String, Map<Integer, Iec104CacheValue>> cache;
 
 	@Mock

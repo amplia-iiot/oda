@@ -239,7 +239,7 @@ public class Iec104ConnectionsFactory {
 
         if(signalsDeviceIds != null) {
             for (String signalsDeviceId : signalsDeviceIds) {
-                caches.put(signalsDeviceId, new Iec104Cache());
+                caches.put(signalsDeviceId, new Iec104Cache(signalsDeviceId));
             }
         }
 
@@ -247,7 +247,8 @@ public class Iec104ConnectionsFactory {
         // signals without deviceId registered will be assigned to these caches
         if(configuration != null) {
             for (Iec104DatastreamsConfiguration connectionData : configuration) {
-                caches.put(connectionData.getDeviceId(), new Iec104Cache());
+                String deviceId = connectionData.getDeviceId();
+                caches.put(deviceId, new Iec104Cache(deviceId));
             }
         }
     }
