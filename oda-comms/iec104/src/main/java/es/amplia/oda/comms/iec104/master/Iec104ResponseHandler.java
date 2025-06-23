@@ -19,6 +19,7 @@ import java.util.*;
 
 public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iec104ResponseHandler.class);
+    private static final String QUALITY_BITS_EVENT_DATASTREAM = "iec104QualityEvent";
 
     private final EventDispatcher eventDispatcher;
     private final EventPublisher eventPublisher;
@@ -29,13 +30,17 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
     private final String deviceId;
     private final int commonAddress;
     private final char[] qualityBitsMask;
+    private final boolean qualityBitsNotify;
+
 
     public Iec104ResponseHandler(Map<String, Iec104Cache> caches, String deviceId, int commonAddress, char[] qualityBitsMask,
-                                 EventDispatcher eventDispatcher, EventPublisher eventPublisher, ScadaTableTranslator scadaTables) {
+                                 boolean qualityBitsNotify, EventDispatcher eventDispatcher, EventPublisher eventPublisher,
+                                 ScadaTableTranslator scadaTables) {
         this.caches = caches;
         this.deviceId = deviceId;
         this.commonAddress = commonAddress;
         this.qualityBitsMask = qualityBitsMask;
+        this.qualityBitsNotify = qualityBitsNotify;
         this.eventDispatcher = eventDispatcher;
         this.eventPublisher = eventPublisher;
         this.scadaTables = scadaTables;
@@ -97,20 +102,20 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
             boolean isEvent = causeOfTransmission == StandardCause.SPONTANEOUS.getValue();
 
             valuesParsed.forEach((address, value) -> {
-                LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, from device: {}",
+                LOGGER.debug("Value received - type: {}, address: {}, value: {}, cause: {}, device: {}",
                         valuesType, address, value.getValue(), translateCauseOfTransmission(causeOfTransmission), this.deviceId);
-
-                // check quality bits
-                if (!checkQualityBits(value.getQualityInformation())) {
-                    return;
-                }
 
                 // get datastreamId, deviceId and feed from scada tables
                 ScadaTableTranslator.ScadaTranslationInfo datastreamInfo = scadaTables.getTranslationInfo(
                         new ScadaTableTranslator.ScadaInfo(address, valuesType), isEvent);
 
                 if (datastreamInfo == null) {
-                    LOGGER.error("There is not translation info for address {} and type {}. Ignoring value", address, valuesType);
+                    LOGGER.warn("There is no translation info for address {} and type {}. Ignoring value", address, valuesType);
+                    return;
+                }
+
+                // check quality bits
+                if (!checkQualityBits(value, valuesType, address, datastreamInfo)) {
                     return;
                 }
 
@@ -127,7 +132,8 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
                     String eventPublish = datastreamInfo.getEventPublish();
 
                     if (eventPublish.equalsIgnoreCase(ScadaTableEntryConfiguration.EVENT_PUBLISH_DISPATCHER)) {
-                        publishImmmediately(datastreamInfo, finalDeviceId, transformedValue);
+                        publishImmmediately(datastreamInfo.getDatastreamId(), finalDeviceId, datastreamInfo.getFeed(),
+                                transformedValue.getTimestamp(), transformedValue);
                     } else if (eventPublish.equalsIgnoreCase(ScadaTableEntryConfiguration.EVENT_PUBLISH_STATEMANAGER)) {
                         publishStateManager(datastreamInfo, finalDeviceId, transformedValue);
                     } else {
@@ -143,9 +149,9 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void publishImmmediately(ScadaTableTranslator.ScadaTranslationInfo datastreamInfo, String deviceId, Value<?> value) {
-        List<Event> eventsToPublishImmediately = Collections.singletonList(new Event(datastreamInfo.getDatastreamId(),
-                deviceId, null, datastreamInfo.getFeed(), value.getTimestamp(), value.getValue()));
+    private void publishImmmediately(String datastreamId, String deviceId, String feed, long at, Object value) {
+        List<Event> eventsToPublishImmediately = Collections.singletonList(new Event(datastreamId, deviceId, null,
+                feed, at, value));
         eventDispatcher.publishImmediately(eventsToPublishImmediately);
     }
 
@@ -568,36 +574,58 @@ public class Iec104ResponseHandler extends ChannelInboundHandlerAdapter {
         return causeDescription + " " + causeNumber;
     }
 
-    private boolean checkQualityBits(QualityInformation qualityBitsReceived) {
+    private boolean checkQualityBits(Value<?> value, String valuesType, int address,
+                                     ScadaTableTranslator.ScadaTranslationInfo translationInfo) {
         boolean isValueValid = true;
 
-        if (qualityBitsReceived != null) {
-            //LOGGER.debug("Quality information {}", qualityBitsReceived);
-            char[] qualityBitsReceivedArray = new char[]{booleanToChar(qualityBitsReceived.isValid()),
-                    booleanToChar(qualityBitsReceived.isTopical()), booleanToChar(qualityBitsReceived.isSubstituted()),
-                    booleanToChar(qualityBitsReceived.isBlocked())};
+        if (value == null) {
+            return isValueValid;
+        }
 
-            for (int i = 0; i < this.qualityBitsMask.length; i++) {
-                char qualityBitFromMask = this.qualityBitsMask[i];
+        // get quality information
+        QualityInformation qualityBitsReceived = value.getQualityInformation();
+        if (qualityBitsReceived == null) {
+            return isValueValid;
+        }
 
-                // if it is *, we don't care what value has
-                // if it isn't it must be equal to the mask
-                if (qualityBitFromMask == '*') {
-                    continue;
-                }
+        //LOGGER.debug("Quality information {}", qualityBitsReceived);
+        char[] qualityBitsReceivedArray = new char[]{booleanToChar(qualityBitsReceived.isValid()),
+                booleanToChar(qualityBitsReceived.isTopical()), booleanToChar(qualityBitsReceived.isSubstituted()),
+                booleanToChar(qualityBitsReceived.isBlocked())};
 
-                if (qualityBitFromMask != qualityBitsReceivedArray[i]) {
-                    isValueValid = false;
-                    break;
-                }
+        for (int i = 0; i < this.qualityBitsMask.length; i++) {
+            char qualityBitFromMask = this.qualityBitsMask[i];
+
+            // if it is *, we don't care what value has
+            // if it isn't it must be equal to the mask
+            if (qualityBitFromMask == '*') {
+                continue;
             }
 
-            if (!isValueValid) {
-                LOGGER.warn("Discarding value because its quality bits (valid = {}, topical = {}, substituted = {}, " +
-                                "blocked = {}) don't comply with quality bits mask (valid = {}, topical = {}," +
-                                "substituted = {}, blocked = {})", qualityBitsReceivedArray[0], qualityBitsReceivedArray[1],
-                        qualityBitsReceivedArray[2], qualityBitsReceivedArray[3], this.qualityBitsMask[0],
-                        this.qualityBitsMask[1], this.qualityBitsMask[2], this.qualityBitsMask[3]);
+            if (qualityBitFromMask != qualityBitsReceivedArray[i]) {
+                isValueValid = false;
+                break;
+            }
+        }
+
+        if (!isValueValid) {
+            // log warning
+            LOGGER.warn("Discarding value '{}' from signal '{}' from device '{}' (ASDU = '{}', IOA = '{}') " +
+                            "because its quality bits (valid = {}, topical = {}, substituted = {}, blocked = {}) " +
+                            "don't comply with quality bits expected (valid = {}, topical = {}, substituted = {}, blocked = {})"
+                    , value.getValue(), translationInfo.getDatastreamId(), translationInfo.getDeviceId(),
+                    valuesType, address, qualityBitsReceivedArray[0], qualityBitsReceivedArray[1],
+                    qualityBitsReceivedArray[2], qualityBitsReceivedArray[3], this.qualityBitsMask[0],
+                    this.qualityBitsMask[1], this.qualityBitsMask[2], this.qualityBitsMask[3]);
+
+            // send event
+            if (this.qualityBitsNotify) {
+                String eventText = String.format("Detectado valor de la señal '%s' con bits de calidad erróneos " +
+                                "(valid = %c, topical = %c, substituted = %c, blocked = %c)",
+                        translationInfo.getDatastreamId(), qualityBitsReceivedArray[0], qualityBitsReceivedArray[1],
+                        qualityBitsReceivedArray[2], qualityBitsReceivedArray[3]);
+                publishImmmediately(QUALITY_BITS_EVENT_DATASTREAM, translationInfo.getDeviceId(), null,
+                        value.getTimestamp(), eventText);
             }
         }
 

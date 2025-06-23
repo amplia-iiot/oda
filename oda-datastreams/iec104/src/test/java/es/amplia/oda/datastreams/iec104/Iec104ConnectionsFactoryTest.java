@@ -37,6 +37,8 @@ public class Iec104ConnectionsFactoryTest {
     private Iec104ConnectionsFactory testIec104ConnectionsFactory;
 
     char[] TEST_QUALITY_BITS = {1, 1, 1, 1};
+    boolean TEST_QUALITY_BITS_NOTIFY = false;
+
 
     @Test
     public void testCreateConnections()
@@ -53,7 +55,7 @@ public class Iec104ConnectionsFactoryTest {
 
         // condition
         when(mockedScadaTables.getRecollectionDeviceIds()).thenReturn(Arrays.asList("testDeviceIdSignal1", "testDeviceIdSignal2"));
-        testIec104ConnectionsFactory.createConnections(configurations, TEST_QUALITY_BITS);
+        testIec104ConnectionsFactory.createConnections(configurations, TEST_QUALITY_BITS, TEST_QUALITY_BITS_NOTIFY);
 
         // checks
         Map<SocketAddress, Client> clients  = (Map<SocketAddress, Client>) Whitebox.getInternalState(testIec104ConnectionsFactory,"clients");

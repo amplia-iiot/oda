@@ -23,6 +23,7 @@ public class Iec104DatastreamsManagerTest {
     private static final int TEST_INIT_PO0L = 100;
     private static final int TEST_PO0L = 200;
     private static final char[] TEST_QUALITY_BITS = {1, 1, 1, 1};
+    private static final boolean TEST_QUALITY_BITS_NOTIFY = false;
 
 
     @Mock
@@ -59,11 +60,12 @@ public class Iec104DatastreamsManagerTest {
         when(mockedDatastreamsFactory.createIec104DatastreamsSetter(anyString())).thenReturn(mockedDatastreamsSetter);
 
         // launch method to test
-        testIec104DatastreamsManager.loadConfiguration(configurations, TEST_INIT_PO0L, TEST_PO0L, 10, 300, TEST_QUALITY_BITS);
+        testIec104DatastreamsManager.loadConfiguration(configurations, TEST_INIT_PO0L, TEST_PO0L, 10,
+                300, TEST_QUALITY_BITS, TEST_QUALITY_BITS_NOTIFY);
 
         // verifications
         verify(mockedRegistrationManager, times(2)).unregister();
-        verify(mockedConnectionsFactory).createConnections(configurations, TEST_QUALITY_BITS);
+        verify(mockedConnectionsFactory).createConnections(configurations, TEST_QUALITY_BITS, TEST_QUALITY_BITS_NOTIFY);
         verify(mockedConnectionsFactory).updateGetterPolling(TEST_INIT_PO0L, TEST_PO0L);
         verify(mockedDatastreamsFactory).createIec104DatastreamsGetter("datastreamId1");
         verify(mockedDatastreamsFactory).createIec104DatastreamsGetter("datastreamId2");

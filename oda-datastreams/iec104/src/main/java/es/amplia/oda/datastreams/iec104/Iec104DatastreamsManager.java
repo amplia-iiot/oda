@@ -28,7 +28,8 @@ public class Iec104DatastreamsManager implements AutoCloseable {
     }
 
     public void loadConfiguration(List<Iec104DatastreamsConfiguration> currentIEC104DatastreamsConfigurations,
-                                  int initialPolling, int polling, int initialDelay, int retryDelay, char[] qualityBitsMask) {
+                                  int initialPolling, int polling, int initialDelay, int retryDelay,
+                                  char[] qualityBitsMask, boolean qualityBitsNotify) {
         close();
 
         this.iec104ConnectionsFactory.setConnInitialDelay(initialDelay);
@@ -36,7 +37,7 @@ public class Iec104DatastreamsManager implements AutoCloseable {
         this.iec104ConnectionsFactory.updateGetterPolling(initialPolling, polling);
 
         // Primero creamos las conexiones para saber el número de dispositivos que tenemos en el sistema
-        this.iec104ConnectionsFactory.createConnections(currentIEC104DatastreamsConfigurations, qualityBitsMask);
+        this.iec104ConnectionsFactory.createConnections(currentIEC104DatastreamsConfigurations, qualityBitsMask, qualityBitsNotify);
 
         // Una vez que tenemos el número de dispositivos en el sistema ya podemos crear los datastreams Getter y Setters correspondientes
         List<String> recollectionDatastreamIds = this.translator.getRecollectionDatastreamsIds();
