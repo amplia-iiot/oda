@@ -426,19 +426,14 @@ public class State {
      * @return List with the identifiers of the datastreams.
      */
     public List<DatastreamInfo> getStoredValues() {
-        List<DatastreamInfo> storedValues = new ArrayList<>();
-        this.datastreams.forEach((info, state) -> storedValues.add(info));
-        return storedValues;
+        return new ArrayList<>(this.datastreams.keySet());
     }
 
     public List<DatastreamInfo> getStoredValuesToProcess() {
-        List<DatastreamInfo> list = new ArrayList<>();
-        for (Map.Entry<DatastreamInfo, DatastreamState> datastreamEntry : this.datastreams.entrySet()) {
-            if (datastreamEntry.getValue().sendImmediately || datastreamEntry.getValue().refreshed) {
-                list.add(datastreamEntry.getKey());
-            }
-        }
-        return list;
+        return this.datastreams.entrySet().stream()
+                .filter(datastreamEntry -> datastreamEntry.getValue().sendImmediately || datastreamEntry.getValue().refreshed)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     /**

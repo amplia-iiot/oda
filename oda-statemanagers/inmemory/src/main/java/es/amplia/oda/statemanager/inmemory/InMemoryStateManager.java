@@ -97,8 +97,7 @@ public class InMemoryStateManager implements StateManager {
         LOGGER.debug("Get datastream info for device pattern {} and datastream {}", devicePattern, datastreamId);
         return CompletableFuture.completedFuture(
                 state.getStoredValues().stream()
-                        .filter(entry -> datastreamId.equals(entry.getDatastreamId()))
-                        .filter(entry -> devicePattern.match(entry.getDeviceId()))
+                        .filter(entry -> datastreamId.equals(entry.getDatastreamId()) && devicePattern.match(entry.getDeviceId()))
                         .flatMap(this::getStreamOfDatapointsToSend)
                         .collect(Collectors.toSet()))
                         .thenApply(this::setSent);
@@ -109,8 +108,7 @@ public class InMemoryStateManager implements StateManager {
         LOGGER.debug("Get datastream info for device pattern {} and datastreams {}", devicePattern, datastreamIds);
         return CompletableFuture.completedFuture(
                 state.getStoredValues().stream()
-                        .filter(entry -> datastreamIds.contains(entry.getDatastreamId()))
-                        .filter(entry -> devicePattern.match(entry.getDeviceId()))
+                        .filter(entry -> datastreamIds.contains(entry.getDatastreamId()) && devicePattern.match(entry.getDeviceId()))
                         .flatMap(this::getStreamOfDatapointsToSend)
                         .collect(Collectors.toSet()))
                         .thenApply(this::setSent);
