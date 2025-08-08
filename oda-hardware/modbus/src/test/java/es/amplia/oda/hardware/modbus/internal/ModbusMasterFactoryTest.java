@@ -25,7 +25,7 @@ public class ModbusMasterFactoryTest {
     private static final String TEST_ADDRESS = "localhost";
     private static final int TEST_PORT = 12345;
     private static final int TEST_TIMEOUT = 10000;
-    private static final boolean TEST_RECONNECT = true;
+    private static final boolean TEST_NEW_CONN_PER_REQUEST = true;
     private static final String TEST_DEVICE_ID = "deviceId";
     private static final String TEST_PORT_NAME = "testPort";
     private static final int TEST_BAUD_RATE = 38400;
@@ -39,7 +39,7 @@ public class ModbusMasterFactoryTest {
 
     private static final TCPModbusMasterConfiguration TEST_TCP_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).build();
+                    .newConnPerRequest(TEST_NEW_CONN_PER_REQUEST).deviceId(TEST_DEVICE_ID).build();
     private static final UDPModbusMasterConfiguration TEST_UDP_CONFIGURATION =
             UDPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
                     .deviceId(TEST_DEVICE_ID).build();
@@ -67,7 +67,7 @@ public class ModbusMasterFactoryTest {
         testFactory.createTCPModbusMaster(TEST_TCP_CONFIGURATION);
 
         PowerMockito.verifyNew(ModbusTCPMaster.class).withArguments(eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_TIMEOUT),
-                eq(TEST_RECONNECT));
+                eq(TEST_NEW_CONN_PER_REQUEST));
     }
 
     @Test

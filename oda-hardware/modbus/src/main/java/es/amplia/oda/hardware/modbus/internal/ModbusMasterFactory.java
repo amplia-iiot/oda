@@ -14,7 +14,7 @@ public class ModbusMasterFactory {
 
     public ModbusMaster createTCPModbusMaster(TCPModbusMasterConfiguration conf) {
         ModbusTCPMaster modbusTCPMaster =
-                new ModbusTCPMaster(conf.getAddress(), conf.getPort(), conf.getTimeout(), conf.isReconnect());
+                new ModbusTCPMaster(conf.getAddress(), conf.getPort(), conf.getTimeout(), conf.isNewConnPerRequest());
         return new ModbusMasterAdapter<>(modbusTCPMaster, new ModbusTypeMapper(), conf.getDeviceId()
                 , conf.getDeviceManufacturer());
     }

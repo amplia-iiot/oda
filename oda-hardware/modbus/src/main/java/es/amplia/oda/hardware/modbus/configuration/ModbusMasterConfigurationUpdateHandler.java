@@ -18,7 +18,7 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
     static final String TYPE_PROPERTY_NAME = "type";
     static final String PORT_PROPERTY_NAME = "port";
     static final String TIMEOUT_PROPERTY_NAME = "timeout";
-    static final String RECONNECT_PROPERTY_NAME = "reconnect";
+    static final String NEW_CONNECTION_PER_REQUEST_PROPERTY_NAME = "newConnPerRequest";
     static final String PORTS_PROPERTY_NAME = "ports";
     static final String BAUD_RATE_PROPERTY_NAME = "baudRate";
     static final String FLOW_CONTROL_IN_PROPERTY_NAME = "flowControlIn";
@@ -105,8 +105,13 @@ public class ModbusMasterConfigurationUpdateHandler implements ConfigurationUpda
 
             Optional.ofNullable((String) props.get(TIMEOUT_PROPERTY_NAME)).ifPresent(value ->
                     builder.timeout(Integer.parseInt(value)));
-            Optional.ofNullable((String) props.get(RECONNECT_PROPERTY_NAME)).ifPresent(value ->
-                    builder.reconnect(Boolean.parseBoolean(value)));
+
+            // NEW CONNECTION PER REQUEST
+            // when value is true, a new modbus connection is created with every modbus request
+            // the connection is closed when the reading/writing is done
+            // when value is false, the same modbus connection is maintained all the time
+            Optional.ofNullable((String) props.get(NEW_CONNECTION_PER_REQUEST_PROPERTY_NAME)).ifPresent(value ->
+                    builder.newConnPerRequest(Boolean.parseBoolean(value)));
 
             currentConfiguredModbusMaster.add(modbusMasterFactory.createTCPModbusMaster(builder.build()));
         }

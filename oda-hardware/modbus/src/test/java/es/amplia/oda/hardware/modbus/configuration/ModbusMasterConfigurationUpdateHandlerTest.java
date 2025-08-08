@@ -24,7 +24,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
     private static final String TEST_ADDRESS = "localhost";
     private static final int TEST_PORT = 12345;
     private static final int TEST_TIMEOUT = 10000;
-    private static final boolean TEST_RECONNECT = true;
+    private static final boolean TEST_NEW_CONN_PER_REQUEST = true;
     private static final String TEST_DEVICE_ID = "deviceId";
     private static final String TEST_DEVICE_MANUFACTURER = "testManufacturer";
     private static final String TEST_PORTS_SERIAL_PROPERTY = "testPort, deviceId";
@@ -35,7 +35,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
 
     private static final TCPModbusMasterConfiguration TEST_TCP_COMPLETE_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).port(TEST_PORT).timeout(TEST_TIMEOUT)
-                    .reconnect(TEST_RECONNECT).deviceId(TEST_DEVICE_ID).deviceManufacturer(TEST_DEVICE_MANUFACTURER)
+                    .newConnPerRequest(TEST_NEW_CONN_PER_REQUEST).deviceId(TEST_DEVICE_ID).deviceManufacturer(TEST_DEVICE_MANUFACTURER)
                     .build();
     private static final TCPModbusMasterConfiguration TEST_TCP_DEFAULT_CONFIGURATION =
             TCPModbusMasterConfiguration.builder().address(TEST_ADDRESS).deviceId(TEST_DEVICE_ID).build();
@@ -76,7 +76,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         Dictionary<String, String>  tcpCompleteConfiguration = new Hashtable<>();
         tcpCompleteConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
         tcpCompleteConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
-        tcpCompleteConfiguration.put(RECONNECT_PROPERTY_NAME, Boolean.toString(TEST_RECONNECT));
+        tcpCompleteConfiguration.put(NEW_CONNECTION_PER_REQUEST_PROPERTY_NAME, Boolean.toString(TEST_NEW_CONN_PER_REQUEST));
         tcpCompleteConfiguration.put(CONNECTIONS_PROPERTY_NAME, TEST_CONNECT_PROPERTY_FULL);
 
         testConfigHandler.loadConfiguration(tcpCompleteConfiguration);
@@ -101,7 +101,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         tcpInvalidConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
         tcpInvalidConfiguration.put(PORT_PROPERTY_NAME, Integer.toString(TEST_PORT));
         tcpInvalidConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
-        tcpInvalidConfiguration.put(RECONNECT_PROPERTY_NAME, Boolean.toString(TEST_RECONNECT));
+        tcpInvalidConfiguration.put(NEW_CONNECTION_PER_REQUEST_PROPERTY_NAME, Boolean.toString(TEST_NEW_CONN_PER_REQUEST));
 
         testConfigHandler.loadConfiguration(tcpInvalidConfiguration);
 

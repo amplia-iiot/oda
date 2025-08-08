@@ -9,7 +9,7 @@ import lombok.Value;
 public class TCPModbusMasterConfiguration {
     public static final int DEFAULT_PORT = 502;
     public static final int DEFAULT_TIMEOUT = 3000;
-    public static final boolean DEFAULT_RECONNECTION = false;
+    public static final boolean DEFAULT_NEW_CONNECTION_PER_REQUEST = false;
 
     @NonNull
     String address;
@@ -21,5 +21,5 @@ public class TCPModbusMasterConfiguration {
     @Builder.Default
     int timeout = DEFAULT_TIMEOUT;
     @Builder.Default
-    boolean reconnect = DEFAULT_RECONNECTION;
+    boolean newConnPerRequest = DEFAULT_NEW_CONNECTION_PER_REQUEST;
 }
