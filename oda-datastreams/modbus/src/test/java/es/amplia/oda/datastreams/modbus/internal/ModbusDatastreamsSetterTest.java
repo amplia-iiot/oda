@@ -1,6 +1,6 @@
 package es.amplia.oda.datastreams.modbus.internal;
 
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 
 import org.junit.Before;
 import org.junit.Test;

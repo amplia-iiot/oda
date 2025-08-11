@@ -1,7 +1,7 @@
 package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

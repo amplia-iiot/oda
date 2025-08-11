@@ -1,6 +1,7 @@
 package es.amplia.oda.hardware.modbus;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
+import es.amplia.oda.core.commons.osgi.proxies.CounterManagerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
@@ -31,6 +32,10 @@ public class Activator implements BundleActivator {
         ModbusMasterConfigurationUpdateHandler configHandler =
                 new ModbusMasterConfigurationUpdateHandler(modbusMasterManager, modbusMasterFactory);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
+
+        // create counters
+        new ModbusCounters(new CounterManagerProxy(bundleContext));
+
         LOGGER.info("Modbus Hardware Bundle starting");
     }
 

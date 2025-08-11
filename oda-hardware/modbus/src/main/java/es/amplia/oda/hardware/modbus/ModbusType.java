@@ -1,4 +1,4 @@
-package es.amplia.oda.datastreams.modbus;
+package es.amplia.oda.hardware.modbus;
 
 public enum ModbusType {
     INPUT_DISCRETE,

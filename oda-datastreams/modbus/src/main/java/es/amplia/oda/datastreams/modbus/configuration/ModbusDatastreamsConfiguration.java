@@ -1,6 +1,6 @@
 package es.amplia.oda.datastreams.modbus.configuration;
 
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 
 import lombok.Builder;
 import lombok.NonNull;

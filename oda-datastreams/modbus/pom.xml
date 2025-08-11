@@ -87,6 +87,11 @@
             <artifactId>commons</artifactId>
         </dependency>
         <dependency>
+            <groupId>es.amplia.oda.hardware</groupId>
+            <artifactId>modbus</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
@@ -94,7 +99,6 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

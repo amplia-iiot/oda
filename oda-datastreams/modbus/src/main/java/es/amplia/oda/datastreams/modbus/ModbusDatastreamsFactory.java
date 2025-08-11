@@ -2,6 +2,7 @@ package es.amplia.oda.datastreams.modbus;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.hardware.modbus.ModbusType;
 
 import java.lang.reflect.Type;
 import java.util.Map;

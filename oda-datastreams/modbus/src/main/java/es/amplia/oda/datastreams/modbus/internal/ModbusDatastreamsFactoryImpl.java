@@ -2,7 +2,7 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.datastreams.modbus.ModbusDatastreamsFactory;
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 
 import java.lang.reflect.Type;
 import java.util.Map;

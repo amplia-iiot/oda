@@ -6,6 +6,7 @@ import com.ghgande.j2mod.modbus.procimg.SimpleRegister;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.Register;
+import es.amplia.oda.hardware.modbus.ModbusCounters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,7 @@ import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ModbusMasterAdapter.class)
+@PrepareForTest({ModbusMasterAdapter.class, ModbusCounters.class})
 public class ModbusMasterAdapterTest {
 
     private static final int TEST_UNIT_ID = 5;
@@ -48,11 +49,12 @@ public class ModbusMasterAdapterTest {
 
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
 
         // ini class to test
         testModbusMasterAdapter = new ModbusMasterAdapter<>(mockedModbusMaster, mockedMapper, TEST_DEVICE_ID, TEST_DEVICE_MANUFACTURER);
 
+        PowerMockito.mockStatic(ModbusCounters.class);
     }
 
     @Test

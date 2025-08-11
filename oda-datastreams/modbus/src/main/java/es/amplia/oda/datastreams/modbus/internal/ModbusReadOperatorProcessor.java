@@ -4,7 +4,7 @@ import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 import es.amplia.oda.datastreams.modbus.cache.ModbusCache;
 import es.amplia.oda.datastreams.modbus.cache.ModbusCacheRegister;
 import org.slf4j.Logger;

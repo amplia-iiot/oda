@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.modbus.configuration;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.modbus.ModbusDatastreamsManager;
-import es.amplia.oda.datastreams.modbus.ModbusType;
+import es.amplia.oda.hardware.modbus.ModbusType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -5,6 +5,7 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 
 import es.amplia.oda.datastreams.modbus.configuration.ModbusDatastreamsConfiguration;
+import es.amplia.oda.hardware.modbus.ModbusType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
