@@ -44,13 +44,8 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
             modbusMaster.connect();
         } catch (Exception exception) {
             LOGGER.error("Error connecting modbus master: ", exception);
-            // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_CONNECT_FAILED, this.deviceId, 1);
             throw new ModbusException("Error connecting modbus master", exception);
         }
-
-        // increment counter
-        ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_CONNECT_OK, this.deviceId, 1);
     }
 
     @Override
@@ -63,11 +58,11 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
         try {
             BitVector bitVector =  modbusMaster.readInputDiscretes(unitId, ref, count);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.INPUT_DISCRETE, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.INPUT_DISCRETE, this.deviceId, count);
             return modbusTypeMapper.mapBitVectorValues(bitVector);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.INPUT_DISCRETE, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.INPUT_DISCRETE, this.deviceId, count);
             throw createModbusException(READING_OPERATION, INPUT_DISCRETE_REG_TYPE, unitId, ref, count, exception);
         }
     }
@@ -89,11 +84,11 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
         try {
             BitVector bitVector =  modbusMaster.readCoils(unitId, ref, count);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.COIL, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.COIL, this.deviceId, count);
             return modbusTypeMapper.mapBitVectorValues(bitVector);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.COIL, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.COIL, this.deviceId, count);
             throw createModbusException(READING_OPERATION, COIL_REG_TYPE, unitId, ref, count, exception);
         }
     }
@@ -117,10 +112,10 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
             BitVector bitVector = modbusTypeMapper.mapValuesToBitVector(values);
             modbusMaster.writeMultipleCoils(unitId, ref, bitVector);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_OK, ModbusType.COIL, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_OK, ModbusType.COIL, this.deviceId, values.length);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_FAILED, ModbusType.COIL, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_FAILED, ModbusType.COIL, this.deviceId, values.length);
             throw createModbusException(WRITING_OPERATION, COIL_REG_TYPE, unitId, ref, values.length, exception);
         }
     }
@@ -135,11 +130,11 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
         try {
             InputRegister[] inputRegisters =  modbusMaster.readInputRegisters(unitId, ref, count);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.INPUT_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.INPUT_REGISTER, this.deviceId, count);
             return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.INPUT_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.INPUT_REGISTER, this.deviceId, count);
             throw createModbusException(READING_OPERATION, INPUT_REGISTER_REG_TYPE, unitId, ref, count, exception);
         }
     }
@@ -154,11 +149,11 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
         try {
             InputRegister[] inputRegisters =  modbusMaster.readMultipleRegisters(unitId, ref, count);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.HOLDING_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_OK, ModbusType.HOLDING_REGISTER, this.deviceId, count);
             return modbusTypeMapper.mapInputRegisters(inputRegisters);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.HOLDING_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_READ_FAILED, ModbusType.HOLDING_REGISTER, this.deviceId, count);
             throw createModbusException(READING_OPERATION, HOLDING_REGISTER_REG_TYPE, unitId, ref, count, exception);
         }
     }
@@ -183,10 +178,12 @@ class ModbusMasterAdapter<T extends AbstractModbusMaster> implements ModbusMaste
             com.ghgande.j2mod.modbus.procimg.Register[] j2Registers = modbusTypeMapper.mapToJ2ModbusRegisters(registers);
             modbusMaster.writeMultipleRegisters(unitId, ref, j2Registers);
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_OK, ModbusType.HOLDING_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_OK, ModbusType.HOLDING_REGISTER,
+                    this.deviceId, registers.length);
         } catch (com.ghgande.j2mod.modbus.ModbusException exception) {
             // increment counter
-            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_FAILED, ModbusType.HOLDING_REGISTER, this.deviceId, 1);
+            ModbusCounters.incrCounter(ModbusCounters.ModbusCounterType.MODBUS_REGISTER_WRITE_FAILED, ModbusType.HOLDING_REGISTER,
+                    this.deviceId, registers.length);
             throw createModbusException(WRITING_OPERATION, HOLDING_REGISTER_REG_TYPE, unitId, ref, registers.length,
                     exception);
         }

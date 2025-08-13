@@ -13,9 +13,7 @@ public class ModbusCounters extends Counters {
         MODBUS_REGISTER_READ_OK("MODBUS/READ/OK/device/type"),
         MODBUS_REGISTER_READ_FAILED("MODBUS/READ/FAILED/device/type"),
         MODBUS_REGISTER_WRITE_OK("MODBUS/WRITE/OK/device/type"),
-        MODBUS_REGISTER_WRITE_FAILED("MODBUS/WRITE/FAILED/device/type"),
-        MODBUS_CONNECT_OK("MODBUS/CONNECTION/OK/device"),
-        MODBUS_CONNECT_FAILED("MODBUS/CONNECTION/FAILED/device");
+        MODBUS_REGISTER_WRITE_FAILED("MODBUS/WRITE/FAILED/device/type");
 
         private final String m_name;
 
@@ -40,24 +38,7 @@ public class ModbusCounters extends Counters {
             }
 
             if (log.isTraceEnabled()) {
-                log.trace("counter string retrieved: " + res);
-            }
-
-            return res;
-        }
-
-        public String getCounterString(String deviceId) {
-
-            String res = m_name;
-
-            if (deviceId != null) {
-                res = res.replaceAll("device", deviceId);
-            } else {
-                log.warn("DeviceId is null");
-            }
-
-            if (log.isTraceEnabled()) {
-                log.trace("counter string retrieved: " + res);
+                log.trace("counter string retrieved: {}", res);
             }
 
             return res;
@@ -74,13 +55,5 @@ public class ModbusCounters extends Counters {
             return;
         }
         counterManager.incrementCounter(counter.getCounterString(type, deviceId), number);
-    }
-
-    public static void incrCounter(ModbusCounterType counter, String deviceId, int number) {
-        if (counterManager == null) {
-            log.warn("Counter manager is null. No counters will be registered");
-            return;
-        }
-        counterManager.incrementCounter(counter.getCounterString(deviceId), number);
     }
 }
