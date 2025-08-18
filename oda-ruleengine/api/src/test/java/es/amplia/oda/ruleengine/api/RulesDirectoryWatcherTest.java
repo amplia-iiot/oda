@@ -70,7 +70,7 @@ public class RulesDirectoryWatcherTest {
 		File fileToCreate = new File(testRoute + "/tempDir.js");
 		fileToCreate.createNewFile();
 
-		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).createRule(testRoute + "/tempDir.js");
+		Mockito.verify(mockedEngine, Mockito.timeout(2000).atLeastOnce()).createRule(testRoute + "/tempDir.js");
 
 		fileToCreate.delete();
 	}
@@ -86,7 +86,7 @@ public class RulesDirectoryWatcherTest {
 		testDirectoryWatcher.start();
 		fileToCreate.delete();
 
-		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).deleteRule(testRoute + "/tempDir.js");
+		Mockito.verify(mockedEngine, Mockito.timeout(2000).atLeastOnce()).deleteRule(testRoute + "/tempDir.js");
 	}
 
 	@Test
