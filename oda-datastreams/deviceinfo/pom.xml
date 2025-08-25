@@ -17,6 +17,7 @@
     <properties>
         <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
+        <jackson.version>2.9.8</jackson.version>
     </properties>
 
     <build>
@@ -34,6 +35,8 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Embed-Dependency>jackson-databind, jackson-annotations, jackson-core</Embed-Dependency>
+                        <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
             </plugin>
@@ -125,6 +128,21 @@
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 </project>

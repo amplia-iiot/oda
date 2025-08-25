@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.deviceinfo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import es.amplia.oda.core.commons.entities.Software;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
@@ -172,7 +173,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         LocalDateTime currentDateTime = LocalDateTime.ofInstant(currentInstant, currentZoneId);
         LocalDate currentDate = currentDateTime.toLocalDate();
         LocalTime currentTime = currentDateTime.toLocalTime().truncatedTo(ChronoUnit.SECONDS);
-        boolean dstActive = currentZoneId.getRules().isDaylightSavings(Instant.now());
+        boolean dstActive = currentZoneId.getRules().isDaylightSavings(currentInstant);
         return new ClockInfo(currentDate.toString(), currentTime.toString(), currentZoneId.getId(), (dstActive ? 1 : 0));
     }
 
@@ -180,24 +181,34 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         return this.serialNumber;
     }
 
-    public Object executeStript (String scriptToExecute, String type) {
+    public Object executeStript(String scriptToExecute, String type) {
         try {
             String value = commandProcessor.execute(scriptToExecute);
-            if ( (type != null) && !type.equals("STRING") ) {
-                if ( (value != null) && !value.isEmpty() ) {
-                    Object ret = null;
-                    if ("BOOLEAN".equals(type)) {
-                        ret = Boolean.parseBoolean(value);
-                    } else if ("INTEGER".equals(type)) {
-                        ret = Integer.parseInt(value);
-                    } else if ("LONG".equals(type)) {
-                        ret = Long.parseLong(value);
-                    } else if ("FLOAT".equals(type)) {
-                        ret = Float.parseFloat(value);
-                    } else if ("DOUBLE".equals(type)) {
-                        ret = Double.parseDouble(value);
-                    } else {
-                        ret = value;
+            if ((type != null) && !type.equals("STRING")) {
+                if ((value != null) && !value.isEmpty()) {
+                    Object ret;
+                    switch (type) {
+                        case "BOOLEAN":
+                            ret = Boolean.parseBoolean(value);
+                            break;
+                        case "INTEGER":
+                            ret = Integer.parseInt(value);
+                            break;
+                        case "LONG":
+                            ret = Long.parseLong(value);
+                            break;
+                        case "FLOAT":
+                            ret = Float.parseFloat(value);
+                            break;
+                        case "DOUBLE":
+                            ret = Double.parseDouble(value);
+                            break;
+                        case "JSON":
+                            ret = new ObjectMapper().readValue(value, Map.class);
+                            break;
+                        default:
+                            ret = value;
+                            break;
                     }
                     LOGGER.debug("Script {} returned value: {}", scriptToExecute, ret);
                     return ret;
