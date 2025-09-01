@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-dispatchers</artifactId>
         <groupId>es.amplia.oda.dispatcher</groupId>
-        <version>4.12.6</version>
+        <version>4.12.7-SNAPSHOT</version>
     </parent>
 
     <properties>
