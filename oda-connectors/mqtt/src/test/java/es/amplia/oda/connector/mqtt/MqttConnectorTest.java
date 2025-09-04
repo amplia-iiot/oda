@@ -73,6 +73,12 @@ public class MqttConnectorTest {
         Whitebox.setInternalState(testConnector, QOS_FIELD_NAME, TEST_QOS);
         Whitebox.setInternalState(testConnector, RETAINED_FIELD_NAME, TEST_RETAINED);
 
+        MqttConnectOptions testOptions = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
+        ConnectorConfiguration testConfiguration = new ConnectorConfiguration(TEST_BROKER_URL, TEST_CLIENT_ID,
+                testOptions, TEST_IOT_TOPIC, TEST_REQUEST_TOPIC, TEST_RESPONSE_TOPIC, TEST_QOS, TEST_RETAINED,
+                TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
+        Whitebox.setInternalState(testConnector, "connectorConfiguration", testConfiguration);
+
         PowerMockito.mockStatic(MqttCounters.class);
     }
 
@@ -192,6 +198,7 @@ public class MqttConnectorTest {
         MqttMessage responseMessage = MqttMessage.newInstance(testResponseBytes, TEST_QOS, TEST_RETAINED);
 
         when(mockedDispatcher.process(any(byte[].class), any(ContentType.class))).thenReturn(mockedResponse);
+        when(mockedMqttClient.isConnected()).thenReturn(true);
 
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
@@ -239,6 +246,7 @@ public class MqttConnectorTest {
     public void testUplink() throws MqttException {
         byte[] payload = new byte[]{1, 2, 3, 4};
         MqttMessage expectedMessage = MqttMessage.newInstance(payload, TEST_QOS, TEST_RETAINED);
+        when(mockedMqttClient.isConnected()).thenReturn(true);
 
         testConnector.uplink(payload);
 
@@ -267,6 +275,7 @@ public class MqttConnectorTest {
     public void testUplinkMqttPublishExceptionCaught() throws MqttException {
         byte[] payload = new byte[]{1, 2, 3, 4};
         MqttMessage expectedMessage = MqttMessage.newInstance(payload, TEST_QOS, TEST_RETAINED);
+        when(mockedMqttClient.isConnected()).thenReturn(true);
 
         doThrow(new MqttException("")).when(mockedMqttClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 

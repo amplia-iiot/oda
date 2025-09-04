@@ -46,6 +46,7 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
     private ScheduledFuture<?> scheduledFuture;
 
     private String serverURI;
+    private MqttConnectOptions mqttOptions;
 
     MqttDatastreamsOrchestrator(MqttClientFactory mqttClientFactory, Serializer serializer, EventPublisher eventPublisher,
                                 DeviceInfoProviderProxy deviceInfoProvider, ResponseDispatcher respDispatcher, BundleContext bundleContext) {
@@ -72,10 +73,10 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
             MqttOperationSender mqttOperationSender = new MqttOperationSender(mqttClient, serializer, configuration.getRequestTopic(), configuration.getQos(), configuration.isRetained(), odaList);
             this.mqttOperationSenderRegistration = this.bundleContext.registerService(OperationSender.class, mqttOperationSender, null);
             this.ready = true;
+            this.mqttOptions = options.build();
 
             // Lo dejamos al final porque puede tardar en conectar y si falla estará el reconnect automático del MQTT
-            scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(options.build()),
-                0, 30, TimeUnit.SECONDS);
+            createFutureConnection();
         }
     }
 
@@ -103,6 +104,17 @@ public class MqttDatastreamsOrchestrator implements MqttDatastreamsService, Auto
             });
         } catch (MqttException e) {
             LOGGER.error("Error connecting through MQTT with configuration {}", configuration, e);
+        }
+    }
+
+    private void createFutureConnection() {
+        if (scheduledFuture == null) {
+            int initialDelaySeconds = 0;
+            int retryDelaySeconds = 30;
+            LOGGER.info("Scheduling mqtt connection to '{}' with initial delay of {} seconds and retry delay of {} seconds",
+                   this.serverURI, initialDelaySeconds, retryDelaySeconds);
+            scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(this.mqttOptions),
+                    initialDelaySeconds, retryDelaySeconds, TimeUnit.SECONDS);
         }
     }
 

@@ -29,6 +29,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private ScheduledFuture<?> scheduledFuture;
+    private ConnectorConfiguration connectorConfiguration;
 
     MqttConnector(MqttClientFactory mqttClientFactory, Dispatcher dispatcher) {
         this.mqttClientFactory = mqttClientFactory;
@@ -38,10 +39,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     public void loadConfigurationAndInit(ConnectorConfiguration connectorConfiguration) {
         close();
-        client = mqttClientFactory.createMqttClient(connectorConfiguration.getBrokerUrl(),
-                connectorConfiguration.getClientId());
-        scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(connectorConfiguration),
-                connectorConfiguration.getInitialDelay(), connectorConfiguration.getRetryDelay(), TimeUnit.SECONDS);
+        this.connectorConfiguration = connectorConfiguration;
+        this.client = mqttClientFactory.createMqttClient(connectorConfiguration.getBrokerUrl(), connectorConfiguration.getClientId());
         this.iotTopic = connectorConfiguration.getIotTopic();
         this.responseTopic = connectorConfiguration.getResponseTopic();
         this.requestTopic = connectorConfiguration.getRequestTopic();
@@ -49,6 +48,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         this.retained = connectorConfiguration.isRetained();
         this.hasMaxlength = connectorConfiguration.isHasMaxlength();
         this.maxLength = connectorConfiguration.getMaxlength();
+        createFutureConnection();
         LOGGER.info("Created and prepared mqtt connection");
     }
 
@@ -109,11 +109,14 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     private void sendMessage(String topic, byte[] payload, ContentType contentType, int qos) {
         if (client == null) {
-            LOGGER.warn("Cannot send message as we are disconnected from Mqtt");
+            LOGGER.warn("Cannot send message to topic {} as we are disconnected from Mqtt", topic);
         } else if (payload == null) {
-            LOGGER.warn("Cannot send message as payload is null");
+            LOGGER.warn("Cannot send message to topic {} as payload is null", topic);
         } else if (iotTopic == null || responseTopic == null) {
             LOGGER.warn("Cannot send message as topics null from a bad connection");
+        } else if (!client.isConnected()) {
+            LOGGER.warn("Cannot send message to topic {} as client is not connected", topic);
+            createFutureConnection();
         } else {
             // In MQTT v5 contentType should be injected in MqttProperties Content-Format
             MqttMessage message = MqttMessage.newInstance(payload, qos, retained);
@@ -173,6 +176,16 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
     @Override
     public int getMaxLength() {
         return this.maxLength;
+    }
+
+    private void createFutureConnection() {
+        if (scheduledFuture == null) {
+            LOGGER.info("Scheduling mqtt connection to '{}' with initial delay of {} seconds and retry delay of {} seconds",
+                    this.connectorConfiguration.getBrokerUrl(), this.connectorConfiguration.getInitialDelay(),
+                    this.connectorConfiguration.getRetryDelay());
+            scheduledFuture = executorService.scheduleWithFixedDelay(() -> connect(this.connectorConfiguration),
+                    this.connectorConfiguration.getInitialDelay(), this.connectorConfiguration.getRetryDelay(), TimeUnit.SECONDS);
+        }
     }
 
     private void cancelFutureConnection(){

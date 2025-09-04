@@ -49,7 +49,7 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
 
                             @Override
                             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                                ((MqttPahoMessageListener)listener).getMqttMessageListener().onFailure(exception);;
+                                ((MqttPahoMessageListener)listener).getMqttMessageListener().onFailure(exception);
                             }
                             
                         }, listener);
@@ -74,7 +74,7 @@ class ResubscribeTopicsOnReconnectCallback implements MqttCallbackExtended {
 
     @Override
     public void connectionLost(Throwable cause) {
-        LOGGER.warn("Connection with MQTT broker lost", cause);
+        LOGGER.warn("Connection with MQTT broker '{}' lost", innerClient.getServerURI(), cause);
     }
 
     @Override
