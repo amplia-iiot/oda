@@ -22,8 +22,9 @@ public class DatatypesUtils {
 	static final String BYTE_ARRAY_PRIMITIVE_TYPE_NAME  = "byteArray";
 	static final String STRING_TYPE_NAME = "String";
 	static final String ARRAY_TYPE_NAME = "Array";
+    static final String BLOB_TYPE_NAME = "Blob";
 
-	private static final String SHORT_OBJECT_CLASS_NAME  = "java.lang.Short";
+    private static final String SHORT_OBJECT_CLASS_NAME  = "java.lang.Short";
 	private static final String INT_OBJECT_CLASS_NAME  = "java.lang.Integer";
 	private static final String LONG_OBJECT_CLASS_NAME  = "java.lang.Long";
 	private static final String FLOAT_OBJECT_CLASS_NAME  = "java.lang.Float";
@@ -101,38 +102,40 @@ public class DatatypesUtils {
 			case ARRAY_CLASS_NAME:
 				return ARRAY_TYPE_NAME;
 			default:
-				return null;
+                return BLOB_TYPE_NAME;
 		}
 	}
 
-	public Object parseStoredData(String value, String type) throws IOException {
-		switch (type) {
-			case SHORT_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Short.class);
-			case INT_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Integer.class);
-			case LONG_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Long.class);
-			case FLOAT_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Float.class);
-			case DOUBLE_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Double.class);
-			case BOOLEAN_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Boolean.class);
-			case CHAR_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Character.class);
-			case BYTE_OBJECT_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), Byte.class);
-			case CHAR_ARRAY_PRIMITIVE_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), char[].class);
-			case BYTE_ARRAY_PRIMITIVE_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), byte[].class);
-			case STRING_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), String.class);
-			case ARRAY_TYPE_NAME:
-				return serializer.deserialize(value.getBytes(), ArrayList.class);
-			default:
-				return null;
-		}
-	}
+    public Object parseStoredData(String value, String type) throws IOException {
+        switch (type) {
+            case SHORT_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Short.class);
+            case INT_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Integer.class);
+            case LONG_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Long.class);
+            case FLOAT_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Float.class);
+            case DOUBLE_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Double.class);
+            case BOOLEAN_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Boolean.class);
+            case CHAR_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Character.class);
+            case BYTE_OBJECT_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), Byte.class);
+            case CHAR_ARRAY_PRIMITIVE_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), char[].class);
+            case BYTE_ARRAY_PRIMITIVE_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), byte[].class);
+            case STRING_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), String.class);
+            case ARRAY_TYPE_NAME:
+                return serializer.deserialize(value.getBytes(), ArrayList.class);
+            case BLOB_TYPE_NAME:
+                return value;
+            default:
+                return null;
+        }
+    }
 }
