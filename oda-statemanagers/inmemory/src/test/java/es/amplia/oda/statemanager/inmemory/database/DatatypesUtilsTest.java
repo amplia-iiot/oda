@@ -251,7 +251,7 @@ public class DatatypesUtilsTest {
 		HashMap<Object, Object> map = new HashMap<>();
 		map.put(1, 'a');
 		String name = testUtils.getClassNameOf(map);
-		assertNull(name);
+        assertEquals("Blob", name);
 	}
 
 	@Test
