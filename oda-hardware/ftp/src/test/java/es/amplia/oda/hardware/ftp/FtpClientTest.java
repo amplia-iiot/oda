@@ -94,7 +94,7 @@ public class FtpClientTest {
 
     @Ignore
     @Test
-    public void testDownloadFileKeepDate() throws IOException {
+    public void testDownloadFileKeepDate() throws Exception {
         FtpFile source = new FtpFile();
         source.setName("test.text");
         long currentTime = System.currentTimeMillis();

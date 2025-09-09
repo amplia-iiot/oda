@@ -94,13 +94,15 @@ public class FtpClient {
         }
     }
 
-    public void downloadFileKeepDate(FtpFile source, String destination) throws IOException {
+    public void downloadFileKeepDate(FtpFile source, String destination) throws Exception {
         FileOutputStream out = new FileOutputStream(destination);
         ftpClient.retrieveFile(source.getName(), out);
         out.close();
 
         // update timestamp of the downloaded file to math the one in the server
-        new File(destination).setLastModified(source.getTimestamp());
+        if (new File(destination).setLastModified(source.getTimestamp())) {
+            log.error("Error modifying file {} last modified date", destination);
+        }
     }
 
     public void downloadFile(String source, String destination) throws IOException {
