@@ -1,6 +1,5 @@
 package es.amplia.oda.ruleengine.nashorn;
 
-import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
@@ -101,18 +100,6 @@ public class RuleEngineNashornTest {
 	}
 
 	@Test
-	public void testEngineNotStartedNotRefreshed() {
-		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
-				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
-		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(false);
-
-		State state = testRuleEngine.engine(mockedState, value);
-
-		assertEquals(mockedState, state);
-		verify(mockedState).put(new DatastreamInfo("testDevice","testDatastream"), value);
-	}
-
-	@Test
 	public void testEngineNotStartedRefreshed() {
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
@@ -122,7 +109,7 @@ public class RuleEngineNashornTest {
 
 		assertEquals(mockedState, state);
 		verify(mockedState, never()).refreshValue("testDevice","testDatastream", value);
-	}
+    }
 
 	@Test
 	public void testEngineStarted() throws ScriptException {

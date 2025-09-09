@@ -66,8 +66,6 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
             }
         }
 
-        state = checkRefreshedDatastream(state, value);
-        LOGGER.trace("Refreshed value of state");
         return state;
     }
 
@@ -213,21 +211,6 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         } catch (ScriptException e) {
            LOGGER.error("Cannot init rule {}: {}", nameRule, e.getMessage());
         }
-    }
-
-    private State checkRefreshedDatastream(State state, DatastreamValue newValue) {
-        if(!state.exists(newValue.getDeviceId(), newValue.getDatastreamId())) {
-            state.put(new DatastreamInfo(newValue.getDeviceId(), newValue.getDatastreamId()), newValue);
-        }
-        else if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
-            return baseCase(state, newValue);
-        }
-        return state;
-    }
-
-    private State baseCase(State state, DatastreamValue newValue) {
-        state.refreshValue(newValue.getDeviceId(), newValue.getDatastreamId(), newValue);
-        return state;
     }
 
     public void stop() {
