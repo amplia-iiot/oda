@@ -38,8 +38,21 @@ public class State {
         }
 
         public void refreshValue(DatastreamValue value) {
+            //LOGGER.trace("Stored values before adding = {}", this.storedValues);
             this.storedValues.add(value);
             this.refreshed = true;
+            //LOGGER.trace("Stored values after adding = {}", this.storedValues);
+        }
+
+        public void replaceLastValue(DatastreamValue value) {
+            //LOGGER.trace("Stored values before updating = {}", this.storedValues);
+            if (!this.storedValues.isEmpty()) {
+                this.storedValues.set(this.storedValues.size() - 1, value);
+                this.refreshed = true;
+            } else {
+                refreshValue(value);
+            }
+            //LOGGER.trace("Stored values after updating = {}", this.storedValues);
         }
 
         public DatastreamValue getLastValue() {
@@ -258,6 +271,17 @@ public class State {
      */
     public void refreshValue(String deviceId, String datastreamId, DatastreamValue value) {
         getDatastreamState(deviceId, datastreamId).refreshValue(value);
+    }
+
+    /**
+     * Method that updates the value of a datastream, replacing the last element of the list with the new value.
+     *
+     * @param deviceId String with the identifier of the device to which the datastream we want to update belongs.
+     * @param datastreamId String with the identifier of the datastream we want to update.
+     * @param value Object with the new value and its metadata that we want to use to update datastream.
+     */
+    public void replaceLastValue(String deviceId, String datastreamId, DatastreamValue value) {
+        getDatastreamState(deviceId, datastreamId).replaceLastValue(value);
     }
 
     /**

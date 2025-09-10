@@ -41,6 +41,20 @@ function setValueWithTime(state, deviceId, datastreamId, feed, at, value) {
     return state;
 }
 
+// UPDATING VALUES
+
+function replaceLastValue(state, deviceId, datastreamId, feed, value) {
+    var newValue = state.createValue(deviceId, datastreamId, feed, value);
+    state.replaceLastValue(deviceId, datastreamId, newValue);
+    return state;
+}
+
+function replaceLastValueWithTime(state, deviceId, datastreamId, feed, at, value) {
+    var newValue = state.createValue(deviceId, datastreamId, feed, at, value);
+    state.replaceLastValue(deviceId, datastreamId, newValue);
+    return state;
+}
+
 // FILTERING VALUES
 
 function filterBetween(value, min, max) {
