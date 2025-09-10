@@ -271,11 +271,11 @@ public class InMemoryStateManager implements StateManager {
             DatastreamValue dsValue = createDatastreamValueFromEvent(event);
             LOGGER.debug("Processing new event {}", dsValue);
 
-            // refresh original value
-            refreshOriginalValue(this.state, dsValue);
-
             // apply rules & and rules save events in state
             this.ruleEngine.engine(this.state, dsValue);
+
+            // refresh original value (this must be done after applying rules)
+            refreshOriginalValue(dsValue);
 
             // get all values to process (those marked as sendImmediately and/or refreshed)
             // we need to do this because rules engine can alter everything, not just the event received
@@ -304,10 +304,14 @@ public class InMemoryStateManager implements StateManager {
         publishValues(eventsToSendImmediately);
     }
 
-    private void refreshOriginalValue(State state, DatastreamValue newValue) {
-        if (!state.exists(newValue.getDeviceId(), newValue.getDatastreamId())) {
+    private void refreshOriginalValue(DatastreamValue newValue) {
+        // if it is the first value for that device and datastreamId, create it and mark as refreshed
+        if(!state.exists(newValue.getDeviceId(), newValue.getDatastreamId())) {
             state.put(new DatastreamInfo(newValue.getDeviceId(), newValue.getDatastreamId()), newValue);
-        } else if (!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
+        }
+        // if the combo of device and datastreamId already exists, but it is not refreshed (because it hasn't been modified inside rules)
+        // refresh value (which inserts original value)
+        else if(!state.isRefreshed(newValue.getDeviceId(), newValue.getDatastreamId())) {
             state.refreshValue(newValue.getDeviceId(), newValue.getDatastreamId(), newValue);
         }
     }
