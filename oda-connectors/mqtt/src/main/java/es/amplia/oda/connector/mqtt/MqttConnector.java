@@ -54,7 +54,7 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
 
     private void connect(ConnectorConfiguration configuration) {
         if (client.isConnected()) {
-            LOGGER.info("Client already connected");
+            LOGGER.warn("Client already connected");
             cancelFutureConnection();
             return;
         }
@@ -127,7 +127,8 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
                 // increase counter
                 incrCounter(MqttCounters.MqttCounterType.MQTT_CONNECTOR_SENT, topic, 1);
             } catch (MqttException e) {
-                LOGGER.warn("Cannot send the message: " + message + ", on topic: " + topic, e);
+                LOGGER.warn("Cannot send the message: {}, on topic: {}", message, topic, e);
+                processMQTTException(e);
             }
         }
     }
@@ -223,5 +224,11 @@ public class MqttConnector implements MqttMessageListener, OpenGateConnector, Au
         MqttCounters.incrCounter(counterType, topicType, number);
     }
 
+    private void processMQTTException(MqttException exception){
+        int reasonCode = exception.getReasonCode();
+        if (reasonCode == MqttException.REASON_CODE_CLIENT_NOT_CONNECTED) {
+            createFutureConnection();
+        }
+    }
 
 }

@@ -136,7 +136,7 @@ public class MqttDatastreamsOrchestratorTest {
         Whitebox.setInternalState(testOrchestrator, MQTT_DATASTREAMS_EVENT_FIELD_NAME, mockedEvent);
         Whitebox.setInternalState(testOrchestrator, OP_SENDER_REG_FIELD_NAME, mockedOpSendRegistration);
 
-        doThrow(new MqttException("")).when(mockedClient).disconnect();
+        doThrow(new MqttException("", 0)).when(mockedClient).disconnect();
 
         testOrchestrator.close();
 

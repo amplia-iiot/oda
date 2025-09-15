@@ -17,7 +17,7 @@ public class MqttPahoClientFactory implements MqttClientFactory {
             ResubscribeTopicsOnReconnectCallback resubscribeCallback = new ResubscribeTopicsOnReconnectCallback();
             return new MqttPahoClient(innerClient, resubscribeCallback);
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
-            throw new MqttException(e.getMessage(), e);
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 }

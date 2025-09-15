@@ -156,7 +156,7 @@ public class MqttConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
-        doThrow(new MqttException("")).when(newMockedClient).connect(any(MqttConnectOptions.class), any(MqttActionListener.class));
+        doThrow(new MqttException("", 0)).when(newMockedClient).connect(any(MqttConnectOptions.class), any(MqttActionListener.class));
 
         testConnector.loadConfigurationAndInit(testConfiguration);
 
@@ -277,7 +277,7 @@ public class MqttConnectorTest {
         MqttMessage expectedMessage = MqttMessage.newInstance(payload, TEST_QOS, TEST_RETAINED);
         when(mockedMqttClient.isConnected()).thenReturn(true);
 
-        doThrow(new MqttException("")).when(mockedMqttClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
+        doThrow(new MqttException("", 0)).when(mockedMqttClient).publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 
         testConnector.uplink(payload);
 
@@ -329,7 +329,7 @@ public class MqttConnectorTest {
 
     @Test
     public void testCloseExceptionIsCaught() throws MqttException {
-        doThrow(new MqttException("")).when(mockedMqttClient).disconnect();
+        doThrow(new MqttException("", 0)).when(mockedMqttClient).disconnect();
 
         testConnector.close();
 

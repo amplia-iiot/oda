@@ -62,7 +62,7 @@ public class MqttClientFactoryProxyTest {
 
     @Test(expected = MqttClientFactoryProxy.MqttExceptionWrapper.class)
     public void testCreateMqttClientWrapMqttException() throws MqttException {
-        when(mockedFactory.createMqttClient(anyString(), anyString())).thenThrow(new MqttException(""));
+        when(mockedFactory.createMqttClient(anyString(), anyString())).thenThrow(new MqttException("", 0));
 
         testProxy.createMqttClient(TEST_SERVER, TEST_CLIENT_ID);
 
@@ -73,7 +73,7 @@ public class MqttClientFactoryProxyTest {
     @Test(expected = MqttException.class)
     public void testCreateMqttClientUnwrapMqttException() throws MqttException {
         when(mockedOsgiProxy.callFirst(any()))
-                .thenThrow(new MqttClientFactoryProxy.MqttExceptionWrapper(new MqttException("")));
+                .thenThrow(new MqttClientFactoryProxy.MqttExceptionWrapper(new MqttException("", 0)));
 
         testProxy.createMqttClient(TEST_SERVER, TEST_CLIENT_ID);
     }

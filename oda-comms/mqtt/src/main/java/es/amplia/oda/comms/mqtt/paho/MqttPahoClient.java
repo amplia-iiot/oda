@@ -28,7 +28,7 @@ class MqttPahoClient implements MqttClient {
             resubscribeTopicsOnReconnectCallback.listenTo(innerClient);
             innerClient.connect();
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
-            throw new MqttException(e.getMessage(), e);
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 
@@ -50,8 +50,8 @@ class MqttPahoClient implements MqttClient {
                 }
                 
             });
-        } catch (Exception e) {
-            throw new MqttException(e.getMessage(), e);
+        } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 
@@ -66,7 +66,7 @@ class MqttPahoClient implements MqttClient {
             // Not supported in MQTT v3. Available through MqttProperties in MQTT v5
             innerClient.publish(topic, message.getPayload(), message.getQos(), message.isRetained());
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
-            throw new MqttException(e.getMessage(), e);
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 
@@ -88,7 +88,7 @@ class MqttPahoClient implements MqttClient {
         try {
             innerClient.unsubscribe(topic);
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
-            throw new MqttException(e.getMessage(), e);
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 
@@ -97,7 +97,7 @@ class MqttPahoClient implements MqttClient {
         try {
             innerClient.disconnect();
         } catch (org.eclipse.paho.client.mqttv3.MqttException e) {
-            throw new MqttException(e.getMessage(), e);
+            throw new MqttException(e.getMessage(), e, e.getReasonCode());
         }
     }
 

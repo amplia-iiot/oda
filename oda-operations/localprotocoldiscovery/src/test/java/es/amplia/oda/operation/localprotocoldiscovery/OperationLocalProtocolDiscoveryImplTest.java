@@ -87,7 +87,7 @@ public class OperationLocalProtocolDiscoveryImplTest {
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "topic", TEST_TOPIC);
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, "waitForMqttDatastreamsService", mockedCompletableFuture);
         when(mockedSerializer.serialize(anyString())).thenReturn(TEST_BYTE_STREAM);
-        doThrow(new MqttException(errorDescription)).when(mockedClient)
+        doThrow(new MqttException(errorDescription, 0)).when(mockedClient)
                 .publish(anyString(), any(MqttMessage.class), any(ContentType.class));
 
         CompletableFuture<Result> future = testOperationLocalProtocolDiscovery.discover();
@@ -132,7 +132,7 @@ public class OperationLocalProtocolDiscoveryImplTest {
     @Test
     public void testCloseCatchesMqttExceptionWhenDisconnecting() {
         Whitebox.setInternalState(testOperationLocalProtocolDiscovery, MQTT_CLIENT_FIELD_NAME, mockedClient);
-        doThrow(new MqttException("")).when(mockedClient).disconnect();
+        doThrow(new MqttException("", 0)).when(mockedClient).disconnect();
 
         testOperationLocalProtocolDiscovery.close();
 
