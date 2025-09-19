@@ -20,6 +20,7 @@
         <module>udp</module>
         <module>ftp</module>
 		<module>opcua</module>
+        <module>snmp</module>
     </modules>
 
     <parent>
