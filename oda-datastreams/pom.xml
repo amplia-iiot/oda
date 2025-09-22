@@ -21,6 +21,7 @@
         <module>lora</module>
 		<module>iec104</module>
 		<module>opcua</module>
+        <module>snmp</module>
     </modules>
 
     <parent>

@@ -27,7 +27,7 @@ public class SnmpClientFactory {
             if (version == 1 || version == 2) {
                 communityTarget = communityTarget(conf.getIp(), conf.getPort(), conf.getOptions().getCommunity());
                 snmpClient = snmpClient();
-                return new SnmpClientImpl(snmpClient, communityTarget, conf.getDeviceId());
+                return new SnmpClientImpl(snmpClient, version, communityTarget, conf.getDeviceId());
             } else if (version == 3) {
                 SnmpClientV3Options options = conf.getV3Options();
                 OctetString securityName = new OctetString(options.getSecurityName());
@@ -36,7 +36,7 @@ public class SnmpClientFactory {
                         options.getAuthProtocol(), options.getPrivacyProtocol());
                 snmpClient = snmpClient();
                 snmpClient.getUSM().addUser(securityName, user);
-                return new SnmpClientImpl(snmpClient, userTarget, conf.getDeviceId());
+                return new SnmpClientImpl(snmpClient, version, userTarget, options.getContextName(), conf.getDeviceId());
             } else {
                 throw new ConfigurationException("Wrong snmp version " + version);
             }
