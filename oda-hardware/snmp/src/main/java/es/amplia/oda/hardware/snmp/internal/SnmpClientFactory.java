@@ -25,16 +25,17 @@ public class SnmpClientFactory {
         try {
             int version = conf.getVersion();
             if (version == 1 || version == 2) {
-                communityTarget = communityTarget(conf.getIp(), conf.getPort(), conf.getOptions().getCommunity());
-                snmpClient = snmpClient();
+                communityTarget = communityTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(),
+                        conf.getOptions().getCommunity());
+                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId());
                 return new SnmpClientImpl(snmpClient, version, communityTarget, conf.getDeviceId());
             } else if (version == 3) {
                 SnmpClientV3Options options = conf.getV3Options();
                 OctetString securityName = new OctetString(options.getSecurityName());
-                userTarget = userTarget(conf.getIp(), conf.getPort(), securityName);
+                userTarget = userTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(), securityName);
                 UsmUser user = createV3User(securityName, options.getAuthPassphrase(), options.getPrivPassphrase(),
                         options.getAuthProtocol(), options.getPrivacyProtocol());
-                snmpClient = snmpClient();
+                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId());
                 snmpClient.getUSM().addUser(securityName, user);
                 return new SnmpClientImpl(snmpClient, version, userTarget, options.getContextName(), conf.getDeviceId());
             } else {
@@ -46,24 +47,28 @@ public class SnmpClientFactory {
         }
     }
 
-    private Snmp snmpClient() throws IOException {
-        TransportMapping<? extends Address> transport = new DefaultUdpTransportMapping();
+    private Snmp buildSnmpClient(String ip, int listenPort, String deviceId) throws IOException {
+        // address where it will listen for traps
+        UdpAddress address = new UdpAddress(ip + "/" + listenPort);
+        TransportMapping<? extends Address> transport = new DefaultUdpTransportMapping(address);
         Snmp snmp = new Snmp(transport);
+        // add trap listener
+        snmp.addCommandResponder(new SnmpTrapProcessor(deviceId));
         transport.listen();
         return snmp;
     }
 
-    private CommunityTarget communityTarget(String ip, int port, String community) {
+    private CommunityTarget communityTarget(String ip, int port, int numRetries, int timeout, String community) {
         CommunityTarget target = new CommunityTarget();
         target.setCommunity(new OctetString(community));
         target.setAddress(GenericAddress.parse("udp:" + ip + "/" + port));
-        target.setRetries(2);
-        target.setTimeout(1500);
+        target.setRetries(numRetries);
+        target.setTimeout(timeout);
         target.setVersion(SnmpConstants.version2c);
         return target;
     }
 
-    private UserTarget userTarget(String ip, int port, OctetString securityName) {
+    private UserTarget userTarget(String ip, int port, int numRetries, int timeout, OctetString securityName) {
         OctetString localEngineId = new OctetString(MPv3.createLocalEngineID());
         USM usm = new USM(SecurityProtocols.getInstance(), localEngineId, 0);
         SecurityModels.getInstance().addSecurityModel(usm);
@@ -73,8 +78,8 @@ public class SnmpClientFactory {
         target.setSecurityName(securityName);
         target.setAddress(GenericAddress.parse("udp:" + ip + "/" + port));
         target.setVersion(SnmpConstants.version3);
-        target.setRetries(2);
-        target.setTimeout(60000);
+        target.setRetries(numRetries);
+        target.setTimeout(timeout);
         return target;
     }
 

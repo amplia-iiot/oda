@@ -34,7 +34,7 @@
                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>${bundle.namespace}.*</Export-Package>
+                        <Export-Package>${bundle.namespace}.*, !snmp4j</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package />
                         <Embed-Dependency>snmp4j</Embed-Dependency>
