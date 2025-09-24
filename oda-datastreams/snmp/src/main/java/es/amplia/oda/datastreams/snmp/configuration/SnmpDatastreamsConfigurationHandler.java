@@ -1,6 +1,7 @@
 package es.amplia.oda.datastreams.snmp.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
+import es.amplia.oda.core.commons.snmp.SnmpEntry;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.snmp.internal.SnmpDatastreamsManager;
@@ -22,7 +23,7 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
     private static final String FEED_PROPERTY_NAME = "feed";
 
     // Current configuration.
-    List<SnmpDatastreamsEntry> currentSnmpRecollection = new ArrayList<>();
+    List<SnmpEntry> currentSnmpRecollection = new ArrayList<>();
 
     private final SnmpDatastreamsManager datastreamsManager;
 
@@ -51,7 +52,8 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
                 String feed = getValueByToken(FEED_PROPERTY_NAME, new String[]{propertyTokens[2]}).orElse(null);
 
                 // create entry
-                SnmpDatastreamsEntry newEntry = new SnmpDatastreamsEntry(oid, dataType, datastreamId, deviceId, feed);
+                // TODO: check that doesn't already exist an entry for that OID and device
+                SnmpEntry newEntry = new SnmpEntry(oid, dataType, datastreamId, deviceId, feed);
                 log.info("Adding snmp entry info: {}, {}, {}, {}, {}", oid, dataType, deviceId, datastreamId, feed);
 
                 // adding to list

@@ -2,7 +2,7 @@ package es.amplia.oda.datastreams.snmp;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
-import es.amplia.oda.core.commons.snmp.SnmpClient;
+import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
 import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.snmp.configuration.SnmpDatastreamsConfigurationHandler;
 import es.amplia.oda.datastreams.snmp.internal.SnmpDatastreamsManager;
@@ -10,14 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-import java.util.List;
-
 @Slf4j
 public class Activator implements BundleActivator {
 
     private ConfigurableBundle configurableBundle;
     private SnmpClientsFinder snmpClientsFinder;
-    private ServiceListenerBundle<SnmpClient> snmpClientListenerBundle;
     private SnmpDatastreamsManager snmpDatastreamsManager;
 
     @Override
@@ -27,23 +24,21 @@ public class Activator implements BundleActivator {
         // initiate manager of snmp clients
         snmpClientsFinder = new SnmpClientsFinder(bundleContext);
 
-        // create snmp data streams getter and setters
+        // create snmp data streams getter and setters register service
         ServiceRegistrationManager<DatastreamsGetter> datastreamsGetterRegistrationManager =
                 new ServiceRegistrationManagerOsgi<>(bundleContext, DatastreamsGetter.class);
         ServiceRegistrationManager<DatastreamsSetter> datastreamsSetterRegistrationManager =
                 new ServiceRegistrationManagerOsgi<>(bundleContext, DatastreamsSetter.class);
+        ServiceRegistrationManager<SnmpTranslator> snmpTranslatorRegistrationManager =
+                new ServiceRegistrationManagerOsgi<>(bundleContext, SnmpTranslator.class);
 
         // create datastreams manager
         snmpDatastreamsManager = new SnmpDatastreamsManager(snmpClientsFinder, datastreamsGetterRegistrationManager,
-                datastreamsSetterRegistrationManager);
+                datastreamsSetterRegistrationManager, snmpTranslatorRegistrationManager);
 
         // make bundle configurable
         SnmpDatastreamsConfigurationHandler configHandler = new SnmpDatastreamsConfigurationHandler(snmpDatastreamsManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
-
-        // listen for configuration changes in Snmp Hardware bundles
-        snmpClientListenerBundle = new ServiceListenerBundle<>(bundleContext, SnmpClient.class, this::onServiceChanged);
-        onServiceChanged();
 
         log.info("Started SNMP Datastreams bundle");
     }
@@ -54,18 +49,9 @@ public class Activator implements BundleActivator {
 
         configurableBundle.close();
         snmpClientsFinder.close();
-        snmpClientListenerBundle.close();
         snmpDatastreamsManager.close();
 
         log.info("Stopped SNMP Datastreams bundle");
     }
 
-    void onServiceChanged() {
-        //configHandler.applyConfiguration();
-
-        List<SnmpClient> clients = snmpClientsFinder.getAllSnmpClients();
-        for (SnmpClient client : clients) {
-            log.info("DeviceId retrieved from client trough OSGI = {}", client.getDeviceId());
-        }
-    }
 }

@@ -1,5 +1,7 @@
 package es.amplia.oda.hardware.snmp.internal;
 
+import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
+import es.amplia.oda.core.commons.snmp.SnmpEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
@@ -12,9 +14,11 @@ import java.util.Vector;
 public class SnmpTrapProcessor implements CommandResponder {
 
     private final String deviceId;
+    private final SnmpTranslator translator;
 
-    public SnmpTrapProcessor(String deviceId) {
+    public SnmpTrapProcessor(String deviceId, SnmpTranslator translator) {
         this.deviceId = deviceId;
+        this.translator = translator;
     }
 
     @Override
@@ -27,8 +31,11 @@ public class SnmpTrapProcessor implements CommandResponder {
 
         Vector<? extends VariableBinding> valuesReceived = pduReceived.getVariableBindings();
         for (VariableBinding var : valuesReceived) {
-            log.info("Received value {} in OID {} from device {}", var.getVariable().toString(),
-                    var.getOid().toString(), this.deviceId);
+            String OID = var.getOid().toString();
+            String value = var.getVariable().toString();
+            log.info("Received value {} in OID {} from device {}", value, OID, this.deviceId);
+            SnmpEntry translation = translator.translate(OID, this.deviceId);
+            log.info("Value tranlation : {}", translation);
         }
     }
 }

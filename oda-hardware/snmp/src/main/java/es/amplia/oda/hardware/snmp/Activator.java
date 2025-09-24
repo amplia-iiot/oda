@@ -1,5 +1,6 @@
 package es.amplia.oda.hardware.snmp;
 
+import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
@@ -17,17 +18,20 @@ public class Activator implements BundleActivator {
 
     private ConfigurableBundle configurableBundle;
     SnmpClientManager snmpManager;
+    SnmpTranslatorProxy snmpTranslatorProxy;
 
     @Override
     public void start(BundleContext bundleContext) {
         log.info("Starting SNMP Hardware bundle");
 
-        ServiceRegistrationManager<SnmpClient> snmpRegistrationManager =
-                new ServiceRegistrationManagerOsgi<>(bundleContext, SnmpClient.class);
+        ServiceRegistrationManager<SnmpClient> snmpRegistrationManager = new ServiceRegistrationManagerOsgi<>(bundleContext, SnmpClient.class);
 
+        // create and register translation proxy to translate traps received
+        snmpTranslatorProxy = new SnmpTranslatorProxy(bundleContext);
         snmpManager = new SnmpClientManager(snmpRegistrationManager);
-        SnmpClientFactory snmpFactory = new SnmpClientFactory();
+        SnmpClientFactory snmpFactory = new SnmpClientFactory(snmpTranslatorProxy);
 
+        // make bundle configurable
         SnmpConfigurationUpdateHandler configHandler = new SnmpConfigurationUpdateHandler(snmpManager, snmpFactory);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
@@ -40,6 +44,7 @@ public class Activator implements BundleActivator {
 
         snmpManager.close();
         configurableBundle.close();
+        snmpTranslatorProxy.close();
 
         log.info("Stopped SNMP Hardware bundle");
     }

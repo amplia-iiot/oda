@@ -1,6 +1,8 @@
 package es.amplia.oda.hardware.snmp.internal;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
+import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
+import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientConfig;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientV3Options;
@@ -17,6 +19,12 @@ import java.io.IOException;
 @Slf4j
 public class SnmpClientFactory {
 
+    SnmpTranslatorProxy snmpTranslatorProxy;
+
+    public SnmpClientFactory(SnmpTranslatorProxy snmpTranslatorProxy) {
+        this.snmpTranslatorProxy = snmpTranslatorProxy;
+    }
+
     public SnmpClient createSnmpClient(SnmpClientConfig conf) {
 
         Snmp snmpClient;
@@ -27,7 +35,7 @@ public class SnmpClientFactory {
             if (version == 1 || version == 2) {
                 communityTarget = communityTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(),
                         conf.getOptions().getCommunity());
-                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId());
+                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId(), this.snmpTranslatorProxy);
                 return new SnmpClientImpl(snmpClient, version, communityTarget, conf.getDeviceId());
             } else if (version == 3) {
                 SnmpClientV3Options options = conf.getV3Options();
@@ -35,7 +43,7 @@ public class SnmpClientFactory {
                 userTarget = userTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(), securityName);
                 UsmUser user = createV3User(securityName, options.getAuthPassphrase(), options.getPrivPassphrase(),
                         options.getAuthProtocol(), options.getPrivacyProtocol());
-                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId());
+                snmpClient = buildSnmpClient(conf.getIp(), conf.getListenPort(), conf.getDeviceId(), this.snmpTranslatorProxy);
                 snmpClient.getUSM().addUser(securityName, user);
                 return new SnmpClientImpl(snmpClient, version, userTarget, options.getContextName(), conf.getDeviceId());
             } else {
@@ -47,13 +55,13 @@ public class SnmpClientFactory {
         }
     }
 
-    private Snmp buildSnmpClient(String ip, int listenPort, String deviceId) throws IOException {
+    private Snmp buildSnmpClient(String ip, int listenPort, String deviceId, SnmpTranslator snmpTranslator) throws IOException {
         // address where it will listen for traps
         UdpAddress address = new UdpAddress(ip + "/" + listenPort);
         TransportMapping<? extends Address> transport = new DefaultUdpTransportMapping(address);
         Snmp snmp = new Snmp(transport);
         // add trap listener
-        snmp.addCommandResponder(new SnmpTrapProcessor(deviceId));
+        snmp.addCommandResponder(new SnmpTrapProcessor(deviceId, snmpTranslator));
         transport.listen();
         return snmp;
     }
