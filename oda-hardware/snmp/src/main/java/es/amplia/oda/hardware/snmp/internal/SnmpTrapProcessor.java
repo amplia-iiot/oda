@@ -25,17 +25,17 @@ public class SnmpTrapProcessor implements CommandResponder {
     public void processPdu(CommandResponderEvent event) {
         log.info("Received Snmp Trap : {}", event);
         PDU pduReceived = event.getPDU();
-        log.info("Received PDU : {}", pduReceived);
-
+        log.info("Received PDU of type {} : {}", pduReceived.getType(), pduReceived);
         // TODO : check error
 
         Vector<? extends VariableBinding> valuesReceived = pduReceived.getVariableBindings();
         for (VariableBinding var : valuesReceived) {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
-            log.info("Received value {} in OID {} from device {}", value, OID, this.deviceId);
+            String varType = var.getVariable().getSyntaxString();
+            log.info("Received value of type {} in OID {} from device {} = {}", varType, OID, this.deviceId, value);
             SnmpEntry translation = translator.translate(OID, this.deviceId);
-            log.info("Value tranlation : {}", translation);
+            log.info("Value translation : {}", translation);
         }
     }
 }

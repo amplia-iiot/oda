@@ -38,6 +38,7 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
 
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
+        this.snmpClientManager.disconnectClients();
         clients.clear();
 
         Map<String, ?> mappedProperties = Collections.dictionaryToMap(props);
@@ -50,13 +51,13 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
                 // properties are version, ip, port, community
                 String[] propertyTokens = getTokensFromProperty((String) entry.getValue());
 
-                String ip = getValueByToken(IP_PROPERTY_NAME, new String[]{propertyTokens[0]})
+                String ip = getValueByToken(IP_PROPERTY_NAME, propertyTokens)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(IP_PROPERTY_NAME));
-                int port = getValueByToken(PORT_PROPERTY_NAME, new String[]{propertyTokens[1]}).map(Integer::valueOf)
+                int port = getValueByToken(PORT_PROPERTY_NAME, propertyTokens).map(Integer::valueOf)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(PORT_PROPERTY_NAME));
-                int listenPort = getValueByToken(LISTEN_PORT_PROPERTY_NAME, new String[]{propertyTokens[2]}).map(Integer::valueOf)
+                int listenPort = getValueByToken(LISTEN_PORT_PROPERTY_NAME, propertyTokens).map(Integer::valueOf)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(LISTEN_PORT_PROPERTY_NAME));
-                int version = getValueByToken(VERSION_PROPERTY_NAME, new String[]{propertyTokens[3]}).map(Integer::valueOf)
+                int version = getValueByToken(VERSION_PROPERTY_NAME, propertyTokens).map(Integer::valueOf)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(VERSION_PROPERTY_NAME));
                 SnmpClientConfig newClientConfig;
                 switch (version) {
@@ -64,18 +65,17 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
                     case 2:
                         SnmpClientOptions options = parseOptions(propertyTokens);
                         newClientConfig = new SnmpClientConfig(deviceId, ip, port, listenPort, version, options);
-                        log.info("Adding snmp client {} with ip {}, port {}, version {}, and options {}", deviceId, ip, port, version, options);
                         break;
                     case 3:
                         SnmpClientV3Options optionsV3 = parseV3Options(propertyTokens);
                         newClientConfig = new SnmpClientConfig(deviceId, ip, port, listenPort, version, optionsV3);
-                        log.info("Adding snmp client {} with ip {}, port {}, version {}, and options {}", deviceId, ip, port, version, optionsV3);
                         break;
                     default:
                         throw new ConfigurationException("Snmp version not valid");
                 }
 
                 // add to list
+                log.info("Adding snmp client {} ", newClientConfig);
                 clients.add(snmpClientFactory.createSnmpClient(newClientConfig));
 
             } catch (Exception e) {
@@ -99,22 +99,22 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
     }
 
     private SnmpClientOptions parseOptions(String[] propertyTokens) {
-        String community = getValueByToken(COMMUNITY_PROPERTY_NAME, new String[]{propertyTokens[4]}).orElse(null);
+        String community = getValueByToken(COMMUNITY_PROPERTY_NAME, propertyTokens).orElse(null);
         return new SnmpClientOptions(community);
     }
 
     private SnmpClientV3Options parseV3Options(String[] propertyTokens) {
-        String contextName = getValueByToken(CONTEXT_NAME_PROPERTY_NAME, new String[]{propertyTokens[4]})
+        String contextName = getValueByToken(CONTEXT_NAME_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(CONTEXT_NAME_PROPERTY_NAME));
-        String securityName = getValueByToken(SECURITY_NAME_PROPERTY_NAME, new String[]{propertyTokens[5]})
+        String securityName = getValueByToken(SECURITY_NAME_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(SECURITY_NAME_PROPERTY_NAME));
-        String authPassphrase = getValueByToken(AUTH_PASSPHRASE_PROPERTY_NAME, new String[]{propertyTokens[6]})
+        String authPassphrase = getValueByToken(AUTH_PASSPHRASE_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(AUTH_PASSPHRASE_PROPERTY_NAME));
-        String privPassphrase = getValueByToken(PRIV_PASSPHRASE_PROPERTY_NAME, new String[]{propertyTokens[7]})
+        String privPassphrase = getValueByToken(PRIV_PASSPHRASE_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(PRIV_PASSPHRASE_PROPERTY_NAME));
-        String authProtocol = getValueByToken(AUTH_PROTOCOL_PROPERTY_NAME, new String[]{propertyTokens[8]})
+        String authProtocol = getValueByToken(AUTH_PROTOCOL_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(AUTH_PROTOCOL_PROPERTY_NAME));
-        String privProtocol = getValueByToken(PRIV_PROTOCOL_PROPERTY_NAME, new String[]{propertyTokens[9]})
+        String privProtocol = getValueByToken(PRIV_PROTOCOL_PROPERTY_NAME, propertyTokens)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(PRIV_PROTOCOL_PROPERTY_NAME));
         return new SnmpClientV3Options(securityName, authPassphrase, privPassphrase, contextName, authProtocol, privProtocol);
     }

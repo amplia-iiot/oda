@@ -45,16 +45,16 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
 
                 // properties are dataType, datastreamId, feed
                 String[] propertyTokens = getTokensFromProperty((String) entry.getValue());
-                String dataType = getValueByToken(DATA_TYPE_PROPERTY_NAME, new String[]{propertyTokens[0]})
+                String dataType = getValueByToken(DATA_TYPE_PROPERTY_NAME, propertyTokens)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATA_TYPE_PROPERTY_NAME));
-                String datastreamId = getValueByToken(DATASTREAM_PROPERTY_NAME, new String[]{propertyTokens[1]})
+                String datastreamId = getValueByToken(DATASTREAM_PROPERTY_NAME, propertyTokens)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATASTREAM_PROPERTY_NAME));
-                String feed = getValueByToken(FEED_PROPERTY_NAME, new String[]{propertyTokens[2]}).orElse(null);
+                String feed = getValueByToken(FEED_PROPERTY_NAME, propertyTokens).orElse(null);
 
                 // create entry
                 // TODO: check that doesn't already exist an entry for that OID and device
                 SnmpEntry newEntry = new SnmpEntry(oid, dataType, datastreamId, deviceId, feed);
-                log.info("Adding snmp entry info: {}, {}, {}, {}, {}", oid, dataType, deviceId, datastreamId, feed);
+                log.info("Adding snmp entry info: {}", newEntry);
 
                 // adding to list
                 currentSnmpRecollection.add( newEntry);

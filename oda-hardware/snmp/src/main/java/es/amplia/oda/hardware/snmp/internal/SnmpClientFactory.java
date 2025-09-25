@@ -116,6 +116,8 @@ public class SnmpClientFactory {
         switch (privacyProtocol) {
             case "DES":
                 return PrivDES.ID;
+            case "3DES":
+                return Priv3DES.ID;
             case "AES128":
                 return PrivAES128.ID;
             case "AES192":
