@@ -2,6 +2,7 @@ package es.amplia.oda.hardware.snmp.internal;
 
 import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
 import es.amplia.oda.core.commons.snmp.SnmpEntry;
+import es.amplia.oda.hardware.snmp.SnmpCounters;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
@@ -23,6 +24,9 @@ public class SnmpTrapProcessor implements CommandResponder {
 
     @Override
     public void processPdu(CommandResponderEvent event) {
+        // incr counter
+        SnmpCounters.incrCounter(SnmpCounters.SnmpCounterType.SNMP_RECEIVED_EVENT, this.deviceId, 1);
+
         log.info("Received Snmp Trap : {}", event);
         PDU pduReceived = event.getPDU();
         log.info("Received PDU of type {} : {}", pduReceived.getType(), pduReceived);

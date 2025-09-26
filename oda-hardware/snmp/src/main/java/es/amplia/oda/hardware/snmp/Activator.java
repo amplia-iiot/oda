@@ -1,5 +1,6 @@
 package es.amplia.oda.hardware.snmp;
 
+import es.amplia.oda.core.commons.osgi.proxies.CounterManagerProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
@@ -34,6 +35,9 @@ public class Activator implements BundleActivator {
         // make bundle configurable
         SnmpConfigurationUpdateHandler configHandler = new SnmpConfigurationUpdateHandler(snmpManager, snmpFactory);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
+
+        // create counters
+        new SnmpCounters(new CounterManagerProxy(bundleContext));
 
         log.info("Started SNMP Hardware bundle");
     }

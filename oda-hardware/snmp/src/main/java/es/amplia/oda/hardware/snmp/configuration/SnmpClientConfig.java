@@ -9,8 +9,8 @@ public class SnmpClientConfig {
     int port;
     int listenPort;
     int version;
-    int retries = 2;
-    int timeout = 30000;
+    int retries = 1;
+    int timeout = 5000;
 
     // needed for snmp v1 and v2
     SnmpClientOptions options;
