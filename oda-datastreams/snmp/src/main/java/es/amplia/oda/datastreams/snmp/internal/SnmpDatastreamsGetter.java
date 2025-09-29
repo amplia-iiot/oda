@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-class SnmpDatastreamsGetter implements DatastreamsGetter {
+public class SnmpDatastreamsGetter implements DatastreamsGetter {
 
     private final String datastreamId;
     private final String deviceId;
@@ -19,8 +19,8 @@ class SnmpDatastreamsGetter implements DatastreamsGetter {
     private final Type dataType;
     SnmpClientsFinder clientsFinder;
 
-    SnmpDatastreamsGetter(SnmpClientsFinder snmpClientsFinder, String OID, Type dataType, String datastreamId,
-                          String deviceId, String feed) {
+    public SnmpDatastreamsGetter(SnmpClientsFinder snmpClientsFinder, String OID, Type dataType, String datastreamId,
+                                 String deviceId, String feed) {
         this.clientsFinder = snmpClientsFinder;
         this.datastreamId = datastreamId;
         this.deviceId = deviceId;
@@ -43,7 +43,6 @@ class SnmpDatastreamsGetter implements DatastreamsGetter {
     public CompletableFuture<CollectedValue> get(String device) {
         SnmpClient client = clientsFinder.getSnmpClient(device);
         Object valueRetrieved = client.getValue(this.OID);
-        log.info("Value retrieved from client trough OSGI in datastreamGetter = {}", valueRetrieved);
         return CompletableFuture.completedFuture(new CollectedValue(System.currentTimeMillis(), valueRetrieved,
                 null, this.feed));
     }

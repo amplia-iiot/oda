@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
-class SnmpDatastreamsSetter implements DatastreamsSetter {
+public class SnmpDatastreamsSetter implements DatastreamsSetter {
 
     private final String datastreamId;
     private final String deviceId;
@@ -19,7 +19,7 @@ class SnmpDatastreamsSetter implements DatastreamsSetter {
     SnmpClientsFinder clientsFinder;
 
 
-    SnmpDatastreamsSetter(SnmpClientsFinder snmpClientsFinder, String OID, String dataType, String datastreamId,
+    public SnmpDatastreamsSetter(SnmpClientsFinder snmpClientsFinder, String OID, String dataType, String datastreamId,
                           String deviceId) {
         this.clientsFinder = snmpClientsFinder;
         this.datastreamId = datastreamId;

@@ -11,7 +11,7 @@ public class SnmpClientsFinder {
 
     private final ServiceLocator<SnmpClient> snmpClientsLocator;
 
-    SnmpClientsFinder(BundleContext bundleContext) {
+    public SnmpClientsFinder(BundleContext bundleContext) {
         this.snmpClientsLocator = new ServiceLocatorOsgi<>(bundleContext, SnmpClient.class);
     }
 

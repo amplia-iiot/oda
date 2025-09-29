@@ -42,12 +42,12 @@ public class SnmpDatastreamsManager implements AutoCloseable{
         snmpTranslatorRegistrationManager.register(new SnmpDatastreamsTranslator(snmpDatastreamsConfiguration));
     }
 
-    public SnmpDatastreamsGetter createSnmpDatastreamsGetter(SnmpEntry snmpDatastreamConf) {
+    private SnmpDatastreamsGetter createSnmpDatastreamsGetter(SnmpEntry snmpDatastreamConf) {
         return new SnmpDatastreamsGetter(clientsFinder, snmpDatastreamConf.getOID(), snmpDatastreamConf.getDataType().getClass(),
                 snmpDatastreamConf.getDatastreamId(), snmpDatastreamConf.getDeviceId(), snmpDatastreamConf.getFeed());
     }
 
-    public SnmpDatastreamsSetter createSnmpDatastreamsSetter(SnmpEntry snmpDatastreamConf) {
+    private SnmpDatastreamsSetter createSnmpDatastreamsSetter(SnmpEntry snmpDatastreamConf) {
         return new SnmpDatastreamsSetter(clientsFinder, snmpDatastreamConf.getOID(), snmpDatastreamConf.getDataType(),
                 snmpDatastreamConf.getDatastreamId(), snmpDatastreamConf.getDeviceId());
     }
