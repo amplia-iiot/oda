@@ -33,6 +33,10 @@ public class SnmpTrapProcessor implements CommandResponder {
         // TODO : check error
 
         Vector<? extends VariableBinding> valuesReceived = pduReceived.getVariableBindings();
+        if (valuesReceived == null) {
+            return;
+        }
+
         for (VariableBinding var : valuesReceived) {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
