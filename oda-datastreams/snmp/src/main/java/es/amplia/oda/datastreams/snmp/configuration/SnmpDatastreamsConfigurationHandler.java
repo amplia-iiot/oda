@@ -52,7 +52,6 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
                 String feed = getValueByToken(FEED_PROPERTY_NAME, propertyTokens).orElse(null);
 
                 // create entry
-                // TODO: check that doesn't already exist an entry for that OID and device
                 SnmpEntry newEntry = new SnmpEntry(oid, dataType, datastreamId, deviceId, feed);
                 log.info("Adding snmp entry info: {}", newEntry);
 
