@@ -15,7 +15,8 @@
         <module>udp-south</module>
 		<module>rules</module>
 		<module>mqtt-datastreams</module>
-		<module>iec104-datastreams</module>
+        <module>mqtt-docker</module>
+        <module>iec104-datastreams</module>
     </modules>
 
     <parent>

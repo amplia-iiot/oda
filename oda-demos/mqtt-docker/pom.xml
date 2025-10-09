@@ -2,16 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>mqtt</artifactId>
+    <artifactId>mqtt-docker</artifactId>
     <packaging>pom</packaging>
 
-    <name>OpenGate Device Agent Demos - MQTT</name>
-    <description>Demo agent with MQTT connector</description>
+    <name>OpenGate Device Agent Demos - MQTT Docker</name>
+    <description>Demo agent with MQTT connector in docker image</description>
 
     <parent>
         <artifactId>oda-demos</artifactId>
         <groupId>es.amplia.oda.demo</groupId>
-        <version>4.11.1-SNAPSHOT</version>
+        <version>4.12.7-SNAPSHOT</version>
     </parent>
 
     <build>
