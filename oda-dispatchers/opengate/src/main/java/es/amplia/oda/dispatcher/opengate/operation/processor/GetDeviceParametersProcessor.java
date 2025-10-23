@@ -5,13 +5,14 @@ import es.amplia.oda.dispatcher.opengate.domain.get.ParameterGetOperation;
 import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
+import es.amplia.oda.operation.api.OperationGetDeviceParameters.GetValue;
+import es.amplia.oda.operation.api.OperationGetDeviceParameters.Result;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationGetDeviceParameters.*;
 
 public class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set<String>, Result> {
 
@@ -54,7 +55,7 @@ public class GetDeviceParametersProcessor extends OperationProcessorTemplate<Set
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, Set<String> params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, Set<String> params) {
         return operationGetDeviceParameters.getDeviceParameters(deviceIdForOperations, params);
     }
 

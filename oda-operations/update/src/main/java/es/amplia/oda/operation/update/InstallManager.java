@@ -3,6 +3,8 @@ package es.amplia.oda.operation.update;
 
 import static es.amplia.oda.operation.api.OperationUpdate.DeploymentElement;
 
+import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
+
 public interface InstallManager {
 
     class InstallException extends Exception {
@@ -17,7 +19,7 @@ public interface InstallManager {
 
     void rollback(DeploymentElement deploymentElement, String backupFile);
 
-    void clearInstalledDeploymentElements();
+    void clearInstalledDeploymentElements(OperationResultCodes result);
 
     void loadConfig(String rulesPath, String rulesUtilsPath, String deployPath, String configurationPath);
 }

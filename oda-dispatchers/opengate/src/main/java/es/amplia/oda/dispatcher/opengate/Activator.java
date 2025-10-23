@@ -19,15 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private static final int NUM_THREADS = 10;
-
-    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(NUM_THREADS);
 
     private SerializerProviderOsgi serializerProvider;
     private DeviceInfoProviderProxy deviceInfoProvider;
@@ -56,7 +53,7 @@ public class Activator implements BundleActivator {
                 factory.createOperationProcessor(), opSender);
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
-        scheduler = new SchedulerImpl(executor);
+        scheduler = new SchedulerImpl(Executors.newScheduledThreadPool(NUM_THREADS));
         connector = new OpenGateConnectorProxy(bundleContext);
 
         ResponseDispatcherImpl respDispatcher = new ResponseDispatcherImpl(serializerProvider.getSerializer(ContentType.JSON), ContentType.JSON, connector);

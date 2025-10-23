@@ -1,7 +1,15 @@
 package es.amplia.oda.operation.update;
 
+import es.amplia.oda.core.commons.utils.operation.response.Operation;
+import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
+import es.amplia.oda.core.commons.utils.operation.response.OperationResultCode;
+import es.amplia.oda.core.commons.utils.operation.response.Response;
+import es.amplia.oda.core.commons.utils.operation.response.Step;
+import es.amplia.oda.core.commons.utils.operation.response.StepResultCode;
+import es.amplia.oda.event.api.ResponseDispatcher;
 import es.amplia.oda.operation.api.OperationUpdate;
-
+import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
+import es.amplia.oda.operation.api.OperationUpdate.UpdateStepName;
 import es.amplia.oda.operation.update.configuration.UpdateConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,16 +18,15 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static es.amplia.oda.operation.api.OperationUpdate.*;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -27,12 +34,15 @@ public class OperationUpdateImplTest {
 
     private static final String TEST_NAME = "testBundle";
     private static final String TEST_VERSION_1 = "1.0.0";
+    private static final String OPERATION_ID = "operationId";
     @Mock
     private BackupManager mockedBackupManager;
     @Mock
     private DownloadManager mockedDownloadManager;
     @Mock
     private InstallManager mockedInstallManager;
+    @Mock
+    private ResponseDispatcher mockedDispatcher;
     @InjectMocks
     private OperationUpdateImpl operationUpdate;
 
@@ -88,16 +98,24 @@ public class OperationUpdateImplTest {
     @Test
     public void testUpdate() throws ExecutionException, InterruptedException, BackupManager.BackupException,
             DownloadManager.DownloadException, InstallManager.InstallException {
-        CompletableFuture<OperationUpdate.Result> future =
-                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
-        OperationUpdate.Result result = future.get();
+        operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        Thread.sleep(500);
 
-        assertEquals(OperationResultCodes.SUCCESSFUL, result.getResultCode());
-        assertStepResult(UpdateStepName.BEGINUPDATE, StepResultCodes.SUCCESSFUL, result);
-        assertStepResult(UpdateStepName.DOWNLOADFILE, StepResultCodes.SUCCESSFUL, deploymentElementsToDownload, result);
-        assertStepResult(UpdateStepName.BEGININSTALL, StepResultCodes.SUCCESSFUL, numOfDeploymentElements, result);
-        assertStepResult(UpdateStepName.ENDINSTALL, StepResultCodes.SUCCESSFUL, numOfDeploymentElements, result);
-        assertStepResult(UpdateStepName.ENDUPDATE, StepResultCodes.SUCCESSFUL, result);
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step(UpdateStepName.BEGINUPDATE.toString(), StepResultCode.SUCCESSFUL, "System prepared for update", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement3-3.3.3 uninstalled", null, null));
+        steps.add(new Step(UpdateStepName.ENDUPDATE.toString(), StepResultCode.SUCCESSFUL, "", null, null));
+        OperationResponse resp = new OperationResponse("9.0", new Operation
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.SUCCESSFUL, "", steps)));
+
+        verify(mockedDispatcher).publishResponse(resp);
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
@@ -109,24 +127,7 @@ public class OperationUpdateImplTest {
                 .install(any(OperationUpdate.DeploymentElement.class), anyString());
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
-        verify(mockedInstallManager).clearInstalledDeploymentElements();
-    }
-
-    private void assertStepResult(OperationUpdate.UpdateStepName name,
-                                  OperationUpdate.StepResultCodes code,
-                                  OperationUpdate.Result result) {
-        assertStepResult(name, code, 1, result);
-    }
-
-    private void assertStepResult(OperationUpdate.UpdateStepName name,
-                                  OperationUpdate.StepResultCodes code,
-                                  int number,
-                                  OperationUpdate.Result result) {
-        List<OperationUpdate.StepResult> stepResults = result.getSteps();
-        assertEquals(number,
-                stepResults.stream()
-                        .filter(stepResult -> stepResult.getName() == name && stepResult.getCode() == code)
-                        .count());
+        verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.SUCCESSFUL);
     }
 
     @Test
@@ -135,12 +136,15 @@ public class OperationUpdateImplTest {
         doThrow(new BackupManager.BackupException("")).when(mockedBackupManager)
                 .backup(any(OperationUpdate.DeploymentElement.class), anyString());
 
-        CompletableFuture<OperationUpdate.Result> future =
-                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
-        OperationUpdate.Result result = future.get();
+        operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        Thread.sleep(500);
 
-        assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
-        assertStepResult(UpdateStepName.BEGINUPDATE, StepResultCodes.ERROR, result);
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step(UpdateStepName.BEGINUPDATE.toString(), StepResultCode.ERROR, "Error preparing system for update", null, null));
+        OperationResponse resp = new OperationResponse("9.0", new Operation
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Can not prepare system for operation update: ", steps)));
+
+        verify(mockedDispatcher).publishResponse(resp);
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, atLeastOnce()).backup(any(OperationUpdate.DeploymentElement.class), anyString());
@@ -152,7 +156,7 @@ public class OperationUpdateImplTest {
                 .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
-        verify(mockedInstallManager).clearInstalledDeploymentElements();
+        verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
     }
 
     @Test
@@ -161,14 +165,17 @@ public class OperationUpdateImplTest {
         doNothing().doThrow(new DownloadManager.DownloadException("")).when(mockedDownloadManager)
                 .download(any(OperationUpdate.DeploymentElement.class));
 
-        CompletableFuture<OperationUpdate.Result> future =
-                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
-        OperationUpdate.Result result = future.get();
+        operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        Thread.sleep(500);
 
-        assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
-        assertStepResult(UpdateStepName.BEGINUPDATE, StepResultCodes.SUCCESSFUL, result);
-        assertStepResult(UpdateStepName.DOWNLOADFILE, StepResultCodes.SUCCESSFUL, result);
-        assertStepResult(UpdateStepName.DOWNLOADFILE, StepResultCodes.ERROR, result);
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step(UpdateStepName.BEGINUPDATE.toString(), StepResultCode.SUCCESSFUL, "System prepared for update", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.ERROR, "Error downloading testDeploymentElement-2.0.0: ", null, null));
+        OperationResponse resp = new OperationResponse("9.0", new Operation
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Error downloading testDeploymentElement-2.0.0", steps)));
+
+        verify(mockedDispatcher).publishResponse(resp);
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
@@ -182,7 +189,7 @@ public class OperationUpdateImplTest {
                 .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
-        verify(mockedInstallManager).clearInstalledDeploymentElements();
+        verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
     }
 
     @Test
@@ -191,16 +198,23 @@ public class OperationUpdateImplTest {
         doNothing().doNothing().doThrow(new InstallManager.InstallException("")).when(mockedInstallManager)
                 .install(any(OperationUpdate.DeploymentElement.class), anyString());
 
-        CompletableFuture<OperationUpdate.Result> future =
-                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
-        OperationUpdate.Result result = future.get();
+        operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        Thread.sleep(500);
 
-        assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
-        assertStepResult(UpdateStepName.BEGINUPDATE, StepResultCodes.SUCCESSFUL, result);
-        assertStepResult(UpdateStepName.DOWNLOADFILE, StepResultCodes.SUCCESSFUL, deploymentElementsToDownload, result);
-        assertStepResult(UpdateStepName.BEGININSTALL, StepResultCodes.SUCCESSFUL, numOfDeploymentElements, result);
-        assertStepResult(UpdateStepName.ENDINSTALL, StepResultCodes.SUCCESSFUL, 2, result);
-        assertStepResult(UpdateStepName.ENDINSTALL, StepResultCodes.ERROR, result);
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step(UpdateStepName.BEGINUPDATE.toString(), StepResultCode.SUCCESSFUL, "System prepared for update", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.ERROR, "Error uninstalling testDeploymentElement3-3.3.3: ", null, null));
+        OperationResponse resp = new OperationResponse("9.0", new Operation
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Error uninstalling testDeploymentElement3-3.3.3", steps)));
+
+        verify(mockedDispatcher).publishResponse(resp);
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
@@ -214,7 +228,7 @@ public class OperationUpdateImplTest {
                 .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
-        verify(mockedInstallManager).clearInstalledDeploymentElements();
+        verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
     }
 
     @Test
@@ -223,17 +237,27 @@ public class OperationUpdateImplTest {
         doNothing().doNothing().doThrow(new RuntimeException("Unknown")).when(mockedInstallManager)
                 .install(any(OperationUpdate.DeploymentElement.class), anyString());
 
-        CompletableFuture<OperationUpdate.Result> future =
-                operationUpdate.update(TEST_NAME, TEST_VERSION_1, testDeploymentElements);
-        OperationUpdate.Result result = future.get();
+        operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
+        Thread.sleep(500);
 
-        assertEquals(OperationResultCodes.ERROR_PROCESSING, result.getResultCode());
-        assertNotNull(result.getSteps());
+        List<Step> steps = new ArrayList<>();
+        steps.add(new Step(UpdateStepName.BEGINUPDATE.toString(), StepResultCode.SUCCESSFUL, "System prepared for update", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.DOWNLOADFILE.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 downloaded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin installing testDeploymentElement-1.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-1.0.0 installed", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin upgrading testDeploymentElement-2.0.0", null, null));
+        steps.add(new Step(UpdateStepName.ENDINSTALL.toString(), StepResultCode.SUCCESSFUL, "testDeploymentElement-2.0.0 upgraded", null, null));
+        steps.add(new Step(UpdateStepName.BEGININSTALL.toString(), StepResultCode.SUCCESSFUL, "Begin uninstalling testDeploymentElement3-3.3.3", null, null));
+        OperationResponse resp = new OperationResponse("9.0", new Operation
+                        (new Response(OPERATION_ID, null, null, "UPDATE", OperationResultCode.ERROR_PROCESSING, "Unknown exception making update operation", steps)));
+
+        verify(mockedDispatcher).publishResponse(resp);
     }
 
     @Test
     public void testLoadConfiguration() {
-        UpdateConfiguration config = UpdateConfiguration.builder().rulesPath("the/correct/path").build();
+        UpdateConfiguration config = UpdateConfiguration.builder().rulesPath("the/correct/path").backupPath("backup/path").build();
 
         operationUpdate.loadConfiguration(config);
 

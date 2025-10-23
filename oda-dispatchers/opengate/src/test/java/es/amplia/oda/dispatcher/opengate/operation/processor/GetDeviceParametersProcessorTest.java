@@ -4,6 +4,9 @@ import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.get.ParameterGetOperation;
 import es.amplia.oda.dispatcher.opengate.domain.get.RequestGetOperation;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
+import es.amplia.oda.operation.api.OperationGetDeviceParameters.GetValue;
+import es.amplia.oda.operation.api.OperationGetDeviceParameters.Result;
+import es.amplia.oda.operation.api.OperationGetDeviceParameters.Status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,8 +17,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationGetDeviceParameters.*;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.GetDeviceParametersProcessor.*;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.ERROR_RESULT;
+import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.SUCCESS_RESULT;
 import static es.amplia.oda.operation.api.OperationGetDeviceParameters.Status.NOT_FOUND;
 
 import static org.junit.Assert.*;
@@ -92,7 +96,7 @@ public class GetDeviceParametersProcessorTest {
 
     @Test
     public void testProcessOperation() {
-        testProcessor.processOperation(TEST_DEVICE_ID, TEST_PARAMS);
+        testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, TEST_PARAMS);
 
         verify(mockedGetDeviceParameters).getDeviceParameters(eq(TEST_DEVICE_ID), eq(TEST_PARAMS));
     }

@@ -6,6 +6,8 @@ import es.amplia.oda.dispatcher.opengate.domain.setclock.Datetime;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.ParameterSetClockOperation;
 import es.amplia.oda.dispatcher.opengate.domain.setclock.RequestSetClockOperation;
 import es.amplia.oda.operation.api.OperationSetClock;
+import es.amplia.oda.operation.api.OperationSetClock.Result;
+import es.amplia.oda.operation.api.OperationSetClock.ResultCode;
 
 import java.time.*;
 import java.time.format.DateTimeParseException;
@@ -13,7 +15,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static es.amplia.oda.operation.api.OperationSetClock.*;
 
 public class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long, Result> {
 
@@ -79,7 +80,7 @@ public class SetClockEquipmentProcessor extends OperationProcessorTemplate<Long,
     }
 
     @Override
-    CompletableFuture<Result> processOperation(String deviceIdForOperations, Long params) {
+    CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, Long params) {
         return operationSetClock.setClock(deviceIdForOperations, params);
     }
 

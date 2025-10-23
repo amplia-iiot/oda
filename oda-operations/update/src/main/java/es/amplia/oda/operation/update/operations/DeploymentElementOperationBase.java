@@ -9,7 +9,7 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 
 public abstract class DeploymentElementOperationBase implements DeploymentElementOperation {
 
-    private final OperationUpdate.DeploymentElement deploymentElement;
+    protected final OperationUpdate.DeploymentElement deploymentElement;
 
     private final FileManager fileManager;
 
@@ -47,6 +47,19 @@ public abstract class DeploymentElementOperationBase implements DeploymentElemen
 
     protected abstract void executeSpecificOperation(FileManager fileManager)
             throws FileException, DeploymentElementOperationException;
+    
+    @Override
+    public void executePostSuccessfulOperation() throws DeploymentElementOperationException {
+        try {
+            executeSpecificSuccessfulOperation(fileManager);
+        } catch (FileException exception) {
+            throw new DeploymentElementOperationException(exception.getMessage());
+        }
+    }
+
+    protected void executeSpecificSuccessfulOperation(FileManager fileManager) throws FileException {
+        // By default do nothing
+    }
 
     @Override
     public void rollback(String backupFile) throws DeploymentElementOperationException {
