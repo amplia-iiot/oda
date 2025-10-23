@@ -2,6 +2,7 @@ package es.amplia.oda.ruleengine.api;
 
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,8 @@ public class RuleEngineProxyTest {
 	private RuleEngine mockedRuleEngine;
 	@Mock
 	private State mockedState;
+	@Mock
+	OsgiContext mockedOsgiContext;
 	@Captor
 	private ArgumentCaptor<Function<RuleEngine, CompletableFuture<DatastreamValue>>>
 			datastreamValueFutureFunctionCaptor;
@@ -61,13 +64,13 @@ public class RuleEngineProxyTest {
 
 	@Test
 	public void testEngine() {
-		testProxy.engine(mockedState, TEST_DATASTREAM_VALUE);
+		testProxy.engine(mockedState, TEST_DATASTREAM_VALUE, mockedOsgiContext);
 
 		verify(mockedProxy).callFirst(datastreamValueFutureFunctionCaptor.capture());
 		Function<RuleEngine, CompletableFuture<DatastreamValue>> capturedFunction =
 				datastreamValueFutureFunctionCaptor.getValue();
 		capturedFunction.apply(mockedRuleEngine);
-		verify(mockedRuleEngine).engine(mockedState, TEST_DATASTREAM_VALUE);
+		verify(mockedRuleEngine).engine(mockedState, TEST_DATASTREAM_VALUE, mockedOsgiContext);
 	}
 
 	@Test

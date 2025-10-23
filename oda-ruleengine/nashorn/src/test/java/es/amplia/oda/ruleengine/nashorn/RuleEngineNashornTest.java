@@ -1,6 +1,7 @@
 package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
@@ -42,6 +43,8 @@ public class RuleEngineNashornTest {
 	RulesDirectoryWatcher mockedRuleWatcher;
 	@Mock
 	State mockedState;
+	@Mock
+	OsgiContext mockedContext;
 	@Mock
 	File mockedFile;
 
@@ -105,7 +108,7 @@ public class RuleEngineNashornTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 
-		State state = testRuleEngine.engine(mockedState, value);
+		State state = testRuleEngine.engine(mockedState, value, mockedContext);
 
 		assertEquals(mockedState, state);
 		verify(mockedState, never()).refreshValue("testDevice","testDatastream", value);
@@ -121,18 +124,18 @@ public class RuleEngineNashornTest {
 		Rule rule = new Rule("nameRule", Collections.singletonList("testDatastream"), mockedScriptTranslator);
 		rules.put("nameRule", rule);
 		watchers.put(path + "testDatastream", mockedRuleWatcher);
-		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value)).thenReturn(true);
-		when(mockedScriptTranslator.runMethod("nameRule", "then", mockedState, value)).thenReturn(mockedState);
+		when(mockedScriptTranslator.runMethod("nameRule", "when", mockedState, value, mockedContext)).thenReturn(true);
+		when(mockedScriptTranslator.runMethod("nameRule", "then", mockedState, value, mockedContext)).thenReturn(mockedState);
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
 		Whitebox.setInternalState(testRuleEngine, "path", path);
 
-		State state = testRuleEngine.engine(mockedState, value);
+		State state = testRuleEngine.engine(mockedState, value, mockedContext);
 
 		assertEquals(mockedState, state);
-		verify(mockedScriptTranslator).runMethod("nameRule", "then", mockedState, value);
+		verify(mockedScriptTranslator).runMethod("nameRule", "then", mockedState, value, mockedContext);
 	}
 
 	@Test
@@ -145,17 +148,17 @@ public class RuleEngineNashornTest {
 		Rule rule = new Rule(path + "testDatastream", Collections.singletonList("testDatastream"), mockedScriptTranslator);
 		rules.put(path + "testDatastream", rule);
 		watchers.put("testDatastream", mockedRuleWatcher);
-		when(mockedScriptTranslator.runMethod(path + "testDatastream", "when", mockedState, value)).thenThrow(new ClassCastException());
+		when(mockedScriptTranslator.runMethod(path + "testDatastream", "when", mockedState, value, mockedContext)).thenThrow(new ClassCastException());
 		when(mockedState.isRefreshed("testDevice","testDatastream")).thenReturn(true);
 		Whitebox.setInternalState(testRuleEngine, "started", true);
 		Whitebox.setInternalState(testRuleEngine, "rules", rules);
 		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
 		Whitebox.setInternalState(testRuleEngine, "path", path);
 
-		State state = testRuleEngine.engine(mockedState, value);
+		State state = testRuleEngine.engine(mockedState, value, mockedContext);
 
 		assertEquals(mockedState, state);
-		verify(mockedScriptTranslator, never()).runMethod("nameRule", "then", mockedState, value);
+		verify(mockedScriptTranslator, never()).runMethod("nameRule", "then", mockedState, value, mockedContext);
 	}
 
 	@Test
@@ -289,23 +292,23 @@ public class RuleEngineNashornTest {
 		testRuleEngine.createRule(rule4Name);
 
 		// test conditions
-		when(mockedScriptTranslator.runMethod(rule1Name, "when", mockedState, value)).thenReturn(true);
-		when(mockedScriptTranslator.runMethod(rule1Name, "then", mockedState, value)).thenReturn(mockedState);
-		when(mockedScriptTranslator.runMethod(rule4Name, "when", mockedState, value)).thenReturn(true);
-		when(mockedScriptTranslator.runMethod(rule4Name, "then", mockedState, value)).thenReturn(mockedState);
+		when(mockedScriptTranslator.runMethod(rule1Name, "when", mockedState, value, mockedContext)).thenReturn(true);
+		when(mockedScriptTranslator.runMethod(rule1Name, "then", mockedState, value, mockedContext)).thenReturn(mockedState);
+		when(mockedScriptTranslator.runMethod(rule4Name, "when", mockedState, value, mockedContext)).thenReturn(true);
+		when(mockedScriptTranslator.runMethod(rule4Name, "then", mockedState, value, mockedContext)).thenReturn(mockedState);
 
 		// launch method
-		testRuleEngine.engine(mockedState, value);
+		testRuleEngine.engine(mockedState, value, mockedContext);
 
 		// assertions
 		// check rule 1 is applied
-		verify(mockedScriptTranslator).runMethod(rule1Name, "then", mockedState, value);
+		verify(mockedScriptTranslator).runMethod(rule1Name, "then", mockedState, value, mockedContext);
 		// check rule 2 is not applied
-		verify(mockedScriptTranslator, never()).runMethod(rule2Name, "when", mockedState, value);
+		verify(mockedScriptTranslator, never()).runMethod(rule2Name, "when", mockedState, value, mockedContext);
 		// check rule 3 is not applied
-		verify(mockedScriptTranslator, never()).runMethod(rule3Name, "when", mockedState, value);
+		verify(mockedScriptTranslator, never()).runMethod(rule3Name, "when", mockedState, value, mockedContext);
 		// check rule 4 is applied
-		verify(mockedScriptTranslator).runMethod(rule4Name, "then", mockedState, value);
+		verify(mockedScriptTranslator).runMethod(rule4Name, "then", mockedState, value, mockedContext);
 
 		// clean files created
 		rule1File.delete();
