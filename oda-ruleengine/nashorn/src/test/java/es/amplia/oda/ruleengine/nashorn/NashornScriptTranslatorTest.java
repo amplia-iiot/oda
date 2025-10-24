@@ -113,7 +113,7 @@ public class NashornScriptTranslatorTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
-		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
+		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value, null);
 
 		assertEquals(mockedState, state);
 	}
@@ -129,7 +129,7 @@ public class NashornScriptTranslatorTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
-		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
+		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value, null);
 
 		assertEquals(mockedState, state);
 	}
@@ -145,7 +145,7 @@ public class NashornScriptTranslatorTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
-		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value);
+		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value, null);
 
 		assertEquals(mockedState, state);
 	}

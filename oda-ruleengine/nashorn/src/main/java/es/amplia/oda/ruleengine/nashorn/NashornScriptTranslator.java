@@ -2,8 +2,7 @@ package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.ruleengine.api.ScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -14,13 +13,13 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+@Slf4j
 public class NashornScriptTranslator implements ScriptTranslator {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator.class);
     private static final String ENGINE_NAME = "nashorn";
     private String jsUtilsPath;
 
-    private HashMap<String,ScriptEngine> engines = new HashMap<>();
+    private final HashMap<String,ScriptEngine> engines = new HashMap<>();
 
     public void loadConfiguration(RuleEngineConfiguration config) {
         this.jsUtilsPath = config.getUtilsPath();
@@ -49,11 +48,11 @@ public class NashornScriptTranslator implements ScriptTranslator {
     public Object runMethod(String script, String method, Object... params) {
         try {
             Invocable rule = (Invocable) engines.get(script);
-            params[0] = rule.invokeFunction(method, params[0], params[1]);
+            params[0] = rule.invokeFunction(method, params);
         } catch (ScriptException e) {
-            LOGGER.error("Error trying to execute script {} method {}", script, method);
+            log.error("Error trying to execute script {} method {}", script, method);
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Method {} doesn't exists on script {}", method, script);
+            log.error("Method {} doesn't exists on script {}", method, script);
         }
         return params[0];
     }
@@ -78,7 +77,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
 
             return scriptContent.toString();
         } catch (FileNotFoundException e) {
-            LOGGER.error("File not found {}", file);
+            log.error("File not found {}", file);
         }
         return "";
     }

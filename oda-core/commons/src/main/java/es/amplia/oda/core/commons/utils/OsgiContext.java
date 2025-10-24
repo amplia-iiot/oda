@@ -22,7 +22,7 @@ public class OsgiContext {
         this.datastreamsGettersFinder = gettersFinder;
         this.datastreamsSettersFinder = settersFinder;
         this.bundleContext = bundleContext;
-        this.bundleContextMap = new HashMap<String, ServiceLocatorOsgi<Object>>();
+        this.bundleContextMap = new HashMap<>();
     }
 
     public Object getBundle(String bundleName) {
