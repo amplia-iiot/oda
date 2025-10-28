@@ -3,6 +3,7 @@ package es.amplia.oda.operation.rebootequipment;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.system.RebootEquipment;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder.Return;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
@@ -18,7 +19,6 @@ import es.amplia.oda.operation.api.CustomOperation;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
@@ -138,97 +138,26 @@ class RebootEquipmentImpl implements EventHandler, CustomOperation {
     @Override
     public CompletableFuture<Result> execute(String deviceId, String operationId, Map<String, Object> params) {
         LOGGER.debug("Reboot Equipment - Restarting all bundles in ODA");
-        //OperationResultCode operStatus = OperationResultCode.SUCCESSFUL;
-        //String operDescription = "Operation finished successfull";
-        StringBuilder bdlNotStopped = new StringBuilder();
         List<es.amplia.oda.core.commons.utils.operation.response.Step> steps = new ArrayList<>();
-        //List<Bundle> bundles = new ArrayList<>();
 
         opId = operationId;
-
         Bundle[] bundlesArray = this.context.getBundles();
-
         saveOperationStatus(opId, bundlesArray);
 
         // Enviamos el paso de que hemos recibido la operación
-        steps.add(new es.amplia.oda.core.commons.utils.operation.response.Step(REBOOT_EQUIPMENT_OPERATION_NAME, StepResultCode.SUCCESSFUL, "Bundles to be rebooted: " + bundlesArray.length, null, null));
+        steps.add(new es.amplia.oda.core.commons.utils.operation.response.Step(REBOOT_EQUIPMENT_OPERATION_NAME, StepResultCode.SUCCESSFUL,
+                "Bundles to be rebooted: " + bundlesArray.length, null, null));
         sendResponse(null, operationId, steps);
 
         try {
             // Espera para que se envíe el paso antes de parar todos los bundles
             Thread.sleep(2000);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ignored) {
         }
 
-        for (int i = 0; i < bundlesArray.length; i++) {
-            Bundle bdl = bundlesArray[i];
-            String bdSymbolicName = bdl.getSymbolicName();
-            //if (bdSymbolicName.startsWith("es.amplia") && !bdSymbolicName.equals(symbolicName)) {
-                try {
-                    bdl.stop();
-                    LOGGER.debug("Bundle " + bdSymbolicName + " STOPPED");
-                    //bundlesName.add(bdSymbolicName);
-                    //bundles.add(bdl);
-                } catch (BundleException e) {
-                    LOGGER.error("Error stopping bundle " + bdSymbolicName , e);
-                    bdlNotStopped.append(bdSymbolicName + " | ");
-                }
-            //}
-        }
-
-        /*boolean notCompleted = true;
-        int retries = 3;
-        while (notCompleted && retries > 0) {
-            startBundles(bundles);
-            try {
-                synchronized(bundlesName) {
-                    bundlesName.wait(20000);
-                }
-            } catch (InterruptedException e) {
-            }
-            if (bundlesName.isEmpty()) notCompleted = false;
-            else retries--;
-        }
-
-        if (notCompleted) {
-            operStatus = OperationResultCode.ERROR_PROCESSING;
-            StringBuilder bdlNotStarted = new StringBuilder();
-            bundlesName.forEach(bn -> bdlNotStarted.append(bn + " |"));
-            operDescription = "Bundles not started: " + bdlNotStarted.toString();
-        } else if (bdlNotStopped.length() != 0) {
-            operDescription = "Bundles not stopped: " + bdlNotStopped.toString();
-        }
-
-        boolean notConnected = true;
-        retries = 10;
-        while (notConnected && retries > 0) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                //LOGGER.error("Error sleeping", e);
-            }
-            if (ogConnector.isConnected()) notConnected = false;
-            else retries--;
-        }
-
-        OperationResponse resp = new OperationResponse("9.0", new Operation
-                        (new Response(opId, deviceId, null, REBOOT_EQUIPMENT_OPERATION_NAME, operStatus, operDescription, steps)));
-        dispatcher.publishResponse(resp);
-        opId = null;*/
-
+        RebootEquipment.rebootODA(this.context);
         return CompletableFuture.completedFuture(null);
     }
-
-    /*private void startBundles(List<Bundle> bundles) {
-        bundles.forEach(b-> {
-            try {
-                // Con esta comprobación sólo arrancamos los bundles que estén en la lista, que son los bundles que falten por arrancar
-                if (bundlesName.contains(b.getSymbolicName())) b.start();
-            } catch (BundleException e) {
-                LOGGER.error("Error starting bundle " + b.getSymbolicName(), e);
-            }
-        });
-    }*/
 
     private void waitForConnected() {
         boolean notConnected = true;
