@@ -14,6 +14,7 @@
         <module>deviceinfoowa450</module>
         <module>gpio</module>
         <module>modbus</module>
+        <module>modbusslave</module>
         <module>mqtt</module>
         <module>simulator</module>
         <module>adc</module>
