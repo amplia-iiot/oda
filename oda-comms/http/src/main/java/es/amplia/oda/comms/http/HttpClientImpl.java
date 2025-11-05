@@ -12,6 +12,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import es.amplia.oda.core.commons.http.HttpClient;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -22,9 +24,9 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HttpClient {
+public class HttpClientImpl implements HttpClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientImpl.class);
 
     private static final String GZIP_ENCODING = "gzip";
     private static final int OK_HTTP_CODE = 200;
@@ -34,11 +36,11 @@ public class HttpClient {
     private CloseableHttpClient httpClient;
     private RequestConfig customConfig;
 
-    public HttpClient() {
+    public HttpClientImpl() {
         this(false);
     }
 
-    public HttpClient(boolean insecure) {
+    public HttpClientImpl(boolean insecure) {
         if (insecure) {
             this.httpClient = httpClientSSLNoVerify();
         } else {
@@ -201,12 +203,18 @@ public class HttpClient {
 
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         String response = null;
+        HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP GET message sent");
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 response = EntityUtils.toString(entity);
             }
+            Header[] headersResp = httpResponse.getAllHeaders();
+			for (int i = 0; i < headersResp.length; i++) {
+				Header h = headersResp[i];
+				rHeaders.put(h.getName(), h.getValue());
+			}
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP GET message: {}, {}", statusCode, response);
@@ -214,7 +222,7 @@ public class HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).build();
+        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
     public HttpResponse delete(String url, Map<String, String> headers) throws IOException {
@@ -228,12 +236,18 @@ public class HttpClient {
 
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         String response = null;
+        HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP DELETE message sent");
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 response = EntityUtils.toString(entity);
             }
+            Header[] headersResp = httpResponse.getAllHeaders();
+			for (int i = 0; i < headersResp.length; i++) {
+				Header h = headersResp[i];
+				rHeaders.put(h.getName(), h.getValue());
+			}
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP DELTE message: {}, {}", statusCode, response);
@@ -241,7 +255,7 @@ public class HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).build();
+        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
 }

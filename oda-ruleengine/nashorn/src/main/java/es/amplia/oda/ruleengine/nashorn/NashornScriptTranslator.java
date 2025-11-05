@@ -50,7 +50,7 @@ public class NashornScriptTranslator implements ScriptTranslator {
             Invocable rule = (Invocable) engines.get(script);
             params[0] = rule.invokeFunction(method, params);
         } catch (ScriptException e) {
-            log.error("Error trying to execute script {} method {}", script, method);
+            log.error("Error trying to execute script " + script + " method " + method, e);
         } catch (NoSuchMethodException e) {
             log.error("Method {} doesn't exists on script {}", method, script);
         }
