@@ -9,6 +9,7 @@ import com.ghgande.j2mod.modbus.net.ModbusTCPListener;
 import com.ghgande.j2mod.modbus.procimg.ProcessImage;
 import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.Event;
+import es.amplia.oda.datastreams.modbusslave.translator.ModbusToEventConverter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.*;
@@ -54,7 +55,7 @@ public class ModbusListenerImpl extends ModbusTCPListener{
         // translate request to ODA events
         List<Event> eventsConverted = ModbusToEventConverter.translateEvent(this.deviceId, request);
         // pass translated request to SCADA translator and state manager
-        stateManager.publishValues(eventsConverted);
+        stateManager.onReceivedEvents(eventsConverted);
 
         // prepare response
         ModbusResponse response;

@@ -4,6 +4,8 @@ import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
 import es.amplia.oda.datastreams.modbusslave.internal.ModbusSlaveManager;
+import es.amplia.oda.datastreams.modbusslave.translator.ModbusEventTranslator;
+import es.amplia.oda.datastreams.modbusslave.translator.TranslationEntry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -16,6 +18,10 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
     private static final String IP_PROPERTY_NAME = "ip";
     private static final String PORT_PROPERTY_NAME = "port";
     private static final String SLAVE_ADDRESS_PROPERTY_NAME = "slaveAddress";
+    private static final String DATASTREAM_ID_PROPERTY_NAME = "datastream";
+    private static final String FEED_PROPERTY_NAME = "feed";
+    private static final String DATA_TYPE_PROPERTY_NAME = "dataType";
+
 
     public static final String TCP_MODBUS_TYPE = "TCP";
     public static final String UDP_MODBUS_TYPE = "UDP";
@@ -31,27 +37,60 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
     @Override
     public void loadConfiguration(Dictionary<String, ?> props) {
         currentModbusSlaveConfigurations.clear();
+        ModbusEventTranslator.clearAllEntries();
 
         Map<String, ?> mappedProperties = Collections.dictionaryToMap(props);
-        // deviceId1=type:TCP,ip:127.0.0.1,port:5020,slaveAddress:3
-
         for (Map.Entry<String, ?> entry : mappedProperties.entrySet()) {
             try {
-                String deviceId = entry.getKey();
+
+                // split key
+                String[] keyProperties = getTokensFromProperty(entry.getKey());
                 // split properties
                 String[] properties = getTokensFromProperty((String) entry.getValue());
 
-                // get type
-                String type = getValueByToken(TYPE_PROPERTY_NAME, properties)
-                        .orElseThrow(throwMissingRequiredPropertyConfigurationException(TYPE_PROPERTY_NAME));
+                // if there is only one element in key, it is a device
+                // deviceId1=type:TCP,ip:127.0.0.1,port:5020,slaveAddress:3
+                if(keyProperties.length == 1)
+                {
+                    String deviceId = keyProperties[0];
 
-                if(type.equalsIgnoreCase(TCP_MODBUS_TYPE)) {
-                    loadTcpConfiguration(deviceId, properties);
+                    // get type
+                    String type = getValueByToken(TYPE_PROPERTY_NAME, properties)
+                            .orElseThrow(throwMissingRequiredPropertyConfigurationException(TYPE_PROPERTY_NAME));
+
+                    if(type.equalsIgnoreCase(TCP_MODBUS_TYPE)) {
+                        loadTcpConfiguration(deviceId, properties);
+                    }
+                }
+                // if there are two elements in key, it is a translation
+                // 102, deviceId1 = datastream:ds1, feed:feed1, dataType:Float
+                else if (keyProperties.length == 2)
+                {
+                    int modbusAddress = Integer.parseInt(keyProperties[0]);
+                    String deviceId = keyProperties[1];
+
+                    // get datastreamId
+                    String datastreamId = getValueByToken(DATASTREAM_ID_PROPERTY_NAME, properties)
+                            .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATASTREAM_ID_PROPERTY_NAME));
+
+                    // get feed
+                    String feed = getValueByToken(FEED_PROPERTY_NAME, properties)
+                            .orElseThrow(throwMissingRequiredPropertyConfigurationException(FEED_PROPERTY_NAME));
+
+                    // get datatype
+                    String dataType = getValueByToken(DATA_TYPE_PROPERTY_NAME, properties)
+                            .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATA_TYPE_PROPERTY_NAME));
+
+                    TranslationEntry newEntry = new TranslationEntry(modbusAddress, deviceId, datastreamId, feed, dataType);
+                    ModbusEventTranslator.addEntry(newEntry);
                 }
 
             } catch (Exception exception) {
                 logInvalidConfigurationWarning(entry, exception.getMessage());
             }
+
+            // remove parsed properties
+            //mappedProperties.remove(entry.getKey());
         }
     }
 

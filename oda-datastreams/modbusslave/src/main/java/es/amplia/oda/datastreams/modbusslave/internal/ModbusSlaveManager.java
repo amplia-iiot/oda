@@ -14,7 +14,7 @@ import java.util.Map;
 public class ModbusSlaveManager implements AutoCloseable {
 
     private final StateManager stateManager;
-    List<ModbusTCPSlaveImpl> tcpModbusSlaves = new ArrayList<>();
+    List<ModbusTCPSlaveImpl> tcpModbusSlavesImpl = new ArrayList<>();
 
     public ModbusSlaveManager(StateManager stateManager) {
         this.stateManager = stateManager;
@@ -22,18 +22,18 @@ public class ModbusSlaveManager implements AutoCloseable {
 
     public void loadConfiguration(Map<String, List<Object>> modbusSlaves) {
         // load tcp slaves
-        List<Object> tcpModbusSlaves = modbusSlaves.get(ModbusSlaveConfigurationUpdateHandler.TCP_MODBUS_TYPE);
-        if (tcpModbusSlaves == null) {
+        List<Object> tcpModbusSlavesConf = modbusSlaves.get(ModbusSlaveConfigurationUpdateHandler.TCP_MODBUS_TYPE);
+        if (tcpModbusSlavesConf == null) {
             return;
         }
 
-        for (int i = 0; i < tcpModbusSlaves.size(); i++) {
-            ModbusTCPSlaveConfiguration conf = (ModbusTCPSlaveConfiguration) tcpModbusSlaves.get(i);
+        for (Object o : tcpModbusSlavesConf) {
+            ModbusTCPSlaveConfiguration conf = (ModbusTCPSlaveConfiguration) o;
             try {
                 ModbusTCPSlaveImpl slave = new ModbusTCPSlaveImpl(conf.getDeviceId(), conf.getIpAddress(),
                         conf.getListenPort(), conf.getSlaveAddress(), this.stateManager);
                 slave.open();
-                tcpModbusSlaves.add(slave);
+                tcpModbusSlavesImpl.add(slave);
             } catch (ModbusException e) {
                 log.error("Error creating modbus slave with conf {} : ", conf, e);
             }
@@ -42,7 +42,7 @@ public class ModbusSlaveManager implements AutoCloseable {
 
     @Override
     public void close() {
-        for (ModbusTCPSlaveImpl slave : tcpModbusSlaves) {
+        for (ModbusTCPSlaveImpl slave : tcpModbusSlavesImpl) {
             slave.close();
         }
     }
