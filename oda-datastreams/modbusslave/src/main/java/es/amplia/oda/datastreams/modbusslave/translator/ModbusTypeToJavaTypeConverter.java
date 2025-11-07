@@ -36,7 +36,7 @@ class ModbusTypeToJavaTypeConverter {
         if (dataTypeToConvert.equalsIgnoreCase("Short")) {
             return ONE_REGISTER;
         } else if (dataTypeToConvert.equalsIgnoreCase("Int")) {
-            return ONE_REGISTER;
+            return TWO_REGISTERS;
         } else if (dataTypeToConvert.equalsIgnoreCase("Float")) {
             return TWO_REGISTERS;
         } else if (dataTypeToConvert.equalsIgnoreCase("Double")) {
