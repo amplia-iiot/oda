@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.modbusslave;
 
+import es.amplia.oda.core.commons.osgi.proxies.CounterManagerProxy;
 import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
@@ -28,6 +29,9 @@ public class Activator implements BundleActivator {
         // make bundle configurable
         ModbusSlaveConfigurationUpdateHandler configHandler = new ModbusSlaveConfigurationUpdateHandler(modbusSlaveManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
+
+        // create counters
+        new ModbusSlaveCounters(new CounterManagerProxy(bundleContext));
 
         log.info("Started bundle modbus slave");
     }

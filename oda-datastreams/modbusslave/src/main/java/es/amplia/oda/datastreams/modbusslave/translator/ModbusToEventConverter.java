@@ -4,6 +4,7 @@ import com.ghgande.j2mod.modbus.Modbus;
 import com.ghgande.j2mod.modbus.msg.*;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import es.amplia.oda.core.commons.utils.Event;
+import es.amplia.oda.datastreams.modbusslave.ModbusSlaveCounters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
@@ -51,6 +52,9 @@ public class ModbusToEventConverter {
     private static List<Event> translateWriteCoilRequest(String deviceId, WriteCoilRequest request) {
         List<Event> eventsToReturn = new ArrayList<>();
 
+        // increment counter
+        ModbusSlaveCounters.incrCounter(ModbusSlaveCounters.ModbusCounterType.MODBUS_RECEIVED_WRITE_COIL, deviceId, 1);
+
         int modbusAddress = request.getReference();
         boolean modbusValue = request.getCoil();
         log.info("Value {} from address {}", modbusValue, modbusAddress);
@@ -68,6 +72,9 @@ public class ModbusToEventConverter {
 
     private static List<Event> translateWriteSingleRegisterRequest(String deviceId, WriteSingleRegisterRequest request) {
         List<Event> eventsToReturn = new ArrayList<>();
+
+        // increment counter
+        ModbusSlaveCounters.incrCounter(ModbusSlaveCounters.ModbusCounterType.MODBUS_RECEIVED_WRITE_REGISTER, deviceId, 1);
 
         int modbusAddress = request.getReference();
         Register modbusValue = request.getRegister();
@@ -92,6 +99,9 @@ public class ModbusToEventConverter {
 
     private static List<Event> translateWriteMultipleCoilRequest(String deviceId, WriteMultipleCoilsRequest request) {
         List<Event> eventsToReturn = new ArrayList<>();
+
+        // increment counter
+        ModbusSlaveCounters.incrCounter(ModbusSlaveCounters.ModbusCounterType.MODBUS_RECEIVED_WRITE_COILS, deviceId, 1);
 
         int modbusAddress = request.getReference();
         byte[] modbusValue = request.getCoils().getBytes();
@@ -132,6 +142,9 @@ public class ModbusToEventConverter {
 
     private static List<Event> translateWriteMultipleRegisterRequest(String deviceId, WriteMultipleRegistersRequest request) {
         List<Event> eventsToReturn = new ArrayList<>();
+
+        // increment counter
+        ModbusSlaveCounters.incrCounter(ModbusSlaveCounters.ModbusCounterType.MODBUS_RECEIVED_WRITE_REGISTERS, deviceId, 1);
 
         int startingModbusAddress = request.getReference();
         Register[] modbusValue = request.getRegisters();
