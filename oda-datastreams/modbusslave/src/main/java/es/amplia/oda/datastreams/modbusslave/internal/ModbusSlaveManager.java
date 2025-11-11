@@ -21,6 +21,9 @@ public class ModbusSlaveManager implements AutoCloseable {
     }
 
     public void loadConfiguration(Map<String, List<Object>> modbusSlaves) {
+        // close existing slave connections
+        close();
+
         // load tcp slaves
         List<Object> tcpModbusSlavesConf = modbusSlaves.get(ModbusSlaveConfigurationUpdateHandler.TCP_MODBUS_TYPE);
         if (tcpModbusSlavesConf == null) {
