@@ -14,13 +14,13 @@ import java.util.function.Supplier;
 @Slf4j
 public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdateHandler {
 
-    private static final String TYPE_PROPERTY_NAME = "type";
-    private static final String IP_PROPERTY_NAME = "ip";
-    private static final String PORT_PROPERTY_NAME = "port";
-    private static final String SLAVE_ADDRESS_PROPERTY_NAME = "slaveAddress";
-    private static final String DATASTREAM_ID_PROPERTY_NAME = "datastream";
-    private static final String FEED_PROPERTY_NAME = "feed";
-    private static final String DATA_TYPE_PROPERTY_NAME = "dataType";
+    public static final String TYPE_PROPERTY_NAME = "type";
+    public static final String IP_PROPERTY_NAME = "ip";
+    public static final String PORT_PROPERTY_NAME = "port";
+    public static final String SLAVE_ADDRESS_PROPERTY_NAME = "slaveAddress";
+    public static final String DATASTREAM_ID_PROPERTY_NAME = "datastream";
+    public static final String FEED_PROPERTY_NAME = "feed";
+    public static final String DATA_TYPE_PROPERTY_NAME = "dataType";
 
 
     public static final String TCP_MODBUS_TYPE = "TCP";
@@ -28,6 +28,7 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
     public static final String SERIAL_MODBUS_TYPE = "Serial";
 
     private final ModbusSlaveManager modbusSlaveManager;
+    // map is <Type (TCP,UDP, SERIAL), list<ModbusSlave>>
     private final Map<String,List<Object>> currentModbusSlaveConfigurations = new HashMap<>();
 
     public ModbusSlaveConfigurationUpdateHandler(ModbusSlaveManager modbusSlaveManager) {
@@ -62,11 +63,6 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
                 logInvalidConfigurationWarning(entry, exception.getMessage());
             }
         }
-    }
-
-    @Override
-    public void loadDefaultConfiguration() {
-        currentModbusSlaveConfigurations.clear();
     }
 
     @Override

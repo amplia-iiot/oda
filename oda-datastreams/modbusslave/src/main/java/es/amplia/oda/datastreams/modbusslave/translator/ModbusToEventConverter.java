@@ -22,15 +22,10 @@ public class ModbusToEventConverter {
         // retrieve data from request
         int slaveAddress = request.getUnitID();
         byte[] message = request.getMessage();
-        String hexMessage = request.getHexMessage();
         int functionCode = request.getFunctionCode();
 
-        int dataLength = request.getDataLength();
-        int outputLength = request.getResponse().getOutputLength();
-
-        log.info("Received modbus request from deviceId {}, slaveAddress {}, functionCode {}, message string {}," +
-                        "message bytes {}, dataLength {}, outputLength {}", deviceId, slaveAddress, functionCode,
-                hexMessage, message, dataLength, outputLength);
+        log.debug("Received modbus request from deviceId {}, slaveAddress {}, functionCode {}, message {}", deviceId,
+                slaveAddress, functionCode, message);
 
         switch (functionCode) {
             case Modbus.WRITE_COIL:
@@ -57,7 +52,7 @@ public class ModbusToEventConverter {
 
         int modbusAddress = request.getReference();
         boolean modbusValue = request.getCoil();
-        log.info("Value {} from address {}", modbusValue, modbusAddress);
+        log.debug("Value {} from address {}", modbusValue, modbusAddress);
 
         // get translation info associated to this modbus address and deviceId
         TranslationEntry entry = ModbusEventTranslator.translate(modbusAddress, deviceId);
@@ -78,7 +73,7 @@ public class ModbusToEventConverter {
 
         int modbusAddress = request.getReference();
         Register modbusValue = request.getRegister();
-        log.info("Value {} from address {}", modbusValue, modbusAddress);
+        log.debug("Value {} from address {}", modbusValue, modbusAddress);
 
         // get translation info associated to this modbus address and deviceId
         TranslationEntry entry = ModbusEventTranslator.translate(modbusAddress, deviceId);
@@ -87,7 +82,7 @@ public class ModbusToEventConverter {
             return eventsToReturn;
         }
 
-        Object valueConverted = ModbusTypeToJavaTypeConverter.convertRegister(modbusValue.toBytes(), entry.getDataType());
+        Object valueConverted = ModbusToJavaTypeConverter.convertRegister(modbusValue.toBytes(), entry.getDataType());
         if (valueConverted == null) {
             log.error("Error converting value {} from modbus to {} ", modbusValue, entry.getDataType());
         } else {
@@ -105,7 +100,7 @@ public class ModbusToEventConverter {
 
         int modbusAddress = request.getReference();
         byte[] modbusValue = request.getCoils().getBytes();
-        log.info("Value {} from starting address {}", modbusValue, modbusAddress);
+        log.debug("Value {} from starting address {}", modbusValue, modbusAddress);
 
         // TODO : devolver el valor como un byte y que se usen las reglas para separarlo en bits o meter en
         //  configuracion un parametro mas que indique el bit que es y generar N eventos
@@ -149,7 +144,7 @@ public class ModbusToEventConverter {
         int startingModbusAddress = request.getReference();
         Register[] modbusValue = request.getRegisters();
         int numWords = request.getWordCount();
-        log.info("Value {} from starting address {}. Num words {}", modbusValue, startingModbusAddress, numWords);
+        log.debug("Value {} from starting address {}. Num words {}", modbusValue, startingModbusAddress, numWords);
 
         // get translations from start address to start address + numRegisters
         List<TranslationEntry> entries = new ArrayList<>();
@@ -165,7 +160,7 @@ public class ModbusToEventConverter {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         for (TranslationEntry entry : entries) {
             int startingRegister = entry.getModbusAddress() - startingModbusAddress;
-            int numRegistersToGet = ModbusTypeToJavaTypeConverter.getNumRegisters(entry.getDataType());
+            int numRegistersToGet = ModbusToJavaTypeConverter.getNumRegisters(entry.getDataType());
 
             // clear byte array
             outputStream.reset();
@@ -177,7 +172,7 @@ public class ModbusToEventConverter {
                 }
             }
 
-            Object valueConverted = ModbusTypeToJavaTypeConverter.convertRegister(outputStream.toByteArray(), entry.getDataType());
+            Object valueConverted = ModbusToJavaTypeConverter.convertRegister(outputStream.toByteArray(), entry.getDataType());
             if (valueConverted == null) {
                 log.error("Error converting value {} from modbus to {} ", modbusValue, entry.getDataType());
             } else {

@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @Slf4j
-class ModbusTypeToJavaTypeConverter {
+class ModbusToJavaTypeConverter {
 
     public static final int BYTES_PER_REGISTER = 2;
     static final int ONE_REGISTER = 1;
@@ -79,6 +79,7 @@ class ModbusTypeToJavaTypeConverter {
     private static Long convertRegistersToLong(byte[] value)  {
         if (value.length != FOUR_REGISTERS * BYTES_PER_REGISTER) {
             log.error("Wrong length of bytes for long value");
+            return null;
         }
         ByteBuffer buffer = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN);
         return buffer.getLong();
@@ -87,6 +88,7 @@ class ModbusTypeToJavaTypeConverter {
     private static Double convertRegistersToDouble(byte[] value) {
         if (value.length != FOUR_REGISTERS * BYTES_PER_REGISTER) {
             log.error("Wrong length of bytes for double value");
+            return null;
         }
         ByteBuffer buffer = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN);
         return buffer.getDouble();

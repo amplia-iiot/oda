@@ -52,7 +52,7 @@ public class ModbusEventTranslator {
         }
     }
 
-    private static List<TranslationEntry> getExistingEntries(int modbusAddress, String deviceId) {
+    public static List<TranslationEntry> getExistingEntries(int modbusAddress, String deviceId) {
         if (entries == null) {
             return Collections.emptyList();
         }
