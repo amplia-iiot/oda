@@ -50,11 +50,10 @@ public class ModbusListenerImpl extends ModbusTCPListener{
         }
 
         log.info("Received modbus request from device {}", this.deviceId);
-        // TODO : augment counter
 
         // translate request to ODA events
         List<Event> eventsConverted = ModbusToEventConverter.translateEvent(this.deviceId, request);
-        // pass translated request to SCADA translator and state manager
+        // pass translated request to state manager
         stateManager.onReceivedEvents(eventsConverted);
 
         // prepare response
