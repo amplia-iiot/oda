@@ -87,8 +87,7 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATASTREAM_ID_PROPERTY_NAME));
 
         // get feed
-        String feed = getValueByToken(FEED_PROPERTY_NAME, properties)
-                .orElseThrow(throwMissingRequiredPropertyConfigurationException(FEED_PROPERTY_NAME));
+        String feed = getValueByToken(FEED_PROPERTY_NAME, properties).orElse(null);
 
         // get datatype
         String dataType = getValueByToken(DATA_TYPE_PROPERTY_NAME, properties)
