@@ -1,6 +1,5 @@
-package internal;
+package es.amplia.oda.hardware.snmp.internal;
 
-import es.amplia.oda.hardware.snmp.internal.SnmpClientImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +13,6 @@ import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
 
 import java.io.IOException;
-import java.text.ParseException;
 
 import static org.mockito.Mockito.verify;
 

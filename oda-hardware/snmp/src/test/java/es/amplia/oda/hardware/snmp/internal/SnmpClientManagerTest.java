@@ -1,8 +1,7 @@
-package internal;
+package es.amplia.oda.hardware.snmp.internal;
 
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
-import es.amplia.oda.hardware.snmp.internal.SnmpClientManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

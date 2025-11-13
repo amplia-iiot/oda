@@ -32,7 +32,7 @@ public class SnmpClientManager implements AutoCloseable {
     }
 
     public void disconnectClients() {
-        if (this.currentSnmpClients == null) {
+        if (this.currentSnmpClients == null || this.currentSnmpClients.isEmpty()) {
             return;
         }
 

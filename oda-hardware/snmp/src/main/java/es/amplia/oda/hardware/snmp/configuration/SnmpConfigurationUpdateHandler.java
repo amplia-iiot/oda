@@ -75,8 +75,11 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
                 }
 
                 // add to list
-                log.info("Adding snmp client {} ", newClientConfig);
-                clients.add(snmpClientFactory.createSnmpClient(newClientConfig));
+                log.info("Creating snmp client {} ", newClientConfig);
+                SnmpClient snmpClient = snmpClientFactory.createSnmpClient(newClientConfig);
+                if(snmpClient != null) {
+                    clients.add(snmpClient);
+                }
 
             } catch (Exception e) {
                 logInvalidConfigurationWarning(entry, e.getMessage());

@@ -1,8 +1,9 @@
+package es.amplia.oda.hardware.snmp;
+
 import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
-import es.amplia.oda.hardware.snmp.Activator;
 import es.amplia.oda.hardware.snmp.configuration.SnmpConfigurationUpdateHandler;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientFactory;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientManager;

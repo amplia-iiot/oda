@@ -1,10 +1,6 @@
-package configuration;
+package es.amplia.oda.hardware.snmp.configuration;
 
 import es.amplia.oda.core.commons.snmp.SnmpClient;
-import es.amplia.oda.hardware.snmp.configuration.SnmpClientConfig;
-import es.amplia.oda.hardware.snmp.configuration.SnmpClientOptions;
-import es.amplia.oda.hardware.snmp.configuration.SnmpClientV3Options;
-import es.amplia.oda.hardware.snmp.configuration.SnmpConfigurationUpdateHandler;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientFactory;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientManager;
 import org.junit.Test;
@@ -165,8 +161,6 @@ public class SnmpConfigurationUpdateHandlerTest {
         testConfigHandler.applyConfiguration();
 
         List<SnmpClient> expectedSnmpClients = new ArrayList<>();
-        expectedSnmpClients.add(mockedSnmpClientFactory.createSnmpClient(TEST_SNMP_V1_COMPLETE_CONFIGURATION));
-
         verify(mockedSnmpClientManager).loadConfiguration(expectedSnmpClients);
     }
 }

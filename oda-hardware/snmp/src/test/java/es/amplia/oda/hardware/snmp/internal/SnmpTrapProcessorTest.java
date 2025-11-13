@@ -1,7 +1,6 @@
-package internal;
+package es.amplia.oda.hardware.snmp.internal;
 
 import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
-import es.amplia.oda.hardware.snmp.internal.SnmpTrapProcessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
