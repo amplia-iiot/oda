@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.osgi.framework.BundleContext;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -74,6 +75,8 @@ public class InMemoryStateManagerTest {
     private RuleEngine mockedEngine;
     @Mock
     private Serializer mockedSerializer;
+    @Mock
+    private BundleContext mockedContext;
 
     private static final int NUM_THREADS = 2;
     private static final int MAX_SIZE_THREADS_QUEUE = 10;
@@ -86,7 +89,7 @@ public class InMemoryStateManagerTest {
     @Before
     public void setUp() {
         testStateManager = new InMemoryStateManager(mockedGettersFinder, mockedSettersFinder, mockedEventDispatcher,
-                mockedEngine, mockedSerializer, executor, scheduler);
+                mockedEngine, mockedSerializer, executor, scheduler, mockedContext);
 
         testState.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID),
                 new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_AT_OLD, TEST_VALUE_OLD, Status.OK, null, true, true));
@@ -382,7 +385,7 @@ public class InMemoryStateManagerTest {
 
         Whitebox.setInternalState(testStateManager, "state", newState);
 
-        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+        when(mockedEngine.engine(any(), any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 
@@ -441,7 +444,7 @@ public class InMemoryStateManagerTest {
 
         Whitebox.setInternalState(testStateManager, "state", newState);
 
-        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+        when(mockedEngine.engine(any(), any(), any())).thenReturn(newState);
 
         // process events
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
@@ -480,7 +483,7 @@ public class InMemoryStateManagerTest {
         newState.sendImmediately(TEST_DEVICE_ID_3, TEST_DATASTREAM_ID_3);
         Whitebox.setInternalState(testStateManager, "state", newState);
 
-        when(mockedEngine.engine(any(), any())).thenReturn(newState);
+        when(mockedEngine.engine(any(), any(), any())).thenReturn(newState);
 
         testStateManager.onReceivedEvents(Collections.singletonList(testEvent));
 

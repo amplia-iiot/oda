@@ -3,6 +3,8 @@ package es.amplia.oda.ruleengine.api;
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.OsgiContext;
+
 import org.osgi.framework.BundleContext;
 
 public class RuleEngineProxy implements RuleEngine, AutoCloseable {
@@ -14,8 +16,8 @@ public class RuleEngineProxy implements RuleEngine, AutoCloseable {
 	}
 
 	@Override
-	public State engine(State state, DatastreamValue value) {
-		return proxy.callFirst(ruleEngine -> ruleEngine.engine(state, value));
+	public State engine(State state, DatastreamValue value, OsgiContext ctx) {
+		return proxy.callFirst(ruleEngine -> ruleEngine.engine(state, value, ctx));
 	}
 
 	@Override

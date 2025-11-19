@@ -1,6 +1,7 @@
 package es.amplia.oda.ruleengine.api;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +25,8 @@ public class RuleTest {
 	ScriptTranslator mockedTranslator;
 	@Mock
 	State mockedState;
+	@Mock
+	OsgiContext mockedContext;
 
 	@Test
 	public void testConstructor() throws ScriptException {
@@ -41,26 +44,26 @@ public class RuleTest {
 	
 	@Test
 	public void testWhen() throws ScriptException {
-		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(true);
+		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any(), any())).thenReturn(true);
 		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream",
 				"feed", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "",
 				false, false);
 
-		boolean result = testRule.when(mockedState, testDatastreamValue);
+		boolean result = testRule.when(mockedState, testDatastreamValue, mockedContext);
 
 		assertTrue(result);
 	}
 
 	@Test
 	public void testThen() throws ScriptException {
-		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any())).thenReturn(mockedState);
+		when(mockedTranslator.runMethod(anyString(), anyString(), any(), any(), any())).thenReturn(mockedState);
 		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
 		DatastreamValue testDatastreamValue = new DatastreamValue("testDevice", "testDatastream",
 				"feed", System.currentTimeMillis(), true, DatastreamValue.Status.OK, "",
 				false, false);
 
-		State result = testRule.then(mockedState, testDatastreamValue);
+		State result = testRule.then(mockedState, testDatastreamValue, mockedContext);
 
 		assertEquals(mockedState, result);
 	}

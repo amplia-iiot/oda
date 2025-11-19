@@ -11,6 +11,8 @@ import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
 import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
+
+import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +36,7 @@ public class InMemoryStateManager implements StateManager {
     private final RuleEngine ruleEngine;
     private final Serializer serializer;
     private final State state = new State();
+    private final OsgiContext osgiContext;
     private DatabaseHandler database;
     private ExecutorService executor;
 
@@ -45,7 +48,7 @@ public class InMemoryStateManager implements StateManager {
 
     InMemoryStateManager(DatastreamsGettersFinder datastreamsGettersFinder, DatastreamsSettersFinder datastreamsSettersFinder,
                          EventDispatcher eventDispatcher, RuleEngine ruleEngine, Serializer serializer,
-                         ExecutorService executor, Scheduler scheduler) {
+                         ExecutorService executor, Scheduler scheduler, BundleContext bundleContext) {
         this.datastreamsGettersFinder = datastreamsGettersFinder;
         this.datastreamsSettersFinder = datastreamsSettersFinder;
         this.eventDispatcher = eventDispatcher;
@@ -53,6 +56,7 @@ public class InMemoryStateManager implements StateManager {
         this.serializer = serializer;
         this.executor = executor;
         this.scheduler = scheduler;
+        this.osgiContext = new OsgiContext(bundleContext, datastreamsGettersFinder, datastreamsSettersFinder);
     }
 
     @Override
@@ -272,7 +276,7 @@ public class InMemoryStateManager implements StateManager {
             LOGGER.debug("Processing new event {}", dsValue);
 
             // apply rules & and rules save events in state
-            this.ruleEngine.engine(this.state, dsValue);
+            this.ruleEngine.engine(this.state, dsValue, this.osgiContext);
 
             // refresh original value (this must be done after applying rules)
             refreshOriginalValue(dsValue);
@@ -403,6 +407,8 @@ public class InMemoryStateManager implements StateManager {
         if(this.database != null) {
             this.database.close();
         }
+
+        this.osgiContext.close();
     }
 
     public void loadConfiguration(StateManagerInMemoryConfiguration config) {

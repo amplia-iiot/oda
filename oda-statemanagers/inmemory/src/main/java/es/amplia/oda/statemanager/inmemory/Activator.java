@@ -54,7 +54,7 @@ public class Activator implements BundleActivator {
         ruleEngine = new RuleEngineProxy(bundleContext);
         SerializerProxy serializer = new SerializerProxy(bundleContext, ContentType.JSON);
         inMemoryStateManager = new InMemoryStateManager(datastreamsGettersFinder,
-                datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler);
+                datastreamsSettersFinder, eventDispatcher, ruleEngine, serializer, executor, scheduler, bundleContext);
         ConfigurationUpdateHandler configurationUpdateHandler = new StateManagerInMemoryConfigurationHandler(inMemoryStateManager);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configurationUpdateHandler);
         stateManagerRegistration = bundleContext.registerService(StateManager.class, inMemoryStateManager, null);

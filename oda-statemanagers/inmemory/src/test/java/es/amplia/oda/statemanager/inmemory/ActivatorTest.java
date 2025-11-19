@@ -86,7 +86,7 @@ public class ActivatorTest {
 
         PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedGettersFinder), eq(mockedSettersFinder),
                 eq(mockedEventDispatcherProxy), eq(mockedRuleEngine), eq(mockedSerializer),
-                eq(mockedExecutorService), eq(mockedScheduler));
+                eq(mockedExecutorService), eq(mockedScheduler), eq(mockedContext));
         PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
         PowerMockito.verifyNew(StateManagerInMemoryConfigurationHandler.class).withArguments(eq(mockedStateManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));

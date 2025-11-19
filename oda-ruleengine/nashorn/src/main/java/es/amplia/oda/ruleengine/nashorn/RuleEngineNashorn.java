@@ -1,10 +1,11 @@
 package es.amplia.oda.ruleengine.nashorn;
 
-import es.amplia.oda.core.commons.utils.DatastreamInfo;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.utils.OsgiContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +47,7 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     @Override
-    public synchronized State engine(State state, DatastreamValue value) {
+    public synchronized State engine(State state, DatastreamValue value, OsgiContext ctx) {
         if (started) {
 
             List<String> rulesOfDatastream = rules.values().stream()
@@ -56,9 +57,9 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
 
             for (String rule : rulesOfDatastream) {
                 try {
-                    if (rules.get(rule).when(state, value)) {
+                    if (rules.get(rule).when(state, value, ctx)) {
                         LOGGER.debug("Applying rule {} to datastream {}", rule, value.getDatastreamId());
-                        state = rules.get(rule).then(state, value);
+                        state = rules.get(rule).then(state, value, ctx);
                     }
                 } catch (ClassCastException e) {
                     LOGGER.error(e.getMessage());
