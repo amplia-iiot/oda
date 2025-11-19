@@ -9,8 +9,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -55,6 +58,10 @@ public class ScriptsLoader {
 		}
 
 		if (jarToExtract != null) {
+			Set<PosixFilePermission> perms = new HashSet<>();
+			perms.add(PosixFilePermission.OWNER_EXECUTE);
+			perms.add(PosixFilePermission.GROUP_EXECUTE);
+			perms.add(PosixFilePermission.OTHERS_EXECUTE);
 			try {
 				// copy jar to extract to scripts folder
 				File scriptsDestFile = new File(path + File.separator + jarToExtract.getName());
@@ -70,6 +77,7 @@ public class ScriptsLoader {
 								while (is.available() > 0) {
 									fos.write(is.read());
 								}
+								Files.setPosixFilePermissions(fileToCopy.toPath(), perms);
 							}
 						}
 					}

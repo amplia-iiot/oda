@@ -1,9 +1,9 @@
 package es.amplia.oda.operation.update;
 
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
+import es.amplia.oda.core.commons.osgi.proxies.ResponseDispatcherProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
-import es.amplia.oda.event.api.ResponseDispatcherProxy;
 import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.update.configuration.UpdateConfigurationHandler;
 import es.amplia.oda.operation.update.internal.*;

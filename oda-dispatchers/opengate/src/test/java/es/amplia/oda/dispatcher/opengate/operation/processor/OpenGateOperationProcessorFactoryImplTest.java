@@ -1,5 +1,7 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.operation.api.CustomOperation;
@@ -60,6 +62,10 @@ public class OpenGateOperationProcessorFactoryImplTest {
     private CustomOperationProcessor mockedCustomOperationProcessor;
     @Mock
     private OpenGateOperationProcessor mockedOpenGateOperationProcessor;
+    @Mock
+    private DatastreamsGettersFinderImpl mockDatastreamsGettersFinder;
+    @Mock
+    private DatastreamsSettersFinderImpl mockDatastreamsSettersFinder;
 
     @Before
     public void setUp() throws Exception {
@@ -74,6 +80,8 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.whenNew(ServiceLocatorOsgi.class)
                 .withArguments(any(BundleContext.class), eq(CustomOperation.class))
                 .thenReturn(mockedOperationServiceLocator);
+        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockDatastreamsGettersFinder);
+        PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockDatastreamsSettersFinder);
 
         testFactory = new OpenGateOperationProcessorFactoryImpl(mockedContext);
     }
@@ -116,7 +124,7 @@ public class OpenGateOperationProcessorFactoryImplTest {
         PowerMockito.verifyNew(SetDeviceParametersProcessor.class).withArguments(eq(mockedSetDeviceParameters));
         PowerMockito.verifyNew(UpdateProcessor.class).withArguments(eq(mockedUpdate));
         PowerMockito.verifyNew(SetClockEquipmentProcessor.class).withArguments(eq(mockedSetClockEquipment));
-        PowerMockito.verifyNew(CustomOperationProcessor.class).withArguments(eq(mockedOperationServiceLocator));
+        PowerMockito.verifyNew(CustomOperationProcessor.class).withArguments(eq(mockedOperationServiceLocator), any(), any());
         PowerMockito.verifyNew(OpenGateOperationProcessor.class)
                 .withArguments(any(Map.class), eq(mockedCustomOperationProcessor));
     }

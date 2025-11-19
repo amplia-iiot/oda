@@ -2,6 +2,7 @@ package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
 import es.amplia.oda.core.commons.interfaces.OperationSender;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OperationSenderProxy;
@@ -12,7 +13,6 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.dispatcher.opengate.event.EventDispatcherFactoryImpl;
 import es.amplia.oda.dispatcher.opengate.operation.processor.OpenGateOperationProcessorFactoryImpl;
 import es.amplia.oda.event.api.EventDispatcher;
-import es.amplia.oda.event.api.ResponseDispatcher;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

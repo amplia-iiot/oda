@@ -6,11 +6,11 @@ import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.mqtt.MqttDatastreamsService;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
+import es.amplia.oda.core.commons.osgi.proxies.ResponseDispatcherProxy;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 import es.amplia.oda.core.commons.utils.*;
 
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfigurationUpdateHandler;
-import es.amplia.oda.event.api.ResponseDispatcherProxy;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;

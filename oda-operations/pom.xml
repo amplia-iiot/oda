@@ -18,6 +18,7 @@
         <module>synchronizeclock</module>
         <module>localprotocoldiscovery</module>
 		<module>rebootequipment</module>
+		<module>nashorn</module>
     </modules>
     <dependencies>
         <dependency>

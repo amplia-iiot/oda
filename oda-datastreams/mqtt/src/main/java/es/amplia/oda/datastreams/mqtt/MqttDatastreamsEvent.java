@@ -3,11 +3,11 @@ package es.amplia.oda.datastreams.mqtt;
 import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.core.commons.interfaces.AbstractDatastreamsEvent;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
 import es.amplia.oda.dispatcher.opengate.datastreamdomain.OutputDatastream;
-import es.amplia.oda.event.api.ResponseDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

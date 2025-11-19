@@ -3,6 +3,7 @@ package es.amplia.oda.core.commons.utils.operation.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -15,4 +16,9 @@ public class Response {
     OperationResultCode resultCode;
     String resultDescription;
     List<Step> steps;
+
+    public void addStep(Step step) {
+        if (steps == null) steps = new ArrayList<>();
+        steps.add(step);
+    }
 }

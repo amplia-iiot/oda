@@ -1,9 +1,9 @@
 package es.amplia.oda.operation.rebootequipment;
 
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.ResponseDispatcherProxy;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.event.api.EventDispatcherProxy;
-import es.amplia.oda.event.api.ResponseDispatcherProxy;
 import es.amplia.oda.operation.api.CustomOperation;
 import es.amplia.oda.operation.api.OperationRefreshInfo;
 import org.junit.Test;

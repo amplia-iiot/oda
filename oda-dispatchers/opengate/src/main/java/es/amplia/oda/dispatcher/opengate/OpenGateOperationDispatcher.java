@@ -159,6 +159,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 return processCustomOperation(openGateInputCustomOperation, contentType);
             } catch (Exception e) {
                 LOGGER.debug("Could not deserialize input as Custom Operation: \n{}", e.getMessage());
+                LOGGER.error("Aditional Info", e);
             }
         }
 

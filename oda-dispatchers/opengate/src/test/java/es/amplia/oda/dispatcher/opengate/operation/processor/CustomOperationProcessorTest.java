@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.operation.api.CustomOperation;
+import es.amplia.oda.operation.api.engine.OperationEngineProxy;
 import lombok.Value;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,9 +15,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,6 +54,8 @@ public class CustomOperationProcessorTest {
 
     @Mock
     private ServiceLocator<CustomOperation> mockedOperationServiceLocator;
+    @Mock
+    private OperationEngineProxy mockedEngine;
     @InjectMocks
     private CustomOperationProcessor testProcessor;
 
@@ -56,7 +63,6 @@ public class CustomOperationProcessorTest {
     private CustomOperation mockedOperation1;
     @Mock
     private CustomOperation mockedOperation2;
-
 
     @Before
     public void setUp() {
@@ -93,6 +99,7 @@ public class CustomOperationProcessorTest {
         when(mockedOperationServiceLocator.findAll()).thenReturn(Arrays.asList(mockedOperation1, mockedOperation2));
         when(mockedOperation1.getOperationSatisfied()).thenReturn("otherOperation");
         when(mockedOperation2.getOperationSatisfied()).thenReturn(TEST_CUSTOM_OPERATION_NAME);
+        when(mockedEngine.engine(anyString(), anyString(), anyString(), any(), any())).thenReturn(null);
 
         testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, params);
 
@@ -104,14 +111,15 @@ public class CustomOperationProcessorTest {
     }
 
     @Test
-    public void testProcessOperationNotSupported() {
+    public void testProcessOperationNotSupported() throws InterruptedException, ExecutionException {
         Whitebox.setInternalState(testProcessor, "customOperationName", TEST_CUSTOM_OPERATION_NAME);
 
         when(mockedOperationServiceLocator.findAll()).thenReturn(Arrays.asList(mockedOperation1, mockedOperation2));
         when(mockedOperation1.getOperationSatisfied()).thenReturn("otherOperation");
         when(mockedOperation2.getOperationSatisfied()).thenReturn("otherOperation2");
+        when(mockedEngine.engine(anyString(), anyString(), anyString(), any(), any())).thenReturn(null);
 
-        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null));
+        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null).get());
 
         verify(mockedOperationServiceLocator).findAll();
         verify(mockedOperation1).getOperationSatisfied();
@@ -121,12 +129,13 @@ public class CustomOperationProcessorTest {
     }
 
     @Test
-    public void testProcessOperationNotCustomOperationRegistered() {
+    public void testProcessOperationNotCustomOperationRegistered() throws InterruptedException, ExecutionException {
         Whitebox.setInternalState(testProcessor, "customOperationName", TEST_CUSTOM_OPERATION_NAME);
 
         when(mockedOperationServiceLocator.findAll()).thenReturn(Collections.emptyList());
+        when(mockedEngine.engine(anyString(), anyString(), anyString(), any(), any())).thenReturn(null);
 
-        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null));
+        assertNull(testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, null).get());
 
         verify(mockedOperationServiceLocator).findAll();
     }

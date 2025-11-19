@@ -7,11 +7,11 @@ import es.amplia.oda.comms.mqtt.api.MqttConnectOptions;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 import es.amplia.oda.core.commons.interfaces.OperationSender;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 
 import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration;
-import es.amplia.oda.event.api.ResponseDispatcher;
 
 import org.junit.Before;
 import org.junit.Test;

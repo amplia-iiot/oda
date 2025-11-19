@@ -5,9 +5,9 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.comms.mqtt.api.MqttMessage;
 import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
-import es.amplia.oda.event.api.ResponseDispatcher;
 
 import org.junit.Before;
 import org.junit.Test;
