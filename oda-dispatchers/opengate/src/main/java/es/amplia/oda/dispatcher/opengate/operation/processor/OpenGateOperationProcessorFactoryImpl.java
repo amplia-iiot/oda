@@ -1,10 +1,18 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
+import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
+import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
+import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
+import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.dispatcher.opengate.OpenGateOperationProcessorFactory;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.operation.api.CustomOperation;
+import es.amplia.oda.operation.api.engine.OperationEngineProxy;
 import es.amplia.oda.operation.api.osgi.proxies.*;
 
 import org.osgi.framework.BundleContext;
@@ -30,6 +38,10 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     private final OperationSynchronizeClockProxy operationSynchronizeClock;
     private final OperationDiscoverProxy operationDiscover;
     private final ServiceLocator<CustomOperation> operationServiceLocator;
+    private final OsgiContext osgiContext;
+    private final DatastreamsGettersFinder datastreamsGettersFinder;
+    private final DatastreamsSettersFinder datastreamsSettersFinder;
+    private final OperationEngineProxy operationEngine;
 
 
     public OpenGateOperationProcessorFactoryImpl(BundleContext bundleContext) {
@@ -41,6 +53,14 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         this.operationSynchronizeClock = new OperationSynchronizeClockProxy(bundleContext);
         this.operationDiscover = new OperationDiscoverProxy(bundleContext);
         this.operationServiceLocator = new ServiceLocatorOsgi<>(bundleContext, CustomOperation.class);
+        ServiceLocator<DatastreamsGetter> datastreamsGettersLocator =
+                new ServiceLocatorOsgi<>(bundleContext, DatastreamsGetter.class);
+        datastreamsGettersFinder = new DatastreamsGettersFinderImpl(datastreamsGettersLocator);
+        ServiceLocator<DatastreamsSetter> datastreamsSettersLocator =
+                new ServiceLocatorOsgi<>(bundleContext, DatastreamsSetter.class);
+        datastreamsSettersFinder = new DatastreamsSettersFinderImpl(datastreamsSettersLocator);
+        operationEngine = new OperationEngineProxy(bundleContext);
+        this.osgiContext = new OsgiContext(bundleContext, datastreamsGettersFinder, datastreamsSettersFinder);
     }
 
     @Override
@@ -69,7 +89,7 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
     }
 
     private OperationProcessor createCustomOperationProcessor() {
-        return new CustomOperationProcessor(operationServiceLocator);
+        return new CustomOperationProcessor(operationServiceLocator, osgiContext, operationEngine);
     }
 
     @Override
@@ -82,5 +102,9 @@ public class OpenGateOperationProcessorFactoryImpl implements OpenGateOperationP
         operationSynchronizeClock.close();
         operationDiscover.close();
         operationServiceLocator.close();
+        datastreamsGettersFinder.close();
+        datastreamsSettersFinder.close();
+        operationEngine.close();
+        osgiContext.close();
     }
 }

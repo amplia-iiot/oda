@@ -2,9 +2,9 @@ package es.amplia.oda.dispatcher.opengate.event;
 
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
-import es.amplia.oda.event.api.ResponseDispatcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

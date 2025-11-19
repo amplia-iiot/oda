@@ -1,12 +1,12 @@
 package es.amplia.oda.operation.update;
 
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.utils.operation.response.Operation;
 import es.amplia.oda.core.commons.utils.operation.response.OperationResponse;
 import es.amplia.oda.core.commons.utils.operation.response.OperationResultCode;
 import es.amplia.oda.core.commons.utils.operation.response.Response;
 import es.amplia.oda.core.commons.utils.operation.response.Step;
 import es.amplia.oda.core.commons.utils.operation.response.StepResultCode;
-import es.amplia.oda.event.api.ResponseDispatcher;
 import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
 import es.amplia.oda.operation.api.OperationUpdate.UpdateStepName;

@@ -1,7 +1,7 @@
-package es.amplia.oda.ruleengine.nashorn;
+package es.amplia.oda.operation.nashorn;
 
-import es.amplia.oda.ruleengine.api.ScriptTranslator;
-import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
+import es.amplia.oda.operation.api.engine.OperationScriptTranslator;
+import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfiguration;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.script.Invocable;
@@ -14,14 +14,14 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 @Slf4j
-public class NashornScriptTranslator implements ScriptTranslator {
+public class NashornScriptTranslator implements OperationScriptTranslator {
 
     private static final String ENGINE_NAME = "nashorn";
     private String jsUtilsPath;
 
     private final HashMap<String,ScriptEngine> engines = new HashMap<>();
 
-    public void loadConfiguration(RuleEngineConfiguration config) {
+    public void loadConfiguration(OperationEngineConfiguration config) {
         this.jsUtilsPath = config.getUtilsPath();
     }
 
@@ -31,17 +31,12 @@ public class NashornScriptTranslator implements ScriptTranslator {
         ScriptEngine engine = manager.getEngineByName(ENGINE_NAME);
 
         // all rules will have preloaded all the functions from utils.js
-        engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+        //engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
 
         // load rule
         engine.eval(readFile(script));
 
         engines.put(script, engine);
-    }
-
-    @Override
-    public void putAttribute(String script, String attName, Object value) {
-        this.engines.get(script).put(attName, value);
     }
 
     @Override

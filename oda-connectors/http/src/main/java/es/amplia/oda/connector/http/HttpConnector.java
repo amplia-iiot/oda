@@ -1,6 +1,6 @@
 package es.amplia.oda.connector.http;
 
-import es.amplia.oda.comms.http.HttpClient;
+import es.amplia.oda.comms.http.HttpClientImpl;
 import es.amplia.oda.comms.http.HttpResponse;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
@@ -94,7 +94,7 @@ public class HttpConnector implements OpenGateConnector {
         }
 
         try {
-            HttpClient client = new HttpClient();
+            HttpClientImpl client = new HttpClientImpl();
             HashMap<String, String> headers = new HashMap<>();
             boolean compress = false;
 

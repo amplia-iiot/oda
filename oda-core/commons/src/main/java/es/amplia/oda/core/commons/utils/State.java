@@ -170,51 +170,6 @@ public class State {
     }
 
     /**
-     * Function used from rules to log messages in INFO level
-     * @param msg the message to log
-     * @param objects the variables used in log message
-     */
-    public void logInfo(String msg, Object...objects) {
-        LOGGER.info(msg, objects);
-    }
-
-    /**
-     * Function used from rules to log messages in DEBUG level
-     * @param msg the message to log
-     * @param objects the variables used in log message
-     */
-    public void logDebug(String msg, Object...objects) {
-        LOGGER.debug(msg, objects);
-    }
-
-    /**
-     * Function used from rules to log messages in ERROR level
-     * @param msg the message to log
-     * @param objects the variables used in log message
-     */
-    public void logError(String msg, Object...objects) {
-        LOGGER.error(msg, objects);
-    }
-
-    /**
-     * Function used from rules to log messages in TRACE level
-     * @param msg the message to log
-     * @param objects the variables used in log message
-     */
-    public void logTrace(String msg, Object...objects) {
-        LOGGER.trace(msg, objects);
-    }
-
-    /**
-     * Function used from rules to log messages in WARN level
-     * @param msg the message to log
-     * @param objects the variables used in log message
-     */
-    public void logWarn(String msg, Object...objects) {
-        LOGGER.warn(msg, objects);
-    }
-
-    /**
      * Method that retrieves the datastreamState associated to the deviceId and datastreamId indicated
      * If it doesn't exit, it creates it
      *

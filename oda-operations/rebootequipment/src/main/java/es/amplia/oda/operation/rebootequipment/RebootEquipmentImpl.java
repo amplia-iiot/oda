@@ -4,6 +4,7 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.system.RebootEquipment;
+import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder.Return;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
@@ -14,7 +15,6 @@ import es.amplia.oda.core.commons.utils.operation.response.OperationResultCode;
 import es.amplia.oda.core.commons.utils.operation.response.Response;
 import es.amplia.oda.core.commons.utils.operation.response.StepResultCode;
 import es.amplia.oda.event.api.EventDispatcher;
-import es.amplia.oda.event.api.ResponseDispatcher;
 import es.amplia.oda.operation.api.CustomOperation;
 
 import org.osgi.framework.Bundle;

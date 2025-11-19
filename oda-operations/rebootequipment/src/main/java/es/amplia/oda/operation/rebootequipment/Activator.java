@@ -2,12 +2,12 @@ package es.amplia.oda.operation.rebootequipment;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.ResponseDispatcherProxy;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.core.commons.utils.MapBasedDictionary;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.event.api.EventDispatcherProxy;
-import es.amplia.oda.event.api.ResponseDispatcherProxy;
 import es.amplia.oda.operation.api.CustomOperation;
 import java.util.Dictionary;
 import org.osgi.framework.BundleActivator;
