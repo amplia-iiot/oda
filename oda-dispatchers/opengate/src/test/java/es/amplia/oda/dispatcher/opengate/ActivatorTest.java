@@ -102,7 +102,7 @@ public class ActivatorTest {
                 .withArguments(eq(mockedContext), eq(EventDispatcher.class));
         PowerMockito.verifyNew(DispatcherConfigurationUpdateHandler.class)
                 .withArguments(eq(mockedEventDispatcherFactory), eq(mockedScheduler),
-                        eq(mockedEventDispatcherRegistrationManager));
+                        eq(mockedEventDispatcherRegistrationManager), eq(mockedDispatcher));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(Dispatcher.class), eq(mockedDispatcher), any());
     }

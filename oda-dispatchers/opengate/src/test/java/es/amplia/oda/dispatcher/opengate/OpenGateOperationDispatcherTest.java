@@ -66,7 +66,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(TEST_INPUT);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenReturn(TEST_PAYLOAD_2);
 
@@ -77,7 +77,7 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST));
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST), eq(80));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
@@ -86,7 +86,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(TEST_INPUT);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenReturn(TEST_PAYLOAD_2);
 
@@ -97,7 +97,7 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializerProvider,times(3)).getSerializer(eq(ContentType.JSON));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST));
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(TEST_REQUEST), eq(80));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
@@ -110,7 +110,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenReturn(TEST_PAYLOAD_2);
 
@@ -121,7 +121,7 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request), eq(80));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
@@ -134,7 +134,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenReturn(TEST_PAYLOAD_2);
 
@@ -145,7 +145,7 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request), eq(80));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
@@ -158,7 +158,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(input);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenReturn(TEST_PAYLOAD_2);
 
@@ -169,7 +169,7 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializerProvider,times(3)).getSerializer(eq(TEST_CONTENT_TYPE));
         verify(mockedSerializer).deserialize(eq(TEST_PAYLOAD), eq(InputGeneralOperation.class));
         verify(mockedDeviceInfoProvider).getDeviceId();
-        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request));
+        verify(mockedOperationProcessor).process(eq(""), eq(TEST_HOST_DEVICE_ID), eq(request), eq(80));
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
@@ -213,7 +213,7 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(TEST_INPUT);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_HOST_DEVICE_ID);
-        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class)))
+        when(mockedOperationProcessor.process(anyString(), anyString(), any(Request.class), anyInt()))
                 .thenReturn(FUTURE_OUTPUT);
         when(mockedSerializer.serialize(any(Output.class))).thenThrow(new IOException());
 

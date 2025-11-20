@@ -18,13 +18,13 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
 
     @Override
-    public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
-        return processRequest(deviceIdForOperations, deviceIdForResponse, request)
+    public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request, int timeout) {
+        return processRequest(deviceIdForOperations, deviceIdForResponse, request, timeout)
                 .exceptionally(e -> translateThrowableToOutput(request.getName(), request.getId(), deviceIdForResponse,
                         request.getPath(), e));
     }
 
-    private CompletableFuture<Output> processRequest(String deviceIdForOperations, String deviceIdForResponse, Request request) {
+    private CompletableFuture<Output> processRequest(String deviceIdForOperations, String deviceIdForResponse, Request request, int timeout) {
         T params = parseParameters(request);
         CompletableFuture<R> future = processOperation(deviceIdForOperations, request.getId(), params);
         if (future == null) {
@@ -32,7 +32,7 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
                     translateNoOperationToOutput(request.getId(), request.getName(), deviceIdForResponse,
                             request.getPath()));
         } else {
-            return future.applyToEither(timeout(80), r -> translateToOutput(r, request.getId(), deviceIdForResponse, request.getPath()));
+            return future.applyToEither(timeout(timeout), r -> translateToOutput(r, request.getId(), deviceIdForResponse, request.getPath()));
         }
     }
 

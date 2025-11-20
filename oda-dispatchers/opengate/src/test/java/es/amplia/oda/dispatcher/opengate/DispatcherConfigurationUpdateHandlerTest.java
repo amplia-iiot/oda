@@ -32,6 +32,8 @@ public class DispatcherConfigurationUpdateHandlerTest {
     private Scheduler mockedScheduler;
     @Mock
     private ServiceRegistrationManager<EventDispatcher> mockedRegistrationManager;
+    @Mock
+    private OpenGateOperationDispatcher mockedDispatcher;
     @InjectMocks
     private DispatcherConfigurationUpdateHandler testConfigHandler;
 

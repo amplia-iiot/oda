@@ -49,7 +49,7 @@ public class Activator implements BundleActivator {
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
         factory = new OpenGateOperationProcessorFactoryImpl(bundleContext);
         opSender = new OperationSenderProxy(bundleContext);
-        Dispatcher dispatcher = new OpenGateOperationDispatcher(serializerProvider, deviceInfoProvider,
+        OpenGateOperationDispatcher dispatcher = new OpenGateOperationDispatcher(serializerProvider, deviceInfoProvider,
                 factory.createOperationProcessor(), opSender);
         operationDispatcherRegistration = bundleContext.registerService(Dispatcher.class, dispatcher, null);
 
@@ -65,7 +65,7 @@ public class Activator implements BundleActivator {
                 new ServiceRegistrationManagerOsgi<>(bundleContext, EventDispatcher.class);
         DispatcherConfigurationUpdateHandler configHandler =
                 new DispatcherConfigurationUpdateHandler(eventDispatcherFactory, scheduler,
-                        eventDispatcherServiceRegistrationManager);
+                        eventDispatcherServiceRegistrationManager, dispatcher);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
         
         LOGGER.info("OpenGate Dispatcher started");
