@@ -84,7 +84,7 @@ public class OperationProcessorTemplateTest {
         TEST_REQUEST.setId(TEST_ID);
 
         CompletableFuture<Output> future =
-                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST, 90);
         Output output = future.get();
 
         assertEquals(TEST_OUTPUT, output);
@@ -110,7 +110,7 @@ public class OperationProcessorTemplateTest {
         TestOperationProcessor noOperationProcessor = new TestOperationProcessor(new NoOperationInnerProcessor());
 
         CompletableFuture<Output> future =
-                noOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+                noOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST, 90);
         Output output = future.get();
 
         assertEquals(OPENGATE_VERSION, output.getVersion());
@@ -134,7 +134,7 @@ public class OperationProcessorTemplateTest {
         when(spiedInnerProcessor.processOperation(anyString(), any(TestParams.class))).thenReturn(null);
 
         CompletableFuture<Output> future =
-                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+                testProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST, 90);
         Output output = future.get();
 
         assertEquals(OPENGATE_VERSION, output.getVersion());
@@ -169,7 +169,7 @@ public class OperationProcessorTemplateTest {
         TestOperationProcessor failOperationProcessor = new TestOperationProcessor(new FailInnerProcessor());
 
         CompletableFuture<Output> future =
-                failOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST);
+                failOperationProcessor.process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST, 90);
         Output output = future.get();
 
         assertEquals(OPENGATE_VERSION, output.getVersion());

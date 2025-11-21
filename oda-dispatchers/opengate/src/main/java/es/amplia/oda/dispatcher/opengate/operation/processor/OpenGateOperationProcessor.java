@@ -20,8 +20,8 @@ class OpenGateOperationProcessor implements OperationProcessor {
     }
 
     @Override
-    public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request) {
+    public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request, int timeout) {
         return catalogueOperationProcessors.getOrDefault(request.getName(), customOperationProcessor)
-                .process(deviceIdForOperations, deviceIdForResponse, request);
+                .process(deviceIdForOperations, deviceIdForResponse, request, timeout);
     }
 }

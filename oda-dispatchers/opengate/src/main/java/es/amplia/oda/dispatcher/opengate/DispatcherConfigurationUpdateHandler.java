@@ -18,22 +18,24 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
 
     static final String REDUCED_OUTPUT_PROPERTY_NAME = "reducedOutput";
     static final String EVENT_CONTENT_TYPE_PROPERTY_NAME = "eventContentType";
-
+    static final String OPERATION_TIMEOUT_PROPERTY_NAME = "operationTimeout";
 
     private final EventDispatcherFactory eventDispatcherFactory;
     private final Scheduler scheduler;
     private final ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager;
+    private final OpenGateOperationDispatcher openGateDispatcher;
 
     private final Map<DispatcherConfiguration, Set<String>> currentConfiguration = new HashMap<>();
     private boolean reducedOutput = false;
     private ContentType eventContentType = ContentType.JSON;
-
+    private int opTimeout = 80;
 
     DispatcherConfigurationUpdateHandler(EventDispatcherFactory eventDispatcherFactory, Scheduler scheduler,
-                                         ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager) {
+                                         ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager, OpenGateOperationDispatcher ogDispatcher) {
         this.eventDispatcherFactory = eventDispatcherFactory;
         this.scheduler = scheduler;
         this.eventDispatcherRegistrationManager = eventDispatcherRegistrationManager;
+        this.openGateDispatcher = ogDispatcher;
     }
 
     @Override
@@ -53,7 +55,9 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
             LOGGER.error("Unknown event content type {}. Configuring event content type as {}", contentTypeAsString,
                     ContentType.JSON, e);
         }
-
+        opTimeout = Optional.ofNullable((String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME))
+                .map(Integer::parseInt)
+                .orElse(80);
 
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {
@@ -114,6 +118,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
         });
 
         eventDispatcherRegistrationManager.register(eventCollector);
+        openGateDispatcher.setOperationTimeout(opTimeout);
     }
 
     private Collection<String> getDatastreamIds(Map<DispatcherConfiguration, Set<String>> configuration) {

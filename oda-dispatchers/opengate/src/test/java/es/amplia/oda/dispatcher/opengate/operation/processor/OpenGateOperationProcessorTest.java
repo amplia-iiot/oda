@@ -45,10 +45,10 @@ public class OpenGateOperationProcessorTest {
         Request testRequest = new RequestGeneralOperation();
         testRequest.setName(TEST_OPERATION);
 
-        testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest);
+        testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest, 90);
 
         verify(mockedOperationProcessor)
-                .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest));
+                .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
         verifyZeroInteractions(mockedCustomOperationProcessor);
     }
 
@@ -57,10 +57,10 @@ public class OpenGateOperationProcessorTest {
         Request testRequest = new RequestGeneralOperation();
         testRequest.setName(TEST_UNKNOWN_OPERATION);
 
-        testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest);
+        testProcessor.process(TEST_DEVICE_FOR_OPERATIONS, TEST_DEVICE_FOR_RESPONSE, testRequest, 90);
 
         verify(mockedCustomOperationProcessor)
-                .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest));
+                .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
         verifyZeroInteractions(mockedOperationProcessor);
     }
 }

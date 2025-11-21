@@ -47,6 +47,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
     private final OperationProcessor operationProcessor;
     private final OperationSender operationSender;
 
+    private int operationTimeout = 80;
 
     OpenGateOperationDispatcher(SerializerProvider serializerProvider, DeviceInfoProvider deviceInfoProvider,
                                 OperationProcessor operationProcessor, OperationSender operationSender) {
@@ -54,6 +55,10 @@ class OpenGateOperationDispatcher implements Dispatcher {
         this.deviceInfoProvider = deviceInfoProvider;
         this.operationProcessor = operationProcessor;
         this.operationSender = operationSender;
+    }
+
+    public void setOperationTimeout(int opTimeout) {
+        this.operationTimeout = opTimeout;
     }
 
     @Override
@@ -212,7 +217,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
@@ -242,7 +247,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
@@ -272,7 +277,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
@@ -302,7 +307,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
@@ -332,7 +337,7 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
@@ -362,11 +367,12 @@ class OpenGateOperationDispatcher implements Dispatcher {
                 request.setPath(new String[0]);
             }
 
-            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request)
+            return operationProcessor.process(deviceIdForOperations, deviceIdForResponse, request, operationTimeout)
                     .thenApply(output -> serializeOutput(output, contentType));
         }
         else {
             return null;
         }
     }
+
 }
