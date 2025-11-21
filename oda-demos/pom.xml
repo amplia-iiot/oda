@@ -17,6 +17,7 @@
 		<module>mqtt-datastreams</module>
         <module>mqtt-docker</module>
         <module>iec104-datastreams</module>
+        <module>rules-osgiContext</module>
     </modules>
 
     <parent>

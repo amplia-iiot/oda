@@ -1,0 +1,102 @@
+<configuration scan="true" scanPeriod="1 minutes">
+
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%level) %cyan(%logger) - %msg %n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_TXT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/smartgrid.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/archived/smartgrid.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_HTML" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/smartgrid.html</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>log/archived/smartgrid.%d{yyyy-MM-dd}.%i.html.zip</fileNamePattern>
+            <maxFileSize>1MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <charset>UTF-8</charset>
+            <layout class="ch.qos.logback.classic.html.HTMLLayout">
+                <pattern>%d{HH:mm:ss.SSS}%thread%level%logger%line%msg</pattern>
+            </layout>
+        </encoder>
+    </appender>
+	
+	<appender name="FILE_IEC102" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/iec102.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/archived/iec102.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_IEC104" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/iec104.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>log/archived/iec104.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 30 days worth of history, but at most 3GB -->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE_COUNTERS" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>log/counters.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/archived/counters.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>UTF-8</charset>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+	<logger name="es.amplia.iec102" level="TRACE" additivity="false">
+        <appender-ref ref="FILE_IEC102"/>
+    </logger>
+
+    <logger name="org.eclipse.neoscada" level="TRACE" additivity="false">
+        <appender-ref ref="FILE_IEC104"/>
+    </logger>
+
+	<logger name="_COUNTER" level="TRACE" additivity="false">
+        <appender-ref ref="FILE_COUNTERS"/>
+    </logger>
+
+    <logger name="com.ghgande.j2mod.modbus" level="INFO" additivity="false">
+        <appender-ref ref="FILE_TXT"/>
+    </logger>
+
+    <root level="TRACE">
+        <appender-ref ref="FILE_TXT" />
+    </root>
+</configuration>
+
