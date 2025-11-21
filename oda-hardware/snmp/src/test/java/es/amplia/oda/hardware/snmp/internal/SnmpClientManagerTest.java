@@ -20,7 +20,6 @@ public class SnmpClientManagerTest {
 
     private final List<SnmpClient> SNMP_CLIENTS_LIST_TEST = new ArrayList<>();
 
-
     @Mock
     SnmpClient mockedSnmpClient;
     @Mock

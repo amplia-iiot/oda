@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.Snmp;
 import org.snmp4j.UserTarget;
@@ -34,7 +35,6 @@ public class SnmpClientFactoryTest {
     private static final int TEST_VERSION_2_VALUE = 2;
     private static final int TEST_VERSION_3_VALUE = 3;
     private static final int TEST_PORT_VALUE = 12345;
-    private static final int TEST_LISTEN_PORT_VALUE = 12346;
     private static final String TEST_IP_VALUE = "127.0.0.1";
     private static final String TEST_COMMUNITY_VALUE = "public";
     private static final String TEST_CONTEXT_NAME_VALUE = "public";
@@ -45,23 +45,23 @@ public class SnmpClientFactoryTest {
     private static final String TEST_PRIV_PROTOCOL_VALUE = "DES";
 
     private static final SnmpClientConfig TEST_SNMP_V1_COMPLETE_CONFIGURATION =
-            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_LISTEN_PORT_VALUE,
-                    TEST_VERSION_1_VALUE, new SnmpClientOptions(TEST_COMMUNITY_VALUE));
+            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_VERSION_1_VALUE,
+                    new SnmpClientOptions(TEST_COMMUNITY_VALUE));
 
     private static final SnmpClientConfig TEST_SNMP_V2_COMPLETE_CONFIGURATION =
-            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_LISTEN_PORT_VALUE,
-                    TEST_VERSION_2_VALUE, new SnmpClientOptions(TEST_COMMUNITY_VALUE));
+            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_VERSION_2_VALUE,
+                    new SnmpClientOptions(TEST_COMMUNITY_VALUE));
 
     private static final SnmpClientConfig TEST_SNMP_V3_COMPLETE_CONFIGURATION =
-            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_LISTEN_PORT_VALUE,
-                    TEST_VERSION_3_VALUE, new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE, TEST_AUTH_PASSPHRASE_VALUE,
+            new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE, TEST_VERSION_3_VALUE,
+                    new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE, TEST_AUTH_PASSPHRASE_VALUE,
                     TEST_PRIV_PASSPHRASE_VALUE, TEST_CONTEXT_NAME_VALUE, TEST_AUTH_PROTOCOL_VALUE, TEST_PRIV_PROTOCOL_VALUE));
 
 
     @Mock
     private Snmp mockedSnmp;
     @Mock
-    private SnmpClient mockedSnmpClient;
+    private Snmp mockedSnmpClient;
     @InjectMocks
     private SnmpClientFactory testClientFactory;
 
@@ -78,9 +78,11 @@ public class SnmpClientFactoryTest {
     }
 
     @Test
-    public void createClientV3Test(){
+    public void createClientV3Test() throws Exception {
         SnmpClientImpl expectedSnmpClient = new SnmpClientImpl(mockedSnmp, TEST_VERSION_3_VALUE, new UserTarget(),
                 TEST_CONTEXT_NAME_VALUE, TEST_DEVICE_ID_VALUE);
+
+        PowerMockito.whenNew(Snmp.class).withNoArguments().thenReturn(mockedSnmpClient);
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(TEST_SNMP_V3_COMPLETE_CONFIGURATION);
         // disconnect to allow other test to use same ports
@@ -93,9 +95,8 @@ public class SnmpClientFactoryTest {
     public void createClientV3WrongAuthProtocolTest(){
 
         SnmpClientConfig snmpClientConfig = new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE,
-                TEST_LISTEN_PORT_VALUE, TEST_VERSION_3_VALUE, new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE,
-                TEST_AUTH_PASSPHRASE_VALUE, TEST_PRIV_PASSPHRASE_VALUE, TEST_CONTEXT_NAME_VALUE,
-                "NotExist", TEST_PRIV_PROTOCOL_VALUE));
+                TEST_VERSION_3_VALUE, new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE, TEST_AUTH_PASSPHRASE_VALUE,
+                TEST_PRIV_PASSPHRASE_VALUE, TEST_CONTEXT_NAME_VALUE, "NotExist", TEST_PRIV_PROTOCOL_VALUE));
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(snmpClientConfig);
 
@@ -106,9 +107,8 @@ public class SnmpClientFactoryTest {
     public void createClientV3WrongPrivProtocolTest(){
 
         SnmpClientConfig snmpClientConfig = new SnmpClientConfig(TEST_DEVICE_ID_VALUE, TEST_IP_VALUE, TEST_PORT_VALUE,
-                TEST_LISTEN_PORT_VALUE, TEST_VERSION_3_VALUE, new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE,
-                TEST_AUTH_PASSPHRASE_VALUE, TEST_PRIV_PASSPHRASE_VALUE, TEST_CONTEXT_NAME_VALUE,
-                TEST_AUTH_PROTOCOL_VALUE, "NotExist"));
+                TEST_VERSION_3_VALUE, new SnmpClientV3Options(TEST_SECURITY_NAME_VALUE, TEST_AUTH_PASSPHRASE_VALUE,
+                TEST_PRIV_PASSPHRASE_VALUE, TEST_CONTEXT_NAME_VALUE, TEST_AUTH_PROTOCOL_VALUE, "NotExist"));
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(snmpClientConfig);
 

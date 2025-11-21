@@ -32,9 +32,9 @@
                         <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
-                        <Export-Package>${bundle.namespace}.*, snmp4j</Export-Package>
+                        <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
-                        <Private-Package />
+                        <Private-Package>${bundle.namespace}.*</Private-Package>
                         <Embed-Dependency>snmp4j</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                         <Embed-StripVersion>true</Embed-StripVersion>

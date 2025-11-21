@@ -13,8 +13,6 @@ import org.snmp4j.PDU;
 @RunWith(MockitoJUnitRunner.class)
 public class SnmpTrapProcessorTest {
 
-    private final String DEVICE_ID_TEST = "deviceIdTest";
-
     @Mock
     PDU mockedPdu;
     @Mock
@@ -26,7 +24,7 @@ public class SnmpTrapProcessorTest {
 
     @Before
     public void start(){
-        snmpTrapProcessor = new SnmpTrapProcessor(DEVICE_ID_TEST, mockedSnmpTranslator);
+        snmpTrapProcessor = new SnmpTrapProcessor(mockedSnmpTranslator);
         PowerMockito.when(mockedResponderEvent.getPDU()).thenReturn(mockedPdu);
     }
 

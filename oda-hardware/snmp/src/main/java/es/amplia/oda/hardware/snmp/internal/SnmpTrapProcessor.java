@@ -14,20 +14,18 @@ import java.util.Vector;
 @Slf4j
 public class SnmpTrapProcessor implements CommandResponder {
 
-    private final String deviceId;
     private final SnmpTranslator translator;
 
-    public SnmpTrapProcessor(String deviceId, SnmpTranslator translator) {
-        this.deviceId = deviceId;
+    public SnmpTrapProcessor(SnmpTranslator translator) {
         this.translator = translator;
     }
 
     @Override
     public void processPdu(CommandResponderEvent event) {
         // incr counter
-        SnmpCounters.incrCounter(SnmpCounters.SnmpCounterType.SNMP_RECEIVED_EVENT, this.deviceId, 1);
+        SnmpCounters.incrCounter(SnmpCounters.SnmpCounterType.SNMP_RECEIVED_EVENT, null, 1);
 
-        log.trace("Received Snmp Event : {}", event);
+        log.debug("Received Snmp Event from address {} : {}", event.getPeerAddress(), event);
 
         // get PDU
         PDU pduReceived = event.getPDU();
@@ -45,7 +43,7 @@ public class SnmpTrapProcessor implements CommandResponder {
             processV1Trap((PDUv1) pduReceived);
         }
         else {
-            log.info("Received PDU of type {}", PDU.getTypeString(pduType));
+            log.debug("Received PDU of type {}", PDU.getTypeString(pduType));
             // get variables in PDU
             getVariables(pduReceived);
         }
@@ -97,7 +95,7 @@ public class SnmpTrapProcessor implements CommandResponder {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
             String varType = var.getVariable().getSyntaxString();
-            log.debug("Device {}, OID {}, Type {}, Value {}", this.deviceId, OID, varType, value);
+            log.debug("OID {}, Type {}, Value {}", OID, varType, value);
            /* SnmpEntry translation = translator.translate(OID, this.deviceId);
             log.info("Value translation : {}", translation);*/
         }

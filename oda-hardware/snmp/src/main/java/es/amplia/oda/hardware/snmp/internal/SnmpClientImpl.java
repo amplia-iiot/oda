@@ -15,13 +15,12 @@ import java.util.*;
 @Slf4j
 public class SnmpClientImpl implements SnmpClient {
 
-    Snmp snmpClient;
-    int snmpVersion;
-    CommunityTarget communityTarget;
-    UserTarget userTarget;
-    String contextName;
-
-    String deviceId;
+    private final Snmp snmpClient;
+    private final int snmpVersion;
+    private CommunityTarget communityTarget;
+    private UserTarget userTarget;
+    private String contextName;
+    private final String deviceId;
 
     public SnmpClientImpl(Snmp snmpClient, int version, CommunityTarget target, String deviceId) {
         this.snmpClient = snmpClient;
@@ -44,7 +43,7 @@ public class SnmpClientImpl implements SnmpClient {
     }
 
     @Override
-    public Object getValue(String OID) {
+    public String getValue(String OID) {
         log.info("Getting value in OID {}", OID);
 
         ResponseEvent eventResponse;

@@ -30,10 +30,10 @@ public class Activator implements BundleActivator {
         // create and register translation proxy to translate traps received
         snmpTranslatorProxy = new SnmpTranslatorProxy(bundleContext);
         snmpManager = new SnmpClientManager(snmpRegistrationManager);
-        SnmpClientFactory snmpFactory = new SnmpClientFactory(snmpTranslatorProxy);
+        SnmpClientFactory snmpFactory = new SnmpClientFactory();
 
         // make bundle configurable
-        SnmpConfigurationUpdateHandler configHandler = new SnmpConfigurationUpdateHandler(snmpManager, snmpFactory);
+        SnmpConfigurationUpdateHandler configHandler = new SnmpConfigurationUpdateHandler(snmpManager, snmpFactory, snmpTranslatorProxy);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, configHandler);
 
         // create counters

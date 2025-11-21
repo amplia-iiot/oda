@@ -42,22 +42,19 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-                .thenReturn(mockedRegistrationManager);
+        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments().thenReturn(mockedRegistrationManager);
         PowerMockito.whenNew(SnmpClientManager.class).withAnyArguments().thenReturn(mockedSnmpClientsManager);
         PowerMockito.whenNew(SnmpTranslatorProxy.class).withAnyArguments().thenReturn(mockedSnmpTranslatorProxy);
         PowerMockito.whenNew(SnmpClientFactory.class).withAnyArguments().thenReturn(mockedSnmpClientFactory);
-        PowerMockito.whenNew(SnmpConfigurationUpdateHandler.class)
-                .withAnyArguments().thenReturn(mockedConfigHandler);
+        PowerMockito.whenNew(SnmpConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(SnmpClient.class));
         PowerMockito.verifyNew(SnmpClientManager.class).withArguments(eq(mockedRegistrationManager));
-        PowerMockito.verifyNew(SnmpClientFactory.class).withArguments(eq(mockedSnmpTranslatorProxy));
-        PowerMockito.verifyNew(SnmpClientManager.class)
-                .withArguments(eq(mockedRegistrationManager));
+        PowerMockito.verifyNew(SnmpClientFactory.class).withNoArguments();
+        PowerMockito.verifyNew(SnmpClientManager.class).withArguments(eq(mockedRegistrationManager));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
     }
 
