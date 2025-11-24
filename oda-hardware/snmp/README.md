@@ -8,7 +8,6 @@ To connect with devices using SNMP we need this data:
 * __deviceId__: Id of the device
 * __ipAddress__: Ip address of the device 
 * __port__ : Port where device is listening for requests
-* __listenPort__ : Port where device will send traps from
 * __version__: Version of the SNMP protocol used
 
 Depending on the version of SNMP used, the data needed its different:
@@ -30,6 +29,11 @@ Depending on the version of SNMP used, the data needed its different:
     * __AES192__
     * __AES256__
 
+To listen for traps of any device we must indicate the port where we listen for with the parameter:
+
+* __trapListenPort__ : Port where ODA will listen for traps
+
+
 #### Dependencies
 
 This module requires the following modules:
@@ -40,13 +44,17 @@ This module requires the following modules:
 
 To configure Hardware SNMP module, a file named _es.amplia.oda.hardware.snmp.cfg_ must be created.
 
-Each line defines a connection with a device.
+The first line defines the port where ODA will listen for SNMP traps:
 
+    * trapListenPort=162
+
+The rest of the lines in the config file define the connections with each device.
 Format of each line is :
+
 * For SnmpV1 and SnmpV2 :
-  * [deviceId] = ip: [ipAddress], port: [port], listenPort: [listenPort], version: [protocolVersion], community: [community]
+  * [deviceId] = ip: [ipAddress], port: [port], version: [protocolVersion], community: [community]
 * For SnmpV3 :
-  * [deviceId] = ip: [ipAddress], port: [port], listenPort: [listenPort], version: [protocolVersion], 
+  * [deviceId] = ip: [ipAddress], port: [port], version: [protocolVersion], 
   contextName: [contextName], securityName: [securityName], authPassphrase: [authPassphrase],
   privPassphrase: [privPassphrase], authProtocol: [authProtocol], privProtocol: [privProtocol]
 
@@ -54,10 +62,11 @@ Format of each line is :
 _es.amplia.oda.hardware.snmp.cfg_ will have a similar format to:
 
 ```properties
-# deviceId = ip, port, listenPort, version
+# deviceId = ip, port, version
 # for v1 and v2 we must also indicate community
 # for v3 we must also indicate contextName, securityName, authPassphrase, privPassphrase, authProtocol, privProtocol;
-testSnmpDeviceV1 = ip:127.0.0.1, port:1160, listenPort:1161, version:1, community:public
-testSnmpDeviceV2 = ip:127.0.0.1, port:1160, listenPort:1161, version:2, community:public
-testSnmpDeviceV3 = ip:127.0.0.1, port:1160, listenPort:1161, version:3, contextName: public, securityName:simulator, authPassphrase:auctoritas, privPassphrase:privatus, authProtocol: MD5, privProtocol:DES
+trapListenPort=162
+testSnmpDeviceV1 = ip:127.0.0.1, port:1160, version:1, community:public
+testSnmpDeviceV2 = ip:127.0.0.1, port:1160, version:2, community:public
+testSnmpDeviceV3 = ip:127.0.0.1, port:1160, version:3, contextName: public, securityName:simulator, authPassphrase:auctoritas, privPassphrase:privatus, authProtocol: MD5, privProtocol:DES
 ```
