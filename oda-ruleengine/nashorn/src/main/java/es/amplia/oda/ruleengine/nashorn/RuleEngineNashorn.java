@@ -184,6 +184,8 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     }
 
     private void reloadRules(String dir) {
+        LOGGER.info("Reloading rules in directory {}", dir);
+
         try (Stream<Path> pathStreamFiles = Files.list(Paths.get(dir)).filter(filePath -> filePath.toFile().isFile())) {
             List<String> files = pathStreamFiles.map(Path::toString).filter(file -> file.endsWith(".js"))
                     .collect(Collectors.toList());
@@ -194,19 +196,15 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
-
-        LOGGER.info("Reloaded rules in directory {}", dir);
     }
 
     private void initRuleScript(String dirName, String nameRule) {
-
         // the name of the directory where the rules are stored are the ids of the datastreams affected
         // the datastreamIds are separated by ":"
         String currentPath = this.path;
         List<String> datastreamIds = Arrays.asList(dirName.substring(
                         dirName.indexOf(currentPath) + currentPath.length())
                 .split(":"));
-
         try {
             this.rules.put(nameRule, new Rule(nameRule, datastreamIds, script));
         } catch (ScriptException e) {

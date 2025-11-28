@@ -29,7 +29,9 @@ public class OperationEngineNashorn implements OperationEngine {
     private String path;
     private HashMap<String, OperationScript> operations;
     private OperationScriptTranslator script;
-    private OperationDirectoryWatcher watcher;
+    private OperationDirectoryWatcher operationsWatcher;
+    private OperationDirectoryWatcher operationsUtilsWatcher;
+
 
     public OperationEngineNashorn(OperationScriptTranslator script) {
         this.script = script;
@@ -38,10 +40,12 @@ public class OperationEngineNashorn implements OperationEngine {
     public void loadConfiguration(OperationEngineConfiguration config) {
         this.path = config.getPath();
         this.operations = new HashMap<>();
-        this.watcher = new OperationDirectoryWatcher(Paths.get(this.path), this);
+        this.operationsWatcher = new OperationDirectoryWatcher(Paths.get(this.path), this);
+        this.operationsUtilsWatcher = new OperationDirectoryWatcher(Paths.get(config.getUtilsPath()), this);
 
         reloadAllOperations();
-        this.watcher.start();
+        this.operationsWatcher.start();
+        this.operationsUtilsWatcher.start();
     }
 
     @Override
@@ -57,7 +61,7 @@ public class OperationEngineNashorn implements OperationEngine {
                                 ret.get("resultCode")==null?null:OperationResultCode.valueOf((String)ret.get("resultCode")),
                                 ret.get("resultDescription")==null?null:(String)ret.get("resultDescription"),
                                 getSteps(ret.get("steps")));
-        LOGGER.debug("Operation " + operationName + " responsed with: " + resp);
+        LOGGER.trace("Operation " + operationName + " responsed with: " + resp);
         return resp;
     }
 
@@ -68,13 +72,15 @@ public class OperationEngineNashorn implements OperationEngine {
     }
 
     private Step getStep(Object stepObject) {
-        Map<String,Object> step = (Map<String, Object>) stepObject;
-        return new Step((String)step.get("name"), StepResultCode.valueOf((String)step.get("result")), (String)step.get("description"), (Long)step.get("timestamp"), (List<Object>)step.get("response"));
+        Map<String, Object> step = (Map<String, Object>) stepObject;
+        return new Step((String) step.get("name"), StepResultCode.valueOf((String) step.get("result")),
+                (String) step.get("description"), (Long) step.get("timestamp"), (List<Object>) step.get("response"));
     }
 
     @Override
     public void reloadAllOperations() {
         this.operations.clear();
+        LOGGER.info("Reloading operations in directory {}", this.path);
         try (Stream<Path> pathStreamFiles = Files.list(Paths.get(this.path)).filter(filePath -> filePath.toFile().isFile())) {
             List<String> files = pathStreamFiles.map(Path::toString).filter(file -> file.endsWith(".js"))
                     .collect(Collectors.toList());
@@ -85,23 +91,22 @@ public class OperationEngineNashorn implements OperationEngine {
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
-
-        LOGGER.info("Reloaded operations in directory {}", this.path);
     }
 
     private void initOperationScript(String operationFile) {
         try {
             String opName = operationFile.replace(".js", "").replace(this.path, "");
             this.operations.put(opName, new OperationScript(operationFile, script));
-            LOGGER.info("Adding script for operation " + opName);
+            LOGGER.info("Adding javascript operation " + opName);
         } catch (ScriptException e) {
-           LOGGER.error("Cannot init operation script {}: {}", operationFile, e.getMessage());
+           LOGGER.error("Cannot init javascript operation {}: {}", operationFile, e.getMessage());
         }
     }
 
     public void stop() {
         LOGGER.info("Stopping the operation engine");
         this.operations.clear();
-        this.watcher.stop();
+        this.operationsWatcher.stop();
+        this.operationsUtilsWatcher.stop();
     }
 }

@@ -68,7 +68,7 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
                 .filter(operation -> customOperationName.equals(operation.getOperationSatisfied()))
                 .findFirst()
                 .map(operation -> operation.execute(deviceIdForOperations, operationId, params))
-                // Returning null to notify operation is not supported
+                // if there is no custom operation registered in OSGI that matches, check if there is any js operation script that matches
                 .orElse(processOperationScript(deviceIdForOperations, operationId, params));
     }
 
@@ -78,6 +78,7 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
             return CompletableFuture.completedFuture(CustomOperationUtils.translateToResult(ret));
         } catch (OperationNotFound e) {
             LOGGER.error("Operation " + customOperationName + " cannot be executed", e);
+            // Returning null to notify operation is not supported
             return null;
         }
     }

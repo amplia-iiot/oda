@@ -78,7 +78,7 @@ public class OsgiContext {
         return new ArrayList<>(datastreamsSettersFinder.getSettersSatisfying(device, Collections.singleton(datastreamId)).getSetters().values());
     }
 
-    private void send (OperationResponse resp) {
+    private void sendOperResponse (OperationResponse resp) {
         Object responseDispatcher = getBundle("es.amplia.oda.core.commons.interfaces.ResponseDispatcher");
         if (responseDispatcher != null) {
             ResponseDispatcher dispatcher = (ResponseDispatcher) responseDispatcher;
@@ -97,7 +97,7 @@ public class OsgiContext {
                             (String)ret.get("resultDescription"),
                             getSteps(ret.get("steps")));
         OperationResponse resp = new OperationResponse("9.0", new Operation(response));
-        send(resp);
+        sendOperResponse(resp);
     }
 
     public void sendSteps(String deviceId, String[] path, String operationId, Map<String, Object> steps) {
@@ -109,7 +109,7 @@ public class OsgiContext {
                             null,
                             getSteps(steps));
         OperationResponse resp = new OperationResponse("9.0", new Operation(response));
-        send(resp);
+        sendOperResponse(resp);
     }
 
     private List<Step> getSteps(Object steps) {
