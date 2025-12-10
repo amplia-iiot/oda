@@ -1,6 +1,7 @@
 package es.amplia.oda.hardware.snmp;
 
 import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
@@ -34,6 +35,8 @@ public class ActivatorTest {
     @Mock
     private SnmpTranslatorProxy mockedSnmpTranslatorProxy;
     @Mock
+    private StateManagerProxy mockedStateManagerProxy;
+    @Mock
     private SnmpClientFactory mockedSnmpClientFactory;
     @Mock
     private SnmpConfigurationUpdateHandler mockedConfigHandler;
@@ -45,6 +48,7 @@ public class ActivatorTest {
         PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments().thenReturn(mockedRegistrationManager);
         PowerMockito.whenNew(SnmpClientManager.class).withAnyArguments().thenReturn(mockedSnmpClientsManager);
         PowerMockito.whenNew(SnmpTranslatorProxy.class).withAnyArguments().thenReturn(mockedSnmpTranslatorProxy);
+        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManagerProxy);
         PowerMockito.whenNew(SnmpClientFactory.class).withAnyArguments().thenReturn(mockedSnmpClientFactory);
         PowerMockito.whenNew(SnmpConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
@@ -63,11 +67,13 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "snmpManager", mockedSnmpClientsManager);
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "snmpTranslatorProxy", mockedSnmpTranslatorProxy);
+        Whitebox.setInternalState(testActivator, "stateManagerProxy", mockedStateManagerProxy);
 
         testActivator.stop(mockedContext);
 
         verify(mockedSnmpClientsManager).close();
         verify(mockedConfigurableBundle).close();
         verify(mockedSnmpTranslatorProxy).close();
+        verify(mockedStateManagerProxy).close();
     }
 }

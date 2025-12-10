@@ -2,6 +2,7 @@ package es.amplia.oda.hardware.snmp.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.osgi.proxies.SnmpTranslatorProxy;
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.Collections;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
@@ -21,6 +22,7 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
     private static final String IP_PROPERTY_NAME = "ip";
     private static final String PORT_PROPERTY_NAME = "port";
     private static final String TRAP_LISTEN_PORT_PROPERTY_NAME = "trapListenPort";
+    private static final String DEVICES_LISTEN_IPS_PROPERTY_NAME = "deviceListenIps";
     private static final String COMMUNITY_PROPERTY_NAME = "community";
     private static final String CONTEXT_NAME_PROPERTY_NAME = "contextName";
     private static final String SECURITY_NAME_PROPERTY_NAME = "securityName";
@@ -29,17 +31,20 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
     private static final String AUTH_PROTOCOL_PROPERTY_NAME = "authProtocol";
     private static final String PRIV_PROTOCOL_PROPERTY_NAME = "privProtocol";
 
+
     List<SnmpClient> clients = new ArrayList<>();
 
     SnmpClientManager snmpClientManager;
     SnmpClientFactory snmpClientFactory;
     SnmpTranslatorProxy snmpTrapTranslatorProxy;
+    StateManagerProxy stateManagerProxy;
 
     public SnmpConfigurationUpdateHandler(SnmpClientManager snmpClientManager, SnmpClientFactory snmpClientFactory,
-                                          SnmpTranslatorProxy snmpTrapTranslator) {
+                                          SnmpTranslatorProxy snmpTrapTranslator, StateManagerProxy stateManagerProxy) {
         this.snmpClientManager = snmpClientManager;
         this.snmpClientFactory = snmpClientFactory;
         this.snmpTrapTranslatorProxy = snmpTrapTranslator;
+        this.stateManagerProxy = stateManagerProxy;
     }
 
     @Override
@@ -139,14 +144,37 @@ public class SnmpConfigurationUpdateHandler implements ConfigurationUpdateHandle
         String listenPortValue = (String) mappedProperties.get(TRAP_LISTEN_PORT_PROPERTY_NAME);
         if (listenPortValue == null) {
             log.warn("Missing required property {}", TRAP_LISTEN_PORT_PROPERTY_NAME);
-        } else {
-            int listenPort = Integer.parseInt(listenPortValue);
-            try {
-                SnmpTrapListener.createSnmpListener(listenPort, this.snmpTrapTranslatorProxy);
-            } catch (IOException e) {
-                log.error("Error creating snmp trap listener : ", e);
-            }
-            mappedProperties.remove(TRAP_LISTEN_PORT_PROPERTY_NAME);
+            return;
+        }
+        mappedProperties.remove(TRAP_LISTEN_PORT_PROPERTY_NAME);
+
+        // parse listen port
+        int listenPort = Integer.parseInt(listenPortValue);
+
+        // get deviceIps
+        String devicesIps = (String) mappedProperties.get(DEVICES_LISTEN_IPS_PROPERTY_NAME);
+        if (devicesIps == null) {
+            log.warn("Missing required property {}", DEVICES_LISTEN_IPS_PROPERTY_NAME);
+            return;
+        }
+        mappedProperties.remove(DEVICES_LISTEN_IPS_PROPERTY_NAME);
+
+        // parse deviceIps
+        // Map < IpAddress, DeviceId>
+        Map<String, String> devicesIpMap = new HashMap<>();
+        String[] devicesIpsArray = devicesIps.split(";");
+        for (String deviceIp : devicesIpsArray) {
+            String[] devicesIpsParts = deviceIp.split(":");
+            String ipAddress = devicesIpsParts[0];
+            String deviceId = devicesIpsParts[1];
+            log.debug("Adding deviceId {} with ipAddress {} to devices map", deviceId, ipAddress);
+            devicesIpMap.put(ipAddress, deviceId);
+        }
+
+        try {
+            SnmpTrapListener.createSnmpListener(listenPort, devicesIpMap, this.snmpTrapTranslatorProxy, this.stateManagerProxy);
+        } catch (IOException e) {
+            log.error("Error creating snmp trap listener : ", e);
         }
     }
 }

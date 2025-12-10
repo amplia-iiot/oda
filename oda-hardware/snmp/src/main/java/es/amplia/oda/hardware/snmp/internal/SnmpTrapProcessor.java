@@ -1,6 +1,9 @@
 package es.amplia.oda.hardware.snmp.internal;
 
 import es.amplia.oda.core.commons.interfaces.SnmpTranslator;
+import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
+import es.amplia.oda.core.commons.snmp.SnmpEntry;
+import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.hardware.snmp.SnmpCounters;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.CommandResponder;
@@ -9,23 +12,35 @@ import org.snmp4j.PDU;
 import org.snmp4j.PDUv1;
 import org.snmp4j.smi.VariableBinding;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 @Slf4j
 public class SnmpTrapProcessor implements CommandResponder {
 
     private final SnmpTranslator translator;
+    private final StateManagerProxy stateManager;
+    // Map < IpAddress, DeviceId>
+    Map<String, String> devicesIps;
 
-    public SnmpTrapProcessor(SnmpTranslator translator) {
+    public SnmpTrapProcessor(SnmpTranslator translator, StateManagerProxy stateManager, Map<String, String> devicesIps) {
         this.translator = translator;
+        this.stateManager = stateManager;
+        this.devicesIps = devicesIps;
     }
 
     @Override
     public void processPdu(CommandResponderEvent event) {
-        // incr counter
-        SnmpCounters.incrCounter(SnmpCounters.SnmpCounterType.SNMP_RECEIVED_EVENT, null, 1);
+        String ipAddress = event.getPeerAddress().toString().split("/")[0];
+        log.debug("Received Snmp Event from address {} : {}", ipAddress, event);
 
-        log.debug("Received Snmp Event from address {} : {}", event.getPeerAddress(), event);
+        // get deviceId
+        String deviceId = devicesIps.get(ipAddress);
+
+        // incr counter
+        SnmpCounters.incrCounter(SnmpCounters.SnmpCounterType.SNMP_RECEIVED_EVENT, deviceId != null ? deviceId : ipAddress, 1);
 
         // get PDU
         PDU pduReceived = event.getPDU();
@@ -38,15 +53,9 @@ public class SnmpTrapProcessor implements CommandResponder {
             return;
         }
 
-        // process depending on the type
-        if (pduType == PDU.V1TRAP) {
-            processV1Trap((PDUv1) pduReceived);
-        }
-        else {
-            log.debug("Received PDU of type {}", PDU.getTypeString(pduType));
-            // get variables in PDU
-            getVariables(pduReceived);
-        }
+        log.debug("Received PDU of type {}", PDU.getTypeString(pduType));
+        // parse variables in PDU
+        parseVariables(pduReceived, deviceId);
     }
 
     private void processV1Trap(PDUv1 pduV1Trap) {
@@ -83,21 +92,35 @@ public class SnmpTrapProcessor implements CommandResponder {
         }
     }
 
-    private void getVariables(PDU pdu) {
+    private void parseVariables(PDU pdu, String deviceId) {
         Vector<? extends VariableBinding> valuesReceived = pdu.getVariableBindings();
         if (valuesReceived == null) {
             return;
         }
 
-        log.debug("Variables in PDU : ");
+        if(deviceId == null) {
+            log.warn("Can't parse data in PDU because there is no deviceId associated to that ip address");
+            return;
+        }
 
         for (VariableBinding var : valuesReceived) {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
             String varType = var.getVariable().getSyntaxString();
             log.debug("OID {}, Type {}, Value {}", OID, varType, value);
-           /* SnmpEntry translation = translator.translate(OID, this.deviceId);
-            log.info("Value translation : {}", translation);*/
+
+            // get translation
+            SnmpEntry translation = translator.translate(OID, deviceId);
+            if (translation == null) {
+                continue;
+            }
+
+            log.debug("Value translation : {}", translation);
+            // parse snmp entries to events
+            List<Event> eventsToPublish = Collections.singletonList(new Event(translation.getDatastreamId(),
+                    translation.getDeviceId(), null, translation.getFeed(), System.currentTimeMillis(), value));
+            // publish values
+            stateManager.publishValues(eventsToPublish);
         }
     }
 }
