@@ -5,9 +5,13 @@ import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.*;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +37,7 @@ public class HttpClientImpl implements HttpClient {
     private static final int CREATED_HTTP_CODE = 201;
     private static final int FOUND_HTTP_CODE = 302;
 
-    private CloseableHttpClient httpClient;
+    private final CloseableHttpClient httpClient;
     private RequestConfig customConfig;
 
     public HttpClientImpl() {
@@ -72,7 +76,17 @@ public class HttpClientImpl implements HttpClient {
             throw new RuntimeException(e);
         }
 
-        return HttpClients.custom().setSSLContext(sslContext).build();
+        // specify host verifier (NoopHostnameVerifier) to allow accepting certificates from different hosts
+        SSLConnectionSocketFactory scsf;
+        try {
+            scsf = new SSLConnectionSocketFactory(
+                    SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                    NoopHostnameVerifier.INSTANCE);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return HttpClients.custom().setSSLContext(sslContext).setSSLSocketFactory(scsf).build();
     }
 
     public void setTimeout(int timeout) {
