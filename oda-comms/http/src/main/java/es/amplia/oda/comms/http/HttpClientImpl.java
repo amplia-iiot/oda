@@ -35,6 +35,7 @@ public class HttpClientImpl implements HttpClient {
     private static final String GZIP_ENCODING = "gzip";
     private static final int OK_HTTP_CODE = 200;
     private static final int CREATED_HTTP_CODE = 201;
+    private static final int ACCEPTED_HTTP_CODE = 202;
     private static final int FOUND_HTTP_CODE = 302;
 
     private final CloseableHttpClient httpClient;
@@ -107,7 +108,14 @@ public class HttpClientImpl implements HttpClient {
     }
 
     private boolean isSuccessCode(int statusCode) {
-        return statusCode == OK_HTTP_CODE || statusCode == CREATED_HTTP_CODE || statusCode == FOUND_HTTP_CODE;
+        // if it is a 2XX code, it is OK
+        if (statusCode / 100 == 2) {
+            return true;
+        } else if (statusCode == FOUND_HTTP_CODE) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
