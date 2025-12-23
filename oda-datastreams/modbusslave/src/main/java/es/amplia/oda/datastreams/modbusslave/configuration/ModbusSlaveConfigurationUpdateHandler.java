@@ -21,6 +21,7 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
     public static final String DATASTREAM_ID_PROPERTY_NAME = "datastream";
     public static final String FEED_PROPERTY_NAME = "feed";
     public static final String DATA_TYPE_PROPERTY_NAME = "dataType";
+    public static final String NUM_VALUES_TO_GET_PROPERTY_NAME = "numValuesToGet";
 
 
     public static final String TCP_MODBUS_TYPE = "TCP";
@@ -93,7 +94,11 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
         String dataType = getValueByToken(DATA_TYPE_PROPERTY_NAME, properties)
                 .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATA_TYPE_PROPERTY_NAME));
 
-        TranslationEntry newEntry = new TranslationEntry(modbusAddress, deviceId, datastreamId, feed, dataType);
+        // in case we want to return a list of registers
+        String numValuesToGetString = getValueByToken(NUM_VALUES_TO_GET_PROPERTY_NAME, properties).orElse(null);
+        Integer numValuesToGet = numValuesToGetString != null ? Integer.parseInt(numValuesToGetString) : null;
+
+        TranslationEntry newEntry = new TranslationEntry(modbusAddress, deviceId, datastreamId, feed, dataType, numValuesToGet);
         ModbusEventTranslator.addEntry(newEntry);
     }
 

@@ -26,13 +26,15 @@ class ModbusToJavaTypeConverter {
             return convertRegistersToDouble(modbusRegisters);
         } else if (dataTypeToConvert.equalsIgnoreCase("Long")) {
             return convertRegistersToLong(modbusRegisters);
+        } else if (dataTypeToConvert.equalsIgnoreCase("List")) {
+            return convertRegistersToByteArray(modbusRegisters);
         } else {
             log.error("Datatype " + dataTypeToConvert + " not supported");
             return null;
         }
     }
 
-    public static int getNumRegisters(String dataTypeToConvert) {
+    public static int getNumRegisters(String dataTypeToConvert, Integer numRegistersToGet, int numRegisterInBlock) {
         if (dataTypeToConvert.equalsIgnoreCase("Short")) {
             return ONE_REGISTER;
         } else if (dataTypeToConvert.equalsIgnoreCase("Int")) {
@@ -43,6 +45,12 @@ class ModbusToJavaTypeConverter {
             return FOUR_REGISTERS;
         } else if (dataTypeToConvert.equalsIgnoreCase("Long")) {
             return FOUR_REGISTERS;
+        } else if (dataTypeToConvert.equalsIgnoreCase("List")) {
+            if (numRegistersToGet == null || numRegistersToGet > numRegisterInBlock) {
+                return numRegisterInBlock;
+            } else {
+                return numRegistersToGet;
+            }
         } else {
             log.error("Datatype " + dataTypeToConvert + " not supported");
             return 0;
@@ -92,5 +100,10 @@ class ModbusToJavaTypeConverter {
         }
         ByteBuffer buffer = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN);
         return buffer.getDouble();
+    }
+
+    private static byte[] convertRegistersToByteArray(byte[] value) {
+        ByteBuffer buffer = ByteBuffer.wrap(value).order(ByteOrder.BIG_ENDIAN);
+        return buffer.array();
     }
 }

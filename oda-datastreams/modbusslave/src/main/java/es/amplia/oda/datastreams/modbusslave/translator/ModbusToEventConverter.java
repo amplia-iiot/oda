@@ -160,8 +160,7 @@ public class ModbusToEventConverter {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         for (TranslationEntry entry : entries) {
             int startingRegister = entry.getModbusAddress() - startingModbusAddress;
-            int numRegistersToGet = ModbusToJavaTypeConverter.getNumRegisters(entry.getDataType());
-
+            int numRegistersToGet = ModbusToJavaTypeConverter.getNumRegisters(entry.getDataType(), entry.getNumRegistersToGet(), modbusValue.length);
             // clear byte array
             outputStream.reset();
             for (int i = startingRegister; i < startingRegister + numRegistersToGet; i++) {
