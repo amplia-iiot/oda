@@ -7,7 +7,7 @@ import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -81,7 +81,7 @@ public class HttpClientImpl implements HttpClient {
         SSLConnectionSocketFactory scsf;
         try {
             scsf = new SSLConnectionSocketFactory(
-                    SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                    SSLContexts.custom().loadTrustMaterial(null, new TrustAllStrategy()).build(),
                     NoopHostnameVerifier.INSTANCE);
         } catch (Exception e) {
             throw new RuntimeException(e);
