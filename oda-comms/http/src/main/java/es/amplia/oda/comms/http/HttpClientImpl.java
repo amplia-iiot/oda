@@ -91,7 +91,14 @@ public class HttpClientImpl implements HttpClient {
     }
 
     public void setTimeout(int timeout) {
-        this.customConfig = RequestConfig.custom()
+        RequestConfig.Builder customConfigBuilder;
+        if (this.customConfig != null) {
+            customConfigBuilder = RequestConfig.copy(this.customConfig);
+        } else {
+            customConfigBuilder = RequestConfig.custom();
+        }
+
+        this.customConfig = customConfigBuilder
                 .setConnectTimeout(timeout)
                 .setConnectionRequestTimeout(timeout)
                 .setSocketTimeout(timeout)
@@ -99,11 +106,30 @@ public class HttpClientImpl implements HttpClient {
     }
 
     public void setRequestCustomConfig(HttpConfig customConfig) {
-        this.customConfig = RequestConfig.custom()
+        RequestConfig.Builder customConfigBuilder;
+        if (this.customConfig != null) {
+            customConfigBuilder = RequestConfig.copy(this.customConfig);
+        } else {
+            customConfigBuilder = RequestConfig.custom();
+        }
+
+        this.customConfig = customConfigBuilder
                 .setConnectTimeout(customConfig.getTimeout())
                 .setConnectionRequestTimeout(customConfig.getTimeout())
                 .setSocketTimeout(customConfig.getTimeout())
                 .setCookieSpec(HttpConfig.getCookiesSpec(customConfig.getCookiesPolicy()))
+                .build();
+    }
+
+    public void setCookies(String cookiesPolicy) {
+        RequestConfig.Builder customConfigBuilder;
+        if (this.customConfig != null) {
+            customConfigBuilder = RequestConfig.copy(this.customConfig);
+        } else {
+            customConfigBuilder = RequestConfig.custom();
+        }
+        this.customConfig = customConfigBuilder
+                .setCookieSpec(HttpConfig.getCookiesSpec(cookiesPolicy))
                 .build();
     }
 
