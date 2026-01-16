@@ -1,6 +1,8 @@
 package es.amplia.oda.connector.http;
 
+import es.amplia.oda.comms.http.HttpClientFactoryImpl;
 import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
+import es.amplia.oda.core.commons.http.HttpClientFactory;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
@@ -29,7 +31,8 @@ public class Activator implements BundleActivator {
         LOGGER.info("Starting HTTP connector bundle");
 
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
-        HttpConnector httpConnector = new HttpConnector(deviceInfoProvider);
+        HttpClientFactory httpClientFactory = new HttpClientFactoryImpl();
+        HttpConnector httpConnector = new HttpConnector(deviceInfoProvider, httpClientFactory);
         httpConfigHandler = new HttpConnectorConfigurationUpdateHandler(httpConnector);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, httpConfigHandler);
         httpConnectorRegistration = bundleContext.registerService(OpenGateConnector.class, httpConnector, null);

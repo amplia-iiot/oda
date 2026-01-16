@@ -1,5 +1,6 @@
 package es.amplia.oda.comms.http;
 
+import es.amplia.oda.comms.http.configuration.HttpClientConfiguration;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -18,11 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import es.amplia.oda.core.commons.http.HttpClient;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -41,17 +43,48 @@ public class HttpClientImpl implements HttpClient {
     private final CloseableHttpClient httpClient;
     private RequestConfig customConfig;
 
-    public HttpClientImpl() {
-        this(false);
-    }
+    public HttpClientImpl(HttpClientConfiguration httpClientConfig, boolean insecure) {
+        if (httpClientConfig == null) {
+            LOGGER.warn("No http connection configuration indicated. Creating default http client");
+            this.httpClient = HttpClients.createDefault();
+            return;
+        }
 
-    public HttpClientImpl(boolean insecure) {
         if (insecure) {
             this.httpClient = httpClientSSLNoVerify();
         } else {
-            this.httpClient = HttpClients.createDefault();
+            this.httpClient = httpClientSSL(httpClientConfig);
         }
         setTimeout(10000);
+    }
+
+    private CloseableHttpClient httpClientSSL(HttpClientConfiguration httpClientConfig) {
+        try {
+            // load truststore file
+            File truststoreFile = new File(httpClientConfig.getTrustStorePath());
+            KeyStore trustStore = KeyStore.getInstance(httpClientConfig.getTrustStoreType());
+            FileInputStream trustStream = new FileInputStream(truststoreFile);
+            trustStore.load(trustStream, httpClientConfig.getTrustStorePassword().toCharArray());
+
+            // load keystore file
+            File keystoreFile = new File(httpClientConfig.getKeyStorePath());
+            KeyStore keyStore = KeyStore.getInstance(httpClientConfig.getKeyStoreType());
+            FileInputStream keyStream = new FileInputStream(keystoreFile);
+            keyStore.load(keyStream, httpClientConfig.getKeyStorePassword().toCharArray());
+
+            // set ssl context
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(trustStore);
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, httpClientConfig.getKeyStorePassword().toCharArray());
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            return HttpClients.custom().setSSLContext(sslContext).build();
+
+        } catch (Exception e) {
+            LOGGER.error("Error creating http client: ", e);
+            return null;
+        }
     }
 
     private CloseableHttpClient httpClientSSLNoVerify() {
@@ -74,7 +107,8 @@ public class HttpClientImpl implements HttpClient {
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[] { trm }, null);
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Error creating http client: ", e);
+            return null;
         }
 
         // specify host verifier (NoopHostnameVerifier) to allow accepting certificates from different hosts
@@ -84,7 +118,8 @@ public class HttpClientImpl implements HttpClient {
                     SSLContexts.custom().loadTrustMaterial(null, new TrustAllStrategy()).build(),
                     NoopHostnameVerifier.INSTANCE);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Error creating http client: ", e);
+            return null;
         }
 
         return HttpClients.custom().setSSLContext(sslContext).setSSLSocketFactory(scsf).build();
@@ -144,11 +179,15 @@ public class HttpClientImpl implements HttpClient {
         }
     }
 
-    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return post(url, payload, contentType, headers, false);
     }
 
-    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+        if (checkHttpClientNotInit()) {
+            return null;
+        }
+
         EntityBuilder entityBuilder =
                     EntityBuilder.create().setBinary(payload).setContentType(ContentType.create(contentType));
 
@@ -189,14 +228,18 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
-    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return put(url, payload, contentType, headers, false);
     }
 
-    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+        if (checkHttpClientNotInit()) {
+            return null;
+        }
+
         EntityBuilder entityBuilder =
                     EntityBuilder.create().setBinary(payload).setContentType(ContentType.create(contentType));
 
@@ -237,10 +280,14 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
-    public HttpResponse get(String url, Map<String, String> headers) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse get(String url, Map<String, String> headers) throws IOException {
+        if (checkHttpClientNotInit()) {
+            return null;
+        }
+
         HttpGet httpGet = new HttpGet(url);
         httpGet.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
@@ -270,10 +317,14 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
     }
 
-    public HttpResponse delete(String url, Map<String, String> headers) throws IOException {
+    public es.amplia.oda.core.commons.http.HttpResponse delete(String url, Map<String, String> headers) throws IOException {
+        if (checkHttpClientNotInit()) {
+            return null;
+        }
+
         HttpDelete httpDelete = new HttpDelete(url);
         httpDelete.setConfig(customConfig);
         if(headers != null && !headers.isEmpty()) {
@@ -303,7 +354,15 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+    }
+
+    private boolean checkHttpClientNotInit() {
+        if (httpClient == null) {
+            LOGGER.error("Http client not initialized. Can´t send request");
+            return true;
+        }
+        return false;
     }
 
 }

@@ -1,5 +1,6 @@
 package es.amplia.oda.connector.http;
 
+import es.amplia.oda.comms.http.HttpClientFactoryImpl;
 import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
@@ -34,6 +35,8 @@ public class ActivatorTest {
     @Mock
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
     @Mock
+    private HttpClientFactoryImpl mockedHttpClientFactory;
+    @Mock
     private HttpConnector mockedConnector;
     @Mock
     private HttpConnectorConfigurationUpdateHandler mockedConfigHandler;
@@ -53,11 +56,13 @@ public class ActivatorTest {
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
+        PowerMockito.whenNew(HttpClientFactoryImpl.class).withNoArguments().thenReturn(mockedHttpClientFactory);
+
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(HttpConnector.class).withArguments(eq(mockedDeviceInfoProvider));
+        PowerMockito.verifyNew(HttpConnector.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedHttpClientFactory));
         PowerMockito.verifyNew(HttpConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
         verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());

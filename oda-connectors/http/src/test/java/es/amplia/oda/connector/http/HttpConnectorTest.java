@@ -1,5 +1,7 @@
 package es.amplia.oda.connector.http;
 
+import es.amplia.oda.comms.http.HttpClientFactoryImpl;
+import es.amplia.oda.comms.http.HttpClientImpl;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
@@ -57,6 +59,8 @@ public class HttpConnectorTest {
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
+    @Mock
+    private HttpClientFactoryImpl mockedHttpClientFactory;
     @InjectMocks
     private HttpConnector testConnector;
 
@@ -105,12 +109,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
@@ -119,6 +127,7 @@ public class HttpConnectorTest {
         assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
         assertArrayEquals(TEST_PAYLOAD, buffer);
     }
+
 
     @Test
     public void testUplinkHttpRequestWithCborContentType() throws Exception {
@@ -141,12 +150,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD, CBOR);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(CBOR_MEDIA_TYPE, httpEntity.getContentType().getValue());
@@ -177,12 +190,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD, MESSAGE_PACK);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE, httpEntity.getContentType().getValue());
@@ -213,12 +230,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
@@ -251,12 +272,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
@@ -286,12 +311,16 @@ public class HttpConnectorTest {
         when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 
         verify(mockedClient).execute(httpPostCaptor.capture());
         HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl.toString() + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
         assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
         HttpEntity httpEntity = httpPost.getEntity();
         assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
@@ -367,6 +396,10 @@ public class HttpConnectorTest {
         when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
         when(mockedStatusLine.getStatusCode()).thenReturn(500);
         when(mockedStatusLine.getReasonPhrase()).thenReturn("Error");
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 
@@ -391,6 +424,10 @@ public class HttpConnectorTest {
         when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
         when(mockedClientBuilder.build()).thenReturn(mockedClient);
         when(mockedClient.execute(any(HttpPost.class))).thenThrow(new IOException());
+        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
+        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
+        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
         testConnector.uplink(TEST_PAYLOAD);
 

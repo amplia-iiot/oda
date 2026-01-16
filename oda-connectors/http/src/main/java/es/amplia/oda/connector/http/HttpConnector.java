@@ -1,10 +1,11 @@
 package es.amplia.oda.connector.http;
 
-import es.amplia.oda.comms.http.HttpClientImpl;
-import es.amplia.oda.comms.http.HttpResponse;
+import es.amplia.oda.core.commons.http.HttpResponse;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
+import es.amplia.oda.core.commons.http.HttpClient;
+import es.amplia.oda.core.commons.http.HttpClientFactory;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 
@@ -47,10 +48,11 @@ public class HttpConnector implements OpenGateConnector {
     private String collectionPath;
     private boolean compressionEnabled;
     private int compressionThreshold;
+    private final HttpClientFactory httpClientFactory;
 
-
-    HttpConnector(DeviceInfoProvider deviceInfoProvider) {
+    HttpConnector(DeviceInfoProvider deviceInfoProvider, HttpClientFactory httpClientFactory) {
         this.deviceInfoProvider = deviceInfoProvider;
+        this.httpClientFactory = httpClientFactory;
     }
 
     public void loadConfiguration(ConnectorConfiguration configuration) {
@@ -94,7 +96,7 @@ public class HttpConnector implements OpenGateConnector {
         }
 
         try {
-            HttpClientImpl client = new HttpClientImpl();
+            HttpClient client = httpClientFactory.createHttpClient();
             HashMap<String, String> headers = new HashMap<>();
             boolean compress = false;
 
