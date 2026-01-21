@@ -29,8 +29,8 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
     private static final int TEST_MODBUS_ADDRESS = 254;
 
 
-    private static final ModbusTCPSlaveConfiguration TEST_TCP_CONFIGURATION =
-            ModbusTCPSlaveConfiguration.builder().ipAddress(TEST_ADDRESS).listenPort(TEST_PORT)
+    private static final ModbusTCPDeviceConfiguration TEST_TCP_CONFIGURATION =
+            ModbusTCPDeviceConfiguration.builder().ipAddress(TEST_ADDRESS).listenPort(TEST_PORT)
                     .deviceId(TEST_DEVICE_ID).slaveAddress(TEST_SLAVE_ADDRESS).build();
 
     private final Map<String, List<Object>> expectedModbusSlaves = new HashMap<>();
@@ -44,7 +44,7 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
     @Before
     public void prepare() {
         // expected slave configuration
-        ModbusTCPSlaveConfiguration expectedSlaveConfiguration = new ModbusTCPSlaveConfiguration(TEST_ADDRESS,
+        ModbusTCPDeviceConfiguration expectedSlaveConfiguration = new ModbusTCPDeviceConfiguration(TEST_ADDRESS,
                 TEST_PORT, TEST_DEVICE_ID, TEST_SLAVE_ADDRESS);
         expectedModbusSlaves.put(TCP_MODBUS_TYPE, Collections.singletonList(expectedSlaveConfiguration));
     }

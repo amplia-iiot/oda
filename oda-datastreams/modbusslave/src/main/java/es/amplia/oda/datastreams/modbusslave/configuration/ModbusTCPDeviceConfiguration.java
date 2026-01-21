@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ModbusTCPSlaveConfiguration {
+public class ModbusTCPDeviceConfiguration {
 
     String ipAddress;
     int listenPort;

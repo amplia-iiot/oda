@@ -115,7 +115,7 @@ public class ModbusSlaveConfigurationUpdateHandler implements ConfigurationUpdat
     }
 
     private void loadTcpConfiguration(String deviceId, String[] properties) {
-        ModbusTCPSlaveConfiguration.ModbusTCPSlaveConfigurationBuilder builder = ModbusTCPSlaveConfiguration.builder();
+        ModbusTCPDeviceConfiguration.ModbusTCPDeviceConfigurationBuilder builder = ModbusTCPDeviceConfiguration.builder();
         builder.deviceId(deviceId);
 
         builder.ipAddress(getValueByToken(IP_PROPERTY_NAME, properties)
