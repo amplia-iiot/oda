@@ -36,7 +36,7 @@
         <jline.version>3.7.0</jline.version>
         <felix.gogo.jline>1.1.0</felix.gogo.jline>
         <felix.log.version>1.2.0</felix.log.version>
-        <logback.version>1.2.3</logback.version>
+        <logback.version>1.2.9</logback.version>
         <felix.logback.version>1.0.0</felix.logback.version>
     </properties>
 
