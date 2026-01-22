@@ -1,5 +1,6 @@
 package es.amplia.oda.datastreams.modbusslave.internal;
 
+import com.ghgande.j2mod.modbus.Modbus;
 import com.ghgande.j2mod.modbus.net.AbstractModbusListener;
 import com.ghgande.j2mod.modbus.net.TCPConnectionHandler;
 import com.ghgande.j2mod.modbus.net.TCPSlaveConnection;
@@ -19,6 +20,7 @@ public class ModbusCustomTCPListener extends AbstractModbusListener {
     private final ThreadPool threadPool;
     private Thread listener;
     private Map<String, CustomModbusRequestHandler> requestHandlers;
+    private int timeoutMillies = Modbus.DEFAULT_TIMEOUT;
 
 
     public ModbusCustomTCPListener(int poolsize, Map<String, CustomModbusRequestHandler> requestHandlers) {
@@ -38,6 +40,7 @@ public class ModbusCustomTCPListener extends AbstractModbusListener {
 
     @Override
     public void setTimeout(int timeout) {
+        this.timeoutMillies = timeout;
         super.setTimeout(timeout);
         if (serverSocket != null && listening) {
             try {
@@ -61,7 +64,7 @@ public class ModbusCustomTCPListener extends AbstractModbusListener {
              */
             int floodProtection = 100;
             serverSocket = new ServerSocket(port, floodProtection, address);
-            serverSocket.setSoTimeout(timeout);
+            serverSocket.setSoTimeout(timeoutMillies);
             logger.debug("Listening to {} (Port {})", serverSocket.toString(), port);
         }
 
@@ -95,7 +98,7 @@ public class ModbusCustomTCPListener extends AbstractModbusListener {
                     // obtener el handler asociado a la ip del dispositivo remoto
                     CustomModbusRequestHandler requestHandler = requestHandlers.get(ipRemota);
                     TCPSlaveConnection slave = new TCPSlaveConnection(incoming);
-                    slave.setTimeout(timeout);
+                    slave.setTimeout(timeoutMillies);
                     threadPool.execute(new TCPConnectionHandler(requestHandler, slave));
                 }
                 else {
@@ -116,7 +119,7 @@ public class ModbusCustomTCPListener extends AbstractModbusListener {
                 serverSocket.close();
             }
             if (listener != null) {
-                listener.join();
+                listener.join(timeoutMillies);
             }
             if (threadPool != null) {
                 threadPool.close();

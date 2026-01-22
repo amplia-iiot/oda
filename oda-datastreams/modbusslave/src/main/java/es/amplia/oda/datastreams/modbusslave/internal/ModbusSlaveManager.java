@@ -17,9 +17,9 @@ public class ModbusSlaveManager {
 
     private final StateManager stateManager;
     // <ip, requestHandler>
-    Map<String, CustomModbusRequestHandler> modbusRequestHandlers = new HashMap<>();
+    private final Map<String, CustomModbusRequestHandler> modbusRequestHandlers = new HashMap<>();
     // <listenPort, tcpListener>
-    Map<Integer, ModbusCustomTCPListener> modbusPortListeners = new HashMap<>();
+    private final Map<Integer, ModbusCustomTCPListener> modbusPortListeners = new HashMap<>();
 
     public ModbusSlaveManager(StateManager stateManager) {
         this.stateManager = stateManager;
