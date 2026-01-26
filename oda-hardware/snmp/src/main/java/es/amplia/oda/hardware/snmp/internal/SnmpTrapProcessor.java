@@ -103,11 +103,20 @@ public class SnmpTrapProcessor implements CommandResponder {
             return;
         }
 
+        // all events from the same pdu will have the same date
+        long pduAt = System.currentTimeMillis();
+
         for (VariableBinding var : valuesReceived) {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
             String varType = var.getVariable().getSyntaxString();
             log.debug("OID {}, Type {}, Value {}", OID, varType, value);
+
+            value = value.trim();
+            if (value.isEmpty()) {
+                log.debug("Value retrieved is ignored because it is empty");
+                continue;
+            }
 
             // get translation
             SnmpEntry translation = translator.translate(OID, deviceId);
@@ -118,7 +127,7 @@ public class SnmpTrapProcessor implements CommandResponder {
             log.debug("Value translation : {}", translation);
             // parse snmp entries to events
             List<Event> eventsToPublish = Collections.singletonList(new Event(translation.getDatastreamId(),
-                    translation.getDeviceId(), null, translation.getFeed(), System.currentTimeMillis(), value));
+                    translation.getDeviceId(), null, translation.getFeed(), pduAt, value));
             // publish values
             stateManager.publishValues(eventsToPublish);
         }
