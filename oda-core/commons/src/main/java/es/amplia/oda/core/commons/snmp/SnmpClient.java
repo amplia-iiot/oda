@@ -4,7 +4,7 @@ public interface SnmpClient {
 
     String getDeviceId();
 
-    String getValue(String OID);
+    Object getValue(String OID);
 
     void setValue(String OID, String dataType, String newValue);
 

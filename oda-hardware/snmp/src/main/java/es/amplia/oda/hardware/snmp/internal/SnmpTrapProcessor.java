@@ -10,7 +10,7 @@ import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.PDUv1;
-import org.snmp4j.smi.VariableBinding;
+import org.snmp4j.smi.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -126,9 +126,12 @@ public class SnmpTrapProcessor implements CommandResponder {
                 continue;
             }
 
+            // transform value according to datatype
+            Object valueParsed = SnmpDataTypes.parseVariable(var.getVariable());
+
             // parse snmp entries to events
             List<Event> eventsToPublish = Collections.singletonList(new Event(translation.getDatastreamId(),
-                    translation.getDeviceId(), null, translation.getFeed(), pduAt, value));
+                    translation.getDeviceId(), null, translation.getFeed(), pduAt, valueParsed));
 
             // publish values
             if (translation.getEventPublishType().equalsIgnoreCase(SnmpEntry.EVENT_PUBLISH_TYPE_DISPATCHER)) {

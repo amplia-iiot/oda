@@ -23,7 +23,7 @@ public class SnmpClientProxy implements SnmpClient, AutoCloseable {
     }
 
     @Override
-    public String getValue(String OID) {
+    public Object getValue(String OID) {
         return Optional.ofNullable(proxy.callFirst(snmpClient -> snmpClient.getValue(OID)))
                 .orElseThrow(() -> new SnmpException(NO_SNMP_CLIENT_AVAILABLE_MESSAGE));
     }

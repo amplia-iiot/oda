@@ -43,7 +43,7 @@ public class SnmpClientImpl implements SnmpClient {
     }
 
     @Override
-    public String getValue(String OID) {
+    public Object getValue(String OID) {
         log.info("Getting value in OID {}", OID);
 
         ResponseEvent eventResponse;
@@ -71,7 +71,7 @@ public class SnmpClientImpl implements SnmpClient {
 
             // get values in response
             for (VariableBinding varBinding : responseValues) {
-                return varBinding.getVariable().toString();
+                return SnmpDataTypes.parseVariable(varBinding.getVariable());
             }
 
         } catch (Exception e) {
@@ -88,7 +88,7 @@ public class SnmpClientImpl implements SnmpClient {
         log.info("Setting value {} in OID {}", newValue, OID);
         ResponseEvent eventResponse;
         try {
-            VariableBinding variableBind = new VariableBinding(new OID(OID), parseValueType(dataType, newValue));
+            VariableBinding variableBind = new VariableBinding(new OID(OID), SnmpDataTypes.formatValue(dataType, newValue));
             if (this.snmpVersion == 1 || this.snmpVersion == 2) {
                 PDU pdu = new PDU();
                 pdu.setType(PDU.SET);
@@ -156,32 +156,6 @@ public class SnmpClientImpl implements SnmpClient {
             throw new SnmpException("Error Status = " + response.getErrorStatus());
         }
         return response;
-    }
-
-    private Variable parseValueType(String type, String value) throws IllegalArgumentException {
-        switch (type.toUpperCase()) {
-            case SnmpDataTypes.OBJECT_IDENTIFIER:
-                return new OID(value);
-            case SnmpDataTypes.INTEGER:
-                return new Integer32(Integer.parseInt(value));
-            case SnmpDataTypes.BIT_STRING:
-            case SnmpDataTypes.OCTET_STRING:
-                return new OctetString(value);
-            case SnmpDataTypes.GAUGE32:
-                return new Gauge32(Long.parseLong(value));
-            case SnmpDataTypes.COUNTER32:
-                return new Counter32(Long.parseLong(value));
-            case SnmpDataTypes.COUNTER64:
-                return new Counter64(Long.parseLong(value));
-            case SnmpDataTypes.TIMETICKS:
-                return new TimeTicks(Long.parseLong(value));
-            case SnmpDataTypes.OPAQUE:
-                return new Opaque(value.getBytes());
-            case SnmpDataTypes.IPADDRESS:
-                return new IpAddress(value);
-            default:
-                throw new IllegalArgumentException("Unsupported variable type " + type);
-        }
     }
 
 }
