@@ -17,6 +17,8 @@ public class SnmpDatastreamTranslatorTest {
     private static final String TEST_DATATYPE_VALUE = "String";
     private static final String TEST_DATASTREAM_VALUE = "testDatastreamId1";
     private static final String TEST_FEED_VALUE = "feed";
+    private static final String TEST_PUBLISH_TYPE_VALUE = "dispatcher";
+
 
     List<SnmpEntry> snmpEntries = new ArrayList<>();
 
@@ -25,7 +27,7 @@ public class SnmpDatastreamTranslatorTest {
     @Before
     public void start(){
         SnmpEntry snmpEntry = new SnmpEntry(TEST_OID_VALUE, TEST_DATATYPE_VALUE, TEST_DATASTREAM_VALUE,
-                TEST_DEVICE_ID_VALUE, TEST_FEED_VALUE);
+                TEST_DEVICE_ID_VALUE, TEST_FEED_VALUE, TEST_PUBLISH_TYPE_VALUE);
         snmpEntries.add(snmpEntry);
 
         snmpDatastreamsTranslator = new SnmpDatastreamsTranslator(snmpEntries);

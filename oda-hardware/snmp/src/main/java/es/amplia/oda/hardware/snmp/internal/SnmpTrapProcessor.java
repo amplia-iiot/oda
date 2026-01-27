@@ -110,13 +110,6 @@ public class SnmpTrapProcessor implements CommandResponder {
             String OID = var.getOid().toString();
             String value = var.getVariable().toString();
             String varType = var.getVariable().getSyntaxString();
-            log.debug("OID {}, Type {}, Value {}", OID, varType, value);
-
-            value = value.trim();
-            if (value.isEmpty()) {
-                log.debug("Value retrieved is ignored because it is empty");
-                continue;
-            }
 
             // get translation
             SnmpEntry translation = translator.translate(OID, deviceId);
@@ -124,12 +117,28 @@ public class SnmpTrapProcessor implements CommandResponder {
                 continue;
             }
 
+            log.debug("OID '{}', Type '{}', Value '{}'", OID, varType, value);
             log.debug("Value translation : {}", translation);
+
+            value = value.trim();
+            if (value.isEmpty()) {
+                log.debug("Value retrieved is ignored because it is empty");
+                continue;
+            }
+
             // parse snmp entries to events
             List<Event> eventsToPublish = Collections.singletonList(new Event(translation.getDatastreamId(),
                     translation.getDeviceId(), null, translation.getFeed(), pduAt, value));
+
             // publish values
-            stateManager.publishValues(eventsToPublish);
+            if (translation.getEventPublishType().equalsIgnoreCase(SnmpEntry.EVENT_PUBLISH_TYPE_DISPATCHER)) {
+                stateManager.publishValues(eventsToPublish);
+            } else if (translation.getEventPublishType().equalsIgnoreCase(SnmpEntry.EVENT_PUBLISH_TYPE_STATEMANAGER)) {
+                stateManager.onReceivedEvents(eventsToPublish);
+            } else {
+                log.error("Publish type '{}' for datastreamId '{}' and deviceId '{}' not supported",
+                        translation.getEventPublishType(), translation.getDatastreamId(), translation.getDeviceId());
+            }
         }
     }
 }

@@ -21,6 +21,7 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
     private static final String DATA_TYPE_PROPERTY_NAME = "dataType";
     private static final String DATASTREAM_PROPERTY_NAME = "datastream";
     private static final String FEED_PROPERTY_NAME = "feed";
+    private static final String EVENT_PUBLISH_TYPE_PROPERTY_NAME = "eventPublishType";
 
     // Current configuration.
     List<SnmpEntry> currentSnmpRecollection = new ArrayList<>();
@@ -50,9 +51,14 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
                 String datastreamId = getValueByToken(DATASTREAM_PROPERTY_NAME, propertyTokens)
                         .orElseThrow(throwMissingRequiredPropertyConfigurationException(DATASTREAM_PROPERTY_NAME));
                 String feed = getValueByToken(FEED_PROPERTY_NAME, propertyTokens).orElse(null);
+                String eventPublishType = getValueByToken(EVENT_PUBLISH_TYPE_PROPERTY_NAME, propertyTokens)
+                        .orElse(SnmpEntry.EVENT_PUBLISH_TYPE_DISPATCHER);
+
+                // check publishType is valid
+                isPublishTypeValid(eventPublishType);
 
                 // create entry
-                SnmpEntry newEntry = new SnmpEntry(oid, dataType, datastreamId, deviceId, feed);
+                SnmpEntry newEntry = new SnmpEntry(oid, dataType, datastreamId, deviceId, feed, eventPublishType);
                 log.info("Adding snmp entry info: {}", newEntry);
 
                 // adding to list
@@ -79,5 +85,12 @@ public class SnmpDatastreamsConfigurationHandler implements ConfigurationUpdateH
 
     private void logInvalidConfigurationWarning(Map.Entry<String, ?> entry, String message) {
         log.warn("Invalid configuration entry  \"{}\": {}", entry, message);
+    }
+
+    private void isPublishTypeValid(String publishType) throws ConfigurationException {
+        if (publishType != null && !publishType.equalsIgnoreCase(SnmpEntry.EVENT_PUBLISH_TYPE_DISPATCHER) &&
+                !publishType.equalsIgnoreCase(SnmpEntry.EVENT_PUBLISH_TYPE_STATEMANAGER)) {
+            throw new ConfigurationException("Publish type '" + publishType + "' not valid");
+        }
     }
 }
