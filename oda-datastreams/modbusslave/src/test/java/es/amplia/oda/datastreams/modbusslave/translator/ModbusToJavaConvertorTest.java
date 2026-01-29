@@ -113,7 +113,7 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersShort() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Short",  null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Short", 0);
 
         // assertions
         Assert.assertEquals(1, numRegister);
@@ -122,7 +122,7 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersInt() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Int", null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Int", 0);
 
         // assertions
         Assert.assertEquals(2, numRegister);
@@ -131,7 +131,7 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersLong() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Long",  null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Long", 0);
 
         // assertions
         Assert.assertEquals(4, numRegister);
@@ -140,7 +140,7 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersFloat() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Float",  null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Float", 0);
 
         // assertions
         Assert.assertEquals(2, numRegister);
@@ -149,7 +149,7 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersDouble() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Double",  null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Double", 0);
 
         // assertions
         Assert.assertEquals(4, numRegister);
@@ -158,22 +158,16 @@ public class ModbusToJavaConvertorTest {
     @Test
     public void testGetNumRegistersList() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("List",  20, 50);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("List",50);
 
         // assertions
-        Assert.assertEquals(20, numRegister);
-
-        // call method to test
-        int numRegister2 = ModbusToJavaTypeConverter.getNumRegisters("List",  null, 50);
-
-        // assertions
-        Assert.assertEquals(50, numRegister2);
+        Assert.assertEquals(50, numRegister);
     }
 
     @Test
     public void testGetNumRegistersNotSupported() {
         // call method to test
-        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("NotSupported",  null, 0);
+        int numRegister = ModbusToJavaTypeConverter.getNumRegisters("NotSupported",0);
 
         // assertions
         Assert.assertEquals(0, numRegister);

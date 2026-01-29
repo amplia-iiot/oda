@@ -25,7 +25,7 @@ public class ModbusToEventConverterTest {
     private static final String TEST_FEED_ID = "feedId";
     private static final String TEST_DATATYPE_BOOLEAN = "Boolean";
     private static final String TEST_DATATYPE_SHORT = "Short";
-    private static final int TEST_MODBUS_ADDRESS = 254;
+    private static final int TEST_START_MODBUS_ADDRESS = 254;
     private static final int TEST_MODBUS_SLAVE_ADDRESS = 1;
 
     @Mock
@@ -44,14 +44,14 @@ public class ModbusToEventConverterTest {
         ModbusEventTranslator.clearAllEntries();
 
         // add translation
-        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID,
-                TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_BOOLEAN));
+        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
+                TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_BOOLEAN));
 
         // create conditions for modbus request
         PowerMockito.when(mockedModbusCoilRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusCoilRequest.getFunctionCode()).thenReturn(Modbus.WRITE_COIL);
         PowerMockito.when(mockedModbusCoilRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusCoilRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusCoilRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusCoilRequest.getCoil()).thenReturn(true);
 
         // call method to test
@@ -73,7 +73,7 @@ public class ModbusToEventConverterTest {
         PowerMockito.when(mockedModbusCoilRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusCoilRequest.getFunctionCode()).thenReturn(Modbus.WRITE_COIL);
         PowerMockito.when(mockedModbusCoilRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusCoilRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusCoilRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusCoilRequest.getCoil()).thenReturn(true);
 
         // call method to test
@@ -88,14 +88,14 @@ public class ModbusToEventConverterTest {
         ModbusEventTranslator.clearAllEntries();
 
         // add translation
-        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID,
-                TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_BOOLEAN));
+        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
+                TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_BOOLEAN));
 
         // create conditions for modbus request
         PowerMockito.when(mockedModbusCoilsRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusCoilsRequest.getFunctionCode()).thenReturn(Modbus.WRITE_MULTIPLE_COILS);
         PowerMockito.when(mockedModbusCoilsRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusCoilsRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusCoilsRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         BitVector expectedValue = new BitVector(3);
         expectedValue.setBit(0, true);
         expectedValue.setBit(1, false);
@@ -110,7 +110,7 @@ public class ModbusToEventConverterTest {
         Assert.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
         Assert.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
         Assert.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
-        Assert.assertEquals((byte) 5, eventsGenerated.get(0).getValue());
+        Assert.assertEquals(true, eventsGenerated.get(0).getValue());
     }
 
     @Test
@@ -121,7 +121,7 @@ public class ModbusToEventConverterTest {
         PowerMockito.when(mockedModbusCoilsRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusCoilsRequest.getFunctionCode()).thenReturn(Modbus.WRITE_MULTIPLE_COILS);
         PowerMockito.when(mockedModbusCoilsRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusCoilsRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusCoilsRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         BitVector expectedValue = new BitVector(3);
         expectedValue.setBit(0, true);
         expectedValue.setBit(1, false);
@@ -140,14 +140,14 @@ public class ModbusToEventConverterTest {
         ModbusEventTranslator.clearAllEntries();
 
         // add translation
-        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID,
-                TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_SHORT));
+        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
+                TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_SHORT));
 
         // create conditions for modbus request
         PowerMockito.when(mockedModbusRegisterRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusRegisterRequest.getFunctionCode()).thenReturn(Modbus.WRITE_SINGLE_REGISTER);
         PowerMockito.when(mockedModbusRegisterRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusRegisterRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusRegisterRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusRegisterRequest.getRegister()).thenReturn(mockedRegister);
         PowerMockito.when(mockedRegister.toBytes()).thenReturn(new byte[]{1, 0});
 
@@ -170,7 +170,7 @@ public class ModbusToEventConverterTest {
         PowerMockito.when(mockedModbusRegisterRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusRegisterRequest.getFunctionCode()).thenReturn(Modbus.WRITE_SINGLE_REGISTER);
         PowerMockito.when(mockedModbusRegisterRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusRegisterRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusRegisterRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusRegisterRequest.getRegister()).thenReturn(mockedRegister);
         PowerMockito.when(mockedRegister.toBytes()).thenReturn(new byte[]{1, 0});
 
@@ -186,14 +186,14 @@ public class ModbusToEventConverterTest {
         ModbusEventTranslator.clearAllEntries();
 
         // add translation
-        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID,
-                TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_SHORT));
+        ModbusEventTranslator.addEntry(new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
+                TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE_SHORT));
 
         // create conditions for modbus request
         PowerMockito.when(mockedModbusRegistersRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusRegistersRequest.getFunctionCode()).thenReturn(Modbus.WRITE_MULTIPLE_REGISTERS);
         PowerMockito.when(mockedModbusRegistersRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusRegistersRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusRegistersRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusRegistersRequest.getWordCount()).thenReturn(1);
         // prepare value
         Register[] expectedValue = new Register[1];
@@ -220,7 +220,7 @@ public class ModbusToEventConverterTest {
         PowerMockito.when(mockedModbusRegistersRequest.getUnitID()).thenReturn(TEST_MODBUS_SLAVE_ADDRESS);
         PowerMockito.when(mockedModbusRegistersRequest.getFunctionCode()).thenReturn(Modbus.WRITE_MULTIPLE_REGISTERS);
         PowerMockito.when(mockedModbusRegistersRequest.getMessage()).thenReturn(null);
-        PowerMockito.when(mockedModbusRegistersRequest.getReference()).thenReturn(TEST_MODBUS_ADDRESS);
+        PowerMockito.when(mockedModbusRegistersRequest.getReference()).thenReturn(TEST_START_MODBUS_ADDRESS);
         PowerMockito.when(mockedModbusRegistersRequest.getWordCount()).thenReturn(1);
         // prepare value
         Register[] expectedValue = new Register[1];

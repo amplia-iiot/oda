@@ -26,7 +26,8 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
     private static final String TEST_DATASTREAM_ID = "datastreamId";
     private static final String TEST_FEED_ID = "feedId";
     private static final String TEST_DATATYPE = "Short";
-    private static final int TEST_MODBUS_ADDRESS = 254;
+    private static final int TEST_START_MODBUS_ADDRESS = 254;
+    private static final int TEST_END_MODBUS_ADDRESS = 286;
 
 
     private static final ModbusTCPDeviceConfiguration TEST_TCP_CONFIGURATION =
@@ -88,21 +89,21 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
         // prepare configuration
         Dictionary<String, String> config = new Hashtable<>();
 
-        String keyString = TEST_MODBUS_ADDRESS + "," + TEST_DEVICE_ID;
+        String keyString = TEST_START_MODBUS_ADDRESS + "," + TEST_DEVICE_ID;
         String valueString = DATASTREAM_ID_PROPERTY_NAME + ":" + TEST_DATASTREAM_ID + "," +
                 FEED_PROPERTY_NAME + ":" + TEST_FEED_ID + "," +
                 DATA_TYPE_PROPERTY_NAME + ":" + TEST_DATATYPE;
 
         config.put(keyString, valueString);
 
-        TranslationEntry expectedTranslationEntry = new TranslationEntry(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID,
-                TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE);
+        TranslationEntry expectedTranslationEntry = new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
+                TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED_ID, TEST_DATATYPE);
 
         // call load method to test
         testConfigHandler.loadConfiguration(config);
 
         // retrieve loaded translation entries
-        List<TranslationEntry> translationEntries = ModbusEventTranslator.getExistingEntries(TEST_MODBUS_ADDRESS, TEST_DEVICE_ID);
+        List<TranslationEntry> translationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
         Assert.assertEquals(expectedTranslationEntry, translationEntries.get(0));

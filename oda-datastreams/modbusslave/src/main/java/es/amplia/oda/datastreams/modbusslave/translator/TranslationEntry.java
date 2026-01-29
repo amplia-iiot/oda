@@ -4,28 +4,20 @@ import lombok.Data;
 
 @Data
 public class TranslationEntry {
-    int modbusAddress;
+    int startModbusAddress;
+    int endModbusAddress;
     String deviceId;
     String datastreamId;
     String feed;
     String dataType;
-    Integer numRegistersToGet;
 
-    public TranslationEntry(int modbusAddress, String deviceId, String datastreamId, String feed, String dataType) {
-        this.modbusAddress = modbusAddress;
+    public TranslationEntry(int startModbusAddress, int endModbusAddress, String deviceId, String datastreamId,
+                            String feed, String dataType) {
+        this.startModbusAddress = startModbusAddress;
+        this.endModbusAddress = endModbusAddress;
         this.deviceId = deviceId;
         this.datastreamId = datastreamId;
         this.feed = feed;
         this.dataType = dataType;
-    }
-
-    public TranslationEntry(int modbusAddress, String deviceId, String datastreamId, String feed, String dataType,
-                            Integer numRegistersToGet) {
-        this.modbusAddress = modbusAddress;
-        this.deviceId = deviceId;
-        this.datastreamId = datastreamId;
-        this.feed = feed;
-        this.dataType = dataType;
-        this.numRegistersToGet = numRegistersToGet;
     }
 }

@@ -14,19 +14,26 @@ class ModbusToJavaTypeConverter {
     static final int TWO_REGISTERS = 2;
     static final int FOUR_REGISTERS = 4;
 
+    public static String DATA_TYPE_SHORT = "Short";
+    public static String DATA_TYPE_INT = "Int";
+    public static String DATA_TYPE_FLOAT = "Float";
+    public static String DATA_TYPE_DOUBLE = "Double";
+    public static String DATA_TYPE_LONG = "Long";
+    public static String DATA_TYPE_LIST = "List";
+
 
     public static Object convertRegister(byte[] modbusRegisters, String dataTypeToConvert) {
-        if (dataTypeToConvert.equalsIgnoreCase("Short")) {
+        if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_SHORT)) {
             return convertRegisterToShort(modbusRegisters);
-        } else if (dataTypeToConvert.equalsIgnoreCase("Int")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_INT)) {
             return convertRegisterToInt(modbusRegisters);
-        } else if (dataTypeToConvert.equalsIgnoreCase("Float")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_FLOAT)) {
             return convertRegistersToFloat(modbusRegisters);
-        } else if (dataTypeToConvert.equalsIgnoreCase("Double")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_DOUBLE)) {
             return convertRegistersToDouble(modbusRegisters);
-        } else if (dataTypeToConvert.equalsIgnoreCase("Long")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_LONG)) {
             return convertRegistersToLong(modbusRegisters);
-        } else if (dataTypeToConvert.equalsIgnoreCase("List")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_LIST)) {
             return convertRegistersToByteArray(modbusRegisters);
         } else {
             log.error("Datatype " + dataTypeToConvert + " not supported");
@@ -34,23 +41,19 @@ class ModbusToJavaTypeConverter {
         }
     }
 
-    public static int getNumRegisters(String dataTypeToConvert, Integer numRegistersToGet, int numRegisterInBlock) {
-        if (dataTypeToConvert.equalsIgnoreCase("Short")) {
+    public static int getNumRegisters(String dataTypeToConvert, int numRegisterInBlock) {
+        if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_SHORT)) {
             return ONE_REGISTER;
-        } else if (dataTypeToConvert.equalsIgnoreCase("Int")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_INT)) {
             return TWO_REGISTERS;
-        } else if (dataTypeToConvert.equalsIgnoreCase("Float")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_FLOAT)) {
             return TWO_REGISTERS;
-        } else if (dataTypeToConvert.equalsIgnoreCase("Double")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_DOUBLE)) {
             return FOUR_REGISTERS;
-        } else if (dataTypeToConvert.equalsIgnoreCase("Long")) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_LONG)) {
             return FOUR_REGISTERS;
-        } else if (dataTypeToConvert.equalsIgnoreCase("List")) {
-            if (numRegistersToGet == null || numRegistersToGet > numRegisterInBlock) {
+        } else if (dataTypeToConvert.equalsIgnoreCase(DATA_TYPE_LIST)) {
                 return numRegisterInBlock;
-            } else {
-                return numRegistersToGet;
-            }
         } else {
             log.error("Datatype " + dataTypeToConvert + " not supported");
             return 0;
