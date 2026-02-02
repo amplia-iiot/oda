@@ -21,26 +21,33 @@ public class ModbusEventTranslator {
             entries = new ArrayList<>();
         }
 
-        List<TranslationEntry> entriesMatching;
         // check if it exists a block entry with the same address
+        List<TranslationEntry> entriesMatching;
         if (newEntry.dataType.equalsIgnoreCase(ModbusToJavaTypeConverter.DATA_TYPE_LIST)) {
-            entriesMatching = getExistingBlockTranslations(newEntry.startModbusAddress, newEntry.deviceId);
+            entriesMatching = getExistingBlockTranslations(newEntry.startModbusAddress, newEntry.endModbusAddress, newEntry.deviceId);
+            if (!entriesMatching.isEmpty()) {
+                log.error("Entry for address range (start = {}, end = {}) for device {} already exists",
+                        newEntry.getStartModbusAddress(), newEntry.getEndModbusAddress(), newEntry.getDeviceId());
+                return;
+            }
+
+            // entry not exist, adding new entry
+            log.info("Adding new entry for address range (start = {}, end = {}) of device {} : {}", newEntry.getStartModbusAddress(),
+                    newEntry.getEndModbusAddress(), newEntry.getDeviceId(), newEntry);
         }
         // check if single entry already exists
         else {
-            // check if entry already exists
             entriesMatching = getExistingNonBlockTranslations(newEntry.startModbusAddress, newEntry.deviceId);
+            if (!entriesMatching.isEmpty()) {
+                log.error("Entry for address {} for device {} already exists", newEntry.getStartModbusAddress(), newEntry.getDeviceId());
+                return;
+            }
+
+            // entry not exist, adding new entry
+            log.info("Adding new entry for address {} of device {} : {}", newEntry.getStartModbusAddress(), newEntry.getDeviceId(), newEntry);
         }
 
-        if (!entriesMatching.isEmpty()) {
-            log.error("Entry for address (start = {}, end = {}) for device {} already exists",
-                    newEntry.getStartModbusAddress(), newEntry.getEndModbusAddress(), newEntry.getDeviceId());
-            return;
-        }
-
-        // entry not exist, adding new entry
-        log.info("Adding new entry for address (start = {}, end = {}) of device {} : {}", newEntry.getStartModbusAddress(),
-                newEntry.getEndModbusAddress(), newEntry.getDeviceId(), newEntry);
+        // add entry
         entries.add(newEntry);
     }
 
@@ -61,14 +68,14 @@ public class ModbusEventTranslator {
                 .collect(Collectors.toList());
     }
 
-    public static List<TranslationEntry> getExistingBlockTranslations(int modbusAddress, String deviceId) {
+    public static List<TranslationEntry> getExistingBlockTranslations(int startModbusAddress, int endModbusAddress, String deviceId) {
         if (entries == null) {
             return Collections.emptyList();
         }
 
         return entries.stream().filter(value -> value.getDeviceId().equalsIgnoreCase(deviceId)
                         && value.getDataType().equalsIgnoreCase(ModbusToJavaTypeConverter.DATA_TYPE_LIST)
-                        && value.getStartModbusAddress() <= modbusAddress && value.getEndModbusAddress() >= modbusAddress)
+                        && value.getStartModbusAddress() <= startModbusAddress && value.getEndModbusAddress() >= endModbusAddress)
                 .collect(Collectors.toList());
     }
 }

@@ -62,7 +62,7 @@ public class ModbusToEventConverter {
         }
 
         // get block translations
-        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(modbusAddress, deviceId);
+        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(modbusAddress, modbusAddress, deviceId);
         for (TranslationEntry entry : entriesBlocks) {
             eventsToReturn.add(new Event(entry.getDatastreamId(), entry.getDeviceId(), null, entry.getFeed(), null, modbusValue));
         }
@@ -97,7 +97,7 @@ public class ModbusToEventConverter {
         }
 
         // get block translations
-        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(modbusAddress, deviceId);
+        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(modbusAddress, modbusAddress, deviceId);
         for (TranslationEntry entry : entriesBlocks) {
             Object valueConverted = ModbusToJavaTypeConverter.convertRegister(modbusValue.toBytes(), entry.getDataType());
             if (valueConverted == null) {
@@ -149,7 +149,8 @@ public class ModbusToEventConverter {
         }
 
         // get block translations
-        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(startingModbusAddress, deviceId);
+        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(startingModbusAddress,
+                startingModbusAddress, deviceId);
         for (TranslationEntry entry : entriesBlocks) {
             eventsToReturn.add(new Event(entry.getDatastreamId(), entry.getDeviceId(), null, entry.getFeed(),
                     null, coilsArray.getBytes()));
@@ -204,7 +205,8 @@ public class ModbusToEventConverter {
         }
 
         // get block translations
-        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(startingModbusAddress, deviceId);
+        List<TranslationEntry> entriesBlocks = ModbusEventTranslator.getExistingBlockTranslations(startingModbusAddress,
+                startingModbusAddress, deviceId);
         for (TranslationEntry entry : entriesBlocks) {
             byte[] convertedValue = null;
             try {
