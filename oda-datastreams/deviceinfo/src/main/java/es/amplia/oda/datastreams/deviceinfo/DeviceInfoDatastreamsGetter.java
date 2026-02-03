@@ -64,6 +64,7 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
         path = configuration.getPath();
         LOGGER.info("Load new path to scripts directory: {}", path);
 
+        // load scripts defined in configuration file
         for (String dsId: configuration.getDsScript().keySet()) {
             String []scriptType = configuration.getDsScript().get(dsId).split(";");
 
@@ -78,26 +79,36 @@ public class DeviceInfoDatastreamsGetter implements DeviceInfoProvider {
             getters.add(dsGetter);
         }
 
-        getters.add(context.registerService(DatastreamsGetter.class,
-                        new DatastreamGetterTemplate(DEVICE_ID_DATASTREAM_ID, null,
-                                this::getDeviceId), null));
-        getters.add(context.registerService(DatastreamsGetter.class,
-                        new DatastreamGetterTemplate(SERIAL_NUMBER_DATASTREAM_ID, null,
-                                this::getSerialNumber), null));
-        getters.add(context.registerService(DatastreamsGetter.class,
-                        new DatastreamGetterTemplate(SOFTWARE_DATASTREAM_ID, null,
-                                this::getSoftware), null));
-        getters.add(context.registerService(DatastreamsGetter.class,
-                new DatastreamGetterTemplate(CLOCK_DATASTREAM_ID, null,
-                        this::getClock), null));
+        // load internal scripts (only if not defined in configuration file)
+        if(!configuration.getDsScript().containsKey(DEVICE_ID_DATASTREAM_ID)){
+            getters.add(context.registerService(DatastreamsGetter.class,
+                    new DatastreamGetterTemplate(DEVICE_ID_DATASTREAM_ID, null,
+                            this::getDeviceId), null));
+        }
+        if(!configuration.getDsScript().containsKey(SERIAL_NUMBER_DATASTREAM_ID)){
+            getters.add(context.registerService(DatastreamsGetter.class,
+                    new DatastreamGetterTemplate(SERIAL_NUMBER_DATASTREAM_ID, null,
+                            this::getSerialNumber), null));
+        }
+        if(!configuration.getDsScript().containsKey(SOFTWARE_DATASTREAM_ID)){
+            getters.add(context.registerService(DatastreamsGetter.class,
+                    new DatastreamGetterTemplate(SOFTWARE_DATASTREAM_ID, null,
+                            this::getSoftware), null));
+        }
+        if(!configuration.getDsScript().containsKey(CLOCK_DATASTREAM_ID)){
+            getters.add(context.registerService(DatastreamsGetter.class,
+                    new DatastreamGetterTemplate(CLOCK_DATASTREAM_ID, null,
+                            this::getClock), null));
+        }
 
+        // get serial number
         try {
             LOGGER.info("Preparing scripts for run");
 
             File dir = new File(path);
             for (File script : Objects.requireNonNull(dir.listFiles())) {
                 if(!script.setExecutable(true)) {
-                    LOGGER.error("Script {} couldn't be setted executable", script.getName());
+                    LOGGER.error("Script {} couldn't be set executable", script.getName());
                 }
             }
 
