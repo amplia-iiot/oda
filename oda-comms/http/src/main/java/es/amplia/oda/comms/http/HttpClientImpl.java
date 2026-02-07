@@ -1,6 +1,7 @@
 package es.amplia.oda.comms.http;
 
 import es.amplia.oda.comms.http.configuration.HttpClientConfiguration;
+import es.amplia.oda.core.commons.http.HttpResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.config.RequestConfig;
@@ -20,9 +21,7 @@ import org.slf4j.LoggerFactory;
 import es.amplia.oda.core.commons.http.HttpClient;
 
 import javax.net.ssl.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -179,11 +178,11 @@ public class HttpClientImpl implements HttpClient {
         }
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
+    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return post(url, payload, contentType, headers, false);
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public HttpResponse post(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
         if (checkHttpClientNotInit()) {
             return null;
         }
@@ -212,15 +211,14 @@ public class HttpClientImpl implements HttpClient {
         HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP POST message sent");
-            entity = httpResponse.getEntity();
-            if (entity != null) {
-                response = EntityUtils.toString(entity);
+            HttpEntity rEntity = httpResponse.getEntity();
+            if (rEntity != null) {
+                response = EntityUtils.toString(rEntity);
             }
             Header[] headersResp = httpResponse.getAllHeaders();
-			for (int i = 0; i < headersResp.length; i++) {
-				Header h = headersResp[i];
-				rHeaders.put(h.getName(), h.getValue());
-			}
+            for (Header h : headersResp) {
+                rHeaders.put(h.getName(), h.getValue());
+            }
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP POST message: {}, {}", statusCode, response);
@@ -228,14 +226,18 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return HttpResponse.builder()
+                .statusCode(statusCode)
+                .response(response)
+                .headers(rHeaders)
+                .build();
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
+    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers) throws IOException {
         return put(url, payload, contentType, headers, false);
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
+    public HttpResponse put(String url, byte[] payload, String contentType, Map<String, String> headers, boolean compress) throws IOException {
         if (checkHttpClientNotInit()) {
             return null;
         }
@@ -264,15 +266,14 @@ public class HttpClientImpl implements HttpClient {
         HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP PUT message sent");
-            entity = httpResponse.getEntity();
-            if (entity != null) {
-                response = EntityUtils.toString(entity);
+            HttpEntity rEntity = httpResponse.getEntity();
+            if (rEntity != null) {
+                response = EntityUtils.toString(rEntity);
             }
             Header[] headersResp = httpResponse.getAllHeaders();
-			for (int i = 0; i < headersResp.length; i++) {
-				Header h = headersResp[i];
-				rHeaders.put(h.getName(), h.getValue());
-			}
+            for (Header h : headersResp) {
+                rHeaders.put(h.getName(), h.getValue());
+            }
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP PUT message: {}, {}", statusCode, response);
@@ -280,10 +281,14 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return HttpResponse.builder()
+                .statusCode(statusCode)
+                .response(response)
+                .headers(rHeaders)
+                .build();
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse get(String url, Map<String, String> headers) throws IOException {
+    public HttpResponse get(String url, Map<String, String> headers) throws IOException {
         if (checkHttpClientNotInit()) {
             return null;
         }
@@ -301,15 +306,14 @@ public class HttpClientImpl implements HttpClient {
         HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP GET message sent");
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                response = EntityUtils.toString(entity);
+            HttpEntity rEntity = httpResponse.getEntity();
+            if (rEntity != null) {
+                response = EntityUtils.toString(rEntity);
             }
             Header[] headersResp = httpResponse.getAllHeaders();
-			for (int i = 0; i < headersResp.length; i++) {
-				Header h = headersResp[i];
-				rHeaders.put(h.getName(), h.getValue());
-			}
+            for (Header h : headersResp) {
+                rHeaders.put(h.getName(), h.getValue());
+            }
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP GET message: {}, {}", statusCode, response);
@@ -317,10 +321,14 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return HttpResponse.builder()
+                .statusCode(statusCode)
+                .response(response)
+                .headers(rHeaders)
+                .build();
     }
 
-    public es.amplia.oda.core.commons.http.HttpResponse delete(String url, Map<String, String> headers) throws IOException {
+    public HttpResponse delete(String url, Map<String, String> headers) throws IOException {
         if (checkHttpClientNotInit()) {
             return null;
         }
@@ -338,15 +346,14 @@ public class HttpClientImpl implements HttpClient {
         HashMap<String, String> rHeaders = new HashMap<>();
         if (isSuccessCode(statusCode)) {
             LOGGER.debug("HTTP DELETE message sent");
-            HttpEntity entity = httpResponse.getEntity();
-            if (entity != null) {
-                response = EntityUtils.toString(entity);
+            HttpEntity rEntity = httpResponse.getEntity();
+            if (rEntity != null) {
+                response = EntityUtils.toString(rEntity);
             }
             Header[] headersResp = httpResponse.getAllHeaders();
-			for (int i = 0; i < headersResp.length; i++) {
-				Header h = headersResp[i];
-				rHeaders.put(h.getName(), h.getValue());
-			}
+            for (Header h : headersResp) {
+                rHeaders.put(h.getName(), h.getValue());
+            }
         } else {
             response = httpResponse.getStatusLine().getReasonPhrase();
             LOGGER.error("Error sending HTTP DELTE message: {}, {}", statusCode, response);
@@ -354,7 +361,56 @@ public class HttpClientImpl implements HttpClient {
 
         httpResponse.close();
 
-        return es.amplia.oda.core.commons.http.HttpResponse.builder().statusCode(statusCode).response(response).headers(rHeaders).build();
+        return HttpResponse.builder()
+                .statusCode(statusCode)
+                .response(response)
+                .headers(rHeaders)
+                .build();
+    }
+
+    public byte[] getBinaryFile(String url, Map<String, String> headers) throws IOException {
+        byte[] bytesResponse = new byte[0];
+
+        if (checkHttpClientNotInit()) {
+            return bytesResponse;
+        }
+
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setConfig(customConfig);
+        if(headers != null && !headers.isEmpty()) {
+            headers.forEach(httpGet::setHeader);
+        }
+
+        CloseableHttpResponse httpResponse = httpClient.execute(httpGet);
+
+        // check response
+        int statusCode = httpResponse.getStatusLine().getStatusCode();
+        if (isSuccessCode(statusCode)) {
+            LOGGER.debug("HTTP GET message sent");
+            // get headers
+            Header[] headersResp = httpResponse.getAllHeaders();
+
+            // get body
+            HttpEntity rEntity = httpResponse.getEntity();
+            if (rEntity != null) {
+                InputStream in = rEntity.getContent();
+
+                // read input stream to byte array
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                byte[] temp = new byte[1024];
+                int bytesLeidos;
+                while ((bytesLeidos = in.read(temp)) != -1) {
+                    buffer.write(temp, 0, bytesLeidos);
+                }
+                bytesResponse = buffer.toByteArray();
+            }
+        } else {
+            LOGGER.error("Error sending HTTP GET message: {}", statusCode);
+        }
+
+        httpResponse.close();
+
+        return bytesResponse;
     }
 
     private boolean checkHttpClientNotInit() {
