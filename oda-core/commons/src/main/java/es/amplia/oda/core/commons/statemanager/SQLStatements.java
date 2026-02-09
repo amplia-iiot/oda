@@ -13,6 +13,8 @@ public interface SQLStatements {
 
 	String getTimeIndexStatement();
 
+	String getUpdateIndexStatement();
+
 	String getObtainStoredDataStatement();
 
 	String getInsertNewDataRowStatement();

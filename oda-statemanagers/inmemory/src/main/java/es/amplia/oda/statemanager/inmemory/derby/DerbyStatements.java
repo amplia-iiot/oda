@@ -45,6 +45,9 @@ public class DerbyStatements implements SQLStatements {
 	}
 
 	@Override
+	public String getUpdateIndexStatement() {return "CREATE INDEX idx_datastream_update ON state (\"deviceId\", \"datastreamId\", \"at\")";}
+
+	@Override
 	public String getObtainStoredDataStatement() {
 		return "SELECT * FROM state ORDER BY \"date\" DESC";
 	}

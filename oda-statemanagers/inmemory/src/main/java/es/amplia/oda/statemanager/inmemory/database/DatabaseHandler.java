@@ -55,6 +55,7 @@ public class DatabaseHandler {
 			update(statements.getCreateStateTableStatement());
 			update(statements.getIdIndexStatement());
 			update(statements.getTimeIndexStatement());
+			update(statements.getUpdateIndexStatement());
 		} catch (SQLException e) {
 			LOGGER.error("Error trying to create the database: {}", e.getSQLState());
 			restartTryOfConnect();
@@ -241,8 +242,6 @@ public class DatabaseHandler {
 				params.add(datastreamId);
 				params.add(date);
 				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
-				LOGGER.trace("Executing query {} with parameters {}, {}, {},",
-						statements.getDeleteOverloadDataFromADatastreamStatement(), deviceId, datastreamId, date);
 				return removed >= 1;
 			}
 		} catch (SQLException e) {
