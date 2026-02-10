@@ -68,7 +68,7 @@ public class InMemoryStateManager implements StateManager {
     @Override
     public CompletableFuture<Set<DatastreamValue>> getAllDatastreamsInformation(String deviceId, String datastreamId) {
         LOGGER.debug("Get all datastreams info for device {} and datastream {}", deviceId, datastreamId);
-        return CompletableFuture.completedFuture(state.getAllValues(deviceId, datastreamId).stream().collect(Collectors.toSet()));
+        return CompletableFuture.completedFuture(new HashSet<>(state.getAllValues(deviceId, datastreamId)));
     }
 
     @Override
@@ -174,6 +174,19 @@ public class InMemoryStateManager implements StateManager {
                     datastreamValue.getDatastreamId(),
                     datastreamValue.getAt());
             }});
+        return values;
+    }
+
+    private Set<DatastreamValue> setSentBulk(Set<DatastreamValue> values) {
+        values.forEach(datastreamValue -> {
+            if (this.state.exists(datastreamValue.getDeviceId(), datastreamValue.getDatastreamId())) {
+                setSentInState(datastreamValue);
+            }
+        });
+
+        // update database in bulk
+        this.database.updateDataAsSentBulk(values);
+
         return values;
     }
 

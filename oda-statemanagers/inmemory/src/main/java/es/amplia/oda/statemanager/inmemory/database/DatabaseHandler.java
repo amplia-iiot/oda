@@ -219,6 +219,36 @@ public class DatabaseHandler {
 		preparedUpdate(statements.getUpdateSentData(), params);
 	}
 
+	public void updateDataAsSentBulk(Set<DatastreamValue> values) {
+
+		try {
+			// disabling autocommit and commit all updates at once, reduces executing time by half
+			connection.setAutoCommit(false);
+
+			// prepare query
+			PreparedStatement ps = connection.prepareStatement(statements.getUpdateSentData());
+			values.forEach(datastreamValue -> {
+				try {
+					ps.setString(1, datastreamValue.getDeviceId());
+					ps.setString(2, datastreamValue.getDatastreamId());
+					ps.setLong(3, datastreamValue.getAt());
+					ps.addBatch();
+				} catch (Exception e) {
+					LOGGER.error("Error executing query {} with parameters {} : ", statements.getUpdateSentData(), values, e);
+				}
+			});
+
+			ps.executeBatch();
+			// commit update
+			connection.commit();
+			// re-enable autocommit
+			connection.setAutoCommit(true);
+
+		} catch (Exception e) {
+			LOGGER.error("Error executing query {} with parameters {} : ", statements.getUpdateSentData(), values, e);
+		}
+	}
+
 	public boolean deleteExcessiveHistoricMaxData(String deviceId, String datastreamId) {
 		LOGGER.trace("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
 
