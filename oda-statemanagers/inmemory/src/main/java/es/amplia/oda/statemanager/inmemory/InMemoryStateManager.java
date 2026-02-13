@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,6 +43,9 @@ public class InMemoryStateManager implements StateManager {
     private int maxHistoricalData;
     private long forgetTime;
     private long forgetPeriod;
+
+    private final Map<DatastreamInfo, List<DatastreamValue>> valuesToCollect = new HashMap<>();
+
 
 
     InMemoryStateManager(DatastreamsGettersFinder datastreamsGettersFinder, DatastreamsSettersFinder datastreamsSettersFinder,
@@ -110,12 +112,30 @@ public class InMemoryStateManager implements StateManager {
     @Override
     public CompletableFuture<Set<DatastreamValue>> getDatastreamsInformation(DevicePattern devicePattern, Set<String> datastreamIds) {
         LOGGER.debug("Get datastream info for device pattern {} and datastreams {}", devicePattern, datastreamIds);
-        return CompletableFuture.completedFuture(
-                state.getStoredValues().stream()
-                        .filter(entry -> datastreamIds.contains(entry.getDatastreamId()) && devicePattern.match(entry.getDeviceId()))
-                        .flatMap(this::getStreamOfDatapointsToSend)
-                        .collect(Collectors.toSet()))
-                        .thenApply(this::setSent);
+
+        // initiate list of datapoints from all devices anda datastreams to send
+        List<DatastreamValue> totalValuesToSend = new ArrayList<>();
+
+        // get which devices and datastreams we must collect
+        List<DatastreamInfo> valuesFiltered = this.valuesToCollect.keySet()
+                .stream()
+                .filter(entry -> datastreamIds.contains(entry.getDatastreamId()) && devicePattern.match(entry.getDeviceId()))
+                .collect(Collectors.toList());
+
+        // for every device and datastream, get list of datapoints to send and remove them from the list of datapoints to send
+        for (DatastreamInfo di : valuesFiltered) {
+            List<DatastreamValue> datapointsToSend = this.valuesToCollect.get(di);
+            totalValuesToSend.addAll(datapointsToSend);
+            this.valuesToCollect.get(di).removeAll(datapointsToSend);
+        }
+
+        // update sent mark in state and in database
+        for (DatastreamValue value : totalValuesToSend) {
+            setSentInState(value);
+            this.database.updateDataAsSent(value.getDeviceId(), value.getDatastreamId(), value.getAt());
+        }
+
+        return CompletableFuture.completedFuture(new HashSet<>(totalValuesToSend));
     }
 
     @Override
@@ -154,15 +174,10 @@ public class InMemoryStateManager implements StateManager {
 
     private synchronized Stream<DatastreamValue> getStreamOfDatapointsToSend(DatastreamInfo datastreamInfo) {
         if (!this.state.exists(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
-            ArrayList<DatastreamValue> values = new ArrayList<>();
-            values.add(this.state.createNotFoundValue(datastreamInfo));
-            return values.stream();
+            return Stream.of(this.state.createNotFoundValue(datastreamInfo));
         }
         // get values to publish
-        Supplier<Stream<DatastreamValue>> supplier = state.getNotSentValuesToSend(datastreamInfo);
-        Stream<DatastreamValue> returnStream = supplier.get();
-
-        return returnStream;
+        return state.getNotSentValuesToSend(datastreamInfo);
     }
 
     private Set<DatastreamValue> setSent (Set<DatastreamValue> values) {
@@ -306,6 +321,7 @@ public class InMemoryStateManager implements StateManager {
                 }
                 if (state.isRefreshed(dsInfo.getDeviceId(), dsInfo.getDatastreamId())) {
                     processEventsRefreshed(dsInfo, notProcessedValues);
+                    addEventsToCollect(dsInfo, notProcessedValues);
                 }
                 // remove old values stored in memory
                 state.removeHistoricValuesInMemory(dsInfo.getDatastreamId(), dsInfo.getDeviceId(),
@@ -384,6 +400,21 @@ public class InMemoryStateManager implements StateManager {
 
             // disable refreshed mark
             state.clearRefreshed(dsInfo.getDatastreamId(), dsInfo.getDeviceId());
+        }
+    }
+
+    private void addEventsToCollect(DatastreamInfo dsInfo, List<DatastreamValue> notProcessedValues) {
+        List<DatastreamValue> existingValuesToCollect = valuesToCollect.get(dsInfo);
+
+        // remove events marked to send immediately
+        List<DatastreamValue> eventsToCollect = notProcessedValues.stream()
+                .filter(value -> !value.getSent())
+                .collect(Collectors.toList());
+
+        if (existingValuesToCollect == null) {
+            valuesToCollect.put(dsInfo, eventsToCollect);
+        } else {
+            existingValuesToCollect.addAll(eventsToCollect);
         }
     }
 

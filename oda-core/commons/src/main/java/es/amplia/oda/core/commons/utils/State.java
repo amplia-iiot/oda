@@ -315,8 +315,8 @@ public class State {
                 .getNotProcessedValues();
     }
 
-    public Supplier<Stream<DatastreamValue>> getNotSentValuesToSend(DatastreamInfo datastreamInfo) {
-        return () -> getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getNotSentValues();
+    public Stream<DatastreamValue> getNotSentValuesToSend(DatastreamInfo datastreamInfo) {
+        return getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getNotSentValues();
     }
 
     public List<DatastreamValue> getNotSentValues(String deviceId, String datastreamId) {
