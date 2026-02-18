@@ -170,8 +170,6 @@ public class InMemoryStateManager implements StateManager {
         }
     }
 
-
-
     private synchronized Stream<DatastreamValue> getStreamOfDatapointsToSend(DatastreamInfo datastreamInfo) {
         if (!this.state.exists(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())) {
             return Stream.of(this.state.createNotFoundValue(datastreamInfo));
@@ -189,19 +187,6 @@ public class InMemoryStateManager implements StateManager {
                     datastreamValue.getDatastreamId(),
                     datastreamValue.getAt());
             }});
-        return values;
-    }
-
-    private Set<DatastreamValue> setSentBulk(Set<DatastreamValue> values) {
-        values.forEach(datastreamValue -> {
-            if (this.state.exists(datastreamValue.getDeviceId(), datastreamValue.getDatastreamId())) {
-                setSentInState(datastreamValue);
-            }
-        });
-
-        // update database in bulk
-        this.database.updateDataAsSentBulk(values);
-
         return values;
     }
 

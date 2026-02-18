@@ -30,22 +30,29 @@ public class DatabaseHandler {
 	DatatypesUtils datatypesUtils;
 	SQLStatements statements = new DerbyStatements();
 
+	// statement where queries are stored before commit
+	List<String> insertStatementsToCommit = new ArrayList<>();
+	List<String> updateStatementsToCommit = new ArrayList<>();
+	List<String> deleteStatementsToCommit = new ArrayList<>();
+	String questionMarkRegex = "\\?";
+
+
 	public DatabaseHandler(String databasePath, Serializer serializer, Scheduler scheduler, int maxData, long forgetTime, long forgetPeriod) {
 		this.path = databasePath;
 		this.serializer = serializer;
 		this.maxHistoricalData = maxData;
 		this.forgetTime = forgetTime;
 		this.datatypesUtils = new DatatypesUtils(serializer);
-		if(!exists()) {
+		if (!exists()) {
 			createDatabase();
 		} else {
 			connectDatabase();
 		}
 
-		// create a periodical task to delete old data from database
+		// create a periodical task to commit data to database
 		scheduler.clear();
-		scheduler.schedule(this::deleteOldHistoricData, forgetPeriod, forgetPeriod, TimeUnit.SECONDS);
-	}
+		scheduler.schedule(this::commitAllToDatabase, forgetPeriod, forgetPeriod, TimeUnit.SECONDS);
+    }
 
 	private void createDatabase() {
 		try {
@@ -56,6 +63,7 @@ public class DatabaseHandler {
 			update(statements.getIdIndexStatement());
 			update(statements.getTimeIndexStatement());
 			update(statements.getUpdateIndexStatement());
+			update(statements.getDeleteIndexStatement());
 		} catch (SQLException e) {
 			LOGGER.error("Error trying to create the database: {}", e.getSQLState());
 			restartTryOfConnect();
@@ -145,6 +153,45 @@ public class DatabaseHandler {
 		return map;
 	}
 
+	private void commitAllToDatabase() {
+
+		List<String> statementsToCommit = new ArrayList<>(this.insertStatementsToCommit);
+		commitBatchToDatabase(statementsToCommit);
+		// remove commited SQLs
+		this.insertStatementsToCommit.removeAll(statementsToCommit);
+
+		statementsToCommit.clear();
+		statementsToCommit = new ArrayList<>(this.updateStatementsToCommit);
+		commitBatchToDatabase(statementsToCommit);
+		this.updateStatementsToCommit.removeAll(statementsToCommit);
+
+		statementsToCommit.clear();
+		statementsToCommit = new ArrayList<>(this.deleteStatementsToCommit);
+		commitBatchToDatabase(statementsToCommit);
+		this.deleteStatementsToCommit.removeAll(statementsToCommit);
+	}
+
+
+	private void commitBatchToDatabase(List<String> statementsToCommit) {
+
+		try {
+			// disabling autocommit and commit all updates at once, reduces executing time
+			connection.setAutoCommit(false);
+
+			Statement stmt = connection.createStatement();
+			for (String sql : statementsToCommit) {
+				LOGGER.debug("Executing query: {}", sql);
+				//stmt.execute(sql);
+				stmt.addBatch(sql);
+			}
+			stmt.executeBatch();
+			// commit update
+			connection.commit();
+		} catch (SQLException e) {
+			LOGGER.error("Error executing batch query to database: ", e);
+		}
+	}
+
 	private synchronized void update(String sql) {
 		Statement stmt = null;
 		try {
@@ -165,88 +212,43 @@ public class DatabaseHandler {
 	}
 
 	public synchronized boolean insertNewRow(DatastreamValue value) throws IOException {
-		List<Object> values = new ArrayList<>();
-		values.add(value.getDeviceId());
-		values.add(value.getDatastreamId());
-		values.add(value.getFeed());
-		values.add(value.getAt());
-		values.add(value.getDate());
+
+		// prepare string sql
+		String insertSql = statements.getInsertNewDataRowStatement();
+
 		String className = datatypesUtils.getClassNameOf(value.getValue());
 		if(className == null) {
 			return false;
 		}
 		String data = new String(serializer.serialize(value.getValue()), StandardCharsets.UTF_8);
-		values.add(data);
-		values.add(className);
-		values.add(value.getStatus().toString());
-		values.add(value.getError());
-		values.add(value.getSent());
 
-		// insert new value
-		int changes = preparedUpdate(statements.getInsertNewDataRowStatement(), values);
-		return changes == 1;
-	}
+		// replace parameters
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + value.getDeviceId() + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + value.getDatastreamId() + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + (value.getFeed() != null ? value.getFeed() : "null") + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, String.valueOf(value.getAt()));
+		insertSql = insertSql.replaceFirst(questionMarkRegex, String.valueOf(value.getDate()));
 
-	public synchronized int preparedUpdate(String sql, List<Object> parameters) {
-		PreparedStatement prstmt = null;
-		try {
-			prstmt = connection.prepareStatement(sql);
-			for (int i = 1; i <= parameters.size(); i++) {
-				datatypesUtils.insertParameter(prstmt, i, parameters.get(i-1));
-			}
-			LOGGER.trace("Executing query {} with parameters {}", sql, parameters);
-			return prstmt.executeUpdate();
-		} catch (SQLException throwables) {
-			LOGGER.error("Impossible execute the update: {} with values {}", sql, parameters);
-			throw new DatabaseException("Error trying to execute a query. It's possible that the selected table " +
-					"doesn't exists or the specified fields aren't present in the table");
-		} finally {
-			if (prstmt != null) {
-				try {
-					prstmt.close();
-				} catch (SQLException throwables) {
-					LOGGER.warn("Couldn't close a statement of the update.");
-				}
-			}
-		}
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + data + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + className + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + value.getStatus().toString() + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, "'" + (value.getError() != null ? value.getError() : "null") + "'");
+		insertSql = insertSql.replaceFirst(questionMarkRegex, String.valueOf(value.getSent()));
+
+		this.insertStatementsToCommit.add(insertSql);
+		return true;
 	}
 
 	public void updateDataAsSent(String deviceId, String datastreamId, long at) {
-		List<Object> params = new ArrayList<>();
-		params.add(deviceId);
-		params.add(datastreamId);
-		params.add(at);
-		preparedUpdate(statements.getUpdateSentData(), params);
-	}
+		// prepare string sql
+		String updateSql = statements.getUpdateSentData();
 
-	public void updateDataAsSentBulk(Set<DatastreamValue> values) {
+		// replace parameters
+		updateSql = updateSql.replaceFirst(questionMarkRegex, "'" + deviceId + "'");
+		updateSql = updateSql.replaceFirst(questionMarkRegex, "'" + datastreamId + "'");
+		updateSql = updateSql.replaceFirst(questionMarkRegex, String.valueOf(at));
 
-		try {
-			// disabling autocommit and commit all updates at once, reduces executing time by half
-			connection.setAutoCommit(false);
-
-			// prepare query
-			PreparedStatement ps = connection.prepareStatement(statements.getUpdateSentData());
-			values.forEach(datastreamValue -> {
-				try {
-					ps.setString(1, datastreamValue.getDeviceId());
-					ps.setString(2, datastreamValue.getDatastreamId());
-					ps.setLong(3, datastreamValue.getAt());
-					ps.addBatch();
-				} catch (Exception e) {
-					LOGGER.error("Error executing query {} with parameters {} : ", statements.getUpdateSentData(), values, e);
-				}
-			});
-
-			ps.executeBatch();
-			// commit update
-			connection.commit();
-			// re-enable autocommit
-			connection.setAutoCommit(true);
-
-		} catch (Exception e) {
-			LOGGER.error("Error executing query {} with parameters {} : ", statements.getUpdateSentData(), values, e);
-		}
+		this.updateStatementsToCommit.add(updateSql);
 	}
 
 	public boolean deleteExcessiveHistoricMaxData(String deviceId, String datastreamId) {
@@ -267,12 +269,20 @@ public class DatabaseHandler {
 				long date = result.getLong("date");
 				result.close();
 				prstmt.close();
-				List<Object> params = new ArrayList<>();
-				params.add(deviceId);
-				params.add(datastreamId);
-				params.add(date);
-				int removed = preparedUpdate(statements.getDeleteOverloadDataFromADatastreamStatement(), params);
-				return removed >= 1;
+
+
+
+				// prepare string sql
+				String deleteSql = statements.getDeleteOverloadDataFromADatastreamStatement();
+				// replace parameters
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + deviceId + "'");
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + datastreamId + "'");
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, String.valueOf(date));
+
+				this.deleteStatementsToCommit.add(deleteSql);
+				return true;
+
+				//return removed >= 1;
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Error trying to delete excessive amount of data: {}", e.getSQLState());
@@ -303,9 +313,11 @@ public class DatabaseHandler {
 
 		LOGGER.trace("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
 
-		// prepare and execute query
-		List<Object> params = Collections.singletonList(maxTimeToRetain);
-		preparedUpdate(statements.getDeleteOlderDataFromDatabaseStatement(), params);
+		// prepare string sql
+		String deleteSql = statements.getDeleteOlderDataFromDatabaseStatement();
+		// replace parameters
+		deleteSql = deleteSql.replaceFirst(questionMarkRegex, String.valueOf(maxTimeToRetain));
+		this.deleteStatementsToCommit.add(deleteSql);
 	}
 
 	private void deleteAllExcessiveHistoricMaxData() {

@@ -15,6 +15,8 @@ public interface SQLStatements {
 
 	String getUpdateIndexStatement();
 
+	String getDeleteIndexStatement();
+
 	String getObtainStoredDataStatement();
 
 	String getInsertNewDataRowStatement();
