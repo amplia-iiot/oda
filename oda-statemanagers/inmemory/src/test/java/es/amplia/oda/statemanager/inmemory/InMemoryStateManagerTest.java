@@ -211,7 +211,6 @@ public class InMemoryStateManagerTest {
         }
     }
 
-    @Ignore
     @Test
     public void testGetDatastreamsInformationWithDevicePattern() throws ExecutionException, InterruptedException {
         CompletableFuture<Set<DatastreamValue>> future =

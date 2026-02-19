@@ -40,12 +40,6 @@ public class DerbyStatementsTest {
 	}
 
 	@Test
-	public void getIdIndexStatementTest() {
-		assertEquals("CREATE INDEX idx_datastream ON state (\"deviceId\", \"datastreamId\")",
-				statements.getIdIndexStatement());
-	}
-
-	@Test
 	public void getTimeIndexStatementTest() {
 		assertEquals("CREATE INDEX idx_date ON state (\"date\")",
 				statements.getTimeIndexStatement());
@@ -61,18 +55,6 @@ public class DerbyStatementsTest {
 	public void getInsertNewDataRowStatementTest() {
 		assertEquals("INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"date\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?,?)",
 				statements.getInsertNewDataRowStatement());
-	}
-
-	@Test
-	public void getCountRowsOfADatastreamStatementTest() {
-		assertEquals("SELECT COUNT(*) as count FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?",
-				statements.getCountRowsOfADatastreamStatement());
-	}
-
-	@Test
-	public void getSelectRowNOfADatastreamStatementTest() {
-		assertEquals("SELECT \"date\" FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? ORDER BY \"date\" DESC OFFSET ? ROWS FETCH NEXT 1 ROW ONLY",
-				statements.getSelectRowNOfADatastreamStatement());
 	}
 
 	@Test

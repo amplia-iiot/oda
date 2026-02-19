@@ -9,19 +9,13 @@ public interface SQLStatements {
 
 	String getCreateStateTableStatement();
 
-	String getIdIndexStatement();
-
 	String getTimeIndexStatement();
-
-	String getUpdateIndexStatement();
 
 	String getDeleteIndexStatement();
 
 	String getObtainStoredDataStatement();
 
 	String getInsertNewDataRowStatement();
-
-	String getCountRowsOfADatastreamStatement();
 
 	String getSelectRowNOfADatastreamStatement();
 

@@ -16,20 +16,17 @@ public class State {
         private final List<DatastreamValue> storedValues;
         private boolean refreshed;
         private boolean sendImmediately;
-        private long lastTimeHistoricMaxDataCheck;
 
         public DatastreamState() {
             this.storedValues = new ArrayList<>();
             this.refreshed = false;
             this.sendImmediately = false;
-            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
         }
 
         public DatastreamState(List<DatastreamValue> storedValues) {
             this.storedValues = storedValues;
             this.refreshed = false;
             this.sendImmediately = false;
-            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
         }
 
         public List<DatastreamValue> getStoredValues() {
@@ -73,10 +70,6 @@ public class State {
             return this.sendImmediately;
         }
 
-        public long getLastHistoricMaxDataCheck() {
-            return this.lastTimeHistoricMaxDataCheck;
-        }
-
         public Stream<DatastreamValue> getNotSentValues() {
             return this.storedValues.stream()
                     .filter(stored -> !stored.getSent());
@@ -116,10 +109,6 @@ public class State {
 
         public void clearRefreshed() {
             this.refreshed = false;
-        }
-
-        public void setLastTimeHistoricMaxDataCheck() {
-            this.lastTimeHistoricMaxDataCheck = System.currentTimeMillis();
         }
 
         public void clearImmediately() {
@@ -448,36 +437,6 @@ public class State {
     public boolean isToSendImmediately(DatastreamInfo datastreamInfo) {
         return getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId()).getSendImmediately();
     }
-
-    /**
-     * Method that check if historic data in database needs to be checked
-     * Checks if there are more vales than configuration parameter maxData
-     *
-     * @param datastreamInfo Object with the data of the datastream that we want to check.
-     * @param forgetPeriod seconds that indicate when we have to check the need for historic data erasure
-     * @return true if is time to check historic data in dataabse
-     */
-    public boolean isTimeToCheckHistoricMaxDataInDatabase(DatastreamInfo datastreamInfo, long forgetPeriod) {
-
-        // get lastTime historic data has been checked
-        long lastTimeChecked = getDatastreamState(datastreamInfo.getDeviceId(), datastreamInfo.getDatastreamId())
-                .getLastHistoricMaxDataCheck();
-
-        // if more time than forgetPeriod have passed since last time historic data was checked, check again
-        return System.currentTimeMillis() >= lastTimeChecked + (forgetPeriod * 1000);
-    }
-
-    /**
-     * Method that sets the date of the last time historic data in database was checked
-     * to see if there were more vales than configuration parameter maxData
-     *
-     * @param deviceId String with the identifier of the device to which the datastream we want to mark.
-     * @param datastreamId String with the identifier of the datastream we want to mark.
-     */
-    public void refreshLastTimeMaxDataCheck(String deviceId, String datastreamId) {
-        getDatastreamState(deviceId, datastreamId).setLastTimeHistoricMaxDataCheck();
-    }
-
 
     /**
      * Method that reset both refreshed and sendImmediately maps

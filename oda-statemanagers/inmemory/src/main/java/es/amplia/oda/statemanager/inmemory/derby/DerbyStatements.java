@@ -35,17 +35,9 @@ public class DerbyStatements implements SQLStatements {
 	}
 
 	@Override
-	public String getIdIndexStatement() {
-		return "CREATE INDEX idx_datastream ON state (\"deviceId\", \"datastreamId\")";
-	}
-
-	@Override
 	public String getTimeIndexStatement() {
 		return "CREATE INDEX idx_date ON state (\"date\")";
 	}
-
-	@Override
-	public String getUpdateIndexStatement() {return "CREATE INDEX idx_datastream_update ON state (\"deviceId\", \"datastreamId\", \"at\")";}
 
 	@Override
 	public String getDeleteIndexStatement() {return "CREATE INDEX idx_datastream_delete ON state (\"deviceId\", \"datastreamId\", \"date\")";}
@@ -58,11 +50,6 @@ public class DerbyStatements implements SQLStatements {
 	@Override
 	public String getInsertNewDataRowStatement() {
 		return "INSERT INTO state (\"deviceId\", \"datastreamId\", \"feed\", \"at\", \"date\", \"value\", \"type\", \"status\", \"error\", \"sent\") VALUES (?,?,?,?,?,?,?,?,?,?)";
-	}
-
-	@Override
-	public String getCountRowsOfADatastreamStatement() {
-		return "SELECT COUNT(*) as count FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=?";
 	}
 
 	@Override
@@ -82,7 +69,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getUpdateSentData() {
-		return "UPDATE state SET \"sent\"=true WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"at\"=?";
+		return "UPDATE state SET \"sent\"=true WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"date\"=?";
 	}
 
 	@Override
