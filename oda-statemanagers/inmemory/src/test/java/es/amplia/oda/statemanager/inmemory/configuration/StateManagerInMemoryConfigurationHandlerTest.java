@@ -23,7 +23,7 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 	public static final String DATABASE_PATH_PROPERTY_VALUE = "/123/fake/street";
 	public static final String MAX_DATA_PROPERTY_VALUE = "123";
 	public static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "600";
-	public static final String PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE = "10";
+	public static final String PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_VALUE = "10";
 	public static final String TASKS_PROCESSING_THREADS_PROPERTY_VALUE = "1";
 	public static final String TASKS_PROCESSING_QUEUE_SIZE_PROPERTY_VALUE = "10";
 
@@ -39,7 +39,7 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 					DATABASE_PATH_PROPERTY_VALUE,
 					Integer.parseInt(MAX_DATA_PROPERTY_VALUE),
 					Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
-					Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
+					Long.parseLong(PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_VALUE),
 					Integer.parseInt(TASKS_PROCESSING_THREADS_PROPERTY_VALUE),
 					Integer.parseInt(TASKS_PROCESSING_QUEUE_SIZE_PROPERTY_VALUE)
 			);
@@ -50,7 +50,7 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 		props.put(DATABASE_PATH_PROPERTY_NAME, DATABASE_PATH_PROPERTY_VALUE);
 		props.put(MAX_DATA_PROPERTY_NAME, MAX_DATA_PROPERTY_VALUE);
 		props.put(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME, TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE);
-		props.put(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_NAME, PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE);
+		props.put(PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_NAME, PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_VALUE);
 
 		testConfigHandler.loadConfiguration(props);
 
@@ -58,8 +58,8 @@ public class StateManagerInMemoryConfigurationHandlerTest {
 		assertEquals(Integer.parseInt(MAX_DATA_PROPERTY_VALUE), ((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getMaxData());
 		assertEquals(Long.parseLong(TIME_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
 				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetTime());
-		assertEquals(Long.parseLong(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_VALUE),
-				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getForgetPeriod());
+		assertEquals(Long.parseLong(PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_VALUE),
+				((StateManagerInMemoryConfiguration)Whitebox.getInternalState(testConfigHandler, "config")).getDbBackupPeriod());
 	}
 
 	@Test

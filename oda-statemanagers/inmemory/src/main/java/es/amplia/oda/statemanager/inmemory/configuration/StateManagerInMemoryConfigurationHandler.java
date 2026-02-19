@@ -15,11 +15,9 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 	static final String DATABASE_PATH_PROPERTY_NAME = "databasePath";
 	static final String MAX_DATA_PROPERTY_NAME = "maxData";
 	static final String TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME = "forgetTime";
-	static final String PERIOD_TO_FORGET_OLD_DATA_PROPERTY_NAME = "forgetPeriod";
+	static final String PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_NAME = "dbBackupPeriod";
 	static final String TASKS_PROCESSING_THREADS_PROPERTY_NAME = "numProcessingThreads";
 	static final String TASKS_PROCESSING_QUEUE_SIZE_PROPERTY_NAME = "tasksQueueSize";
-
-
 
 
 	private StateManagerInMemoryConfiguration config;
@@ -42,8 +40,8 @@ public class StateManagerInMemoryConfigurationHandler implements ConfigurationUp
 				.orElseThrow(() ->  new ConfigurationException("Max Data is a required Parameter")));
 		builder.forgetTime(Optional.of(Long.parseLong((String) props.get(TIME_TO_FORGET_OLD_DATA_PROPERTY_NAME)))
 				.orElseThrow(() ->  new ConfigurationException("Forget Time is a required Parameter")));
-		builder.forgetPeriod(Optional.of(Long.parseLong((String) props.get(PERIOD_TO_FORGET_OLD_DATA_PROPERTY_NAME)))
-				.orElseThrow(() ->  new ConfigurationException("Forget Period is a required Parameter")));
+		builder.dbBackupPeriod(Optional.of(Long.parseLong((String) props.get(PERIOD_TO_BACKUP_DATA_TO_DB_PROPERTY_NAME)))
+				.orElseThrow(() ->  new ConfigurationException("Database backup period is a required Parameter")));
 
 		// optional parameters
 		Optional.ofNullable((String) props.get(TASKS_PROCESSING_THREADS_PROPERTY_NAME)).map(Integer::parseInt)

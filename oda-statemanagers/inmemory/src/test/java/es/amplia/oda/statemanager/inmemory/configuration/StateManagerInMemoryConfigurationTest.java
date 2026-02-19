@@ -44,5 +44,5 @@ public class StateManagerInMemoryConfigurationTest {
 	}
 
 	@Test
-	public void testGetForgetPeriod() {assertEquals(FORGET_PERIOD_FIELD_NAME, testConfiguration.getForgetPeriod());}
+	public void testGetDbBackupPeriod() {assertEquals(FORGET_PERIOD_FIELD_NAME, testConfiguration.getDbBackupPeriod());}
 }

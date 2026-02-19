@@ -10,7 +10,6 @@ import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
 import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -213,6 +212,18 @@ public class InMemoryStateManagerTest {
 
     @Test
     public void testGetDatastreamsInformationWithDevicePattern() throws ExecutionException, InterruptedException {
+        Map<DatastreamInfo, List<DatastreamValue>> valuesToCollect = new HashMap<>();
+        valuesToCollect.put(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID), new ArrayList<>());
+        valuesToCollect.get(new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID)).add(
+                new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, TEST_FEED, TEST_AT_NEW, TEST_VALUE_NEW,
+                        Status.OK, null, false, true));
+
+        valuesToCollect.put(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID), new ArrayList<>());
+        valuesToCollect.get(new DatastreamInfo(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID)).add(
+                new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID, null,
+                        TEST_AT_NEW, TEST_VALUE_NEW, Status.OK, null, false, true));
+        Whitebox.setInternalState(testStateManager, "valuesToCollect", valuesToCollect);
+
         CompletableFuture<Set<DatastreamValue>> future =
                 testStateManager.getDatastreamsInformation(TEST_DEVICE_PATTERN, Collections.singleton(TEST_DATASTREAM_ID));
         Set<DatastreamValue> values = future.get();
@@ -576,7 +587,7 @@ public class InMemoryStateManagerTest {
         when(mockedDatabase.collectDataFromDatabase()).thenReturn(collectData);
 
         this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().
-                databasePath("this/is/a/path").maxData(100).forgetTime(3600).forgetPeriod(10).build());
+                databasePath("this/is/a/path").maxData(100).forgetTime(3600).dbBackupPeriod(10).build());
 
         verifyNew(DatabaseHandler.class).withArguments(eq("this/is/a/path"), eq(mockedSerializer),
               eq(scheduler), eq(100), eq((long) 3600), eq((long) 10));

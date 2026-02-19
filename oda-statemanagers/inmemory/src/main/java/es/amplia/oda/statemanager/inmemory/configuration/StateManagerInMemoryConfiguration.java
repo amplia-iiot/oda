@@ -11,7 +11,7 @@ public class StateManagerInMemoryConfiguration {
 	String databasePath;
 	int maxData;
 	long forgetTime;
-	long forgetPeriod;
+	long dbBackupPeriod;
 	@Builder.Default
 	int numThreads = 10;
 	@Builder.Default

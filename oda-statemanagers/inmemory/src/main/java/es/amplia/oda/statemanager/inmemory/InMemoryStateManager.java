@@ -46,7 +46,6 @@ public class InMemoryStateManager implements StateManager {
     private final Map<DatastreamInfo, List<DatastreamValue>> valuesToCollect = new HashMap<>();
 
 
-
     InMemoryStateManager(DatastreamsGettersFinder datastreamsGettersFinder, DatastreamsSettersFinder datastreamsSettersFinder,
                          EventDispatcher eventDispatcher, RuleEngine ruleEngine, Serializer serializer,
                          ExecutorService executor, Scheduler scheduler, BundleContext bundleContext) {
@@ -447,7 +446,7 @@ public class InMemoryStateManager implements StateManager {
         this.forgetTime = config.getForgetTime();
         this.maxHistoricalData = config.getMaxData();
         this.database = new DatabaseHandler(config.getDatabasePath(), serializer, scheduler,
-                config.getMaxData(), config.getForgetTime(), config.getForgetPeriod());
+                config.getMaxData(), config.getForgetTime(), config.getDbBackupPeriod());
         // get from database the datastreams stored and load it into memory
         Map<DatastreamInfo, List<DatastreamValue>> collectData = this.database.collectDataFromDatabase();
         this.state.loadData(collectData);

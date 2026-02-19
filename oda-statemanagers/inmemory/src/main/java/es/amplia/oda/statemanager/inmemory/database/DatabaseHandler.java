@@ -101,6 +101,7 @@ public class DatabaseHandler {
 	}
 
 	public synchronized Map<DatastreamInfo, List<DatastreamValue>> collectDataFromDatabase() {
+		LOGGER.debug("Restoring data stored in database");
 		deleteOldHistoricDataAtStart();
 		deleteHistoricMaxDataAtStart();
 		Statement stmt = null;
@@ -152,6 +153,7 @@ public class DatabaseHandler {
 	}
 
 	private void commitAllToDatabase() {
+		LOGGER.debug("Commiting changes in datapoints to database");
 
 		// add query to remove by oldest date
 		deleteOldHistoricData();
@@ -291,7 +293,7 @@ public class DatabaseHandler {
 		// remove datastreams whose datetime it's older than forgettime
 		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
 
-		LOGGER.trace("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
+		LOGGER.debug("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
 
 		// prepare and execute query
 		List<Object> params = Collections.singletonList(maxTimeToRetain);
@@ -341,7 +343,7 @@ public class DatabaseHandler {
 			for (Map.Entry<String, String> pair : existingValues.entrySet()) {
 				String deviceId = pair.getKey();
 				String datastreamId = pair.getValue();
-				LOGGER.trace("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
+				LOGGER.debug("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
 
 				// get date to maintain
 				partialStatement = statements.getSelectRowNOfADatastreamStatement();
