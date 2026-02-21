@@ -378,7 +378,7 @@ public class InMemoryStateManager implements StateManager {
                 }
 
                 // remove old values stored in database
-                removeHistoricMaxDataInDatabase(dsInfo.getDeviceId(), dsInfo.getDatastreamId(), this.maxHistoricalData);
+                removeHistoricMaxDataInDatabase(dsInfo.getDeviceId(), dsInfo.getDatastreamId());
             }
 
             // disable refreshed mark
@@ -401,13 +401,12 @@ public class InMemoryStateManager implements StateManager {
         }
     }
 
-    private void removeHistoricMaxDataInDatabase(String deviceId, String datastreamId, int maxNumDatapoints) {
+    private void removeHistoricMaxDataInDatabase(String deviceId, String datastreamId) {
         // remove historicMaxData from database
-        List<DatastreamValue> allValues = this.state.getAllValues(deviceId, datastreamId);
-        if (allValues.size() > maxNumDatapoints) {
-            // get the data of the first old element to erase (maxNumDatapoints)
-            long date = allValues.get(maxNumDatapoints).getDate();
-            this.database.deleteExcessiveHistoricMaxData(deviceId, datastreamId, date);
+        int numValuesInState = this.state.getAllValues(deviceId, datastreamId).size();
+        LOGGER.trace("Num datapoints for datastreamId {}, deviceId {} =  {}", datastreamId, deviceId, numValuesInState);
+        if (numValuesInState > this.maxHistoricalData) {
+            this.database.deleteExcessiveHistoricMaxData(deviceId, datastreamId);
         }
     }
 

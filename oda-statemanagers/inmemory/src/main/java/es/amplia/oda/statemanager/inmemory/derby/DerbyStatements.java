@@ -59,7 +59,7 @@ public class DerbyStatements implements SQLStatements {
 
 	@Override
 	public String getDeleteOverloadDataFromADatastreamStatement() {
-		return "DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"date\" < ?";
+		return "DELETE FROM state WHERE \"deviceId\"=? AND \"datastreamId\"=? AND \"date\"<?";
 	}
 
 	@Override
@@ -75,13 +75,5 @@ public class DerbyStatements implements SQLStatements {
 	@Override
 	public String getQueryToGetTables() {
 		return "select st.tablename  from sys.systables st LEFT OUTER join sys.sysschemas ss on (st.schemaid = ss.schemaid) where ss.schemaname ='APP'";
-	}
-
-	@Override
-	public String getExcessHistoricDataFromDatabaseStatement() {
-		return "SELECT \"deviceId\", \"datastreamId\" FROM " +
-				" (SELECT \"deviceId\", \"datastreamId\", COUNT(\"datastreamId\") AS numValues FROM STATE " +
-				"GROUP BY \"deviceId\", \"datastreamId\") AS historicData " +
-				"WHERE numValues > ?";
 	}
 }

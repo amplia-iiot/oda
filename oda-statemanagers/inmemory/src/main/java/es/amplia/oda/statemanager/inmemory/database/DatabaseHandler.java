@@ -102,8 +102,6 @@ public class DatabaseHandler {
 
 	public synchronized Map<DatastreamInfo, List<DatastreamValue>> collectDataFromDatabase() {
 		LOGGER.debug("Restoring data stored in database");
-		deleteOldHistoricDataAtStart();
-		deleteHistoricMaxDataAtStart();
 		Statement stmt = null;
 		try {
 			stmt = connection.createStatement();
@@ -155,9 +153,6 @@ public class DatabaseHandler {
 	private void commitAllToDatabase() {
 		LOGGER.debug("Commiting changes in datapoints to database");
 
-		// add query to remove by oldest date
-		deleteOldHistoricData();
-
 		List<String> statementsToCommit = new ArrayList<>(this.insertStatementsToCommit);
 		commitBatchToDatabase(statementsToCommit);
 		// remove commited SQLs
@@ -172,6 +167,9 @@ public class DatabaseHandler {
 		statementsToCommit = new ArrayList<>(this.deleteStatementsToCommit);
 		commitBatchToDatabase(statementsToCommit);
 		this.deleteStatementsToCommit.removeAll(statementsToCommit);
+
+		// remove by oldest date
+		update(deleteOldHistoricData());
 	}
 
 	private void commitBatchToDatabase(List<String> statementsToCommit) {
@@ -183,7 +181,7 @@ public class DatabaseHandler {
 
 			for (int i = 0; i < statementsToCommit.size(); i++) {
 				String sql = statementsToCommit.get(i);
-				LOGGER.debug("Executing query: {}", sql);
+				LOGGER.trace("Executing query: {}", sql);
 				stmt.addBatch(sql);
 
 				// it is better to do small batches than one big batch
@@ -261,20 +259,7 @@ public class DatabaseHandler {
 		this.updateStatementsToCommit.add(updateSql);
 	}
 
-	public void deleteExcessiveHistoricMaxData(String deviceId, String datastreamId, long maxDateToRetain) {
-		LOGGER.trace("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
-
-		// prepare string sql
-		String deleteSql = statements.getDeleteOverloadDataFromADatastreamStatement();
-		// replace parameters
-		deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + deviceId + "'");
-		deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + datastreamId + "'");
-		deleteSql = deleteSql.replaceFirst(questionMarkRegex, String.valueOf(maxDateToRetain));
-
-		this.deleteStatementsToCommit.add(deleteSql);
-	}
-
-	private void deleteOldHistoricData() {
+	private String deleteOldHistoricData() {
 		// delete by datastream datetime
 		// remove datastreams whose datetime it's older than forgettime
 		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
@@ -285,111 +270,55 @@ public class DatabaseHandler {
 		String deleteSql = statements.getDeleteOlderDataFromDatabaseStatement();
 		// replace parameters
 		deleteSql = deleteSql.replaceFirst(questionMarkRegex, String.valueOf(maxTimeToRetain));
-		this.deleteStatementsToCommit.add(deleteSql);
+		return deleteSql;
 	}
 
-	private void deleteOldHistoricDataAtStart() {
-		// delete by datastream datetime
-		// remove datastreams whose datetime it's older than forgettime
-		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
+	public void deleteExcessiveHistoricMaxData(String deviceId, String datastreamId) {
+		LOGGER.trace("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
 
-		LOGGER.debug("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
-
-		// prepare and execute query
-		List<Object> params = Collections.singletonList(maxTimeToRetain);
-		String sql = statements.getDeleteOlderDataFromDatabaseStatement();
 		PreparedStatement prstmt = null;
-
-		try {
-			prstmt = connection.prepareStatement(sql);
-			for (int i = 1; i <= params.size(); i++) {
-				datatypesUtils.insertParameter(prstmt, i, params.get(i - 1));
-			}
-			LOGGER.trace("Executing query {} with parameters {}", sql, params);
-			prstmt.executeUpdate();
-		} catch (SQLException throwables) {
-			LOGGER.error("Impossible execute the update: {} with values {}", sql, params);
-			throw new DatabaseException("Error trying to execute a query. It's possible that the selected table " +
-					"doesn't exists or the specified fields aren't present in the table");
-		} finally {
-			if (prstmt != null) {
-				try {
-					prstmt.close();
-				} catch (SQLException throwables) {
-					LOGGER.warn("Couldn't close a statement of the update.");
-				}
-			}
-		}
-	}
-
-	private void deleteHistoricMaxDataAtStart() {
-		PreparedStatement stmt = null;
 		ResultSet result = null;
 		try {
-			// first get the combinations of datastreamId and deviceId that have more values than maxHistoricalData
-			String partialStatement = statements.getExcessHistoricDataFromDatabaseStatement();
-			stmt = connection.prepareStatement(partialStatement);
-			stmt.setInt(1, maxHistoricalData);
-			result = stmt.executeQuery();
-			LOGGER.trace("Executing query {} with parameters {}", partialStatement, maxHistoricalData);
-			// parse SQL results
-			Map<String, String> existingValues = new HashMap<>();
-			while (result.next()) {
-				String deviceId = result.getString("deviceId");
-				String datastreamId = result.getString("datastreamId");
-				existingValues.put(deviceId, datastreamId);
-			}
-			// for every combination of deviceId and datastreamId, erase max data
-			for (Map.Entry<String, String> pair : existingValues.entrySet()) {
-				String deviceId = pair.getKey();
-				String datastreamId = pair.getValue();
-				LOGGER.debug("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
+			String partialStatement = statements.getSelectRowNOfADatastreamStatement();
+			prstmt = connection.prepareStatement(partialStatement);
+			prstmt.setString(1, deviceId);
+			prstmt.setString(2, datastreamId);
+			prstmt.setInt(3, maxHistoricalData - 1);
+			result = prstmt.executeQuery();
+			LOGGER.trace("Executing query {} with parameters {}, {}, {}", partialStatement,
+					deviceId, datastreamId, maxHistoricalData - 1);
+			if (result.next()) {
+				long date = result.getLong("date");
 
-				// get date to maintain
-				partialStatement = statements.getSelectRowNOfADatastreamStatement();
-				stmt = connection.prepareStatement(partialStatement);
-				stmt.setString(1, deviceId);
-				stmt.setString(2, datastreamId);
-				stmt.setInt(3, maxHistoricalData - 1);
-				result = stmt.executeQuery();
-				LOGGER.trace("Executing query {} with parameters {}, {}, {}", partialStatement, deviceId, datastreamId, maxHistoricalData - 1);
-				if (result.next()) {
-					long date = result.getLong("date");
-					result.close();
-					stmt.close();
-					List<Object> params = new ArrayList<>();
-					params.add(deviceId);
-					params.add(datastreamId);
-					params.add(date);
-					String sql = statements.getDeleteOverloadDataFromADatastreamStatement();
-					stmt = connection.prepareStatement(sql);
-					for (int i = 1; i <= params.size(); i++) {
-						datatypesUtils.insertParameter(stmt, i, params.get(i - 1));
-					}
-					LOGGER.trace("Executing query {} with parameters {}", sql, params);
-					stmt.executeUpdate();
-				}
+				// prepare string sql
+				String deleteSql = statements.getDeleteOverloadDataFromADatastreamStatement();
+				// replace parameters
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + deviceId + "'");
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, "'" + datastreamId + "'");
+				deleteSql = deleteSql.replaceFirst(questionMarkRegex, String.valueOf(date));
+				this.deleteStatementsToCommit.add(deleteSql);
 			}
 		} catch (SQLException e) {
-			throw new DatabaseException("Error trying to execute an update: " + e.getSQLState());
+			LOGGER.error("Error trying to delete excessive amount of data: {}", e.getSQLState());
 		} finally {
 			try {
 				if (result != null) {
 					result.close();
 				}
-				if (stmt != null) {
-					stmt.close();
+				if (prstmt != null) {
+					prstmt.close();
 				}
 			} catch (SQLException e) {
-				LOGGER.warn("Couldn't close a statement of the update.");
 				try {
-					stmt.close();
-				} catch (SQLException ignored) {
-					LOGGER.warn("Couldn't close a statement of the update.");
+					prstmt.close();
+				} catch (SQLException ex) {
+					LOGGER.error("Error trying to close the statement on deleting: {}", ex.getSQLState());
 				}
+				LOGGER.error("Error trying to close the statement on deleting: {}", e.getSQLState());
 			}
 		}
 	}
+
 
 	public synchronized boolean exists() {
 		File database = new File(path);
