@@ -26,4 +26,6 @@ public interface SQLStatements {
 	String getUpdateSentData();
 
 	String getQueryToGetTables();
+
+	String getExcessHistoricDataFromDatabaseStatement();
 }

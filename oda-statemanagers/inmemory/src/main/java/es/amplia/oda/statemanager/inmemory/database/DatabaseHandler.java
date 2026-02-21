@@ -102,6 +102,8 @@ public class DatabaseHandler {
 
 	public synchronized Map<DatastreamInfo, List<DatastreamValue>> collectDataFromDatabase() {
 		LOGGER.debug("Restoring data stored in database");
+		deleteOldHistoricDataAtStart();
+		deleteHistoricMaxDataAtStart();
 		Statement stmt = null;
 		try {
 			stmt = connection.createStatement();
@@ -319,6 +321,108 @@ public class DatabaseHandler {
 		}
 	}
 
+	private void deleteOldHistoricDataAtStart() {
+		// delete by datastream datetime
+		// remove datastreams whose datetime it's older than forgettime
+		long maxTimeToRetain = System.currentTimeMillis() - (this.forgetTime * 1000);
+
+		LOGGER.debug("Erasing historic data in database with date inferior to {} by forgetTime parameter", maxTimeToRetain);
+
+		// prepare and execute query
+		List<Object> params = Collections.singletonList(maxTimeToRetain);
+		String sql = statements.getDeleteOlderDataFromDatabaseStatement();
+		PreparedStatement prstmt = null;
+
+		try {
+			prstmt = connection.prepareStatement(sql);
+			for (int i = 1; i <= params.size(); i++) {
+				datatypesUtils.insertParameter(prstmt, i, params.get(i - 1));
+			}
+			LOGGER.trace("Executing query {} with parameters {}", sql, params);
+			prstmt.executeUpdate();
+		} catch (SQLException throwables) {
+			LOGGER.error("Impossible execute the update: {} with values {}", sql, params);
+			throw new DatabaseException("Error trying to execute a query. It's possible that the selected table " +
+					"doesn't exists or the specified fields aren't present in the table");
+		} finally {
+			if (prstmt != null) {
+				try {
+					prstmt.close();
+				} catch (SQLException throwables) {
+					LOGGER.warn("Couldn't close a statement of the update.");
+				}
+			}
+		}
+	}
+
+	private void deleteHistoricMaxDataAtStart() {
+		PreparedStatement stmt = null;
+		ResultSet result = null;
+		try {
+			// first get the combinations of datastreamId and deviceId that have more values than maxHistoricalData
+			String partialStatement = statements.getExcessHistoricDataFromDatabaseStatement();
+			stmt = connection.prepareStatement(partialStatement);
+			stmt.setInt(1, maxHistoricalData);
+			result = stmt.executeQuery();
+			LOGGER.trace("Executing query {} with parameters {}", partialStatement, maxHistoricalData);
+			// parse SQL results
+			Map<String, String> existingValues = new HashMap<>();
+			while (result.next()) {
+				String deviceId = result.getString("deviceId");
+				String datastreamId = result.getString("datastreamId");
+				existingValues.put(deviceId, datastreamId);
+			}
+			// for every combination of deviceId and datastreamId, erase max data
+			for (Map.Entry<String, String> pair : existingValues.entrySet()) {
+				String deviceId = pair.getKey();
+				String datastreamId = pair.getValue();
+				LOGGER.debug("Erasing historic data in database by maxData parameter for deviceId {} and datastreamId {}", deviceId, datastreamId);
+
+				// get date to maintain
+				partialStatement = statements.getSelectRowNOfADatastreamStatement();
+				stmt = connection.prepareStatement(partialStatement);
+				stmt.setString(1, deviceId);
+				stmt.setString(2, datastreamId);
+				stmt.setInt(3, maxHistoricalData - 1);
+				result = stmt.executeQuery();
+				LOGGER.trace("Executing query {} with parameters {}, {}, {}", partialStatement, deviceId, datastreamId, maxHistoricalData - 1);
+				if (result.next()) {
+					long date = result.getLong("date");
+					result.close();
+					stmt.close();
+					List<Object> params = new ArrayList<>();
+					params.add(deviceId);
+					params.add(datastreamId);
+					params.add(date);
+					String sql = statements.getDeleteOverloadDataFromADatastreamStatement();
+					stmt = connection.prepareStatement(sql);
+					for (int i = 1; i <= params.size(); i++) {
+						datatypesUtils.insertParameter(stmt, i, params.get(i - 1));
+					}
+					LOGGER.trace("Executing query {} with parameters {}", sql, params);
+					stmt.executeUpdate();
+				}
+			}
+		} catch (SQLException e) {
+			throw new DatabaseException("Error trying to execute an update: " + e.getSQLState());
+		} finally {
+			try {
+				if (result != null) {
+					result.close();
+				}
+				if (stmt != null) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				LOGGER.warn("Couldn't close a statement of the update.");
+				try {
+					stmt.close();
+				} catch (SQLException ignored) {
+					LOGGER.warn("Couldn't close a statement of the update.");
+				}
+			}
+		}
+	}
 
 	public synchronized boolean exists() {
 		File database = new File(path);

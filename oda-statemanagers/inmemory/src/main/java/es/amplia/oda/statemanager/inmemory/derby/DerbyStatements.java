@@ -76,4 +76,12 @@ public class DerbyStatements implements SQLStatements {
 	public String getQueryToGetTables() {
 		return "select st.tablename  from sys.systables st LEFT OUTER join sys.sysschemas ss on (st.schemaid = ss.schemaid) where ss.schemaname ='APP'";
 	}
+
+	@Override
+	public String getExcessHistoricDataFromDatabaseStatement() {
+		return "SELECT \"deviceId\", \"datastreamId\" FROM " +
+				" (SELECT \"deviceId\", \"datastreamId\", COUNT(\"datastreamId\") AS numValues FROM STATE " +
+				"GROUP BY \"deviceId\", \"datastreamId\") AS historicData " +
+				"WHERE numValues > ?";
+	}
 }
