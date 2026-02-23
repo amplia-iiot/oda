@@ -68,7 +68,7 @@ public class RulesUtilsDirectoryWatcherTest {
 
 		testDirectoryWatcher.start();
 
-		File fileToCreate = new File(testRoute + "/tempDir.js");
+		File fileToCreate = new File(testRoute + "/tempDir3.js");
 
 		// erase file if it already exists
 		fileToCreate.delete();
@@ -77,6 +77,8 @@ public class RulesUtilsDirectoryWatcherTest {
 		fileToCreate.createNewFile();
 
 		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).reloadAllRules();
+
+		fileToCreate.delete();
 	}
 
 	@Test
@@ -84,7 +86,7 @@ public class RulesUtilsDirectoryWatcherTest {
 		String root = new File(".").getCanonicalPath();
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new RulesUtilsDirectoryWatcher(Paths.get(testRoute), mockedEngine);
-		File fileToCreate = new File(testRoute + "/tempDir.js");
+		File fileToCreate = new File(testRoute + "/tempDir4.js");
 		fileToCreate.createNewFile();
 
 		testDirectoryWatcher.start();
