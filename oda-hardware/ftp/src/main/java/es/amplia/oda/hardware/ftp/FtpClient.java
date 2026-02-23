@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,14 @@ public class FtpClient {
         this.passiveMode = passiveMode;
     }
 
+    public boolean connect(int timeout) throws IOException {
+        if (!connect()) {
+            return false;
+        }
+        setTimeout(timeout);
+        return true;
+    }
+
     public boolean connect() throws IOException {
         ftpClient = new FTPClient();
 
@@ -47,6 +56,9 @@ public class FtpClient {
             }
         });
 
+        // set default timeout of 10 seconds
+        setTimeout(10000);
+
         // configuration for ftp server to be unix
         ftpClient.configure(new FTPClientConfig(FTPClientConfig.SYST_UNIX));
 
@@ -59,7 +71,7 @@ public class FtpClient {
         }
 
         // login in ftp server
-        if(!ftpClient.login(user, password)){
+        if (!ftpClient.login(user, password)) {
             log.error("Error logging to FTP server {}", this.server);
             return false;
         }
@@ -67,7 +79,7 @@ public class FtpClient {
         // set file type for downloads (in some servers must be done after logging)
         ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
-        if(this.passiveMode) {
+        if (this.passiveMode) {
             ftpClient.enterLocalPassiveMode();
         }
 
@@ -78,6 +90,12 @@ public class FtpClient {
 
     public void disconnect() throws IOException {
         ftpClient.disconnect();
+    }
+
+    public void setTimeout(int timeout) throws SocketException {
+        ftpClient.setConnectTimeout(timeout);
+        ftpClient.setDefaultTimeout(timeout);
+        ftpClient.setSoTimeout(timeout);
     }
 
     public List<FtpFile> listFiles(String path) throws IOException {
