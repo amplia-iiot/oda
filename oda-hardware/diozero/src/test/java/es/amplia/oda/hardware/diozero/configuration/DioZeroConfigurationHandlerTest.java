@@ -8,9 +8,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
@@ -20,8 +19,7 @@ import static es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationH
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DioZeroConfigurationHandler.class, AnalogInputDeviceBuilder.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DioZeroConfigurationHandlerTest {
 
     private static final int TEST_ADC_CHANNEL_1_INDEX = 0;
@@ -65,15 +63,14 @@ public class DioZeroConfigurationHandlerTest {
         props.put(Integer.toString(TEST_ADC_CHANNEL_2_INDEX), DEVICE_TYPE_PROPERTY_NAME + ":" + ADC_CHANNEL_DEVICE_TYPE + "," +
                 PATH_PROPERTY_NAME + ":" + TEST_ADC_CHANNEL_2_PATH);
 
-        PowerMockito.mockStatic(AnalogInputDeviceBuilder.class);
-        PowerMockito.when(AnalogInputDeviceBuilder.newBuilder()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedAnalogInputDevice);
+        try (MockedStatic<AnalogInputDeviceBuilder> mockedBuilderStatic = mockStatic(AnalogInputDeviceBuilder.class)) {
+            mockedBuilderStatic.when(AnalogInputDeviceBuilder::newBuilder).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedAnalogInputDevice);
 
-        testHandler.loadConfiguration(props);
+            testHandler.loadConfiguration(props);
 
-        PowerMockito.verifyStatic(AnalogInputDeviceBuilder.class, times(2));
-        //noinspection ResultOfMethodCallIgnored
-        AnalogInputDeviceBuilder.newBuilder();
+            mockedBuilderStatic.verify(AnalogInputDeviceBuilder::newBuilder, times(2));
+        }
         verify(mockedBuilder).setChannelIndex(eq(TEST_ADC_CHANNEL_1_INDEX));
         verify(mockedBuilder).setName(eq(TEST_ADC_CHANNEL_1_NAME));
         verify(mockedBuilder).setLowMode(eq(TEST_ADC_CHANNEL_1_LOW_MODE));

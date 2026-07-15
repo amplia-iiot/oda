@@ -13,8 +13,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -23,10 +23,10 @@ import java.util.UUID;
 import static es.amplia.oda.connector.mqtt.configuration.ConfigurationUpdateHandlerImpl.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ConfigurationUpdateHandlerImplTest {
 
     private static final String TEST_DEVICE_ID = "testUser";
@@ -519,10 +519,10 @@ public class ConfigurationUpdateHandlerImplTest {
 
     @Test
     public void testReapplyConfigurationWithNoLastProperties() throws MqttException {
-        Whitebox.setInternalState(testConfigHandler, "lastProperties", null);
+        Whitebox.setInternalState(testConfigHandler, "lastProperties", (Object) null);
 
         testConfigHandler.reapplyConfiguration();
 
-        verifyZeroInteractions(mockedConnector);
+        verifyNoInteractions(mockedConnector);
     }
 }

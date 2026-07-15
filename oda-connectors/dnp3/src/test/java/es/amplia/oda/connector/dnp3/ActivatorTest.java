@@ -12,20 +12,21 @@ import es.amplia.oda.connector.dnp3.configuration.DNP3ConnectorConfigurationHand
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -36,8 +37,6 @@ public class ActivatorTest {
     private ScadaTableInfoProxy mockedTableInfo;
     @Mock
     private ScadaDispatcherProxy mockedDispatcher;
-    @Mock
-    private ServiceRegistrationManagerOsgi<ScadaConnector> mockedScadaConnectorRegistrationManager;
     @Mock
     private DNP3Connector mockedConnector;
     @Mock
@@ -50,28 +49,59 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ScadaTableInfoProxy.class).withAnyArguments().thenReturn(mockedTableInfo);
-        PowerMockito.whenNew(ScadaDispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-                .thenReturn(mockedScadaConnectorRegistrationManager);
-        PowerMockito.whenNew(DNP3Connector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(DNP3ConnectorConfigurationHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedServiceListenerBundle);
+        List<List<?>> tableInfoArgs = new ArrayList<>();
+        List<List<?>> dispatcherArgs = new ArrayList<>();
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<ScadaTableInfoProxy> tableInfoCons =
+                     mockConstruction(ScadaTableInfoProxy.class,
+                             (mock, mctx) -> tableInfoArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ScadaDispatcherProxy> dispatcherCons =
+                     mockConstruction(ScadaDispatcherProxy.class,
+                             (mock, mctx) -> dispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DNP3Connector> connectorCons =
+                     mockConstruction(DNP3Connector.class,
+                             (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DNP3ConnectorConfigurationHandler> configHandlerCons =
+                     mockConstruction(DNP3ConnectorConfigurationHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ScadaTableInfoProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ScadaDispatcherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(ScadaConnector.class));
-        PowerMockito.verifyNew(DNP3Connector.class)
-                .withArguments(eq(mockedTableInfo), eq(mockedDispatcher), eq(mockedScadaConnectorRegistrationManager));
-        PowerMockito.verifyNew(DNP3ConnectorConfigurationHandler.class).withArguments(eq(mockedConnector));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(ScadaTableInfo.class), any(Runnable.class));
+            testActivator.start(mockedContext);
+
+            assertEquals(1, tableInfoCons.constructed().size());
+            assertEquals(mockedContext, tableInfoArgs.get(0).get(0));
+            assertEquals(1, dispatcherCons.constructed().size());
+            assertEquals(mockedContext, dispatcherArgs.get(0).get(0));
+            assertEquals(1, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(ScadaConnector.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(tableInfoCons.constructed().get(0), connectorArgs.get(0).get(0));
+            assertEquals(dispatcherCons.constructed().get(0), connectorArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(0), connectorArgs.get(0).get(2));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(connectorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            assertEquals(1, serviceListenerCons.constructed().size());
+            assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+            assertEquals(ScadaTableInfo.class, serviceListenerArgs.get(0).get(1));
+            assertTrue(serviceListenerArgs.get(0).get(2) instanceof Runnable);
+        }
     }
 
     @Test

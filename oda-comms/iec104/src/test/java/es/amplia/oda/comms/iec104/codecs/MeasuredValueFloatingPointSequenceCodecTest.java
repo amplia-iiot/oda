@@ -11,15 +11,13 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.MeasuredValueShortFlo
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertTrue;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MeasuredValueFloatingPointSequenceCodec.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MeasuredValueFloatingPointSequenceCodecTest {
 
 	private static final byte[] bytes = new byte[]{0x00, 0x00, 0x00, 0x00, 0x00};

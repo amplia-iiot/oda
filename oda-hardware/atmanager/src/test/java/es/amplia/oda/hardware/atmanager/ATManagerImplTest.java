@@ -59,7 +59,7 @@ public class ATManagerImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         atManager = new ATManagerImpl(atParser, outputStream);
         when(atParser.process(AN_EVENT_STRING)).thenReturn(ATParser.Result.unsolicitedResponse(AN_EVENT, AN_EVENT_PARAMETERS));

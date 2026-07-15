@@ -6,20 +6,22 @@ import es.amplia.oda.hardware.i2c.configuration.DioZeroI2CConfigurationHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 	private final Activator testActivator = new Activator();
 
@@ -39,17 +41,29 @@ public class ActivatorTest {
 	@Test
 	public void testStart() throws Exception {
 		String testSymbolicName = "Symme";
-		whenNew(DioZeroI2CService.class).withAnyArguments().thenReturn(mockedService);
-		whenNew(DioZeroI2CConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
 		when(mockedContext.getBundle()).thenReturn(mockedBundle);
 		when(mockedBundle.getSymbolicName()).thenReturn(testSymbolicName);
 
-		testActivator.start(mockedContext);
+		List<List<?>> handlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
 
-		verifyNew(DioZeroI2CService.class).withNoArguments();
-		verifyNew(DioZeroI2CConfigurationHandler.class).withArguments(eq(mockedService));
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler), any());
+		try (MockedConstruction<DioZeroI2CService> serviceCons = mockConstruction(DioZeroI2CService.class);
+			 MockedConstruction<DioZeroI2CConfigurationHandler> handlerCons =
+					 mockConstruction(DioZeroI2CConfigurationHandler.class,
+							 (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+
+			testActivator.start(mockedContext);
+
+			assertEquals(1, serviceCons.constructed().size());
+			assertEquals(1, handlerCons.constructed().size());
+			assertEquals(serviceCons.constructed().get(0), handlerArgs.get(0).get(0));
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(handlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+		}
 	}
 
 	@Test

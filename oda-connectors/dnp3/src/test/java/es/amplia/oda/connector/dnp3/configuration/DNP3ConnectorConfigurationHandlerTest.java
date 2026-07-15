@@ -7,8 +7,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
@@ -18,8 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ DNP3ConnectorConfigurationHandler.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DNP3ConnectorConfigurationHandlerTest {
 
     private static final String TEST_CHANNEL_ID = "testChannel";

@@ -16,21 +16,24 @@ import es.amplia.oda.datastreams.mqtt.configuration.MqttDatastreamsConfiguration
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -60,30 +63,66 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedMqttClientFactory);
-        PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
-        PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
-        PowerMockito.whenNew(ResponseDispatcherProxy.class).withAnyArguments().thenReturn(mockedResponseDispatcher);
-        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
-        PowerMockito.whenNew(MqttDatastreamsOrchestrator.class).withAnyArguments().thenReturn(mockedOrchestrator);
-        PowerMockito.whenNew(MqttDatastreamsConfigurationUpdateHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        when(mockedContext.registerService(eq(MqttDatastreamsService.class), any(), any())).thenReturn(mockedRegistration);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
+        List<List<?>> clientFactoryArgs = new ArrayList<>();
+        List<List<?>> serializerArgs = new ArrayList<>();
+        List<List<?>> eventPublisherArgs = new ArrayList<>();
+        List<List<?>> orchestratorArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        List<List<?>> listenerArgs = new ArrayList<>();
+        try (MockedConstruction<MqttClientFactoryProxy> clientFactoryCons =
+                     mockConstruction(MqttClientFactoryProxy.class,
+                             (mock, mctx) -> clientFactoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SerializerProxy> serializerCons =
+                     mockConstruction(SerializerProxy.class,
+                             (mock, mctx) -> serializerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DeviceInfoProviderProxy> deviceInfoProviderCons =
+                     mockConstruction(DeviceInfoProviderProxy.class);
+             MockedConstruction<ResponseDispatcherProxy> responseDispatcherCons =
+                     mockConstruction(ResponseDispatcherProxy.class);
+             MockedConstruction<EventPublisherProxy> eventPublisherCons =
+                     mockConstruction(EventPublisherProxy.class,
+                             (mock, mctx) -> eventPublisherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<MqttDatastreamsOrchestrator> orchestratorCons =
+                     mockConstruction(MqttDatastreamsOrchestrator.class,
+                             (mock, mctx) -> orchestratorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<MqttDatastreamsConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(MqttDatastreamsConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> listenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> listenerArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedContext.registerService(eq(MqttDatastreamsService.class), any(), any())).thenReturn(mockedRegistration);
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
-        PowerMockito.verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(MqttDatastreamsOrchestrator.class).withArguments(eq(mockedMqttClientFactory),
-                eq(mockedSerializer), eq(mockedEventPublisher), eq(mockedDeviceInfoProvider), eq(mockedResponseDispatcher), eq(mockedContext));
-        PowerMockito.verifyNew(MqttDatastreamsConfigurationUpdateHandler.class).withArguments(eq(mockedOrchestrator));
-        verify(mockedContext).registerService(eq(MqttDatastreamsService.class), any(), any());
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(MqttClientFactory.class), any());
+            assertEquals(1, clientFactoryCons.constructed().size());
+            assertEquals(mockedContext, clientFactoryArgs.get(0).get(0));
+            assertEquals(1, serializerCons.constructed().size());
+            assertEquals(mockedContext, serializerArgs.get(0).get(0));
+            assertEquals(ContentType.JSON, serializerArgs.get(0).get(1));
+            assertEquals(1, eventPublisherCons.constructed().size());
+            assertEquals(mockedContext, eventPublisherArgs.get(0).get(0));
+            assertEquals(1, orchestratorCons.constructed().size());
+            assertEquals(clientFactoryCons.constructed().get(0), orchestratorArgs.get(0).get(0));
+            assertEquals(serializerCons.constructed().get(0), orchestratorArgs.get(0).get(1));
+            assertEquals(eventPublisherCons.constructed().get(0), orchestratorArgs.get(0).get(2));
+            assertEquals(deviceInfoProviderCons.constructed().get(0), orchestratorArgs.get(0).get(3));
+            assertEquals(responseDispatcherCons.constructed().get(0), orchestratorArgs.get(0).get(4));
+            assertEquals(mockedContext, orchestratorArgs.get(0).get(5));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(orchestratorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            verify(mockedContext).registerService(eq(MqttDatastreamsService.class), any(), any());
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            assertEquals(1, listenerCons.constructed().size());
+            assertEquals(mockedContext, listenerArgs.get(0).get(0));
+            assertEquals(MqttClientFactory.class, listenerArgs.get(0).get(1));
+        }
     }
 
     @Test

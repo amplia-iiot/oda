@@ -7,21 +7,23 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MqttClientFactoryProxy.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MqttClientFactoryProxyTest {
 
     private static final String TEST_SERVER = "test.server.host";
@@ -32,23 +34,29 @@ public class MqttClientFactoryProxyTest {
 
     private MqttClientFactoryProxy testProxy;
 
-    @Mock
     private OsgiServiceProxy<MqttClientFactory> mockedOsgiProxy;
+    private final List<List<?>> osgiProxyArgs = new ArrayList<>();
     @Captor
     private ArgumentCaptor<Function<MqttClientFactory, MqttClient>> createMqttClientFunctionCaptor;
     @Mock
     private MqttClientFactory mockedFactory;
 
     @Before
-    public void setUp() throws Exception {
-        PowerMockito.whenNew(OsgiServiceProxy.class).withAnyArguments().thenReturn(mockedOsgiProxy);
-
-        testProxy = new MqttClientFactoryProxy(mockedContext);
+    @SuppressWarnings("unchecked")
+    public void setUp() {
+        try (MockedConstruction<OsgiServiceProxy> osgiProxyCons =
+                     mockConstruction(OsgiServiceProxy.class,
+                             (mock, mctx) -> osgiProxyArgs.add(new ArrayList<>(mctx.arguments())))) {
+            testProxy = new MqttClientFactoryProxy(mockedContext);
+            mockedOsgiProxy = osgiProxyCons.constructed().get(0);
+        }
     }
 
     @Test
-    public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(OsgiServiceProxy.class).withArguments(eq(MqttClientFactory.class), eq(mockedContext));
+    public void testConstructor() {
+        assertEquals(1, osgiProxyArgs.size());
+        assertEquals(MqttClientFactory.class, osgiProxyArgs.get(0).get(0));
+        assertEquals(mockedContext, osgiProxyArgs.get(0).get(1));
     }
 
     @Test

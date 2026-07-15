@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -15,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 
 import static es.amplia.oda.core.commons.utils.SchedulerImpl.STOP_PENDING_OPERATIONS_TIMEOUT;
 import static es.amplia.oda.core.commons.utils.SchedulerImpl.STOP_PENDING_OPERATIONS_TIME_UNIT;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SchedulerImplTest {
 
     private static final long TEST_DELAY = 30;

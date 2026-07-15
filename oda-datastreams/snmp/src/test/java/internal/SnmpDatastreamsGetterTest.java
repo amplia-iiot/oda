@@ -10,14 +10,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpDatastreamsGetterTest {
 
     private static final String TEST_DEVICE_ID_VALUE = "testDevice";
@@ -55,8 +54,8 @@ public class SnmpDatastreamsGetterTest {
 
     @Test
     public void getCollectedValueTest() throws ExecutionException, InterruptedException {
-        PowerMockito.when(mockedSnmpClientsFinder.getSnmpClient(Mockito.any())).thenReturn(mockedSnmpClient);
-        PowerMockito.when(mockedSnmpClient.getValue(Mockito.any())).thenReturn(TEST_RETURN_VALUE);
+        Mockito.when(mockedSnmpClientsFinder.getSnmpClient(Mockito.any())).thenReturn(mockedSnmpClient);
+        Mockito.when(mockedSnmpClient.getValue(Mockito.any())).thenReturn(TEST_RETURN_VALUE);
 
         CompletableFuture<DatastreamsGetter.CollectedValue> actualCollectedValue = datastreamGetter.get(TEST_DEVICE_ID_VALUE);
 

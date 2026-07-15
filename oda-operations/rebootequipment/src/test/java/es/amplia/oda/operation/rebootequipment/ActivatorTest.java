@@ -9,28 +9,26 @@ import es.amplia.oda.operation.api.OperationRefreshInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventHandler;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
 
     @Mock
     private BundleContext mockedContext;
-    @Mock
-    private RebootEquipmentImpl mockedRebootEquipment;
     @Mock
     private ServiceRegistration<OperationRefreshInfo> mockedRegistration;
     @Mock
@@ -46,11 +44,15 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(RebootEquipmentImpl.class).withAnyArguments().thenReturn(mockedRebootEquipment);
+        try (MockedConstruction<RebootEquipmentImpl> rebootEquipmentCons =
+                     mockConstruction(RebootEquipmentImpl.class)) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        verify(mockedContext).registerService(eq(CustomOperation.class), eq(mockedRebootEquipment), any());
+            assertEquals(1, rebootEquipmentCons.constructed().size());
+            verify(mockedContext).registerService(eq(CustomOperation.class),
+                    eq(rebootEquipmentCons.constructed().get(0)), any());
+        }
     }
 
     @Test

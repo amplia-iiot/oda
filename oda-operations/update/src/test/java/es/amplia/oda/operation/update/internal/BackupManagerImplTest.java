@@ -9,8 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,7 +21,7 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class BackupManagerImplTest {
 
     private static final String DEPLOYMENT_ELEMENT_NAME = "testBundle";
@@ -163,19 +163,21 @@ public class BackupManagerImplTest {
 
     @Test
     public void testDeleteBackupFiles() throws FileManager.FileException {
-        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, spiedBackups);
+        Map<DeploymentElement, String> backups = createBackupsMap();
+        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, backups);
 
         testBackupManager.deleteBackupFiles();
 
         verify(mockedFileManager).delete(eq(BACKUP_FILE_1));
         verify(mockedFileManager).delete(eq(BACKUP_FILE_2));
         verify(mockedFileManager).delete(eq(BACKUP_FILE_3));
-        verify(spiedBackups).clear();
+        assertTrue(backups.isEmpty());
     }
 
     @Test
     public void testDeleteBackupFilesCatchException() throws FileManager.FileException {
-        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, spiedBackups);
+        Map<DeploymentElement, String> backups = createBackupsMap();
+        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, backups);
 
         doThrow(new FileManager.FileException("")).when(mockedFileManager).delete(eq(BACKUP_FILE_2));
 
@@ -184,7 +186,7 @@ public class BackupManagerImplTest {
         verify(mockedFileManager).delete(eq(BACKUP_FILE_1));
         verify(mockedFileManager).delete(eq(BACKUP_FILE_2));
         verify(mockedFileManager).delete(eq(BACKUP_FILE_3));
-        verify(spiedBackups).clear();
+        assertTrue(backups.isEmpty());
     }
 
     @Test
@@ -193,23 +195,27 @@ public class BackupManagerImplTest {
 
         testBackupManager.deleteBackupFiles();
 
-        verifyZeroInteractions(mockedFileManager);
+        verifyNoInteractions(mockedFileManager);
     }
 
     @Test
     public void testDeleteBackupFilesWithNullValues() throws FileManager.FileException {
-        Map<DeploymentElement, String> backups = new HashMap<>();
-        backups.put(DEPLOYMENT_ELEMENT_1, BACKUP_FILE_1);
-        backups.put(DEPLOYMENT_ELEMENT_2, BACKUP_FILE_2);
-        backups.put(DEPLOYMENT_ELEMENT_3, BACKUP_FILE_3);
-        spiedBackups = spy(backups);
+        Map<DeploymentElement, String> backups = createBackupsMap();
 
-        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, spiedBackups);
+        Whitebox.setInternalState(testBackupManager, BACKUP_FILES_FIELD_NAME, backups);
 
         testBackupManager.deleteBackupFiles();
 
         verify(mockedFileManager).delete(eq(BACKUP_FILE_1));
         verify(mockedFileManager).delete(eq(BACKUP_FILE_3));
-        verify(spiedBackups).clear();
+        assertTrue(backups.isEmpty());
+    }
+
+    private static Map<DeploymentElement, String> createBackupsMap() {
+        Map<DeploymentElement, String> backups = new HashMap<>();
+        backups.put(DEPLOYMENT_ELEMENT_1, BACKUP_FILE_1);
+        backups.put(DEPLOYMENT_ELEMENT_2, BACKUP_FILE_2);
+        backups.put(DEPLOYMENT_ELEMENT_3, BACKUP_FILE_3);
+        return backups;
     }
 }

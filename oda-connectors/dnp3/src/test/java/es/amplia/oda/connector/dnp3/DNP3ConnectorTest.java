@@ -12,16 +12,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ DNP3Connector.class, DNP3ManagerFactory.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DNP3ConnectorTest {
 
     // Do not load the opendnp3 native libs
@@ -56,8 +58,9 @@ public class DNP3ConnectorTest {
 
     private DNP3Connector testConnector;
 
-    @Mock
-    private DNP3LogHandler mockedLogHandler;
+    private DNP3LogHandler constructedLogHandler;
+    private final List<LogHandler> createManagerArgs = new ArrayList<>();
+
     @Mock
     private DNP3Manager mockedManager;
     @Mock
@@ -65,25 +68,34 @@ public class DNP3ConnectorTest {
     @Mock
     private Channel mockedChannel;
     @Mock
-    private ScadaCommandHandler mockedCommandHandler;
-    @Mock
     private Outstation mockedOutstation;
 
     @Before
-    public void setUp() throws Exception {
-        PowerMockito.whenNew(DNP3LogHandler.class).withAnyArguments().thenReturn(mockedLogHandler);
-        PowerMockito.mockStatic(DNP3ManagerFactory.class);
-        PowerMockito.when(DNP3ManagerFactory.createManager(any(LogHandler.class))).thenReturn(mockedManager);
+    public void setUp() {
+        try (MockedConstruction<DNP3LogHandler> logHandlerCons = mockConstruction(DNP3LogHandler.class);
+             MockedStatic<DNP3ManagerFactory> managerFactoryStatic = mockStatic(DNP3ManagerFactory.class)) {
+            managerFactoryStatic.when(() -> DNP3ManagerFactory.createManager(any(LogHandler.class)))
+                    .thenAnswer(invocation -> {
+                        createManagerArgs.add(invocation.getArgument(0));
+                        return mockedManager;
+                    });
 
-        testConnector = new DNP3Connector(mockedTableInfo, mockedDispatcher, mockedScadaConnectorRegistrationManager);
+            testConnector = new DNP3Connector(mockedTableInfo, mockedDispatcher,
+                    mockedScadaConnectorRegistrationManager);
+
+            constructedLogHandler = logHandlerCons.constructed().isEmpty() ? null
+                    : logHandlerCons.constructed().get(0);
+        } catch (DNP3Exception e) {
+            fail("DNP3 exception creating the connector: " + e);
+        }
     }
 
     @Test
-    public void testConstructor() throws Exception {
+    public void testConstructor() {
         assertNotNull(testConnector);
-        PowerMockito.verifyNew(DNP3LogHandler.class).withNoArguments();
-        PowerMockito.verifyStatic(DNP3ManagerFactory.class);
-        DNP3ManagerFactory.createManager(eq(mockedLogHandler));
+        assertNotNull(constructedLogHandler);
+        assertEquals(1, createManagerArgs.size());
+        assertEquals(constructedLogHandler, createManagerArgs.get(0));
     }
 
     @Test
@@ -101,26 +113,25 @@ public class DNP3ConnectorTest {
 
         Whitebox.setInternalState(testConnector, MANAGER_FIELD_NAME, mockedManager);
 
-        PowerMockito.whenNew(DNP3ChannelListener.class).withAnyArguments().thenReturn(mockedListener);
-        when(mockedManager.addTCPServer(anyString(), anyInt(), any(ChannelRetry.class), anyString(), anyInt(),
-                any(ChannelListener.class))).thenReturn(mockedChannel);
-        when(mockedChannel.addOutstation(anyString(), any(CommandHandler.class), any(OutstationApplication.class),
-                any(OutstationStackConfig.class))).thenReturn(mockedOutstation);
+        try (MockedConstruction<DNP3ChannelListener> listenerCons = mockConstruction(DNP3ChannelListener.class)) {
+            when(mockedManager.addTCPServer(anyString(), anyInt(), any(ChannelRetry.class), anyString(), anyInt(),
+                    any(ChannelListener.class))).thenReturn(mockedChannel);
 
-        testConnector.loadConfiguration(testConfiguration);
+            testConnector.loadConfiguration(testConfiguration);
 
-        PowerMockito.verifyNew(DNP3ChannelListener.class).withNoArguments();
-        verify(mockedManager).addTCPServer(eq(TEST_CHANNEL_ID), eq(TEST_LOG_LEVEL), any(ChannelRetry.class),
-                                           eq(TEST_IP_ADDRESS), eq(TEST_IP_PORT), eq(mockedListener));
-        verify(mockedTableInfo).getNumBinaryInputs();
-        verify(mockedTableInfo).getNumDoubleBinaryInputs();
-        verify(mockedTableInfo).getNumAnalogInputs();
-        verify(mockedTableInfo).getNumCounters();
-        verify(mockedTableInfo).getNumFrozenCounters();
-        verify(mockedTableInfo).getNumBinaryOutputs();
-        verify(mockedTableInfo).getNumAnalogOutputs();
-        assertNotNull(Whitebox.getInternalState(testConnector, "outstationStackConfig"));
-
+            assertEquals(1, listenerCons.constructed().size());
+            verify(mockedManager).addTCPServer(eq(TEST_CHANNEL_ID), eq(TEST_LOG_LEVEL), any(ChannelRetry.class),
+                                               eq(TEST_IP_ADDRESS), eq(TEST_IP_PORT),
+                                               eq(listenerCons.constructed().get(0)));
+            verify(mockedTableInfo).getNumBinaryInputs();
+            verify(mockedTableInfo).getNumDoubleBinaryInputs();
+            verify(mockedTableInfo).getNumAnalogInputs();
+            verify(mockedTableInfo).getNumCounters();
+            verify(mockedTableInfo).getNumFrozenCounters();
+            verify(mockedTableInfo).getNumBinaryOutputs();
+            verify(mockedTableInfo).getNumAnalogOutputs();
+            assertNotNull(Whitebox.getInternalState(testConnector, "outstationStackConfig"));
+        }
     }
 
     @Test
@@ -142,22 +153,23 @@ public class DNP3ConnectorTest {
         Whitebox.setInternalState(testConnector, CHANNEL_FIELD_NAME, oldMockedChannel);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, oldMockedOutstation);
 
-        PowerMockito.whenNew(DNP3ChannelListener.class).withAnyArguments().thenReturn(mockedListener);
-        when(mockedManager.addTCPServer(anyString(), anyInt(), any(ChannelRetry.class), anyString(), anyInt(),
-                any(ChannelListener.class))).thenReturn(mockedChannel);
-        PowerMockito.whenNew(ScadaCommandHandler.class).withAnyArguments().thenReturn(mockedCommandHandler);
-        when(mockedChannel.addOutstation(anyString(), any(CommandHandler.class), any(OutstationApplication.class),
-                any(OutstationStackConfig.class))).thenReturn(mockedOutstation);
+        try (MockedConstruction<DNP3ChannelListener> listenerCons = mockConstruction(DNP3ChannelListener.class);
+             MockedConstruction<ScadaCommandHandler> commandHandlerCons = mockConstruction(ScadaCommandHandler.class)) {
+            when(mockedManager.addTCPServer(anyString(), anyInt(), any(ChannelRetry.class), anyString(), anyInt(),
+                    any(ChannelListener.class))).thenReturn(mockedChannel);
+            when(mockedChannel.addOutstation(anyString(), any(CommandHandler.class), any(OutstationApplication.class),
+                    any(OutstationStackConfig.class))).thenReturn(mockedOutstation);
 
-        testConnector.loadConfiguration(testConfiguration);
-        testConnector.init();
+            testConnector.loadConfiguration(testConfiguration);
+            testConnector.init();
 
-        verify(mockedScadaConnectorRegistrationManager).unregister();
-        verify(oldMockedOutstation).shutdown();
-        verify(oldMockedChannel).shutdown();
-        PowerMockito.verifyNew(DNP3ChannelListener.class).withNoArguments();
-        verify(mockedManager).addTCPServer(eq(TEST_CHANNEL_ID), eq(TEST_LOG_LEVEL), any(ChannelRetry.class),
-                eq(TEST_IP_ADDRESS), eq(TEST_IP_PORT), any(ChannelListener.class));
+            verify(mockedScadaConnectorRegistrationManager).unregister();
+            verify(oldMockedOutstation).shutdown();
+            verify(oldMockedChannel).shutdown();
+            assertEquals(1, listenerCons.constructed().size());
+            verify(mockedManager).addTCPServer(eq(TEST_CHANNEL_ID), eq(TEST_LOG_LEVEL), any(ChannelRetry.class),
+                    eq(TEST_IP_ADDRESS), eq(TEST_IP_PORT), any(ChannelListener.class));
+        }
     }
 
     @Test
@@ -168,182 +180,224 @@ public class DNP3ConnectorTest {
         Whitebox.setInternalState(testConnector, "outstationIdentifier", TEST_OUTSTATION_ID);
         Whitebox.setInternalState(testConnector, "outstationStackConfig", mockedOutstationStackConfig);
 
-        PowerMockito.whenNew(ScadaCommandHandler.class).withAnyArguments().thenReturn(mockedCommandHandler);
-        when(mockedChannel.addOutstation(anyString(), any(CommandHandler.class), any(OutstationApplication.class),
-                any(OutstationStackConfig.class))).thenReturn(mockedOutstation);
+        List<List<?>> commandHandlerArgs = new ArrayList<>();
+        try (MockedConstruction<ScadaCommandHandler> commandHandlerCons =
+                     mockConstruction(ScadaCommandHandler.class,
+                             (mock, mctx) -> commandHandlerArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedChannel.addOutstation(anyString(), any(CommandHandler.class), any(OutstationApplication.class),
+                    any(OutstationStackConfig.class))).thenReturn(mockedOutstation);
 
-        testConnector.init();
+            testConnector.init();
 
-        PowerMockito.verifyNew(ScadaCommandHandler.class).withArguments(eq(mockedDispatcher));
-        verify(mockedChannel).addOutstation(eq(TEST_OUTSTATION_ID), eq(mockedCommandHandler),
-                any(OutstationApplication.class), eq(mockedOutstationStackConfig));
-        verify(mockedOutstation).enable();
-        verify(mockedScadaConnectorRegistrationManager).register(eq(testConnector));
+            assertEquals(1, commandHandlerCons.constructed().size());
+            assertEquals(mockedDispatcher, commandHandlerArgs.get(0).get(0));
+            verify(mockedChannel).addOutstation(eq(TEST_OUTSTATION_ID), eq(commandHandlerCons.constructed().get(0)),
+                    any(OutstationApplication.class), eq(mockedOutstationStackConfig));
+            verify(mockedOutstation).enable();
+            verify(mockedScadaConnectorRegistrationManager).register(eq(testConnector));
+        }
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
-    public void testUplinkBoolean() throws Exception {
+    public void testUplinkBoolean() {
         boolean testValue = true;
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        BinaryInput mockedBinaryInput = mock(BinaryInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(BinaryInput.class).withAnyArguments().thenReturn(mockedBinaryInput);
 
-        testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+        List<List<?>> binaryInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<BinaryInput> binaryInputCons =
+                     mockConstruction(BinaryInput.class,
+                             (mock, mctx) -> binaryInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(BinaryInput.class).withArguments(eq(testValue), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedBinaryInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, binaryInputCons.constructed().size());
+            assertEquals(testValue, binaryInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, binaryInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, binaryInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(binaryInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkTrueAsString() throws Exception {
+    public void testUplinkTrueAsString() {
         String testValue = Boolean.TRUE.toString();
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        BinaryInput mockedBinaryInput = mock(BinaryInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(BinaryInput.class).withAnyArguments().thenReturn(mockedBinaryInput);
 
-        testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+        List<List<?>> binaryInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<BinaryInput> binaryInputCons =
+                     mockConstruction(BinaryInput.class,
+                             (mock, mctx) -> binaryInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(BinaryInput.class).withArguments(eq(Boolean.TRUE), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedBinaryInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, binaryInputCons.constructed().size());
+            assertEquals(Boolean.TRUE, binaryInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, binaryInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, binaryInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(binaryInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkFalseAsString() throws Exception {
+    public void testUplinkFalseAsString() {
         String testValue = Boolean.FALSE.toString();
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        BinaryInput mockedBinaryInput = mock(BinaryInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(BinaryInput.class).withAnyArguments().thenReturn(mockedBinaryInput);
 
-        testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+        List<List<?>> binaryInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<BinaryInput> binaryInputCons =
+                     mockConstruction(BinaryInput.class,
+                             (mock, mctx) -> binaryInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(BinaryInput.class).withArguments(eq(Boolean.FALSE), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedBinaryInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, binaryInputCons.constructed().size());
+            assertEquals(Boolean.FALSE, binaryInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, binaryInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, binaryInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(binaryInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkInt() throws Exception {
+    public void testUplinkInt() {
         int testValue = 1;
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        AnalogInput mockedAnalogInput = mock(AnalogInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
-
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(AnalogInput.class).withAnyArguments().thenReturn(mockedAnalogInput);
 
-        testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+        List<List<?>> analogInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<AnalogInput> analogInputCons =
+                     mockConstruction(AnalogInput.class,
+                             (mock, mctx) -> analogInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(AnalogInput.class)
-                .withArguments(eq((double) testValue), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedAnalogInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, analogInputCons.constructed().size());
+            assertEquals((double) testValue, analogInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, analogInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, analogInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(analogInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkDouble() throws Exception {
+    public void testUplinkDouble() {
         double testValue = 18.50;
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        AnalogInput mockedAnalogInput = mock(AnalogInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(AnalogInput.class).withAnyArguments().thenReturn(mockedAnalogInput);
 
-        testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+        List<List<?>> analogInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<AnalogInput> analogInputCons =
+                     mockConstruction(AnalogInput.class,
+                             (mock, mctx) -> analogInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(AnalogInput.class).withArguments(eq(testValue), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedAnalogInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValue, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, analogInputCons.constructed().size());
+            assertEquals(testValue, analogInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, analogInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, analogInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(analogInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkDoubleAsString() throws Exception {
+    public void testUplinkDoubleAsString() {
         double testValue = 18.50;
         String testValueAsString = Double.toString(testValue);
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        AnalogInput mockedAnalogInput = mock(AnalogInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(AnalogInput.class).withAnyArguments().thenReturn(mockedAnalogInput);
 
-        testConnector.uplink(TEST_INDEX, testValueAsString, testType, TEST_TIMESTAMP);
+        List<List<?>> analogInputArgs = new ArrayList<>();
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<AnalogInput> analogInputCons =
+                     mockConstruction(AnalogInput.class,
+                             (mock, mctx) -> analogInputArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        verify(mockedListener).isOpen();
-        PowerMockito.verifyNew(OutstationChangeSet.class).withNoArguments();
-        PowerMockito.verifyNew(AnalogInput.class).withArguments(eq(testValue), eq(TEST_DATA_QUALITY), eq(TEST_TIMESTAMP));
-        mockedChangeSet.update(eq(mockedAnalogInput), eq(TEST_INDEX));
-        mockedOutstation.apply(eq(mockedChangeSet));
+            testConnector.uplink(TEST_INDEX, testValueAsString, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            assertEquals(1, changeSetCons.constructed().size());
+            assertEquals(1, analogInputCons.constructed().size());
+            assertEquals(testValue, analogInputArgs.get(0).get(0));
+            assertEquals(TEST_DATA_QUALITY, analogInputArgs.get(0).get(1));
+            assertEquals(TEST_TIMESTAMP, analogInputArgs.get(0).get(2));
+            verify(changeSetCons.constructed().get(0))
+                    .update(eq(analogInputCons.constructed().get(0)), eq(TEST_INDEX));
+            verify(mockedOutstation).apply(eq(changeSetCons.constructed().get(0)));
+        }
     }
 
     @Test
-    public void testUplinkDoubleAsStringNotValid() throws Exception {
+    public void testUplinkDoubleAsStringNotValid() {
         String testValueAsString = "18.50la";
         String testType = "type";
-        OutstationChangeSet mockedChangeSet = mock(OutstationChangeSet.class);
-        AnalogInput mockedAnalogInput = mock(AnalogInput.class);
 
         Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, mockedListener);
         Whitebox.setInternalState(testConnector, OUTSTATION_FIELD_NAME, mockedOutstation);
 
         when(mockedListener.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(OutstationChangeSet.class).withNoArguments().thenReturn(mockedChangeSet);
-        PowerMockito.whenNew(AnalogInput.class).withAnyArguments().thenReturn(mockedAnalogInput);
 
-        testConnector.uplink(TEST_INDEX, testValueAsString, testType, TEST_TIMESTAMP);
+        try (MockedConstruction<OutstationChangeSet> changeSetCons = mockConstruction(OutstationChangeSet.class);
+             MockedConstruction<AnalogInput> analogInputCons = mockConstruction(AnalogInput.class)) {
 
-        verify(mockedListener).isOpen();
-        verify(mockedOutstation, never()).apply(any(ChangeSet.class));
+            testConnector.uplink(TEST_INDEX, testValueAsString, testType, TEST_TIMESTAMP);
+
+            verify(mockedListener).isOpen();
+            verify(mockedOutstation, never()).apply(any(ChangeSet.class));
+        }
     }
 
     @Test
@@ -384,7 +438,7 @@ public class DNP3ConnectorTest {
 
     @Test
     public void testIsConnectedNullDnpChannelListener() {
-        Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CHANNEL_LISTENER_FIELD_NAME, (Object) null);
 
         boolean connected = testConnector.isConnected();
 

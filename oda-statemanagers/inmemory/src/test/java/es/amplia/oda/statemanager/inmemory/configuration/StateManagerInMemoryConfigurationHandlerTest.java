@@ -5,8 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
@@ -16,8 +15,7 @@ import static es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMe
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({InMemoryStateManager.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class StateManagerInMemoryConfigurationHandlerTest {
 
 	public static final String DATABASE_PATH_PROPERTY_VALUE = "/123/fake/street";

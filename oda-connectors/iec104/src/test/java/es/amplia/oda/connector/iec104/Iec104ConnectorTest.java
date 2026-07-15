@@ -12,14 +12,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Iec104ConnectorTest {
 
 
@@ -57,7 +57,7 @@ public class Iec104ConnectorTest {
 
 		connector.uplink(index, value, InterrogationCommand.class.toString(), System.currentTimeMillis());
 
-		verify(mockedModule).send(any(InterrogationCommand.class));
+		verify(mockedModule).send(nullable(InterrogationCommand.class));
 	}
 
 	@Test
@@ -81,7 +81,7 @@ public class Iec104ConnectorTest {
 
 		connector.loadConfiguration(configuration);
 
-		assertEquals(1, Whitebox.getInternalState(connector, "commonAddress"));
+		assertEquals(1, (int) Whitebox.getInternalState(connector, "commonAddress"));
 		assertEquals(true, Whitebox.getInternalState(connector, "spontaneousEnabled"));
 	}
 

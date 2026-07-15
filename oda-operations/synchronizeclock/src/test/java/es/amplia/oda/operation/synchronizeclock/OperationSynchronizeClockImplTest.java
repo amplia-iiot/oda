@@ -8,7 +8,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +20,7 @@ import static es.amplia.oda.operation.synchronizeclock.OperationSynchronizeClock
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OperationSynchronizeClockImplTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";

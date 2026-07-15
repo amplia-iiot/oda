@@ -15,7 +15,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OperationUpdateImplTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -119,12 +119,12 @@ public class OperationUpdateImplTest {
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
-                .backup(any(OperationUpdate.DeploymentElement.class), anyString());
+                .backup(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedDownloadManager).createDownloadDirectory();
         verify(mockedDownloadManager, times(deploymentElementsToDownload))
                 .download(any(OperationUpdate.DeploymentElement.class));
         verify(mockedInstallManager, times(numOfDeploymentElements))
-                .install(any(OperationUpdate.DeploymentElement.class), anyString());
+                .install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
         verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.SUCCESSFUL);
@@ -134,7 +134,7 @@ public class OperationUpdateImplTest {
     public void testUpdateErrorPreparingSystem() throws BackupManager.BackupException, ExecutionException,
             InterruptedException, DownloadManager.DownloadException, InstallManager.InstallException {
         doThrow(new BackupManager.BackupException("")).when(mockedBackupManager)
-                .backup(any(OperationUpdate.DeploymentElement.class), anyString());
+                .backup(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
 
         operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
         Thread.sleep(500);
@@ -147,13 +147,13 @@ public class OperationUpdateImplTest {
         verify(mockedDispatcher).publishResponse(resp);
 
         verify(mockedBackupManager).createBackupDirectory();
-        verify(mockedBackupManager, atLeastOnce()).backup(any(OperationUpdate.DeploymentElement.class), anyString());
+        verify(mockedBackupManager, atLeastOnce()).backup(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedDownloadManager, times(0)).download(any(OperationUpdate.DeploymentElement.class));
-        verify(mockedInstallManager, times(0)).install(any(OperationUpdate.DeploymentElement.class), anyString());
+        verify(mockedInstallManager, times(0)).install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager, times(numOfDeploymentElements))
                 .getBackupFile(any(OperationUpdate.DeploymentElement.class));
         verify(mockedInstallManager, times(numOfDeploymentElements))
-                .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
+                .rollback(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
         verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
@@ -179,14 +179,14 @@ public class OperationUpdateImplTest {
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
-                .backup(any(OperationUpdate.DeploymentElement.class), anyString());
+                .backup(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedDownloadManager, times(deploymentElementsToDownload))
                 .download(any(OperationUpdate.DeploymentElement.class));
-        verify(mockedInstallManager, times(0)).install(any(OperationUpdate.DeploymentElement.class), anyString());
+        verify(mockedInstallManager, times(0)).install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager, times(numOfDeploymentElements))
                 .getBackupFile(any(OperationUpdate.DeploymentElement.class));
         verify(mockedInstallManager, times(numOfDeploymentElements))
-                .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
+                .rollback(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
         verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
@@ -196,7 +196,7 @@ public class OperationUpdateImplTest {
     public void testUpdateErrorInstalling() throws InstallManager.InstallException, ExecutionException,
             InterruptedException, BackupManager.BackupException, DownloadManager.DownloadException {
         doNothing().doNothing().doThrow(new InstallManager.InstallException("")).when(mockedInstallManager)
-                .install(any(OperationUpdate.DeploymentElement.class), anyString());
+                .install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
 
         operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
         Thread.sleep(500);
@@ -218,14 +218,14 @@ public class OperationUpdateImplTest {
 
         verify(mockedBackupManager).createBackupDirectory();
         verify(mockedBackupManager, times(deploymentElementsToBackup))
-                .backup(any(OperationUpdate.DeploymentElement.class), anyString());
+                .backup(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedDownloadManager, times(deploymentElementsToDownload))
                 .download(any(OperationUpdate.DeploymentElement.class));
-        verify(mockedInstallManager, times(3)).install(any(OperationUpdate.DeploymentElement.class), anyString());
+        verify(mockedInstallManager, times(3)).install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager, times(numOfDeploymentElements))
                 .getBackupFile(any(OperationUpdate.DeploymentElement.class));
         verify(mockedInstallManager, times(numOfDeploymentElements))
-                .rollback(any(OperationUpdate.DeploymentElement.class), anyString());
+                .rollback(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
         verify(mockedBackupManager).deleteBackupFiles();
         verify(mockedDownloadManager).deleteDownloadedFiles();
         verify(mockedInstallManager).clearInstalledDeploymentElements(OperationResultCodes.ERROR_PROCESSING);
@@ -235,7 +235,7 @@ public class OperationUpdateImplTest {
     public void testUpdateUnknownException() throws InstallManager.InstallException, ExecutionException,
             InterruptedException {
         doNothing().doNothing().doThrow(new RuntimeException("Unknown")).when(mockedInstallManager)
-                .install(any(OperationUpdate.DeploymentElement.class), anyString());
+                .install(any(OperationUpdate.DeploymentElement.class), nullable(String.class));
 
         operationUpdate.update(OPERATION_ID, TEST_NAME, TEST_VERSION_1, testDeploymentElements);
         Thread.sleep(500);

@@ -11,22 +11,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static es.amplia.oda.connector.websocket.WebSocketConnector.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class WebSocketConnectorTest {
 
     private static final String TEST_HOST = "localhost";
@@ -128,7 +128,7 @@ public class WebSocketConnectorTest {
 
     @Test
     public void testUplinkWithoutClient() {
-        Whitebox.setInternalState(testConnector, "client", null);
+        Whitebox.setInternalState(testConnector, "client", (Object) null);
 
         testConnector.uplink(TEST_PAYLOAD);
 
@@ -166,7 +166,7 @@ public class WebSocketConnectorTest {
 
     @Test
     public void testIsConnectedWithoutClient() {
-        Whitebox.setInternalState(testConnector, "client", null);
+        Whitebox.setInternalState(testConnector, "client", (Object) null);
 
         assertFalse(testConnector.isConnected());
     }
@@ -182,7 +182,7 @@ public class WebSocketConnectorTest {
 
     @Test
     public void testCloseWithoutClient() {
-        Whitebox.setInternalState(testConnector, "client", null);
+        Whitebox.setInternalState(testConnector, "client", (Object) null);
 
         testConnector.close();
 

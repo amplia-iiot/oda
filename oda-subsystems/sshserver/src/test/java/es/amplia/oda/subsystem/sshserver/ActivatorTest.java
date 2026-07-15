@@ -10,19 +10,23 @@ import org.apache.felix.service.command.CommandProcessor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private static final String COMMAND_PROCESSOR_FIELD_NAME = "commandProcessor";
@@ -38,8 +42,6 @@ public class ActivatorTest {
     @Mock
     private CommandProcessorProxy mockedCommandProcessor;
     @Mock
-    private ConfigurablePasswordAuthenticatorImpl mockedPasswordAuthenticator;
-    @Mock
     private SshCommandShell mockedSshCommandShell;
     @Mock
     private SshConfigurationUpdateHandler mockedConfigHandler;
@@ -51,24 +53,40 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(CommandProcessorProxy.class).withAnyArguments().thenReturn(mockedCommandProcessor);
-        PowerMockito.whenNew(ConfigurablePasswordAuthenticatorImpl.class).withAnyArguments()
-                .thenReturn(mockedPasswordAuthenticator);
-        PowerMockito.whenNew(SshCommandShell.class).withAnyArguments().thenReturn(mockedSshCommandShell);
-        PowerMockito.whenNew(SshConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedServiceListener);
+        List<List<?>> commandProcessorArgs = new ArrayList<>();
+        List<List<?>> passwordAuthenticatorArgs = new ArrayList<>();
+        List<List<?>> sshCommandShellArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<CommandProcessorProxy> commandProcessorCons = mockConstruction(CommandProcessorProxy.class,
+                     (mock, mctx) -> commandProcessorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurablePasswordAuthenticatorImpl> passwordAuthenticatorCons = mockConstruction(ConfigurablePasswordAuthenticatorImpl.class,
+                     (mock, mctx) -> passwordAuthenticatorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SshCommandShell> sshCommandShellCons = mockConstruction(SshCommandShell.class,
+                     (mock, mctx) -> sshCommandShellArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SshConfigurationUpdateHandler> configHandlerCons = mockConstruction(SshConfigurationUpdateHandler.class,
+                     (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> serviceListenerCons = mockConstruction(ServiceListenerBundle.class,
+                     (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(CommandProcessorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ConfigurablePasswordAuthenticatorImpl.class).withNoArguments();
-        PowerMockito.verifyNew(SshCommandShell.class)
-                .withArguments(eq(mockedCommandProcessor), eq(mockedPasswordAuthenticator));
-        PowerMockito.verifyNew(SshConfigurationUpdateHandler.class).withArguments(eq(mockedSshCommandShell));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(CommandProcessor.class), any(Runnable.class));
+            testActivator.start(mockedContext);
+
+            assertEquals(Collections.singletonList(mockedContext), commandProcessorArgs.get(0));
+            assertEquals(Collections.emptyList(), passwordAuthenticatorArgs.get(0));
+            assertEquals(Arrays.asList(commandProcessorCons.constructed().get(0),
+                    passwordAuthenticatorCons.constructed().get(0)), sshCommandShellArgs.get(0));
+            assertEquals(Collections.singletonList(sshCommandShellCons.constructed().get(0)), configHandlerArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, configHandlerCons.constructed().get(0)), configurableBundleArgs.get(0));
+            assertEquals(1, serviceListenerCons.constructed().size());
+            assertEquals(3, serviceListenerArgs.get(0).size());
+            assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+            assertEquals(CommandProcessor.class, serviceListenerArgs.get(0).get(1));
+            assertTrue(serviceListenerArgs.get(0).get(2) instanceof Runnable);
+        }
     }
 
     @Test

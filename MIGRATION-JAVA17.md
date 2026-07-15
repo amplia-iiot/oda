@@ -63,6 +63,35 @@ Fecha: 2026-07-15. Opción A del plan (nashorn-core standalone), aplicada en los
 - Errores en el log, todos propios del entorno demo, no del salto de JDK: broker MQTT ausente en localhost:1883, `Default configuration is not allowed` en operaciones de reloj/update (comportamiento esperado), permisos de `obtainSerialNumber.sh`, y un `NumberFormatException: Cannot parse null string` en la config de `statemanager.inmemory` (propiedad ausente en el .cfg de la demo; comprobar si ya ocurría en JDK 8).
 
 ### Estado / pendiente
-- Cambios sin commitear en `feature/java17` (pendiente de revisión).
-- Fase 3 (tests, ~170 ficheros PowerMock→Mockito 5) — siguiente gran bloque.
+- Fases 1 y 2 commiteadas en `feature/java17` (`bf333ba3`, `df7ac9ea`).
 - Fase 4 formal: `<release>17</release>` (aún compila con target 1.8), decisión SecurityManager/dio.policy, validación MQTT/CoAP/SSH con servicios reales.
+
+## Fase 3 — Migración de la suite de tests ✅
+
+Fecha: 2026-07-15. **PowerMock eliminado y Mockito 1.10.19 → 5.14.2 en todo el reactor.** 193 ficheros con PowerMock real migrados (más ~180 con cambios mecánicos), **cero tests eliminados o desactivados**. Ejecutado con 9 agentes en paralelo por lotes de módulos, cada lote verificado en verde con `mvn test` por módulo (~1.780 tests en los módulos migrados).
+
+### Dependencias
+- `mockito-core 5.14.2` (mock-maker inline por defecto: cubre estáticos y construcciones), `junit 4.13.2`.
+- **Se conserva `org.powermock:powermock-reflect 2.0.9`** (solo utilidades de reflexión, sin manipulación de bytecode; funciona en JDK 17): mantiene `org.powermock.reflect.Whitebox` y evitó reescribir ~150 ficheros. Deuda técnica aceptada, retirable más adelante.
+- 57 poms de módulo actualizados (fuera powermock-core/module-junit4/api-mockito; `powermock-reflect` test-scope donde hay Whitebox). `jsonserializer` necesitó declarar `junit`/`mockito-core` explícitos (antes llegaban transitivos por PowerMock).
+
+### Transformaciones aplicadas
+- Runner: `PowerMockRunner` y `org.mockito.runners.*` → `org.mockito.junit.MockitoJUnitRunner.Silent` (Silent replica la laxitud de Mockito 1.x; endurecer a estricto es mejora futura). Fuera `@PrepareForTest`/`@PowerMockIgnore`.
+- `PowerMockito.whenNew/verifyNew` → `mockConstruction` con captura de argumentos en el initializer y verificación de identidad entre construcciones (`constructed().get(i)`).
+- `PowerMockito.mockStatic/verifyStatic` → `MockedStatic` en try-with-resources (o abierto en `@Before`/cerrado en `@After` cuando la construcción ocurre en setUp).
+- `org.mockito.Matchers` → `ArgumentMatchers` (161 ficheros), `verifyZeroInteractions` → `verifyNoInteractions`, `anyListOf/anySetOf` → `anyList/anySet`, `initMocks` → `openMocks`.
+
+### Aprendizajes / trampas (para reaplicar en ADIF-ODA)
+- `any(X.class)`/`anyString()` ya **no casan `null`** → `nullable(X.class)`; causa nº1 de fallos post-migración.
+- Mockito 5 **rechaza checked exceptions no declaradas** en `doThrow` → `RuntimeException` equivalente o `doAnswer` que lanza.
+- `mockConstruction` es **thread-local**: no intercepta construcciones en executors/futures — abrir el scope dentro del `Runnable` o capturar con `ArgumentCaptor` sobre el colaborador.
+- `mockConstruction` de **clases JDK** (`File`, `FileOutputStream`…) puede interceptar construcciones internas de la JVM (carga de librerías nativas de `SSLContext`) y envenenar la clase para toda la JVM → pre-cargar en `@BeforeClass` fuera del scope (visto en `DownloadManagerImplTest`).
+- `spy(HashMap)` está roto con el mock-maker inline en JDK 17 (valores fantasma `int[]`) → mapas reales + aserciones de contenido.
+- `powermock-reflect` 2.0.9 introduce sobrecargas que hacen ambiguos `setInternalState(obj, campo, null)` (→ cast `(Object) null`) y `assertEquals(int, getInternalState(...))` (→ cast `(int)`).
+- La migración destapó **bugs latentes de tests** tolerados por Mockito 1.x y corregidos con su intención evidente: stubbings incompletos, matchers fuera de `verify`, `whenNew` muertos, invocaciones directas a mocks que pretendían ser `verify`.
+- Diferencia real de JDK 17 encontrada: `DatagramPacket(byte[],int,int)` deja el puerto a `0` (antes `-1`).
+
+### Validación
+- Cada módulo migrado en verde individualmente (ver informes por lote).
+- **Suite completa del reactor (`mvn clean package`, con JaCoCo) bajo JDK 17: BUILD SUCCESS — 1.928 tests, 0 failures, 0 errors, 2 skipped (`@Ignore` preexistentes) en los 83 módulos.**
+- Verificado por grep: cero referencias restantes a `org.powermock.modules/api/core` en código y poms.

@@ -19,18 +19,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104ServerModule.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Iec104ServerModuleTest {
 
 	@Mock
@@ -49,10 +50,6 @@ public class Iec104ServerModuleTest {
 	private SocketChannel mockedSocketChannel;
 	@Mock
 	private MessageChannel mockedMessageChannel;
-	@Mock
-	private Iec104MessageChannelHandler mockedChannelHandler;
-	@Mock
-	private Iec104CommandHandler mockedCommandHandler;
 	@Mock
 	private ChannelPipeline mockedPipeline;
 
@@ -93,16 +90,21 @@ public class Iec104ServerModuleTest {
 
 	@Test
 	public void testInitializeChannel() throws Exception {
-		whenNew(Iec104MessageChannelHandler.class).withAnyArguments().thenReturn(mockedChannelHandler);
-		whenNew(Iec104CommandHandler.class).withAnyArguments().thenReturn(mockedCommandHandler);
-		when(mockedSocketChannel.pipeline()).thenReturn(mockedPipeline);
+		List<List<?>> commandHandlerArgs = new ArrayList<>();
+		try (MockedConstruction<Iec104MessageChannelHandler> channelHandlerCons =
+					 mockConstruction(Iec104MessageChannelHandler.class);
+			 MockedConstruction<Iec104CommandHandler> commandHandlerCons =
+					 mockConstruction(Iec104CommandHandler.class,
+							 (mock, mctx) -> commandHandlerArgs.add(new ArrayList<>(mctx.arguments())))) {
+			when(mockedSocketChannel.pipeline()).thenReturn(mockedPipeline);
 
-		module.initializeChannel(mockedSocketChannel, mockedMessageChannel);
+			module.initializeChannel(mockedSocketChannel, mockedMessageChannel);
 
-		verifyNew(Iec104MessageChannelHandler.class).withArguments(any(ProtocolOptions.class), any(MessageManager.class));
-		verifyNew(Iec104CommandHandler.class)
-				.withArguments(eq(mockedCache), any(ScadaDispatcherProxy.class), any(Integer.class));
-		verify(mockedSocketChannel, times(3)).pipeline();
+			assertEquals(1, channelHandlerCons.constructed().size());
+			assertEquals(1, commandHandlerCons.constructed().size());
+			assertEquals(mockedCache, commandHandlerArgs.get(0).get(0));
+			verify(mockedSocketChannel, times(3)).pipeline();
+		}
 	}
 
 	@Test

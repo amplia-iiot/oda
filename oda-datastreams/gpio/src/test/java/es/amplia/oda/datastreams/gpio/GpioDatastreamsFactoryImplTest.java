@@ -10,15 +10,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(GpioDatastreamsFactoryImpl.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class GpioDatastreamsFactoryImplTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -31,43 +33,49 @@ public class GpioDatastreamsFactoryImplTest {
     @InjectMocks
     private GpioDatastreamsFactoryImpl testFactory;
 
-    @Mock
-    private GpioDatastreamsGetter mockedGpioDatastreamsGetter;
-    @Mock
-    private GpioDatastreamsSetter mockedGpioDatastreamsSetter;
-    @Mock
-    private GpioDatastreamsEvent mockedGpioDatastreamsEvent;
-
     @Test
     public void testCreateGpioDatastreamsGetter() throws Exception {
-        PowerMockito.whenNew(GpioDatastreamsGetter.class).withAnyArguments().thenReturn(mockedGpioDatastreamsGetter);
+        List<List<?>> getterArgs = new ArrayList<>();
+        try (MockedConstruction<GpioDatastreamsGetter> getterCons =
+                     mockConstruction(GpioDatastreamsGetter.class,
+                             (mock, mctx) -> getterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        DatastreamsGetter getter = testFactory.createGpioDatastreamsGetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
+            DatastreamsGetter getter = testFactory.createGpioDatastreamsGetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
 
-        assertEquals(mockedGpioDatastreamsGetter, getter);
-        PowerMockito.verifyNew(GpioDatastreamsGetter.class)
-                .withArguments(eq(TEST_DATASTREAM_ID), eq(TEST_PIN_INDEX), eq(mockedGpioService));
+            assertEquals(1, getterCons.constructed().size());
+            assertEquals(getterCons.constructed().get(0), getter);
+            assertEquals(Arrays.asList(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService), getterArgs.get(0));
+        }
     }
 
     @Test
     public void testCreateGpioDatastreamsSetter() throws Exception {
-        PowerMockito.whenNew(GpioDatastreamsSetter.class).withAnyArguments().thenReturn(mockedGpioDatastreamsSetter);
+        List<List<?>> setterArgs = new ArrayList<>();
+        try (MockedConstruction<GpioDatastreamsSetter> setterCons =
+                     mockConstruction(GpioDatastreamsSetter.class,
+                             (mock, mctx) -> setterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        DatastreamsSetter setter = testFactory.createGpioDatastreamsSetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
+            DatastreamsSetter setter = testFactory.createGpioDatastreamsSetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
 
-        assertEquals(mockedGpioDatastreamsSetter, setter);
-        PowerMockito.verifyNew(GpioDatastreamsSetter.class)
-                .withArguments(eq(TEST_DATASTREAM_ID), eq(TEST_PIN_INDEX), eq(mockedGpioService));
+            assertEquals(1, setterCons.constructed().size());
+            assertEquals(setterCons.constructed().get(0), setter);
+            assertEquals(Arrays.asList(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService), setterArgs.get(0));
+        }
     }
 
     @Test
     public void testCreateGpioDatastreamsEvent() throws Exception {
-        PowerMockito.whenNew(GpioDatastreamsEvent.class).withAnyArguments().thenReturn(mockedGpioDatastreamsEvent);
+        List<List<?>> eventArgs = new ArrayList<>();
+        try (MockedConstruction<GpioDatastreamsEvent> eventCons =
+                     mockConstruction(GpioDatastreamsEvent.class,
+                             (mock, mctx) -> eventArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        DatastreamsEvent event = testFactory.createGpioDatastreamsEvent(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
+            DatastreamsEvent event = testFactory.createGpioDatastreamsEvent(TEST_DATASTREAM_ID, TEST_PIN_INDEX);
 
-        assertEquals(mockedGpioDatastreamsEvent, event);
-        PowerMockito.verifyNew(GpioDatastreamsEvent.class).withArguments(eq(mockedEventPublisher),
-                eq(TEST_DATASTREAM_ID), eq(TEST_PIN_INDEX), eq(mockedGpioService));
+            assertEquals(1, eventCons.constructed().size());
+            assertEquals(eventCons.constructed().get(0), event);
+            assertEquals(Arrays.asList(mockedEventPublisher, TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService),
+                    eventArgs.get(0));
+        }
     }
 }

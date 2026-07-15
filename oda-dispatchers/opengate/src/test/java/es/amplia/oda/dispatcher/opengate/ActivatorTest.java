@@ -1,7 +1,6 @@
 package es.amplia.oda.dispatcher.opengate;
 
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
-import es.amplia.oda.core.commons.interfaces.OperationSender;
 import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.osgi.proxies.OpenGateConnectorProxy;
@@ -17,21 +16,24 @@ import es.amplia.oda.event.api.EventDispatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static org.mockito.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -45,21 +47,15 @@ public class ActivatorTest {
     @Mock
     private OpenGateOperationProcessorFactoryImpl mockedFactory;
     @Mock
-    private OpenGateOperationDispatcher mockedDispatcher;
-    @Mock
     private ServiceRegistration<Dispatcher> mockedDispatcherRegistration;
     @Mock
     private OpenGateConnectorProxy mockedConnector;
-    @Mock
-    private EventDispatcherFactoryImpl mockedEventDispatcherFactory;
     @Mock
     private SchedulerImpl mockedScheduler;
     @Mock
     private ServiceRegistrationManagerOsgi<EventDispatcher> mockedEventDispatcherRegistrationManager;
     @Mock
     private ServiceRegistration<ResponseDispatcher> mockedResponseDispatcherRegistration;
-    @Mock
-    private DispatcherConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
@@ -70,41 +66,86 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(SerializerProviderOsgi.class).withAnyArguments().thenReturn(mockedSerializerProvider);
-        PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
-        PowerMockito.whenNew(OperationSenderProxy.class).withAnyArguments().thenReturn(mockedOperationSender);
-        PowerMockito.whenNew(OpenGateOperationProcessorFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
-        PowerMockito.whenNew(OpenGateOperationDispatcher.class).withAnyArguments().thenReturn(mockedDispatcher);
-        PowerMockito.whenNew(OpenGateConnectorProxy.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(EventDispatcherFactoryImpl.class).withAnyArguments()
-                .thenReturn(mockedEventDispatcherFactory);
-        PowerMockito.whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-                .thenReturn(mockedEventDispatcherRegistrationManager);
-        PowerMockito.whenNew(DispatcherConfigurationUpdateHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-        when(mockedFactory.createOperationProcessor()).thenReturn(mockedProcessor);
+        List<List<?>> serializerProviderArgs = new ArrayList<>();
+        List<List<?>> deviceInfoProviderArgs = new ArrayList<>();
+        List<List<?>> factoryArgs = new ArrayList<>();
+        List<List<?>> dispatcherArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherFactoryArgs = new ArrayList<>();
+        List<List<?>> schedulerArgs = new ArrayList<>();
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        try (MockedConstruction<SerializerProviderOsgi> serializerProviderCons =
+                     mockConstruction(SerializerProviderOsgi.class,
+                             (mock, mctx) -> serializerProviderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DeviceInfoProviderProxy> deviceInfoProviderCons =
+                     mockConstruction(DeviceInfoProviderProxy.class,
+                             (mock, mctx) -> deviceInfoProviderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OperationSenderProxy> operationSenderCons =
+                     mockConstruction(OperationSenderProxy.class);
+             MockedConstruction<OpenGateOperationProcessorFactoryImpl> factoryCons =
+                     mockConstruction(OpenGateOperationProcessorFactoryImpl.class,
+                             (mock, mctx) -> {
+                                 factoryArgs.add(new ArrayList<>(mctx.arguments()));
+                                 when(mock.createOperationProcessor()).thenReturn(mockedProcessor);
+                             });
+             MockedConstruction<OpenGateOperationDispatcher> dispatcherCons =
+                     mockConstruction(OpenGateOperationDispatcher.class,
+                             (mock, mctx) -> dispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OpenGateConnectorProxy> connectorCons =
+                     mockConstruction(OpenGateConnectorProxy.class,
+                             (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventDispatcherFactoryImpl> eventDispatcherFactoryCons =
+                     mockConstruction(EventDispatcherFactoryImpl.class,
+                             (mock, mctx) -> eventDispatcherFactoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SchedulerImpl> schedulerCons = mockConstruction(SchedulerImpl.class,
+                     (mock, mctx) -> schedulerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DispatcherConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(DispatcherConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(SerializerProviderOsgi.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OpenGateOperationProcessorFactoryImpl.class)
-                .withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OpenGateOperationDispatcher.class)
-                .withArguments(eq(mockedSerializerProvider), eq(mockedDeviceInfoProvider), eq(mockedProcessor), eq(mockedOperationSender));
-        PowerMockito.verifyNew(OpenGateConnectorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
-        PowerMockito.verifyNew(EventDispatcherFactoryImpl.class)
-                .withArguments(eq(mockedDeviceInfoProvider), eq(mockedSerializerProvider), eq(mockedConnector), eq(mockedScheduler));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(EventDispatcher.class));
-        PowerMockito.verifyNew(DispatcherConfigurationUpdateHandler.class)
-                .withArguments(eq(mockedEventDispatcherFactory), eq(mockedScheduler),
-                        eq(mockedEventDispatcherRegistrationManager), eq(mockedDispatcher));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        verify(mockedContext).registerService(eq(Dispatcher.class), eq(mockedDispatcher), any());
+            assertEquals(1, serializerProviderCons.constructed().size());
+            assertEquals(mockedContext, serializerProviderArgs.get(0).get(0));
+            assertEquals(1, deviceInfoProviderCons.constructed().size());
+            assertEquals(mockedContext, deviceInfoProviderArgs.get(0).get(0));
+            assertEquals(1, factoryCons.constructed().size());
+            assertEquals(mockedContext, factoryArgs.get(0).get(0));
+            assertEquals(1, dispatcherCons.constructed().size());
+            assertEquals(serializerProviderCons.constructed().get(0), dispatcherArgs.get(0).get(0));
+            assertEquals(deviceInfoProviderCons.constructed().get(0), dispatcherArgs.get(0).get(1));
+            assertEquals(mockedProcessor, dispatcherArgs.get(0).get(2));
+            assertEquals(operationSenderCons.constructed().get(0), dispatcherArgs.get(0).get(3));
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(mockedContext, connectorArgs.get(0).get(0));
+            assertEquals(1, schedulerCons.constructed().size());
+            assertTrue(schedulerArgs.get(0).get(0) instanceof ScheduledExecutorService);
+            assertEquals(1, eventDispatcherFactoryCons.constructed().size());
+            assertEquals(deviceInfoProviderCons.constructed().get(0), eventDispatcherFactoryArgs.get(0).get(0));
+            assertEquals(serializerProviderCons.constructed().get(0), eventDispatcherFactoryArgs.get(0).get(1));
+            assertEquals(connectorCons.constructed().get(0), eventDispatcherFactoryArgs.get(0).get(2));
+            assertEquals(schedulerCons.constructed().get(0), eventDispatcherFactoryArgs.get(0).get(3));
+            assertEquals(1, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(EventDispatcher.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(eventDispatcherFactoryCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(schedulerCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(0), configHandlerArgs.get(0).get(2));
+            assertEquals(dispatcherCons.constructed().get(0), configHandlerArgs.get(0).get(3));
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(Dispatcher.class), eq(dispatcherCons.constructed().get(0)), any());
+        }
     }
 
     @Test

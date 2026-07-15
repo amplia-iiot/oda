@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
@@ -14,7 +14,7 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class EventCollectorImplTest {
 
     private static final String TEST_COLLECTED_DATASTREAM_ID = "collectedDatastream";
@@ -66,7 +66,7 @@ public class EventCollectorImplTest {
         testEventCollector.publish(Collections.singletonList(TEST_NOT_COLLECTED_EVENT));
 
         verify(mockedEventDispatcher).publish(eq(Collections.singletonList(TEST_NOT_COLLECTED_EVENT)));
-        verifyZeroInteractions(spiedCollectedEvents);
+        verifyNoInteractions(spiedCollectedEvents);
     }
 
     @Test

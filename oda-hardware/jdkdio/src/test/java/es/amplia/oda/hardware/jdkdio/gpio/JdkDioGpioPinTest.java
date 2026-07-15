@@ -8,23 +8,23 @@ import jdk.dio.gpio.PinListener;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static es.amplia.oda.hardware.jdkdio.gpio.JdkDioGpioPin.GPIO_BASE_PATH;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({JdkDioGpioPin.class, GPIOPinConfig.class, GPIOPinConfig.Builder.class, JdkDioGpioPinFactory.class,
-                     Files.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JdkDioGpioPinTest {
 
     private static final int TEST_INDEX = 1;
@@ -107,26 +107,29 @@ public class JdkDioGpioPinTest {
 
     @Test
     public void testOpen() throws Exception {
-        GPIOPinConfig.Builder mockedBuilder = mock(GPIOPinConfig.Builder.class);
-        GPIOPinConfig mockedPinConfig = PowerMockito.mock(GPIOPinConfig.class);
+        GPIOPinConfig mockedPinConfig = mock(GPIOPinConfig.class);
         GPIOPin mockedPin = mock(GPIOPin.class);
-        PowerMockito.mockStatic(JdkDioGpioPinFactory.class);
 
-        PowerMockito.whenNew(GPIOPinConfig.Builder.class).withNoArguments().thenReturn(mockedBuilder);
-        when(mockedBuilder.setPinNumber(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDirection(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDriveMode(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setTrigger(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setInitValue(anyBoolean())).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedPinConfig);
-        PowerMockito.when(JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class))).thenReturn(mockedPin);
+        try (MockedConstruction<GPIOPinConfig.Builder> builderCons = mockConstruction(GPIOPinConfig.Builder.class,
+                (mock, mctx) -> {
+                    when(mock.setPinNumber(anyInt())).thenReturn(mock);
+                    when(mock.setDirection(anyInt())).thenReturn(mock);
+                    when(mock.setDriveMode(anyInt())).thenReturn(mock);
+                    when(mock.setTrigger(anyInt())).thenReturn(mock);
+                    when(mock.setInitValue(anyBoolean())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockedPinConfig);
+                });
+             MockedStatic<JdkDioGpioPinFactory> mockedFactory = mockStatic(JdkDioGpioPinFactory.class)) {
+            mockedFactory.when(() -> JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class)))
+                    .thenReturn(mockedPin);
 
-        testJdkDioGpioPin.open();
+            testJdkDioGpioPin.open();
 
-        verify(mockedBuilder).build();
-        PowerMockito.verifyStatic(JdkDioGpioPinFactory.class);
-        JdkDioGpioPinFactory.createAndOpen(eq(mockedPinConfig));
-        assertEquals(mockedPin, Whitebox.getInternalState(testJdkDioGpioPin, JDK_DIO_PIN_FIELD_NAME));
+            assertEquals(1, builderCons.constructed().size());
+            verify(builderCons.constructed().get(0)).build();
+            mockedFactory.verify(() -> JdkDioGpioPinFactory.createAndOpen(eq(mockedPinConfig)));
+            assertEquals(mockedPin, Whitebox.getInternalState(testJdkDioGpioPin, JDK_DIO_PIN_FIELD_NAME));
+        }
     }
 
     @Test
@@ -136,49 +139,54 @@ public class JdkDioGpioPinTest {
                         TEST_INITIAL_VALUE);
         String pinPullFilePath = GPIO_BASE_PATH + "/gpio" + TEST_INDEX + "/pull";
 
-        GPIOPinConfig.Builder mockedBuilder = mock(GPIOPinConfig.Builder.class);
-        GPIOPinConfig mockedPinConfig = PowerMockito.mock(GPIOPinConfig.class);
+        GPIOPinConfig mockedPinConfig = mock(GPIOPinConfig.class);
         GPIOPin mockedPin = mock(GPIOPin.class);
-        PowerMockito.mockStatic(JdkDioGpioPinFactory.class);
-        PowerMockito.mockStatic(Files.class);
 
-        PowerMockito.whenNew(GPIOPinConfig.Builder.class).withNoArguments().thenReturn(mockedBuilder);
-        when(mockedBuilder.setPinNumber(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDirection(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDriveMode(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setTrigger(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setInitValue(anyBoolean())).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedPinConfig);
-        PowerMockito.when(JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class))).thenReturn(mockedPin);
+        try (MockedConstruction<GPIOPinConfig.Builder> builderCons = mockConstruction(GPIOPinConfig.Builder.class,
+                (mock, mctx) -> {
+                    when(mock.setPinNumber(anyInt())).thenReturn(mock);
+                    when(mock.setDirection(anyInt())).thenReturn(mock);
+                    when(mock.setDriveMode(anyInt())).thenReturn(mock);
+                    when(mock.setTrigger(anyInt())).thenReturn(mock);
+                    when(mock.setInitValue(anyBoolean())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockedPinConfig);
+                });
+             MockedStatic<JdkDioGpioPinFactory> mockedFactory = mockStatic(JdkDioGpioPinFactory.class);
+             MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
+            mockedFactory.when(() -> JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class)))
+                    .thenReturn(mockedPin);
 
-        pinWithInitializationNeeded.open();
+            pinWithInitializationNeeded.open();
 
-        verify(mockedBuilder).build();
-        PowerMockito.verifyStatic(JdkDioGpioPinFactory.class);
-        JdkDioGpioPinFactory.createAndOpen(eq(mockedPinConfig));
-        PowerMockito.verifyStatic(Files.class);
-        Files.write(eq(Paths.get(pinPullFilePath)), eq("up".getBytes()));
-        assertEquals(mockedPin, Whitebox.getInternalState(pinWithInitializationNeeded, JDK_DIO_PIN_FIELD_NAME));
+            assertEquals(1, builderCons.constructed().size());
+            verify(builderCons.constructed().get(0)).build();
+            mockedFactory.verify(() -> JdkDioGpioPinFactory.createAndOpen(eq(mockedPinConfig)));
+            mockedFiles.verify(() -> Files.write(eq(Paths.get(pinPullFilePath)), eq("up".getBytes())));
+            assertEquals(mockedPin, Whitebox.getInternalState(pinWithInitializationNeeded, JDK_DIO_PIN_FIELD_NAME));
+        }
     }
 
     @Test(expected = GpioDeviceException.class)
     public void testOpenIOException() throws Exception {
-        GPIOPinConfig.Builder mockedBuilder = PowerMockito.mock(GPIOPinConfig.Builder.class);
         GPIOPinConfig mockedPinConfig = mock(GPIOPinConfig.class);
-        PowerMockito.mockStatic(JdkDioGpioPinFactory.class);
 
-        PowerMockito.whenNew(GPIOPinConfig.Builder.class).withNoArguments().thenReturn(mockedBuilder);
-        when(mockedBuilder.setPinNumber(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDirection(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setDriveMode(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setTrigger(anyInt())).thenReturn(mockedBuilder);
-        when(mockedBuilder.setInitValue(anyBoolean())).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedPinConfig);
-        PowerMockito.when(JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class))).thenThrow(new IOException());
+        try (MockedConstruction<GPIOPinConfig.Builder> builderCons = mockConstruction(GPIOPinConfig.Builder.class,
+                (mock, mctx) -> {
+                    when(mock.setPinNumber(anyInt())).thenReturn(mock);
+                    when(mock.setDirection(anyInt())).thenReturn(mock);
+                    when(mock.setDriveMode(anyInt())).thenReturn(mock);
+                    when(mock.setTrigger(anyInt())).thenReturn(mock);
+                    when(mock.setInitValue(anyBoolean())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockedPinConfig);
+                });
+             MockedStatic<JdkDioGpioPinFactory> mockedFactory = mockStatic(JdkDioGpioPinFactory.class)) {
+            mockedFactory.when(() -> JdkDioGpioPinFactory.createAndOpen(any(GPIOPinConfig.class)))
+                    .thenThrow(new IOException());
 
-        testJdkDioGpioPin.open();
+            testJdkDioGpioPin.open();
 
-        fail("GPIO device exception must be thrown");
+            fail("GPIO device exception must be thrown");
+        }
     }
 
     @Test
@@ -298,17 +306,23 @@ public class JdkDioGpioPinTest {
     public void testAddGpioPinListener() throws Exception {
         GPIOPin mockedPin = mock(GPIOPin.class);
         GpioPinListener mockedListener = mock(GpioPinListener.class);
-        JdkDioGpioPinListenerBridge mockedBridgeListener = mock(JdkDioGpioPinListenerBridge.class);
 
         Whitebox.setInternalState(testJdkDioGpioPin, JDK_DIO_PIN_FIELD_NAME, mockedPin);
 
         when(mockedPin.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(JdkDioGpioPinListenerBridge.class).withAnyArguments().thenReturn(mockedBridgeListener);
 
-        testJdkDioGpioPin.addGpioPinListener(mockedListener);
+        List<List<?>> bridgeListenerArgs = new ArrayList<>();
+        try (MockedConstruction<JdkDioGpioPinListenerBridge> bridgeListenerCons =
+                     mockConstruction(JdkDioGpioPinListenerBridge.class,
+                             (mock, mctx) -> bridgeListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(JdkDioGpioPinListenerBridge.class).withArguments(eq(mockedListener), eq(TEST_ACTIVE_LOW));
-        verify(mockedPin).setInputListener(eq(mockedBridgeListener));
+            testJdkDioGpioPin.addGpioPinListener(mockedListener);
+
+            assertEquals(1, bridgeListenerCons.constructed().size());
+            assertEquals(mockedListener, bridgeListenerArgs.get(0).get(0));
+            assertEquals(TEST_ACTIVE_LOW, bridgeListenerArgs.get(0).get(1));
+            verify(mockedPin).setInputListener(eq(bridgeListenerCons.constructed().get(0)));
+        }
     }
 
     @Test(expected = GpioDeviceException.class)
@@ -329,15 +343,16 @@ public class JdkDioGpioPinTest {
     public void testAddGpioPinListenerIOException() throws Exception {
         GPIOPin mockedPin = mock(GPIOPin.class);
         GpioPinListener mockedListener = mock(GpioPinListener.class);
-        JdkDioGpioPinListenerBridge mockedBridgeListener = mock(JdkDioGpioPinListenerBridge.class);
 
         Whitebox.setInternalState(testJdkDioGpioPin, JDK_DIO_PIN_FIELD_NAME, mockedPin);
 
         when(mockedPin.isOpen()).thenReturn(true);
-        PowerMockito.whenNew(JdkDioGpioPinListenerBridge.class).withAnyArguments().thenReturn(mockedBridgeListener);
         doThrow(IOException.class).when(mockedPin).setInputListener(any(PinListener.class));
 
-        testJdkDioGpioPin.addGpioPinListener(mockedListener);
+        try (MockedConstruction<JdkDioGpioPinListenerBridge> bridgeListenerCons =
+                     mockConstruction(JdkDioGpioPinListenerBridge.class)) {
+            testJdkDioGpioPin.addGpioPinListener(mockedListener);
+        }
 
         fail(GPIO_DEVICE_EXCEPTION_MESSAGE);
     }
@@ -375,7 +390,7 @@ public class JdkDioGpioPinTest {
         Whitebox.setInternalState(testJdkDioGpioPin, JDK_DIO_PIN_FIELD_NAME, mockedPin);
 
         when(mockedPin.isOpen()).thenReturn(true);
-        doThrow(IOException.class).when(mockedPin).setInputListener(any(PinListener.class));
+        doThrow(IOException.class).when(mockedPin).setInputListener(nullable(PinListener.class));
 
         testJdkDioGpioPin.removeGpioPinListener();
 

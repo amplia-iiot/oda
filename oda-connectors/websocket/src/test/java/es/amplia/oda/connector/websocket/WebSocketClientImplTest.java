@@ -10,7 +10,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class WebSocketClientImplTest {
 
     private static final int TEST_TIMEOUT = 5;
@@ -77,7 +77,7 @@ public class WebSocketClientImplTest {
         testClient.onMessage(TEST_MESSAGE);
 
         verify(mockedDispatcher).process(aryEq(TEST_MESSAGE.getBytes(StandardCharsets.UTF_8)));
-        verifyZeroInteractions(mockedConnector);
+        verifyNoInteractions(mockedConnector);
     }
 
     @Test

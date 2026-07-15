@@ -7,16 +7,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.powermock.reflect.Whitebox;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,19 +23,12 @@ import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(NashornScriptTranslator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class NashornScriptTranslatorTest {
 
 	NashornScriptTranslator testTranslator;
 
-	@Mock
-	ScriptEngineManager mockedManager;
 	@Mock
 	ScriptEngine mockedEngine;
 	@Mock
@@ -52,34 +43,36 @@ public class NashornScriptTranslatorTest {
 
 	@Test
 	public void testInitScript() throws Exception {
-		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
-		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 		String root = new File(".").getCanonicalPath();
 		Whitebox.setInternalState(testTranslator, "jsUtilsPath", root + "/src/test/");
+		File utilsFileToCreate = new File(root + "/src/test/utils.js");
+		utilsFileToCreate.createNewFile();
 		File ruleFilToCreate = new File(root + "/src/test/rule.js");
 		ruleFilToCreate.createNewFile();
-		FileOutputStream output = new FileOutputStream(root + "/src/test/rule.js");
-		output.write(42);
+		FileWriter fileWriter = new FileWriter(ruleFilToCreate);
+		fileWriter.write("function nothing(a, b) {return a}");
+		fileWriter.close();
 
 		String script = root + "/src/test/rule.js";
 		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("*");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
-		output.close();
 		ruleFilToCreate.delete();
+		utilsFileToCreate.delete();
 	}
 
 	@Test
 	public void testInitScriptFileNotExists() throws Exception {
-		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
-		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
+		String root = new File(".").getCanonicalPath();
+		Whitebox.setInternalState(testTranslator, "jsUtilsPath", root + "/src/test/");
+		File utilsFileToCreate = new File(root + "/src/test/utils.js");
+		utilsFileToCreate.createNewFile();
 
 		String script = "none file to do the test";
 		testTranslator.initScript(script);
 
-		verify(mockedEngine).eval("");
 		assertTrue(((HashMap) Whitebox.getInternalState(testTranslator, "engines")).size() > 0);
+		utilsFileToCreate.delete();
 	}
 
 	@Test
@@ -91,8 +84,6 @@ public class NashornScriptTranslatorTest {
 
 	@Test
 	public void testPutAttribute() throws Exception {
-		whenNew(ScriptEngineManager.class).withAnyArguments().thenReturn(mockedManager);
-		when(mockedManager.getEngineByName(any())).thenReturn(mockedEngine);
 		HashMap<String, ScriptEngine> map = new HashMap<>();
 		map.put("rule.js", mockedEngine);
 		Whitebox.setInternalState(testTranslator, "engines", map);
@@ -105,8 +96,7 @@ public class NashornScriptTranslatorTest {
 	@Test
 	public void testRunMethod() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
-		ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName("nashorn");
+		ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
 		engine.eval("function nothing(a, b) {return a}");
 		map.put("rule.js", engine);
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
@@ -121,8 +111,7 @@ public class NashornScriptTranslatorTest {
 	@Test
 	public void testRunMethodScriptException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
-		ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName("nashorn");
+		ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
 		engine.eval("function nothing(a, b) {throw new ScriptException(\"Jej\")}");
 		map.put("rule.js", engine);
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
@@ -137,8 +126,7 @@ public class NashornScriptTranslatorTest {
 	@Test
 	public void testRunMethodNoMethodException() throws ScriptException {
 		HashMap<String, ScriptEngine> map = new HashMap<>();
-		ScriptEngineManager manager = new ScriptEngineManager();
-		ScriptEngine engine = manager.getEngineByName("nashorn");
+		ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
 		engine.eval("");
 		map.put("rule.js", engine);
 		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",

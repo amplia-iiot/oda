@@ -1,7 +1,7 @@
 package es.amplia.oda.subsystem.sshserver.internal;
 
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.*;
 
@@ -29,8 +29,8 @@ public class ConfigurablePasswordAuthenticatorImplTest {
 
     @Test
     public void testAuthenticateNotLoadedCredentials() {
-        Whitebox.setInternalState(testConfigPasswordAuthenticator, USER_FIELD_NAME, null);
-        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, null);
+        Whitebox.setInternalState(testConfigPasswordAuthenticator, USER_FIELD_NAME, (Object) null);
+        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, (Object) null);
 
         boolean authentication = testConfigPasswordAuthenticator.authenticate(TEST_USER, TEST_PASSWORD, null);
 
@@ -50,7 +50,7 @@ public class ConfigurablePasswordAuthenticatorImplTest {
     @Test
     public void testAuthenticateEmptyPasswordConfiguredSuccess() {
         Whitebox.setInternalState(testConfigPasswordAuthenticator, USER_FIELD_NAME, TEST_USER);
-        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, null);
+        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, (Object) null);
 
         boolean authentication = testConfigPasswordAuthenticator.authenticate(TEST_USER, null, null);
 
@@ -60,7 +60,7 @@ public class ConfigurablePasswordAuthenticatorImplTest {
     @Test
     public void testAuthenticateEmptyPasswordConfiguredFailure() {
         Whitebox.setInternalState(testConfigPasswordAuthenticator, USER_FIELD_NAME, TEST_USER);
-        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, null);
+        Whitebox.setInternalState(testConfigPasswordAuthenticator, HASH_PASSWORD_FIELD_NAME, (Object) null);
 
         boolean authentication = testConfigPasswordAuthenticator.authenticate(TEST_USER, INVALID_VALUE, null);
 

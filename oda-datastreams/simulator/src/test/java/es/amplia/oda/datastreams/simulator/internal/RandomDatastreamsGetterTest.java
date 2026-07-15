@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.simulator.internal;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;

@@ -1,24 +1,24 @@
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.datastreams.snmp.SnmpClientsFinder;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SnmpClientsFinder.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpClientsFinderTest {
 
     private static final String TEST_DEVICE_ID_VALUE = "testDevice";
@@ -29,19 +29,25 @@ public class SnmpClientsFinderTest {
     private BundleContext mockedContext;
     @Mock
     private SnmpClient mockedSnmpClient;
-    @Mock
+
+    private MockedConstruction<ServiceLocatorOsgi> serviceLocatorCons;
     private ServiceLocatorOsgi<SnmpClient> mockedSnmpClientLocator;
 
     SnmpClientsFinder snmpClientsFinder;
 
     @Before
-    public void start() throws Exception {
-        // conditions
-        PowerMockito.whenNew(ServiceLocatorOsgi.class)
-                .withArguments(any(BundleContext.class), any(SnmpClient.class))
-                .thenReturn(mockedSnmpClientLocator);
+    @SuppressWarnings("unchecked")
+    public void start() {
+        serviceLocatorCons = mockConstruction(ServiceLocatorOsgi.class);
 
         snmpClientsFinder = new SnmpClientsFinder(mockedContext);
+
+        mockedSnmpClientLocator = serviceLocatorCons.constructed().get(0);
+    }
+
+    @After
+    public void tearDown() {
+        serviceLocatorCons.close();
     }
 
     @Test
@@ -54,8 +60,8 @@ public class SnmpClientsFinderTest {
     public void getSnmpClientTest() {
         List<SnmpClient> snmpClients = new ArrayList<>();
         snmpClients.add(mockedSnmpClient);
-        PowerMockito.when(mockedSnmpClientLocator.findAll()).thenReturn(snmpClients);
-        PowerMockito.when(mockedSnmpClient.getDeviceId()).thenReturn(TEST_DEVICE_ID_VALUE);
+        Mockito.when(mockedSnmpClientLocator.findAll()).thenReturn(snmpClients);
+        Mockito.when(mockedSnmpClient.getDeviceId()).thenReturn(TEST_DEVICE_ID_VALUE);
 
         SnmpClient actualSnmpClient = snmpClientsFinder.getSnmpClient(TEST_DEVICE_ID_VALUE);
         Assert.assertNotNull(actualSnmpClient);

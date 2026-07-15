@@ -12,8 +12,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.util.tracker.ServiceTracker;
 
 import java.util.Dictionary;
@@ -24,7 +24,7 @@ import java.util.Map;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DatastreamsGpioConfigurationHandlerTest {
 
     private static final String CURRENT_CONFIGURATION_FIELD_NAME = "currentConfiguration";

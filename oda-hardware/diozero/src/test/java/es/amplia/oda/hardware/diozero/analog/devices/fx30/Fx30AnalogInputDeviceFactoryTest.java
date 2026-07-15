@@ -6,18 +6,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Fx30AnalogInputDeviceFactory.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Fx30AnalogInputDeviceFactoryTest {
 
 	private static final int channelIndex = 1;
@@ -30,8 +31,6 @@ public class Fx30AnalogInputDeviceFactoryTest {
 
 	@Mock
 	PinInfo mockedInfo;
-	@Mock
-	Fx30AnalogInputDevice mockedDevice;
 
 	@Before
 	public void prepareForTest() {
@@ -41,17 +40,18 @@ public class Fx30AnalogInputDeviceFactoryTest {
 	@Test
 	public void testCreateAnalogInputDevice() throws Exception {
 		when(mockedInfo.getDeviceNumber()).thenReturn(channelIndex);
-		whenNew(Fx30AnalogInputDevice.class).withAnyArguments().thenReturn(mockedDevice);
 
-		factory.createAnalogInputDevice(name, mockedInfo);
+		List<List<?>> deviceArgs = new ArrayList<>();
+		try (MockedConstruction<Fx30AnalogInputDevice> deviceCons = mockConstruction(Fx30AnalogInputDevice.class,
+				(mock, mctx) -> deviceArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		verifyNew(Fx30AnalogInputDevice.class).withArguments(
-				eq(factory),
-				eq(name),
-				eq(DioZeroAdcPinMapper.mapChannelIndexToDevicePin(channelIndex)),
-				eq(channelIndex),
-				eq(path),
-				eq(1.8f));
+			factory.createAnalogInputDevice(name, mockedInfo);
+
+			assertEquals(1, deviceCons.constructed().size());
+			assertEquals(Arrays.asList(factory, name,
+					DioZeroAdcPinMapper.mapChannelIndexToDevicePin(channelIndex), channelIndex, path, 1.8f),
+					deviceArgs.get(0));
+		}
 	}
 
 	@Test

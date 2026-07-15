@@ -7,16 +7,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DioZeroAdcChannelTest {
 
 	private static final int index = 0;
@@ -80,7 +80,7 @@ public class DioZeroAdcChannelTest {
 
 	@Test(expected = AdcDeviceException.class)
 	public void testAddAdcPinListenerWithException() {
-		Whitebox.setInternalState(adcChannel, "device", null);
+		Whitebox.setInternalState(adcChannel, "device", (Object) null);
 
 		adcChannel.addAdcPinListener(mockedListener);
 	}
@@ -94,7 +94,7 @@ public class DioZeroAdcChannelTest {
 
 	@Test(expected = AdcDeviceException.class)
 	public void testRemoveAllAdcPinListenerWithException() {
-		Whitebox.setInternalState(adcChannel, "device", null);
+		Whitebox.setInternalState(adcChannel, "device", (Object) null);
 
 		adcChannel.removeAllAdcPinListener();
 	}

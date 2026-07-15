@@ -6,8 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
@@ -15,8 +14,9 @@ import org.snmp4j.event.ResponseEvent;
 import java.io.IOException;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpClientImplTest {
 
     private final String DEVICE_ID_TEST = "deviceIdTest";
@@ -39,9 +39,9 @@ public class SnmpClientImplTest {
 
     @Before
     public void start() throws IOException {
-        PowerMockito.when(mockedSnmp.send(Mockito.any(), Mockito.any())).thenReturn(mockedResponseEvent);
-        PowerMockito.when(mockedResponseEvent.getResponse()).thenReturn(mockedPdu);
-        PowerMockito.when(mockedPdu.getErrorStatus()).thenReturn(0);
+        when(mockedSnmp.send(Mockito.any(), Mockito.any())).thenReturn(mockedResponseEvent);
+        when(mockedResponseEvent.getResponse()).thenReturn(mockedPdu);
+        when(mockedPdu.getErrorStatus()).thenReturn(0);
     }
 
     @Test

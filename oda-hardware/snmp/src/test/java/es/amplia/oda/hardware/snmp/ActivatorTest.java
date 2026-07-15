@@ -11,17 +11,19 @@ import es.amplia.oda.hardware.snmp.internal.SnmpClientManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -31,35 +33,46 @@ public class ActivatorTest {
     @Mock
     private SnmpClientManager mockedSnmpClientsManager;
     @Mock
-    private ServiceRegistrationManagerOsgi<SnmpClient> mockedRegistrationManager;
-    @Mock
     private SnmpTranslatorProxy mockedSnmpTranslatorProxy;
     @Mock
     private StateManagerProxy mockedStateManagerProxy;
-    @Mock
-    private SnmpClientFactory mockedSnmpClientFactory;
-    @Mock
-    private SnmpConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundle;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments().thenReturn(mockedRegistrationManager);
-        PowerMockito.whenNew(SnmpClientManager.class).withAnyArguments().thenReturn(mockedSnmpClientsManager);
-        PowerMockito.whenNew(SnmpTranslatorProxy.class).withAnyArguments().thenReturn(mockedSnmpTranslatorProxy);
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManagerProxy);
-        PowerMockito.whenNew(SnmpClientFactory.class).withAnyArguments().thenReturn(mockedSnmpClientFactory);
-        PowerMockito.whenNew(SnmpConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> snmpClientManagerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SnmpClientManager> snmpClientManagerCons = mockConstruction(SnmpClientManager.class,
+                     (mock, mctx) -> snmpClientManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SnmpClientFactory> snmpClientFactoryCons = mockConstruction(SnmpClientFactory.class);
+             MockedConstruction<SnmpTranslatorProxy> snmpTranslatorProxyCons = mockConstruction(SnmpTranslatorProxy.class);
+             MockedConstruction<StateManagerProxy> stateManagerProxyCons = mockConstruction(StateManagerProxy.class);
+             MockedConstruction<SnmpConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(SnmpConfigurationUpdateHandler.class);
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(SnmpClient.class));
-        PowerMockito.verifyNew(SnmpClientManager.class).withArguments(eq(mockedRegistrationManager));
-        PowerMockito.verifyNew(SnmpClientFactory.class).withNoArguments();
-        PowerMockito.verifyNew(SnmpClientManager.class).withArguments(eq(mockedRegistrationManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+            testActivator.start(mockedContext);
+
+            assertEquals(1, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(SnmpClient.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(1, snmpClientManagerCons.constructed().size());
+            assertEquals(registrationManagerCons.constructed().get(0), snmpClientManagerArgs.get(0).get(0));
+            assertEquals(1, snmpClientFactoryCons.constructed().size());
+            assertEquals(1, snmpTranslatorProxyCons.constructed().size());
+            assertEquals(1, stateManagerProxyCons.constructed().size());
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+        }
     }
 
     @Test

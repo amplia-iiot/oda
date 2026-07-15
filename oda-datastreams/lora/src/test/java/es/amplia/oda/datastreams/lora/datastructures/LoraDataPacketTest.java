@@ -3,8 +3,7 @@ package es.amplia.oda.datastreams.lora.datastructures;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -13,8 +12,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LoraDataPacket.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class LoraDataPacketTest {
 	private List<Rxpk> rxpk;
 

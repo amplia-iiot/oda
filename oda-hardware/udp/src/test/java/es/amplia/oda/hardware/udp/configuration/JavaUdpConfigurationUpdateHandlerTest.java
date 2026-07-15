@@ -5,8 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
@@ -14,12 +13,10 @@ import java.util.Hashtable;
 
 import static es.amplia.oda.hardware.udp.configuration.JavaUdpConfigurationUpdateHandler.*;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(JavaUdpConfigurationUpdateHandler.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JavaUdpConfigurationUpdateHandlerTest {
 
 	private static final String TEST_HOST_VALUE = "localhost";
@@ -42,7 +39,6 @@ public class JavaUdpConfigurationUpdateHandlerTest {
 		props.put(UPLINK_PORT_PROPERTY_NAME, TEST_UPLINK_PORT_VALUE);
 		props.put(DOWNLINK_PORT_PROPERTY_NAME, TEST_DOWNLINK_PORT_VALUE);
 		props.put(PACKET_MAX_SIZE_PROPERTY_NAME, TEST_PACKET_SIZE_VALUE);
-		whenNew(JavaUdpConfiguration.class).withAnyArguments().thenReturn(TEST_JAVA_UDP_CONFIGURATION);
 
 		testHandler.loadConfiguration(props);
 

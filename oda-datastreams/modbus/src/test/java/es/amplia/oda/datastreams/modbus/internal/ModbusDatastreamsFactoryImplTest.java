@@ -3,24 +3,26 @@ package es.amplia.oda.datastreams.modbus.internal;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.hardware.modbus.ModbusType;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ModbusDatastreamsFactoryImpl.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusDatastreamsFactoryImplTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -43,75 +45,88 @@ public class ModbusDatastreamsFactoryImplTest {
     private ModbusMaster mockedModbusMaster;
     @Mock
     private ModbusConnectionsFinder mockedConnectionsFinder;
-    @Mock
-    private ModbusTypeToJavaTypeConverter mockedModbusTypeConverter;
-    @Mock
-    private JavaTypeToModbusTypeConverter mockedJavaTypeConverter;
-    @Mock
-    private ModbusReadOperatorProcessor mockedReadOperatorProcessor;
-    @Mock
-    private ModbusWriteOperatorProcessor mockedWriteOperatorProcessor;
-    @Mock
-    private ModbusDatastreamsGetter mockedDatastreamsGetter;
-    @Mock
-    private ModbusDatastreamsSetter mockedDatastreamsSetter;
+
+    private MockedConstruction<ModbusTypeToJavaTypeConverter> modbusTypeConverterCons;
+    private MockedConstruction<JavaTypeToModbusTypeConverter> javaTypeConverterCons;
+    private MockedConstruction<ModbusReadOperatorProcessor> readOperatorProcessorCons;
+    private MockedConstruction<ModbusWriteOperatorProcessor> writeOperatorProcessorCons;
+    private final List<List<?>> readOperatorProcessorArgs = new ArrayList<>();
+    private final List<List<?>> writeOperatorProcessorArgs = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.whenNew(ModbusTypeToJavaTypeConverter.class).withAnyArguments()
-                .thenReturn(mockedModbusTypeConverter);
-        PowerMockito.whenNew(JavaTypeToModbusTypeConverter.class).withAnyArguments()
-                .thenReturn(mockedJavaTypeConverter);
-        PowerMockito.whenNew(ModbusReadOperatorProcessor.class).withAnyArguments()
-                .thenReturn(mockedReadOperatorProcessor);
-        PowerMockito.whenNew(ModbusWriteOperatorProcessor.class).withAnyArguments()
-                .thenReturn(mockedWriteOperatorProcessor);
-        PowerMockito.when(mockedConnectionsFinder.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        modbusTypeConverterCons = mockConstruction(ModbusTypeToJavaTypeConverter.class);
+        javaTypeConverterCons = mockConstruction(JavaTypeToModbusTypeConverter.class);
+        readOperatorProcessorCons = mockConstruction(ModbusReadOperatorProcessor.class,
+                (mock, mctx) -> readOperatorProcessorArgs.add(new ArrayList<>(mctx.arguments())));
+        writeOperatorProcessorCons = mockConstruction(ModbusWriteOperatorProcessor.class,
+                (mock, mctx) -> writeOperatorProcessorArgs.add(new ArrayList<>(mctx.arguments())));
+        when(mockedConnectionsFinder.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
 
         testFactory = new ModbusDatastreamsFactoryImpl(mockedConnectionsFinder);
     }
 
+    @After
+    public void tearDown() {
+        writeOperatorProcessorCons.close();
+        readOperatorProcessorCons.close();
+        javaTypeConverterCons.close();
+        modbusTypeConverterCons.close();
+    }
+
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(ModbusTypeToJavaTypeConverter.class).withNoArguments();
-        PowerMockito.verifyNew(JavaTypeToModbusTypeConverter.class).withNoArguments();
-        PowerMockito.verifyNew(ModbusReadOperatorProcessor.class)
-                .withArguments(eq(mockedConnectionsFinder), eq(mockedModbusTypeConverter));
-        PowerMockito.verifyNew(ModbusWriteOperatorProcessor.class)
-                .withArguments(eq(mockedConnectionsFinder), eq(mockedJavaTypeConverter));
+        assertEquals(1, modbusTypeConverterCons.constructed().size());
+        assertEquals(1, javaTypeConverterCons.constructed().size());
+        assertEquals(1, readOperatorProcessorCons.constructed().size());
+        assertEquals(mockedConnectionsFinder, readOperatorProcessorArgs.get(0).get(0));
+        assertEquals(modbusTypeConverterCons.constructed().get(0), readOperatorProcessorArgs.get(0).get(1));
+        assertEquals(1, writeOperatorProcessorCons.constructed().size());
+        assertEquals(mockedConnectionsFinder, writeOperatorProcessorArgs.get(0).get(0));
+        assertEquals(javaTypeConverterCons.constructed().get(0), writeOperatorProcessorArgs.get(0).get(1));
     }
 
     @Test
     public void testCreateModbusDatastreamsGetter() throws Exception {
-        PowerMockito.whenNew(ModbusDatastreamsGetter.class).withAnyArguments().thenReturn(mockedDatastreamsGetter);
+        List<List<?>> getterArgs = new ArrayList<>();
+        try (MockedConstruction<ModbusDatastreamsGetter> getterCons = mockConstruction(ModbusDatastreamsGetter.class,
+                (mock, mctx) -> getterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        ModbusDatastreamsGetter result =
-                testFactory.createModbusDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER,
-                        TEST_DATA_TYPE, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, TEST_REGISTERS_TO_READ);
+            ModbusDatastreamsGetter result =
+                    testFactory.createModbusDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER,
+                            TEST_DATA_TYPE, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, TEST_REGISTERS_TO_READ);
 
-        assertEquals(mockedDatastreamsGetter, result);
-        PowerMockito.verifyNew(ModbusDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
-                eq(TEST_DATASTREAM_TYPE), eq(TEST_MAPPER), eq(TEST_DATA_TYPE), eq(TEST_DATA_ADDRESS),
-                eq(TEST_READ_FROM_CACHE), eq(TEST_REGISTERS_TO_READ), eq(mockedReadOperatorProcessor));
-        PowerMockito.verifyNew(ModbusTypeToJavaTypeConverter.class).withNoArguments();
-        PowerMockito.verifyNew(ModbusReadOperatorProcessor.class)
-                .withArguments(eq(mockedConnectionsFinder), eq(mockedModbusTypeConverter));
+            assertEquals(1, getterCons.constructed().size());
+            assertEquals(getterCons.constructed().get(0), result);
+            assertEquals(TEST_DATASTREAM_ID, getterArgs.get(0).get(0));
+            assertEquals(TEST_DATASTREAM_TYPE, getterArgs.get(0).get(1));
+            assertEquals(TEST_MAPPER, getterArgs.get(0).get(2));
+            assertEquals(TEST_DATA_TYPE, getterArgs.get(0).get(3));
+            assertEquals(TEST_DATA_ADDRESS, getterArgs.get(0).get(4));
+            assertEquals(TEST_READ_FROM_CACHE, getterArgs.get(0).get(5));
+            assertEquals(TEST_REGISTERS_TO_READ, getterArgs.get(0).get(6));
+            assertEquals(readOperatorProcessorCons.constructed().get(0), getterArgs.get(0).get(7));
+        }
     }
 
     @Test
     public void testCreateModbusDatastreamsSetter() throws Exception {
-        PowerMockito.whenNew(ModbusDatastreamsSetter.class).withAnyArguments().thenReturn(mockedDatastreamsSetter);
+        List<List<?>> setterArgs = new ArrayList<>();
+        try (MockedConstruction<ModbusDatastreamsSetter> setterCons = mockConstruction(ModbusDatastreamsSetter.class,
+                (mock, mctx) -> setterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        ModbusDatastreamsSetter result =
-                testFactory.createModbusDatastreamsSetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER,
-                        TEST_DATA_TYPE, TEST_DATA_ADDRESS);
+            ModbusDatastreamsSetter result =
+                    testFactory.createModbusDatastreamsSetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER,
+                            TEST_DATA_TYPE, TEST_DATA_ADDRESS);
 
-        assertEquals(mockedDatastreamsSetter, result);
-        PowerMockito.verifyNew(ModbusDatastreamsSetter.class).withArguments(eq(TEST_DATASTREAM_ID),
-                eq(TEST_DATASTREAM_TYPE), eq(TEST_MAPPER), eq(TEST_DATA_TYPE), eq(TEST_DATA_ADDRESS),
-                eq(mockedWriteOperatorProcessor));
-        PowerMockito.verifyNew(JavaTypeToModbusTypeConverter.class).withNoArguments();
-        PowerMockito.verifyNew(ModbusWriteOperatorProcessor.class)
-                .withArguments(eq(mockedConnectionsFinder), eq(mockedJavaTypeConverter));
+            assertEquals(1, setterCons.constructed().size());
+            assertEquals(setterCons.constructed().get(0), result);
+            assertEquals(TEST_DATASTREAM_ID, setterArgs.get(0).get(0));
+            assertEquals(TEST_DATASTREAM_TYPE, setterArgs.get(0).get(1));
+            assertEquals(TEST_MAPPER, setterArgs.get(0).get(2));
+            assertEquals(TEST_DATA_TYPE, setterArgs.get(0).get(3));
+            assertEquals(TEST_DATA_ADDRESS, setterArgs.get(0).get(4));
+            assertEquals(writeOperatorProcessorCons.constructed().get(0), setterArgs.get(0).get(5));
+        }
     }
 }

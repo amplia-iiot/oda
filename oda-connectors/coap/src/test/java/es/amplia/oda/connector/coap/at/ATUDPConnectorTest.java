@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetAddress;
@@ -25,7 +25,7 @@ import static es.amplia.oda.connector.coap.at.ATUDPConnector.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ATUDPConnectorTest {
 
     private static final String TEST_REMOTE_HOST = "127.0.0.1";
@@ -94,7 +94,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        verifyZeroInteractions(mockedATManager);
+        verifyNoInteractions(mockedATManager);
     }
 
     @Test
@@ -436,7 +436,7 @@ public class ATUDPConnectorTest {
 
         testConnector.send(testRawData);
 
-        verifyZeroInteractions(mockedSenderExecutor);
+        verifyNoInteractions(mockedSenderExecutor);
     }
 
     @Test
@@ -445,7 +445,7 @@ public class ATUDPConnectorTest {
 
         testConnector.send(null);
 
-        verifyZeroInteractions(mockedSenderExecutor);
+        verifyNoInteractions(mockedSenderExecutor);
     }
 
     @Test
@@ -632,7 +632,7 @@ public class ATUDPConnectorTest {
 
         testConnector.stop();
 
-        verifyZeroInteractions(mockedATManager);
+        verifyNoInteractions(mockedATManager);
     }
 
     @Test

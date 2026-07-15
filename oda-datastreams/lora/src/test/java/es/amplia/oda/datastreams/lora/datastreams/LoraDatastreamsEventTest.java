@@ -13,8 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -27,8 +26,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LoraDatastreamsEvent.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class LoraDatastreamsEventTest {
 
 	private static final byte[] LORA_STATUS_BYTE_ARRAY = {
@@ -152,7 +150,7 @@ public class LoraDatastreamsEventTest {
 
 	@Test
 	public void testRegisterToEventSourceWithExecutionException() throws Exception {
-		doThrow(ExecutionException.class).when(mockedService).isBound();
+		doAnswer(invocation -> { throw new ExecutionException(new Exception()); }).when(mockedService).isBound();
 
 		testDatastreamsEvent.registerToEventSource();
 		TimeUnit.SECONDS.sleep(3);

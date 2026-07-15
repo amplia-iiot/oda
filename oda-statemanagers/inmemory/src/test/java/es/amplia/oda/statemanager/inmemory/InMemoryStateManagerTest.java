@@ -13,9 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -24,15 +24,12 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({InMemoryStateManager.class, DatabaseHandler.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class InMemoryStateManagerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -564,7 +561,6 @@ public class InMemoryStateManagerTest {
 
     @Test
     public void testLoadConfiguration() throws Exception {
-        whenNew(DatabaseHandler.class).withAnyArguments().thenReturn(mockedDatabase);
         Map<DatastreamInfo, List<DatastreamValue>> collectData = new HashMap<>();
         DatastreamInfo dsInfo = new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
         DatastreamValue dsValue = new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, null,
@@ -572,13 +568,21 @@ public class InMemoryStateManagerTest {
         List<DatastreamValue> dsValues = new ArrayList<>();
         dsValues.add(dsValue);
         collectData.put(dsInfo, dsValues);
-        when(mockedDatabase.collectDataFromDatabase()).thenReturn(collectData);
 
-        this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().
-                databasePath("this/is/a/path").maxData(100).forgetTime(3600).forgetPeriod(10).build());
+        List<List<?>> databaseArgs = new ArrayList<>();
+        try (MockedConstruction<DatabaseHandler> databaseCons = mockConstruction(DatabaseHandler.class,
+                (mock, mctx) -> {
+                    databaseArgs.add(new ArrayList<>(mctx.arguments()));
+                    when(mock.collectDataFromDatabase()).thenReturn(collectData);
+                })) {
 
-        verifyNew(DatabaseHandler.class).withArguments(eq("this/is/a/path"), eq(mockedSerializer),
-              eq(scheduler), eq(100), eq((long) 3600), eq((long) 10));
+            this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().
+                    databasePath("this/is/a/path").maxData(100).forgetTime(3600).forgetPeriod(10).build());
+
+            assertEquals(1, databaseCons.constructed().size());
+            assertEquals(Arrays.asList("this/is/a/path", mockedSerializer, scheduler, 100, (long) 3600, (long) 10),
+                    databaseArgs.get(0));
+        }
     }
 
     @Test
