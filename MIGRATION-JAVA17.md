@@ -95,3 +95,19 @@ Fecha: 2026-07-15. **PowerMock eliminado y Mockito 1.10.19 → 5.14.2 en todo el
 - Cada módulo migrado en verde individualmente (ver informes por lote).
 - **Suite completa del reactor (`mvn clean package`, con JaCoCo) bajo JDK 17: BUILD SUCCESS — 1.928 tests, 0 failures, 0 errors, 2 skipped (`@Ignore` preexistentes) en los 83 módulos.**
 - Verificado por grep: cero referencias restantes a `org.powermock.modules/api/core` en código y poms.
+
+## Fase 4 — Salto a bytecode 17 y validación runtime ✅
+
+Fecha: 2026-07-15.
+
+### Cambios
+- `pom.xml` (padre): `maven.compiler.source/target 1.8` → **`maven.compiler.release 17`** (ningún módulo fijaba niveles propios). Bytecode generado verificado: clase **61** (Java 17).
+- **Retirado `-Djava.security.policy=security/dio.policy`** de los 9 `run.sh` de demos y del `entrypoint.sh` de mqtt-docker. Justificación: ningún script pasa `-Djava.security.manager` ni el código instala un SecurityManager (0 usos en fuentes), así que la propiedad era inerte; además `security/dio.policy` no existe en ningún ensamblado (el flag apuntaba a un fichero inexistente). JEP 411 deprecó el SecurityManager para eliminación. **Ojo Track 2**: los `run.sh` de ADIF-ODA llevan el mismo flag — aplicar la misma decisión en la Fase 7, revisándolo contra el hardware DIO real.
+
+### Validación
+- `mvn clean package` completo con `release 17`: BUILD SUCCESS, suite entera en verde (0 fallos), sin errores nuevos de compilación.
+- Demo `rules` (ensamblado con bytecode 17) sobre Felix 7.0.5 + JDK 17: arranque completo, regla JS cargada y evaluada, 0 excepciones `IllegalAccess`/`InaccessibleObject`/`UnsupportedClassVersion`, parada limpia. Sin `--add-opens`.
+
+## Siguiente: Fase 5 — Release a Nexus
+
+Publicar la nueva `oda.version` (JDK 17) con `maven-release-plugin` (`mvn clean deploy` / release:prepare+perform). **Acción con efectos externos** (tags git + artefactos en el Nexus compartido): requiere decidir el número de versión (¿4.17.0? ¿5.0.0 por el salto de JDK y Felix 7?) y confirmación del equipo. Con la release publicada se desbloquea el Track 2 (ADIF-ODA).
