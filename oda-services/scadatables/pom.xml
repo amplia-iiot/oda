@@ -34,6 +34,8 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Embed-Dependency>nashorn-core|asm*;inline=false</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
                     </instructions>
                 </configuration>
             </plugin>
@@ -90,6 +92,11 @@
         <dependency>
             <groupId>es.amplia.oda.event</groupId>
             <artifactId>api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
         </dependency>
 
         <dependency>

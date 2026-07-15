@@ -3,10 +3,10 @@ package es.amplia.oda.operation.nashorn;
 import es.amplia.oda.operation.api.engine.OperationScriptTranslator;
 import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +16,9 @@ import java.util.Scanner;
 @Slf4j
 public class NashornScriptTranslator implements OperationScriptTranslator {
 
-    private static final String ENGINE_NAME = "nashorn";
+    // Nashorn ya no forma parte del JDK (JEP 372): el ServiceLoader de ScriptEngineManager no lo
+    // encuentra dentro de OSGi, así que se instancia la factoría del nashorn-core embebido
+    private static final NashornScriptEngineFactory ENGINE_FACTORY = new NashornScriptEngineFactory();
     private String jsUtilsPath;
 
     private final HashMap<String,ScriptEngine> engines = new HashMap<>();
@@ -27,8 +29,7 @@ public class NashornScriptTranslator implements OperationScriptTranslator {
 
     @Override
     public void initScript(String script) throws ScriptException {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName(ENGINE_NAME);
+        ScriptEngine engine = ENGINE_FACTORY.getScriptEngine();
 
         // all rules will have preloaded all the functions from utils.js
         //engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
