@@ -32,7 +32,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
                         <Export-Package>!*</Export-Package>
-                        <Embed-Dependency>sqlite-jdbc, derby</Embed-Dependency>
+                        <Embed-Dependency>derby</Embed-Dependency>
                         <Import-Package>!org.ibex.nestedvm,!com.ibm.jvm,!org.apache.derby.impl.drda,!org.w3c.dom.xpath,*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                     </instructions>

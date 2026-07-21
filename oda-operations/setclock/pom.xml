@@ -34,8 +34,6 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>httpclient</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
             </plugin>
