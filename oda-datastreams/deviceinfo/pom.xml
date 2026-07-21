@@ -17,7 +17,6 @@
     <properties>
         <bundle.symbolic.name>${project.groupId}.${project.artifactId}</bundle.symbolic.name>
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
-        <jackson.version>2.9.8</jackson.version>
     </properties>
 
     <build>

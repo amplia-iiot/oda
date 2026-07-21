@@ -21,6 +21,8 @@
         <osgi.version>5.0.0</osgi.version>
         <!-- Nashorn eliminado del JDK en Java 15 (JEP 372); se usa el standalone de OpenJDK -->
         <nashorn.version>15.4</nashorn.version>
+        <!-- jackson unificado: cierre de CVEs de la serie 2.9 EOL (CVE-2019-14540, -16942, CVE-2020-9548...) -->
+        <jackson.version>2.17.2</jackson.version>
 
         <hamcrest.version>1.3</hamcrest.version>
         <junit.version>4.13.2</junit.version>
