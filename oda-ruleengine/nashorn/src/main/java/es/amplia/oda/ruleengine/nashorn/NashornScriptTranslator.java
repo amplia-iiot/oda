@@ -1,5 +1,7 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.operation.api.engine.OperationScriptTranslator;
+import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfiguration;
 import es.amplia.oda.ruleengine.api.ScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -13,17 +15,37 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Single nashorn script translator shared by the rule engine and the operation engine
+ * (previously duplicated in two bundles). Implements both service-specific interfaces; the
+ * only behavioural difference between the two engines is whether {@code utils.js} is preloaded
+ * into every script, controlled by {@link #preloadUtils} (rules: yes; operations: no).
+ */
 @Slf4j
-public class NashornScriptTranslator implements ScriptTranslator {
+public class NashornScriptTranslator implements ScriptTranslator, OperationScriptTranslator {
 
     // Nashorn ya no forma parte del JDK (JEP 372): el ServiceLoader de ScriptEngineManager no lo
     // encuentra dentro de OSGi, así que se instancia la factoría del nashorn-core embebido
     private static final NashornScriptEngineFactory ENGINE_FACTORY = new NashornScriptEngineFactory();
     private String jsUtilsPath;
 
+    private final boolean preloadUtils;
     private final HashMap<String,ScriptEngine> engines = new HashMap<>();
 
+    /** Default translator preloads utils.js (rule engine behaviour). */
+    public NashornScriptTranslator() {
+        this(true);
+    }
+
+    public NashornScriptTranslator(boolean preloadUtils) {
+        this.preloadUtils = preloadUtils;
+    }
+
     public void loadConfiguration(RuleEngineConfiguration config) {
+        this.jsUtilsPath = config.getUtilsPath();
+    }
+
+    public void loadConfiguration(OperationEngineConfiguration config) {
         this.jsUtilsPath = config.getUtilsPath();
     }
 
@@ -31,8 +53,10 @@ public class NashornScriptTranslator implements ScriptTranslator {
     public void initScript(String script) throws ScriptException {
         ScriptEngine engine = ENGINE_FACTORY.getScriptEngine();
 
-        // all rules will have preloaded all the functions from utils.js
-        engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+        // rules preload all the functions from utils.js; operations do not (legacy behaviour)
+        if (preloadUtils) {
+            engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+        }
 
         // load rule
         engine.eval(readFile(script));

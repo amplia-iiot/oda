@@ -105,8 +105,14 @@ public class OperationEngineNashorn implements OperationEngine {
 
     public void stop() {
         LOGGER.info("Stopping the operation engine");
-        this.operations.clear();
-        this.operationsWatcher.stop();
-        this.operationsUtilsWatcher.stop();
+        if (this.operations != null) {
+            this.operations.clear();
+        }
+        if (this.operationsWatcher != null) {
+            this.operationsWatcher.stop();
+        }
+        if (this.operationsUtilsWatcher != null) {
+            this.operationsUtilsWatcher.stop();
+        }
     }
 }

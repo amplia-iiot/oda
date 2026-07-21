@@ -215,8 +215,12 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     public void stop() {
         LOGGER.info("Stopping the rule engine");
         started = false;
-        this.rules.clear();
-        this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());
-        this.watcher.clear();
+        if (this.rules != null) {
+            this.rules.clear();
+        }
+        if (this.watcher != null) {
+            this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());
+            this.watcher.clear();
+        }
     }
 }

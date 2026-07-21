@@ -2,7 +2,7 @@ package es.amplia.oda.operation.nashorn.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.ConfigurationUpdateHandler;
-import es.amplia.oda.operation.nashorn.NashornScriptTranslator;
+import es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator;
 import es.amplia.oda.operation.nashorn.OperationEngineNashorn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,11 +18,11 @@ public class OperationEngineConfigurationHandler implements ConfigurationUpdateH
 	private static final String UTILS_PATH_PROPERTY_NAME = "utilsPath";
 
 	private OperationEngineConfiguration config;
-	OperationEngineNashorn ruleEngine;
+	OperationEngineNashorn operationEngine;
 	NashornScriptTranslator scriptTranslator;
 
-	public OperationEngineConfigurationHandler(OperationEngineNashorn ruleEngine, NashornScriptTranslator scriptTranslator) {
-		this.ruleEngine = ruleEngine;
+	public OperationEngineConfigurationHandler(OperationEngineNashorn operationEngine, NashornScriptTranslator scriptTranslator) {
+		this.operationEngine = operationEngine;
 		this.scriptTranslator = scriptTranslator;
 	}
 
@@ -33,9 +33,9 @@ public class OperationEngineConfigurationHandler implements ConfigurationUpdateH
 		OperationEngineConfiguration.OperationEngineConfigurationBuilder builder = OperationEngineConfiguration.builder();
 
 		builder.path(Optional.ofNullable((String) props.get(PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  new ConfigurationException("Rules path is a required parameter")));
+				.orElseThrow(() ->  new ConfigurationException("Operations path is a required parameter")));
 		builder.utilsPath(Optional.ofNullable((String) props.get(UTILS_PATH_PROPERTY_NAME))
-				.orElseThrow(() ->  new ConfigurationException("Rules utils path is a required parameter")));
+				.orElseThrow(() ->  new ConfigurationException("Operations utils path is a required parameter")));
 
 		config = builder.build();
 
@@ -45,6 +45,6 @@ public class OperationEngineConfigurationHandler implements ConfigurationUpdateH
 	@Override
 	public void applyConfiguration() {
 		this.scriptTranslator.loadConfiguration(this.config);
-		this.ruleEngine.loadConfiguration(this.config);
+		this.operationEngine.loadConfiguration(this.config);
 	}
 }

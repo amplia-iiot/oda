@@ -5,8 +5,8 @@
     <artifactId>nashorn</artifactId>
     <packaging>bundle</packaging>
 
-    <name>OpenGate Device Agent Rule Engine - Nashorn Rule Engine</name>
-    <description>Nashorn Rule Engine for OpenGate Device Agent</description>
+    <name>OpenGate Device Agent Engines - Nashorn Rule and Operation Engine</name>
+    <description>Nashorn Rule Engine and Operation Engine (merged) for OpenGate Device Agent</description>
 
     <parent>
         <artifactId>oda-ruleengine</artifactId>
@@ -33,7 +33,7 @@
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
-                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Private-Package>${bundle.namespace}.*, es.amplia.oda.operation.nashorn.*</Private-Package>
                         <Embed-Dependency>nashorn-core|asm*;inline=false</Embed-Dependency>
                         <Embed-Transitive>true</Embed-Transitive>
                     </instructions>
@@ -90,6 +90,10 @@
         </dependency>
         <dependency>
             <groupId>es.amplia.oda.ruleengine</groupId>
+            <artifactId>api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>es.amplia.oda.operation</groupId>
             <artifactId>api</artifactId>
         </dependency>
         <dependency>

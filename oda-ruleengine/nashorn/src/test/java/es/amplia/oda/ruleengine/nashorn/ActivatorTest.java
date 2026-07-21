@@ -1,20 +1,19 @@
 package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
+import es.amplia.oda.operation.api.engine.OperationEngine;
+import es.amplia.oda.operation.nashorn.OperationEngineNashorn;
+import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfigurationHandler;
+import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfigurationHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
 import org.powermock.reflect.Whitebox;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,62 +32,64 @@ public class ActivatorTest {
 	@Mock
 	RuleEngineNashorn mockedRuleEngine;
 	@Mock
-	RuleEngineConfigurationHandler mockedRuleEngineHandler;
+	OperationEngineNashorn mockedOperationEngine;
 	@Mock
 	ConfigurableBundleImpl mockedConfigurableBundle;
 	@Mock
 	BundleContext mockedContext;
 	@Mock
-	ServiceRegistration<ManagedService> mockedServiceRegistration;
+	ServiceRegistration<RuleEngine> mockedRuleRegistration;
 	@Mock
-	Bundle mockedBundle;
+	ServiceRegistration<OperationEngine> mockedOperationRegistration;
 
 	@Test
-	public void testStart() throws Exception {
-		List<List<?>> ruleEngineArgs = new ArrayList<>();
-		List<List<?>> handlerArgs = new ArrayList<>();
-		List<List<?>> configurableBundleArgs = new ArrayList<>();
+	public void testStart() {
 		try (MockedConstruction<NashornScriptTranslator> translatorConstruction =
 					 mockConstruction(NashornScriptTranslator.class);
 			 MockedConstruction<RuleEngineNashorn> ruleEngineConstruction =
-					 mockConstruction(RuleEngineNashorn.class,
-							 (mock, mctx) -> ruleEngineArgs.add(new ArrayList<>(mctx.arguments())));
-			 MockedConstruction<RuleEngineConfigurationHandler> handlerConstruction =
-					 mockConstruction(RuleEngineConfigurationHandler.class,
-							 (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+					 mockConstruction(RuleEngineNashorn.class);
+			 MockedConstruction<OperationEngineNashorn> operationEngineConstruction =
+					 mockConstruction(OperationEngineNashorn.class);
+			 MockedConstruction<RuleEngineConfigurationHandler> ruleHandlerConstruction =
+					 mockConstruction(RuleEngineConfigurationHandler.class);
+			 MockedConstruction<OperationEngineConfigurationHandler> operationHandlerConstruction =
+					 mockConstruction(OperationEngineConfigurationHandler.class);
 			 MockedConstruction<ConfigurableBundleImpl> configurableBundleConstruction =
-					 mockConstruction(ConfigurableBundleImpl.class,
-							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
-			when(mockedContext.registerService(eq(ManagedService.class), any(), any())).thenReturn(mockedServiceRegistration);
-			when(mockedContext.getBundle()).thenReturn(mockedBundle);
-			when(mockedBundle.getSymbolicName()).thenReturn("symbolicName");
+					 mockConstruction(ConfigurableBundleImpl.class)) {
+			when(mockedContext.registerService(eq(RuleEngine.class), any(), any())).thenReturn(mockedRuleRegistration);
+			when(mockedContext.registerService(eq(OperationEngine.class), any(), any())).thenReturn(mockedOperationRegistration);
 
 			testActivator.start(mockedContext);
 
-			assertEquals(1, translatorConstruction.constructed().size());
+			// one translator per engine (rules preloads utils.js, operations does not)
+			assertEquals(2, translatorConstruction.constructed().size());
 			assertEquals(1, ruleEngineConstruction.constructed().size());
-			assertEquals(translatorConstruction.constructed().get(0), ruleEngineArgs.get(0).get(0));
-			assertEquals(1, handlerConstruction.constructed().size());
-			assertEquals(ruleEngineConstruction.constructed().get(0), handlerArgs.get(0).get(0));
-			assertEquals(translatorConstruction.constructed().get(0), handlerArgs.get(0).get(1));
-			assertEquals(1, configurableBundleConstruction.constructed().size());
-			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
-			assertEquals(handlerConstruction.constructed().get(0), configurableBundleArgs.get(0).get(1));
+			assertEquals(1, operationEngineConstruction.constructed().size());
+			assertEquals(1, ruleHandlerConstruction.constructed().size());
+			assertEquals(1, operationHandlerConstruction.constructed().size());
+			// one ConfigurableBundle per engine, each with its own explicit PID
+			assertEquals(2, configurableBundleConstruction.constructed().size());
+			verify(mockedContext).registerService(eq(RuleEngine.class), any(), any());
+			verify(mockedContext).registerService(eq(OperationEngine.class), any(), any());
 		}
 	}
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(testActivator, "ruleEngineServiceRegistration", mockedServiceRegistration);
-		Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
+		Whitebox.setInternalState(testActivator, "ruleEngineServiceRegistration", mockedRuleRegistration);
+		Whitebox.setInternalState(testActivator, "operationEngineServiceRegistration", mockedOperationRegistration);
+		Whitebox.setInternalState(testActivator, "ruleConfigurableBundle", mockedConfigurableBundle);
+		Whitebox.setInternalState(testActivator, "operationConfigurableBundle", mockedConfigurableBundle);
 		Whitebox.setInternalState(testActivator, "ruleEngine", mockedRuleEngine);
-		Whitebox.setInternalState(testActivator, "scriptTranslator", mockedTranslator);
+		Whitebox.setInternalState(testActivator, "operationEngine", mockedOperationEngine);
+		Whitebox.setInternalState(testActivator, "ruleScriptTranslator", mockedTranslator);
+		Whitebox.setInternalState(testActivator, "operationScriptTranslator", mockedTranslator);
 
 		testActivator.stop(mockedContext);
 
-		verify(mockedServiceRegistration).unregister();
-		verify(mockedConfigurableBundle).close();
+		verify(mockedRuleRegistration).unregister();
+		verify(mockedOperationRegistration).unregister();
 		verify(mockedRuleEngine).stop();
-		verify(mockedTranslator).close();
+		verify(mockedOperationEngine).stop();
 	}
 }
