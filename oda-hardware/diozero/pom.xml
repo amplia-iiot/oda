@@ -6,7 +6,7 @@
     <packaging>bundle</packaging>
 
     <name>OpenGate Device Agent Hardware - Device I/O Zero</name>
-    <description>Device I/O Zero Implementation of ADC Service for OpenGate Device Agent</description>
+    <description>Device I/O Zero implementation of ADC and GPIO Services for OpenGate Device Agent</description>
 
     <parent>
         <artifactId>oda-hardware</artifactId>

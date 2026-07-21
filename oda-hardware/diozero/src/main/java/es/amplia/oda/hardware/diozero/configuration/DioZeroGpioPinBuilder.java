@@ -1,17 +1,17 @@
-package es.amplia.oda.hardware.jdkdio.configuration;
+package es.amplia.oda.hardware.diozero.configuration;
 
 import es.amplia.oda.core.commons.gpio.GpioDeviceException;
 import es.amplia.oda.core.commons.gpio.GpioDirection;
 import es.amplia.oda.core.commons.gpio.GpioMode;
 import es.amplia.oda.core.commons.gpio.GpioTrigger;
+import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioPin;
 
-import es.amplia.oda.hardware.jdkdio.gpio.JdkDioGpioPin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class JdkDioGpioPinBuilder {
+class DioZeroGpioPinBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdkDioGpioPinBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DioZeroGpioPinBuilder.class);
 
     static final GpioDirection DEFAULT_DIRECTION = GpioDirection.OUTPUT;
     static final GpioMode DEFAULT_MODE = GpioMode.OPEN_DRAIN;
@@ -29,12 +29,12 @@ class JdkDioGpioPinBuilder {
     private boolean activeLow = DEFAULT_ACTIVE_LOW;
     private boolean initialValue = DEFAULT_INITIAL_VALUE;
 
-    static JdkDioGpioPinBuilder newBuilder() {
-        return new JdkDioGpioPinBuilder();
+    static DioZeroGpioPinBuilder newBuilder() {
+        return new DioZeroGpioPinBuilder();
     }
 
     // Private constructor to hide public default one
-    private JdkDioGpioPinBuilder() {}
+    private DioZeroGpioPinBuilder() {}
 
     void setIndex(int index) {
         this.index = index;
@@ -64,13 +64,13 @@ class JdkDioGpioPinBuilder {
         this.initialValue = initialValue;
     }
 
-    JdkDioGpioPin build() {
+    DioZeroGpioPin build() {
         checkRequiredParameters();
         checkCompatibleParameters();
 
         LOGGER.info("Build new GPIO Pin(Idx: {}, Name: {}, Dir: {}, Md: {}, Tr: {}, low: {}, Init: {})",
                 index, name, direction, mode, trigger, activeLow, initialValue);
-        return new JdkDioGpioPin(index, name, direction, mode, trigger, activeLow, initialValue);
+        return new DioZeroGpioPin(index, name, direction, mode, trigger, activeLow, initialValue);
     }
 
     private void checkRequiredParameters() {

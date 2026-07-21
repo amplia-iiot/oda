@@ -1,21 +1,21 @@
-package es.amplia.oda.hardware.jdkdio.gpio;
+package es.amplia.oda.hardware.diozero.gpio;
 
 import es.amplia.oda.core.commons.gpio.GpioPinListener;
 
-import jdk.dio.gpio.PinEvent;
+import com.diozero.api.DigitalInputEvent;
 import org.junit.Test;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-public class JdkDioGpioPinListenerBridgeTest {
+public class DioZeroGpioPinListenerBridgeTest {
+
     @Test
-    @SuppressWarnings("ConstantConditions")
     public void valueChanged() {
         boolean testValue = true;
         GpioPinListener mockedListener = mock(GpioPinListener.class);
-        PinEvent mockedEvent = mock(PinEvent.class);
-        JdkDioGpioPinListenerBridge testListener = new JdkDioGpioPinListenerBridge(mockedListener, false);
+        DigitalInputEvent mockedEvent = mock(DigitalInputEvent.class);
+        DioZeroGpioPinListenerBridge testListener = new DioZeroGpioPinListenerBridge(mockedListener, false);
 
         when(mockedEvent.getValue()).thenReturn(testValue);
 
@@ -26,12 +26,11 @@ public class JdkDioGpioPinListenerBridgeTest {
     }
 
     @Test
-    @SuppressWarnings("ConstantConditions")
     public void valueChangedActiveLow() {
         boolean testValue = true;
         GpioPinListener mockedListener = mock(GpioPinListener.class);
-        PinEvent mockedEvent = mock(PinEvent.class);
-        JdkDioGpioPinListenerBridge testListener = new JdkDioGpioPinListenerBridge(mockedListener, true);
+        DigitalInputEvent mockedEvent = mock(DigitalInputEvent.class);
+        DioZeroGpioPinListenerBridge testListener = new DioZeroGpioPinListenerBridge(mockedListener, true);
 
         when(mockedEvent.getValue()).thenReturn(testValue);
 

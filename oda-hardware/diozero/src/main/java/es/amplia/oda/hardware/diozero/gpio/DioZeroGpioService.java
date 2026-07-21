@@ -1,4 +1,4 @@
-package es.amplia.oda.hardware.jdkdio.gpio;
+package es.amplia.oda.hardware.diozero.gpio;
 
 import es.amplia.oda.core.commons.gpio.*;
 
@@ -6,12 +6,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class JdkDioGpioService implements GpioService {
+public class DioZeroGpioService implements GpioService, AutoCloseable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdkDioGpioService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DioZeroGpioService.class);
 
     private final Map<Integer, GpioPin> pins = new HashMap<>();
 
@@ -32,7 +33,7 @@ public class JdkDioGpioService implements GpioService {
     }
 
     private GpioPin configurePin(GpioPin pin, String name, GpioDirection direction, GpioMode mode, GpioTrigger trigger,
-                              boolean activeLow, boolean initialValue) {
+                                 boolean activeLow, boolean initialValue) {
         if (pin.isOpen()) {
             try {
                 pin.close();
@@ -45,7 +46,7 @@ public class JdkDioGpioService implements GpioService {
 
         if (!isPinConfigAs(pin, direction, mode, trigger, activeLow, initialValue)) {
             int index = pin.getIndex();
-            GpioPin newPin = new JdkDioGpioPin(index, name, direction, mode, trigger, activeLow, initialValue);
+            GpioPin newPin = new DioZeroGpioPin(index, name, direction, mode, trigger, activeLow, initialValue);
             pins.put(index, newPin);
             return newPin;
         }
@@ -81,7 +82,7 @@ public class JdkDioGpioService implements GpioService {
 
     private GpioPin createNewPin(int index, GpioDirection direction, GpioMode mode, GpioTrigger trigger,
                                  boolean activeLow, boolean initialValue) {
-        JdkDioGpioPin newPin = new JdkDioGpioPin(index, null, direction, mode, trigger, activeLow, initialValue);
+        DioZeroGpioPin newPin = new DioZeroGpioPin(index, null, direction, mode, trigger, activeLow, initialValue);
         pins.put(index, newPin);
         return newPin;
     }
@@ -91,12 +92,19 @@ public class JdkDioGpioService implements GpioService {
         return new HashMap<>(pins);
     }
 
-    public void addConfiguredPin(JdkDioGpioPin pin) {
+    public void loadConfiguration(List<DioZeroGpioPin> configuredPins) {
+        LOGGER.info("Loading new configuration for GPIO Hardware bundle. Closing previous configuration");
+        close();
+        configuredPins.forEach(this::addConfiguredPin);
+        LOGGER.info("New configuration for GPIO Hardware bundle loaded");
+    }
+
+    private void addConfiguredPin(DioZeroGpioPin pin) {
         pins.put(pin.getIndex(), pin);
         initValueIfNeeded(pin);
     }
 
-    private void initValueIfNeeded(JdkDioGpioPin pin) {
+    private void initValueIfNeeded(DioZeroGpioPin pin) {
         if (pin.getDirection() == GpioDirection.OUTPUT) {
             if (!pin.isOpen()) {
                 pin.open();
@@ -105,8 +113,9 @@ public class JdkDioGpioService implements GpioService {
         }
     }
 
-    public void release() {
-        for (GpioPin pin: pins.values()) {
+    @Override
+    public void close() {
+        for (GpioPin pin : pins.values()) {
             if (pin.isOpen()) {
                 try {
                     pin.close();

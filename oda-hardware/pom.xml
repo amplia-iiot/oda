@@ -12,7 +12,6 @@
     <modules>
         <module>atmanager</module>
         <module>atserver</module>
-        <module>jdkdio</module>
         <module>modbus</module>
         <module>diozero</module>
         <module>i2c</module>

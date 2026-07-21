@@ -12,7 +12,7 @@ Reactor padre: `es.amplia.oda:oda-parent`, versión `4.16.1-SNAPSHOT`, `packagin
 
 Requiere **JDK 8**, Maven (sin wrapper) y — para compilar las dependencias externas nativas — Git, **Mercurial** (`hg`) y **CMake**.
 
-Las dependencias externas (`dnp3`, `diozero`, `jdkdio`) viven en el **submódulo git `oda-externaldependencies`**, que *no* forma parte del reactor padre y está **vacío en un checkout recién clonado**. Instálalas en `~/.m2` antes de compilar o `mvn package` fallará:
+Las dependencias externas (`dnp3`, `diozero`) viven en el **submódulo git `oda-externaldependencies`**, que *no* forma parte del reactor padre y está **vacío en un checkout recién clonado**. Instálalas en `~/.m2` antes de compilar o `mvn package` fallará:
 
 ```bash
 # clonar con submódulos
