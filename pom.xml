@@ -23,6 +23,11 @@
         <nashorn.version>15.4</nashorn.version>
         <!-- jackson unificado: cierre de CVEs de la serie 2.9 EOL (CVE-2019-14540, -16942, CVE-2020-9548...) -->
         <jackson.version>2.17.2</jackson.version>
+        <!-- stack HTTP/codec/jline unificado (Fase 3): cierra CVE-2020-13956 (httpclient) y consolida versiones dispersas -->
+        <apache.httpclient.version>4.5.14</apache.httpclient.version>
+        <apache.httpcore.version>4.4.16</apache.httpcore.version>
+        <commons.codec.version>1.16.1</commons.codec.version>
+        <jline.version>3.21.0</jline.version>
 
         <hamcrest.version>1.3</hamcrest.version>
         <junit.version>4.13.2</junit.version>

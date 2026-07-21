@@ -34,7 +34,6 @@
         <felix.gogo.runtime>1.1.6</felix.gogo.runtime>
         <felix.gogo.command>1.1.2</felix.gogo.command>
         <jansi.version>1.18</jansi.version>
-        <jline.version>3.21.0</jline.version>
         <felix.gogo.jline>1.1.8</felix.gogo.jline>
         <felix.log.version>1.2.6</felix.log.version>
         <logback.version>1.2.13</logback.version>

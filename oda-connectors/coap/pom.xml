@@ -19,7 +19,6 @@
         <bundle.namespace>${project.groupId}.${project.artifactId}</bundle.namespace>
 
         <eclipse.californium.version>1.0.6</eclipse.californium.version>
-        <apache.commons.codec.version>1.11</apache.commons.codec.version>
     </properties>
 
     <build>
@@ -97,7 +96,7 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>${apache.commons.codec.version}</version>
+            <version>${commons.codec.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
