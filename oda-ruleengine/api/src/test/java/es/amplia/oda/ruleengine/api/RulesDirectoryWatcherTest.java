@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.api;
 
+import es.amplia.oda.core.commons.utils.FileSystemWatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -13,15 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchService;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class RulesDirectoryWatcherTest {
@@ -34,9 +29,6 @@ public class RulesDirectoryWatcherTest {
 	@InjectMocks
 	RulesDirectoryWatcher testDirectoryWatcher;
 
-	@Mock
-	Thread mockedThread;
-
 	@Test
 	public void testConstructor() {
 		String path = "this/is/a/path";
@@ -48,13 +40,12 @@ public class RulesDirectoryWatcherTest {
 	}
 
 	@Test
-	public void testStart() throws Exception {
-		try (MockedConstruction<Thread> threadConstruction = mockConstruction(Thread.class)) {
+	public void testStart() {
+		try (MockedConstruction<FileSystemWatcher> watcherConstruction = mockConstruction(FileSystemWatcher.class)) {
 			testDirectoryWatcher.start();
 
-			verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE),
-					eq(StandardWatchEventKinds.ENTRY_DELETE), eq(StandardWatchEventKinds.ENTRY_MODIFY));
-			verify(threadConstruction.constructed().get(0)).start();
+			assertEquals(1, watcherConstruction.constructed().size());
+			verify(watcherConstruction.constructed().get(0)).start();
 		}
 	}
 
@@ -71,6 +62,7 @@ public class RulesDirectoryWatcherTest {
 		Mockito.verify(mockedEngine, Mockito.timeout(3000).atLeastOnce()).createRule(testRoute + "/tempDir.js");
 
 		fileToCreate.delete();
+		testDirectoryWatcher.stop();
 	}
 
 	@Test
@@ -85,27 +77,34 @@ public class RulesDirectoryWatcherTest {
 		fileToCreate.delete();
 
 		Mockito.verify(mockedEngine, Mockito.timeout(2000).atLeastOnce()).deleteRule(testRoute + "/tempDir.js");
+		testDirectoryWatcher.stop();
 	}
 
 	@Test
-	public void testThreadException() throws IOException {
-		String root = new File(".").getCanonicalPath();
+	public void testThreadException() {
+		String root;
+		try {
+			root = new File(".").getCanonicalPath();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new RulesDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 
 		testDirectoryWatcher.start();
 		testDirectoryWatcher.stop();
 
-		verify(mockedEngine, never()).createDatastreamDirectory("tempDir");
-		verify(mockedEngine, never()).deleteDatastreamDirectory("tempDir");
+		verify(mockedEngine, never()).createRule(anyString());
+		verify(mockedEngine, never()).deleteRule(anyString());
 	}
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(testDirectoryWatcher, "creatingWatcherThread", mockedThread);
+		FileSystemWatcher mockedWatcher = mock(FileSystemWatcher.class);
+		Whitebox.setInternalState(testDirectoryWatcher, "watcher", mockedWatcher);
 
 		testDirectoryWatcher.stop();
 
-		verify(mockedThread).interrupt();
+		verify(mockedWatcher).stop();
 	}
 }
