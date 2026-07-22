@@ -12,6 +12,7 @@ import org.osgi.framework.ServiceRegistration;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -29,14 +30,16 @@ public class ActivatorTest {
 		activator.start(mockedContext);
 
 		verify(mockedContext).registerService(eq(Serializer.class), any(JsonSerializer.class), any());
+		verify(mockedContext).registerService(eq(Serializer.class), any(CborSerializer.class), any());
 	}
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(activator, "registration", mockedRegistration);
+		Whitebox.setInternalState(activator, "jsonRegistration", mockedRegistration);
+		Whitebox.setInternalState(activator, "cborRegistration", mockedRegistration);
 
 		activator.stop(mockedContext);
 
-		verify(mockedRegistration).unregister();
+		verify(mockedRegistration, times(2)).unregister();
 	}
 }

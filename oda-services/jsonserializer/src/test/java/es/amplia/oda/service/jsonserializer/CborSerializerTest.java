@@ -1,4 +1,4 @@
-package es.amplia.oda.service.cborserializer;
+package es.amplia.oda.service.jsonserializer;
 
 import org.junit.Test;
 

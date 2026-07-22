@@ -5,8 +5,8 @@
     <artifactId>jsonserializer</artifactId>
     <packaging>bundle</packaging>
 
-    <name>OpenGate Device Agent Services - JSON Serializer</name>
-    <description>JSON Serializer for OpenGate Device Agent artifacts</description>
+    <name>OpenGate Device Agent Services - JSON and CBOR Serializer</name>
+    <description>JSON and CBOR Serializers (merged) for OpenGate Device Agent artifacts</description>
 
     <parent>
         <groupId>es.amplia.oda.service</groupId>
@@ -34,7 +34,7 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>jackson-databind, jackson-annotations, jackson-core</Embed-Dependency>
+                        <Embed-Dependency>jackson-databind, jackson-annotations, jackson-core, jackson-dataformat-cbor</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
@@ -115,6 +115,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
