@@ -11,7 +11,6 @@
     <modules>
         <module>deviceinfo</module>
         <module>deviceinfofx30</module>
-        <module>deviceinfoowa450</module>
         <module>gpio</module>
         <module>modbus</module>
         <module>modbusslave</module>

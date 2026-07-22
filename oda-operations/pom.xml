@@ -16,7 +16,6 @@
         <module>refreshinfo</module>
         <module>setclock</module>
         <module>synchronizeclock</module>
-        <module>localprotocoldiscovery</module>
 		<module>rebootequipment</module>
     </modules>
     <dependencies>
