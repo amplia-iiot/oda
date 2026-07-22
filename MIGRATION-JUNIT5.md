@@ -45,8 +45,37 @@ corre ambos engines. Mientras vintage esté, JUnit 4 y 5 conviven y el build no 
 
 ## Progreso
 
-- [x] Infraestructura JUnit 5 + vintage en el pom padre (build verde: commons 121 tests vía vintage).
-- [x] Piloto: `oda-operations/set` migrado (3 tests bajo jupiter, verde).
+- [x] Infraestructura JUnit 5 + vintage en el pom padre.
+- [x] Piloto: `oda-operations/set` migrado (3 tests bajo jupiter, verde en aislado).
 - [ ] Resto de módulos (grind sistemático, por reactor).
 - [ ] Retirar vintage-engine + `junit:junit` cuando no quede JUnit 4.
 - [ ] (Opcional, aparte) Retirar Whitebox.
+
+## ⚠️ BLOQUEO conocido (a resolver antes de seguir) — JaCoCo offline + Mockito inline
+
+Con la infra de esta rama, **3 módulos mock-heavy fallan** en test (aun con sus tests en
+JUnit 4 vía vintage): `oda-datastreams/modbusslave`, `oda-connectors/coap`,
+`oda-ruleengine/nashorn`. Error raíz:
+
+```
+MockitoException: Could not create type
+  Caused by: NoClassDefFoundError: Could not initialize class ...ModbusSlaveCounters
+    Caused by: NoClassDefFoundError: org/jacoco/agent/rt/internal_xxxx/Offline
+```
+
+Es decir: al mockear (inline mock maker de Mockito) una clase **instrumentada offline por
+JaCoCo** (goals `instrument`/`restore-instrumented-classes` de esos poms), la clase no puede
+inicializarse porque no encuentra el runtime `org.jacoco.agent.rt.*.Offline`. En
+`feature/simplification` (sin la infra JUnit 5) estos módulos pasaban; al añadir
+junit-jupiter/vintage/junit-platform al classpath, el conflicto se vuelve consistente.
+
+**Diagnóstico pendiente / vías de arreglo a evaluar:**
+- Alinear/forzar versión de `org.jacoco.agent:runtime` = jacoco-maven-plugin (ambas 0.8.12);
+  verificar que el hash `internal_xxxx` coincide en instrument vs runtime en presencia de junit-platform.
+- Considerar pasar esos módulos de instrumentación **offline** a la instrumentación **on-the-fly**
+  (agente jacoco), que no choca con el inline mock maker.
+- O aislar el classpath de test (surefire) para que junit-platform no altere el orden que rompe jacoco.
+
+Por eso la migración masiva (188 ficheros ya transformados con éxito y que **compilan**) se
+revirtió: no tiene sentido validarla mientras la infra rompe el build. Reaplicar tras resolver
+el bloqueo (el script mecánico y el filtro están probados; ver historial de la sesión).
