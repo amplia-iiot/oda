@@ -19,14 +19,11 @@ final class DioZeroGpioMapper {
      * pins push-pull — so they map to {@link GpioPullUpDown#NONE}.
      */
     static GpioPullUpDown mapGpioModeToDioZeroPullUpDown(GpioMode mode) {
-        switch (mode) {
-            case PULL_UP:
-                return GpioPullUpDown.PULL_UP;
-            case PULL_DOWN:
-                return GpioPullUpDown.PULL_DOWN;
-            default:
-                return GpioPullUpDown.NONE;
-        }
+        return switch (mode) {
+            case PULL_UP -> GpioPullUpDown.PULL_UP;
+            case PULL_DOWN -> GpioPullUpDown.PULL_DOWN;
+            default -> GpioPullUpDown.NONE;
+        };
     }
 
     /**
@@ -38,20 +35,12 @@ final class DioZeroGpioMapper {
      * degraded to their closest edge equivalent.
      */
     static GpioEventTrigger mapGpioTriggerToDioZeroEventTrigger(GpioTrigger trigger, boolean activeLow) {
-        switch (trigger) {
-            case NONE:
-                return GpioEventTrigger.NONE;
-            case RISING_EDGE:
-            case HIGH_LEVEL:
-                return !activeLow ? GpioEventTrigger.RISING : GpioEventTrigger.FALLING;
-            case FALLING_EDGE:
-            case LOW_LEVEL:
-                return !activeLow ? GpioEventTrigger.FALLING : GpioEventTrigger.RISING;
-            case BOTH_EDGES:
-            case BOTH_LEVELS:
-                return GpioEventTrigger.BOTH;
-            default:
-                return GpioEventTrigger.NONE;
-        }
+        return switch (trigger) {
+            case NONE -> GpioEventTrigger.NONE;
+            case RISING_EDGE, HIGH_LEVEL -> !activeLow ? GpioEventTrigger.RISING : GpioEventTrigger.FALLING;
+            case FALLING_EDGE, LOW_LEVEL -> !activeLow ? GpioEventTrigger.FALLING : GpioEventTrigger.RISING;
+            case BOTH_EDGES, BOTH_LEVELS -> GpioEventTrigger.BOTH;
+            default -> GpioEventTrigger.NONE;
+        };
     }
 }
