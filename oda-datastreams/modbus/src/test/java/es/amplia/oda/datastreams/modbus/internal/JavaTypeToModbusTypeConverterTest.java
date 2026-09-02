@@ -2,11 +2,11 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.Register;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static es.amplia.oda.datastreams.modbus.internal.JavaTypeToModbusTypeConverter.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JavaTypeToModbusTypeConverterTest {
 

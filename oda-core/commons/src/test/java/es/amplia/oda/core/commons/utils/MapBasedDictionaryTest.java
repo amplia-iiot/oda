@@ -1,12 +1,12 @@
 package es.amplia.oda.core.commons.utils;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MapBasedDictionaryTest {
 
@@ -18,7 +18,7 @@ public class MapBasedDictionaryTest {
 
     private final MapBasedDictionary<String, Object> testDictionary = new MapBasedDictionary<>(String.class);
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Map<String, Object> innerMap = new HashMap<>();
         innerMap.put(TEST_KEY_1, TEST_VALUE_1);

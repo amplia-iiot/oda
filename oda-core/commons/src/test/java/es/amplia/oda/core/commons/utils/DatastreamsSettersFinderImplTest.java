@@ -5,22 +5,26 @@ import es.amplia.oda.core.commons.utils.DatastreamsSettersFinder;
 import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.*;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DatastreamsSettersFinderImplTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream1";
@@ -78,13 +82,13 @@ public class DatastreamsSettersFinderImplTest {
 
         assertNotNull(result);
         assertEquals(expectedSetters, result.getSetters());
-        Assert.assertEquals(Collections.singleton(TEST_DATASTREAM_ID_3), result.getNotFoundIds());
+        Assertions.assertEquals(Collections.singleton(TEST_DATASTREAM_ID_3), result.getNotFoundIds());
 
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetSettersSatisfyingNullDeviceId() {
-        testFinder.getSettersSatisfying(null, new HashSet<>());
+        assertThrows(IllegalArgumentException.class, () -> testFinder.getSettersSatisfying(null, new HashSet<>()));
     }
 
     @Test

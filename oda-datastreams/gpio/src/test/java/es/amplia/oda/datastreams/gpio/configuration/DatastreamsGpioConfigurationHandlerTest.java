@@ -7,13 +7,15 @@ import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.gpio.GpioTrigger;
 import es.amplia.oda.datastreams.gpio.GpioDatastreamsManager;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.util.tracker.ServiceTracker;
 
 import java.util.Dictionary;
@@ -21,10 +23,11 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DatastreamsGpioConfigurationHandlerTest {
 
     private static final String CURRENT_CONFIGURATION_FIELD_NAME = "currentConfiguration";
@@ -102,7 +105,7 @@ public class DatastreamsGpioConfigurationHandlerTest {
 
     }
 
-    @Test (expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationNoDatastreamIdRequiredProperty() {
         Dictionary<String, String> properties = new Hashtable<>();
         properties.put("1","getter: true");
@@ -110,9 +113,7 @@ public class DatastreamsGpioConfigurationHandlerTest {
 
         Whitebox.setInternalState(testConfigHandler, CURRENT_CONFIGURATION_FIELD_NAME, spiedCurrentConfiguration);
 
-        testConfigHandler.loadConfiguration(properties);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(properties));
     }
 
     @Test

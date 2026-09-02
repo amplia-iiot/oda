@@ -6,21 +6,24 @@ import es.amplia.oda.core.commons.utils.Event;
 import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DatastreamValue.Status;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CollectorImplTest {
 
     private static final DevicePattern TEST_DEVICE_PATTERN = new DevicePattern("*");
@@ -61,7 +64,7 @@ public class CollectorImplTest {
         DatastreamValue dv4 =
                 new DatastreamValue(TEST_DEVICE_ID_2, TEST_DATASTREAM_ID_3, null, TEST_AT_3, TEST_VALUE_3, Status.OK, null, false, true);
 
-        when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySetOf(String.class)))
+        when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySet()))
                 .thenReturn(CompletableFuture.completedFuture(new HashSet<>(Arrays.asList(dv1, dv2, dv3, dv4))));
 
         testCollector.collect(TEST_DEVICE_PATTERN, TEST_DATASTREAMS);
@@ -89,7 +92,7 @@ public class CollectorImplTest {
                 new DatastreamValue(TEST_DEVICE_ID_1, TEST_DATASTREAM_ID_1, TEST_FEED_1, TEST_AT_1, TEST_VALUE_1,
                         Status.OK, null, false, true);
 
-        when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySetOf(String.class)))
+        when(mockedStateManager.getDatastreamsInformation(any(DevicePattern.class), anySet()))
                 .thenReturn(CompletableFuture.completedFuture(new HashSet<>(Collections.singletonList(dv1))));
 
         testCollector.collect(TEST_DEVICE_PATTERN, TEST_DATASTREAMS);

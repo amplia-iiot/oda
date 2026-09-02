@@ -9,24 +9,31 @@ import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.event.api.EventDispatcherProxy;
 import es.amplia.oda.ruleengine.api.RuleEngineProxy;
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfigurationHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -34,11 +41,7 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private ServiceLocatorOsgi<DatastreamsSetter> mockedSetterLocator;
-    @Mock
     private DatastreamsSettersFinderImpl mockedSettersFinder;
-    @Mock
-    private ServiceLocatorOsgi<DatastreamsGetter> mockedGetterLocator;
     @Mock
     private DatastreamsGettersFinderImpl mockedGettersFinder;
     @Mock
@@ -50,13 +53,7 @@ public class ActivatorTest {
     @Mock
     private RuleEngineProxy mockedRuleEngine;
     @Mock
-    private SerializerProxy mockedSerializer;
-    @Mock
     private ConfigurableBundleImpl mockedBundle;
-    @Mock
-    private StateManagerInMemoryConfigurationHandler mockedConfigHandler;
-    @Mock
-    private ThreadPoolExecutor mockedExecutorService;
     @Mock
     private SchedulerImpl mockedScheduler;
 
@@ -64,33 +61,51 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ServiceLocatorOsgi.class).withArguments(any(BundleContext.class), eq(DatastreamsSetter.class)).thenReturn(mockedSetterLocator);
-        PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockedSettersFinder);
-        PowerMockito.whenNew(ServiceLocatorOsgi.class).withArguments(any(BundleContext.class), eq(DatastreamsGetter.class)).thenReturn(mockedGetterLocator);
-        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedGettersFinder);
-        PowerMockito.whenNew(InMemoryStateManager.class).withAnyArguments().thenReturn(mockedStateManager);
-        PowerMockito.whenNew(RuleEngineProxy.class).withAnyArguments().thenReturn(mockedRuleEngine);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcherProxy);
-        PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedBundle);
-        PowerMockito.whenNew(StateManagerInMemoryConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ThreadPoolExecutor.class).withAnyArguments().thenReturn(mockedExecutorService);
-        PowerMockito.whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
+        List<List<?>> locatorArgs = new ArrayList<>();
+        List<List<?>> gettersFinderArgs = new ArrayList<>();
+        List<List<?>> settersFinderArgs = new ArrayList<>();
+        List<List<?>> stateManagerArgs = new ArrayList<>();
+        List<List<?>> serializerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<ServiceLocatorOsgi> locatorCons = mockConstruction(ServiceLocatorOsgi.class,
+                     (mock, mctx) -> locatorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsGettersFinderImpl> gettersFinderCons = mockConstruction(DatastreamsGettersFinderImpl.class,
+                     (mock, mctx) -> gettersFinderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsSettersFinderImpl> settersFinderCons = mockConstruction(DatastreamsSettersFinderImpl.class,
+                     (mock, mctx) -> settersFinderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<InMemoryStateManager> stateManagerCons = mockConstruction(InMemoryStateManager.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<RuleEngineProxy> ruleEngineCons = mockConstruction(RuleEngineProxy.class);
+             MockedConstruction<EventDispatcherProxy> eventDispatcherCons = mockConstruction(EventDispatcherProxy.class);
+             MockedConstruction<SerializerProxy> serializerCons = mockConstruction(SerializerProxy.class,
+                     (mock, mctx) -> serializerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<StateManagerInMemoryConfigurationHandler> configHandlerCons = mockConstruction(StateManagerInMemoryConfigurationHandler.class,
+                     (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ThreadPoolExecutor> executorCons = mockConstruction(ThreadPoolExecutor.class);
+             MockedConstruction<SchedulerImpl> schedulerCons = mockConstruction(SchedulerImpl.class)) {
 
-        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(DatastreamsGettersFinderImpl.class).withArguments(eq(mockedGetterLocator));
-        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
-        PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSetterLocator));
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(InMemoryStateManager.class).withArguments(eq(mockedGettersFinder), eq(mockedSettersFinder),
-                eq(mockedEventDispatcherProxy), eq(mockedRuleEngine), eq(mockedSerializer),
-                eq(mockedExecutorService), eq(mockedScheduler), eq(mockedContext));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
-        PowerMockito.verifyNew(StateManagerInMemoryConfigurationHandler.class).withArguments(eq(mockedStateManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        verify(mockedContext).registerService(eq(StateManager.class), eq(mockedStateManager), any());
+            assertEquals(2, locatorCons.constructed().size());
+            assertEquals(Arrays.asList(mockedContext, DatastreamsGetter.class), locatorArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, DatastreamsSetter.class), locatorArgs.get(1));
+            assertEquals(Collections.singletonList(locatorCons.constructed().get(0)), gettersFinderArgs.get(0));
+            assertEquals(Collections.singletonList(locatorCons.constructed().get(1)), settersFinderArgs.get(0));
+
+            assertEquals(1, stateManagerCons.constructed().size());
+            assertEquals(Arrays.asList(gettersFinderCons.constructed().get(0), settersFinderCons.constructed().get(0),
+                    eventDispatcherCons.constructed().get(0), ruleEngineCons.constructed().get(0),
+                    serializerCons.constructed().get(0), executorCons.constructed().get(0),
+                    schedulerCons.constructed().get(0), mockedContext), stateManagerArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, ContentType.JSON), serializerArgs.get(0));
+            assertEquals(Collections.singletonList(stateManagerCons.constructed().get(0)), configHandlerArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, configHandlerCons.constructed().get(0)), configurableBundleArgs.get(0));
+            verify(mockedContext).registerService(eq(StateManager.class), eq(stateManagerCons.constructed().get(0)), any());
+        }
     }
 
     @Test

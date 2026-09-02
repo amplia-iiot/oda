@@ -1,13 +1,14 @@
 package es.amplia.oda.hardware.diozero.analog.devices.owasys;
 
 import com.diozero.util.RuntimeIOException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -15,11 +16,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OwasysAnalogInputDevice.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OwasysAnalogInputDeviceTest {
 	@Mock
 	private static OwasysAnalogInputDeviceFactory mockedOwasysAnalogInputDevice;
@@ -31,7 +33,7 @@ public class OwasysAnalogInputDeviceTest {
 
 	private static OwasysAnalogInputDevice testDevice;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() throws IOException {
 		File file = new File("tempfile");
 		FileWriter fw = new FileWriter(file);
@@ -41,15 +43,16 @@ public class OwasysAnalogInputDeviceTest {
 		testDevice = new OwasysAnalogInputDevice(mockedOwasysAnalogInputDevice, KEY, ADC_NUMBER, PATH);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void setDown() {
 		File file = new File("tempfile");
 		file.delete();
 	}
 
-	@Test (expected = RuntimeIOException.class)
+	@Test
 	public void constructorExceptionTest() {
-		testDevice = new OwasysAnalogInputDevice(mockedOwasysAnalogInputDevice, KEY, ADC_NUMBER, "an/unknown/path");
+		assertThrows(RuntimeIOException.class,
+				() -> new OwasysAnalogInputDevice(mockedOwasysAnalogInputDevice, KEY, ADC_NUMBER, "an/unknown/path"));
 	}
 
 	//@Test
@@ -61,7 +64,7 @@ public class OwasysAnalogInputDeviceTest {
 
 	@Test
 	public void getValueExceptionTest() throws IOException {
-		doThrow(new IOException()).when(mockedRandomAccessFile).seek(anyInt());
+		doThrow(new IOException()).when(mockedRandomAccessFile).seek(anyLong());
 		Whitebox.setInternalState(testDevice, "value", mockedRandomAccessFile);
 
 		float value = testDevice.getValue();

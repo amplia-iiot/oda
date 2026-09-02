@@ -7,22 +7,26 @@ import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ScriptsLoaderImpl;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler;
 import es.amplia.oda.datastreams.deviceinfofx30.datastreams.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.times;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
 	private final Activator testActivator = new Activator();
@@ -32,56 +36,7 @@ public class ActivatorTest {
 	@Mock
 	private ScriptsLoaderImpl mockedScriptsLoader;
 	@Mock
-	private CommandProcessorImpl mockedCommandProcessor;
-	@Mock
-	private DeviceInfoFX30 mockedDeviceInfo;
-	@Mock
-	private DeviceInfoFX30ConfigurationHandler mockedConfigHandler;
-	@Mock
 	private ConfigurableBundleImpl mockedConfigurableBundle;
-
-	@Mock
-	private DatastreamGetterTemplate mockedSerialNumberGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedDeviceIdGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedMakerGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedModelGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedImeiGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedImsiGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedIccGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedRssiGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedSoftwareGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedApnGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedClockGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedUptimeGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedTemperatureValueGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedTemperatureStatusGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedCpuStatusGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedCpuUsageGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedCpuTotalGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedRamUsageGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedRamTotalGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedDiskUsageGetter;
-	@Mock
-	private DatastreamGetterTemplate mockedDiskTotalGetter;
 
 	@Mock
 	private ServiceRegistration<DeviceInfoProvider> mockedRegistrationDeviceInfo;
@@ -130,43 +85,43 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		PowerMockito.whenNew(CommandProcessorImpl.class).withAnyArguments().thenReturn(mockedCommandProcessor);
-		PowerMockito.whenNew(ScriptsLoaderImpl.class).withAnyArguments().thenReturn(mockedScriptsLoader);
-		PowerMockito.whenNew(DeviceInfoFX30.class).withAnyArguments().thenReturn(mockedDeviceInfo);
-		PowerMockito.whenNew(DeviceInfoFX30ConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedSerialNumberGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDeviceIdGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedMakerGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedModelGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedImeiGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedImsiGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedIccGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRssiGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedSoftwareGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedApnGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedClockGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedUptimeGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureValueGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedTemperatureStatusGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuStatusGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuUsageGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedCpuTotalGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamUsageGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedRamTotalGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskUsageGetter);
-		PowerMockito.whenNew(DatastreamGetterTemplate.class).withAnyArguments().thenReturn(mockedDiskTotalGetter);
+		List<List<?>> scriptsLoaderArgs = new ArrayList<>();
+		List<List<?>> deviceInfoArgs = new ArrayList<>();
+		List<List<?>> configHandlerArgs = new ArrayList<>();
+		List<List<?>> configBundleArgs = new ArrayList<>();
+		try (MockedConstruction<CommandProcessorImpl> commandProcessorCons =
+					 mockConstruction(CommandProcessorImpl.class);
+			 MockedConstruction<ScriptsLoaderImpl> scriptsLoaderCons =
+					 mockConstruction(ScriptsLoaderImpl.class,
+							 (mock, mctx) -> scriptsLoaderArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DeviceInfoFX30> deviceInfoCons =
+					 mockConstruction(DeviceInfoFX30.class,
+							 (mock, mctx) -> deviceInfoArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DeviceInfoFX30ConfigurationHandler> configHandlerCons =
+					 mockConstruction(DeviceInfoFX30ConfigurationHandler.class,
+							 (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DatastreamGetterTemplate> getterTemplateCons =
+					 mockConstruction(DatastreamGetterTemplate.class)) {
 
-		testActivator.start(mockedContext);
+			testActivator.start(mockedContext);
 
-		PowerMockito.verifyNew(CommandProcessorImpl.class).withNoArguments();
-		PowerMockito.verifyNew(ScriptsLoaderImpl.class).withArguments(mockedCommandProcessor);
-		PowerMockito.verifyNew(DeviceInfoFX30.class).withArguments(eq(mockedCommandProcessor), isNull());
-		PowerMockito.verifyNew(DeviceInfoFX30ConfigurationHandler.class)
-				.withArguments(eq(mockedScriptsLoader), eq(mockedDeviceInfo));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class)
-				.withArguments(eq(mockedContext), eq(mockedConfigHandler), any());
-		PowerMockito.verifyNew(DatastreamGetterTemplate.class, times(21)).withArguments(anyString(), any());
+			assertEquals(1, commandProcessorCons.constructed().size());
+			assertEquals(1, scriptsLoaderCons.constructed().size());
+			assertEquals(commandProcessorCons.constructed().get(0), scriptsLoaderArgs.get(0).get(0));
+			assertEquals(1, deviceInfoCons.constructed().size());
+			assertEquals(commandProcessorCons.constructed().get(0), deviceInfoArgs.get(0).get(0));
+			assertEquals(null, deviceInfoArgs.get(0).get(1));
+			assertEquals(1, configHandlerCons.constructed().size());
+			assertEquals(scriptsLoaderCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+			assertEquals(deviceInfoCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+			assertEquals(1, configBundleCons.constructed().size());
+			assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+			assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+			assertEquals(21, getterTemplateCons.constructed().size());
+		}
 	}
 
 	@Test

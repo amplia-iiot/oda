@@ -1,9 +1,10 @@
 package es.amplia.oda.hardware.atmanager.api;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ATCommandTest {
 
@@ -19,9 +20,9 @@ public class ATCommandTest {
         assertThat(actual, is("A0"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void basicCommandsCannotBeS() {
-        ATCommand.basicCommand('S');
+        assertThrows(IllegalArgumentException.class, () -> ATCommand.basicCommand('S'));
     }
 
     @Test
@@ -42,9 +43,9 @@ public class ATCommandTest {
         assertThat(actual, is("&M35"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void ampersandCommandsCannotBeS() {
-        ATCommand.ampersandCommand('S');
+        assertThrows(IllegalArgumentException.class, () -> ATCommand.ampersandCommand('S'));
     }
 
     @Test
@@ -65,19 +66,19 @@ public class ATCommandTest {
         assertThat(actual, is("+FOO"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void extendedCommandsMustBeginWithPlus() {
-        ATCommand.extendedCommand(ATCommandType.ACTION, "FOO");
+        assertThrows(IllegalArgumentException.class, () -> ATCommand.extendedCommand(ATCommandType.ACTION, "FOO"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void extendedCommandsMustHaveTwoChars() {
-        ATCommand.extendedCommand(ATCommandType.ACTION, "+");
+        assertThrows(IllegalArgumentException.class, () -> ATCommand.extendedCommand(ATCommandType.ACTION, "+"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void extendedCommandsMustBeginWithLetter() {
-        ATCommand.extendedCommand(ATCommandType.ACTION, "+0");
+        assertThrows(AssertionError.class, () -> ATCommand.extendedCommand(ATCommandType.ACTION, "+0"));
     }
 
     @Test

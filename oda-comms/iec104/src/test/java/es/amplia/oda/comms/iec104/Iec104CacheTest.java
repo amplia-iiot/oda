@@ -9,43 +9,41 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformatio
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.QualityInformation;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104CacheTest.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104CacheTest {
 	private final Iec104Cache testCache = new Iec104Cache(null);
 	private static Map<String, Map<Integer, Iec104CacheValue>> cache;
 
 	@Mock
 	private Map<String, Map<Integer, Iec104CacheValue>> mockedCache;
-	@Mock
-	private CauseOfTransmission mockedCOT;
-	@Mock
-	private ASDUHeader mockedHeader;
 
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		cache = new HashMap<>();
 		Map<Integer, Iec104CacheValue> value = new HashMap<>();
@@ -89,8 +87,8 @@ public class Iec104CacheTest {
 
 		Map<String, Map<Integer, Iec104CacheValue>> internalCache = (Map<String, Map<Integer, Iec104CacheValue>>) Whitebox.getInternalState(testCache, "cache");
 		Iec104CacheValue internalIEC104Value = internalCache.get(typeId).get(index);
-		Assert.assertEquals(internalIEC104Value.getValue(), cacheValue.get(index).getValue());
-		Assert.assertEquals(internalIEC104Value.isProcessed(), cacheValue.get(index).isProcessed());
+		Assertions.assertEquals(internalIEC104Value.getValue(), cacheValue.get(index).getValue());
+		Assertions.assertEquals(internalIEC104Value.isProcessed(), cacheValue.get(index).isProcessed());
 	}
 
 	@Test
@@ -111,77 +109,82 @@ public class Iec104CacheTest {
 
 	@Test
 	public void getAsduBooleanSingle() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_SP_NA_1";
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
+		try (MockedConstruction<CauseOfTransmission> cotCons = mockConstruction(CauseOfTransmission.class);
+			 MockedConstruction<ASDUHeader> headerCons = mockConstruction(ASDUHeader.class)) {
+			String type = "M_SP_NA_1";
+			int index = 42, commonAddress = 1;
+			long timestamp = System.currentTimeMillis();
 
-		Object result = testCache.getAsdu(type, true, index, timestamp, commonAddress);
+			Object result = testCache.getAsdu(type, true, index, timestamp, commonAddress);
 
-		assertTrue(result instanceof SinglePointInformationSingle);
+			assertTrue(result instanceof SinglePointInformationSingle);
+		}
 	}
 
 	@Test
 	public void getAsduBooleanSequence() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_SP_NA_1";
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
-		Value<Boolean> val1 = new Value<>(true, timestamp, QualityInformation.OK);
-		Value<Boolean> val2 = new Value<>(false, timestamp, QualityInformation.OK);
-		List<Value<Boolean>> list = new ArrayList<>();
-		list.add(val1); list.add(val2);
+		try (MockedConstruction<CauseOfTransmission> cotCons = mockConstruction(CauseOfTransmission.class);
+			 MockedConstruction<ASDUHeader> headerCons = mockConstruction(ASDUHeader.class)) {
+			String type = "M_SP_NA_1";
+			int index = 42, commonAddress = 1;
+			long timestamp = System.currentTimeMillis();
+			Value<Boolean> val1 = new Value<>(true, timestamp, QualityInformation.OK);
+			Value<Boolean> val2 = new Value<>(false, timestamp, QualityInformation.OK);
+			List<Value<Boolean>> list = new ArrayList<>();
+			list.add(val1); list.add(val2);
 
-		Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
+			Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
 
-		assertTrue(result instanceof SinglePointInformationSequence);
+			assertTrue(result instanceof SinglePointInformationSequence);
+		}
 	}
 
 	@Test
 	public void getAsduShortSingle() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_ME_NB_1";
-		short value = 1789;
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
+		try (MockedConstruction<CauseOfTransmission> cotCons = mockConstruction(CauseOfTransmission.class);
+			 MockedConstruction<ASDUHeader> headerCons = mockConstruction(ASDUHeader.class)) {
+			String type = "M_ME_NB_1";
+			short value = 1789;
+			int index = 42, commonAddress = 1;
+			long timestamp = System.currentTimeMillis();
 
-		Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
+			Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
 
-		assertTrue(result instanceof MeasuredValueScaledSingle);
+			assertTrue(result instanceof MeasuredValueScaledSingle);
+		}
 	}
 
 	@Test
 	public void getAsduShortSequence() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "M_ME_NB_1";
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
-		Value<Short> val1 = new Value<>((short) 71, timestamp, QualityInformation.OK);
-		Value<Short> val2 = new Value<>((short) 59, timestamp, QualityInformation.OK);
-		List<Value<Short>> list = new ArrayList<>();
-		list.add(val1); list.add(val2);
+		try (MockedConstruction<CauseOfTransmission> cotCons = mockConstruction(CauseOfTransmission.class);
+			 MockedConstruction<ASDUHeader> headerCons = mockConstruction(ASDUHeader.class)) {
+			String type = "M_ME_NB_1";
+			int index = 42, commonAddress = 1;
+			long timestamp = System.currentTimeMillis();
+			Value<Short> val1 = new Value<>((short) 71, timestamp, QualityInformation.OK);
+			Value<Short> val2 = new Value<>((short) 59, timestamp, QualityInformation.OK);
+			List<Value<Short>> list = new ArrayList<>();
+			list.add(val1); list.add(val2);
 
-		Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
+			Object result = testCache.getAsdu(type, list, index, timestamp, commonAddress);
 
-		assertTrue(result instanceof MeasuredValueScaledSequence);
+			assertTrue(result instanceof MeasuredValueScaledSequence);
+		}
 	}
 
 	@Test
 	public void getAsduDefault() throws Exception {
-		PowerMockito.whenNew(CauseOfTransmission.class).withAnyArguments().thenReturn(mockedCOT);
-		PowerMockito.whenNew(ASDUHeader.class).withAnyArguments().thenReturn(mockedHeader);
-		String type = "UNKNOWN";
-		byte value = 0x00;
-		int index = 42, commonAddress = 1;
-		long timestamp = System.currentTimeMillis();
+		try (MockedConstruction<CauseOfTransmission> cotCons = mockConstruction(CauseOfTransmission.class);
+			 MockedConstruction<ASDUHeader> headerCons = mockConstruction(ASDUHeader.class)) {
+			String type = "UNKNOWN";
+			byte value = 0x00;
+			int index = 42, commonAddress = 1;
+			long timestamp = System.currentTimeMillis();
 
-		Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
+			Object result = testCache.getAsdu(type, value, index, timestamp, commonAddress);
 
-		assertNull(result);
+			assertNull(result);
+		}
 	}
 
 	@Test

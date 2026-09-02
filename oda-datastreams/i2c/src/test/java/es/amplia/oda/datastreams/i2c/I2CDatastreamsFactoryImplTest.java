@@ -5,18 +5,23 @@ import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsFactoryImpl;
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsGetter;
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsSetter;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(I2CDatastreamsFactoryImpl.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class I2CDatastreamsFactoryImplTest {
 
 	private static final String TEST_NAME = "datastreamId";
@@ -30,28 +35,35 @@ public class I2CDatastreamsFactoryImplTest {
 	@InjectMocks
 	private I2CDatastreamsFactoryImpl testFactory;
 
-	@Mock
-	private I2CDatastreamsGetter mockedGetter;
-	@Mock
-	private I2CDatastreamsSetter mockedSetter;
-
 
 	@Test
-	public void testCreateDatastreamsGetter() throws Exception {
-		PowerMockito.whenNew(I2CDatastreamsGetter.class).withAnyArguments().thenReturn(mockedGetter);
+	public void testCreateDatastreamsGetter() {
+		List<List<?>> getterArgs = new ArrayList<>();
+		try (MockedConstruction<I2CDatastreamsGetter> getterCons = mockConstruction(I2CDatastreamsGetter.class,
+				(mock, mctx) -> getterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		testFactory.createDatastreamsGetter(TEST_NAME, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX);
+			testFactory.createDatastreamsGetter(TEST_NAME, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX);
 
-		PowerMockito.verifyNew(I2CDatastreamsGetter.class).withArguments(eq(TEST_NAME), eq(TEST_DEFAULT_DEVICE_NAME), eq(TEST_MIN), eq(TEST_MAX),
-				eq(mockedService));
+			assertEquals(1, getterCons.constructed().size());
+			assertEquals(TEST_NAME, getterArgs.get(0).get(0));
+			assertEquals(TEST_DEFAULT_DEVICE_NAME, getterArgs.get(0).get(1));
+			assertEquals(TEST_MIN, getterArgs.get(0).get(2));
+			assertEquals(TEST_MAX, getterArgs.get(0).get(3));
+			assertEquals(mockedService, getterArgs.get(0).get(4));
+		}
 	}
 
 	@Test
-	public void testCreateDatastreamsSetter() throws Exception {
-		PowerMockito.whenNew(I2CDatastreamsSetter.class).withAnyArguments().thenReturn(mockedSetter);
+	public void testCreateDatastreamsSetter() {
+		List<List<?>> setterArgs = new ArrayList<>();
+		try (MockedConstruction<I2CDatastreamsSetter> setterCons = mockConstruction(I2CDatastreamsSetter.class,
+				(mock, mctx) -> setterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		testFactory.createDatastreamsSetter(TEST_NAME);
+			testFactory.createDatastreamsSetter(TEST_NAME);
 
-		PowerMockito.verifyNew(I2CDatastreamsSetter.class).withArguments(eq(TEST_NAME), eq(mockedService));
+			assertEquals(1, setterCons.constructed().size());
+			assertEquals(TEST_NAME, setterArgs.get(0).get(0));
+			assertEquals(mockedService, setterArgs.get(0).get(1));
+		}
 	}
 }

@@ -2,12 +2,12 @@ package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Dictionary;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigurationUpdateHandlerTest {
 
@@ -19,11 +19,9 @@ public class ConfigurationUpdateHandlerTest {
         public void applyConfiguration() {}
     };
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadDefaultConfiguration() {
-        testDefaultConfigHandler.loadDefaultConfiguration();
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, testDefaultConfigHandler::loadDefaultConfiguration);
     }
 
     @Test

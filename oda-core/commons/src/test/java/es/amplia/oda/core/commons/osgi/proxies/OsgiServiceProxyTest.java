@@ -1,34 +1,38 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OsgiServiceProxy.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OsgiServiceProxyTest {
 
     private interface TestService {}
 
-    @Mock
+    private MockedConstruction<ServiceTracker> serviceTrackerConstruction;
+    private final List<List<?>> serviceTrackerArgs = new ArrayList<>();
     private ServiceTracker<TestService,TestService> mockedServiceTracker;
 
     private OsgiServiceProxy<TestService> testProxy;
@@ -44,20 +48,28 @@ public class OsgiServiceProxyTest {
     @Mock
     private Consumer<TestService> mockedMethodToConsume;
 
-    @Before
+    @BeforeEach
+    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
-        PowerMockito.whenNew(ServiceTracker.class)
-                .withParameterTypes(BundleContext.class, Class.class, ServiceTrackerCustomizer.class)
-                .withArguments(any(BundleContext.class), any(Class.class), any(ServiceTrackerCustomizer.class))
-                .thenReturn(mockedServiceTracker);
+        serviceTrackerConstruction = mockConstruction(ServiceTracker.class,
+                (mock, mctx) -> serviceTrackerArgs.add(new ArrayList<>(mctx.arguments())));
 
         testProxy = new OsgiServiceProxy<>(TestService.class, mockedContext);
+        mockedServiceTracker = serviceTrackerConstruction.constructed().get(0);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        serviceTrackerConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
         assertNotNull(testProxy);
-        PowerMockito.verifyNew(ServiceTracker.class).withArguments(eq(mockedContext), any(), eq(null));
+        assertEquals(1, serviceTrackerConstruction.constructed().size());
+        assertEquals(mockedContext, serviceTrackerArgs.get(0).get(0));
+        assertEquals(TestService.class, serviceTrackerArgs.get(0).get(1));
+        assertEquals(null, serviceTrackerArgs.get(0).get(2));
         verify(mockedServiceTracker).open();
     }
 
@@ -66,18 +78,16 @@ public class OsgiServiceProxyTest {
         Map<String, String> properties = new HashMap<>();
 
         reset(mockedContext, mockedServiceTracker);
-        PowerMockito.whenNew(ServiceTracker.class)
-                .withParameterTypes(BundleContext.class, Filter.class, ServiceTrackerCustomizer.class)
-                .withArguments(any(BundleContext.class), any(Filter.class), any(ServiceTrackerCustomizer.class))
-                .thenReturn(mockedServiceTracker);
         when(mockedContext.createFilter(anyString())).thenReturn(mockedFilter);
 
         testProxy = new OsgiServiceProxy<>(TestService.class, properties, mockedContext);
 
         assertNotNull(testProxy);
         verify(mockedContext).createFilter(contains(TestService.class.getName()));
-        PowerMockito.verifyNew(ServiceTracker.class).withArguments(eq(mockedContext), eq(mockedFilter), any());
-        verify(mockedServiceTracker).open();
+        assertEquals(2, serviceTrackerConstruction.constructed().size());
+        assertEquals(mockedContext, serviceTrackerArgs.get(1).get(0));
+        assertEquals(mockedFilter, serviceTrackerArgs.get(1).get(1));
+        verify(serviceTrackerConstruction.constructed().get(1)).open();
     }
 
     @Test
@@ -91,8 +101,11 @@ public class OsgiServiceProxyTest {
 
         assertNotNull(createFilterFailsProxy);
         verify(mockedContext).createFilter(contains(TestService.class.getName()));
-        PowerMockito.verifyNew(ServiceTracker.class, times(2)).withArguments(eq(mockedContext), any(Class.class), eq(null));
-        verify(mockedServiceTracker).open();
+        assertEquals(2, serviceTrackerConstruction.constructed().size());
+        assertEquals(mockedContext, serviceTrackerArgs.get(1).get(0));
+        assertEquals(TestService.class, serviceTrackerArgs.get(1).get(1));
+        assertEquals(null, serviceTrackerArgs.get(1).get(2));
+        verify(serviceTrackerConstruction.constructed().get(1)).open();
     }
 
     @Test
@@ -177,8 +190,6 @@ public class OsgiServiceProxyTest {
 
     @Test
     public void testClose() {
-        Whitebox.setInternalState(testProxy, "serviceTracker", mockedServiceTracker);
-
         testProxy.close();
 
         verify(mockedServiceTracker).close();

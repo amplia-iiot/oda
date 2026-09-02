@@ -9,13 +9,15 @@ import es.amplia.oda.core.commons.interfaces.ResponseDispatcher;
 import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,14 +25,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalMatchers.aryEq;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttDatastreamsEventTest {
 
     private static final String TEST_EVENT_TOPIC = "test/event/topic/+";
@@ -56,7 +59,7 @@ public class MqttDatastreamsEventTest {
 
     private MqttDatastreamsEvent testHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() throws MqttException {
         testHandler = new MqttDatastreamsEvent(mockedEventPublisher, mockedClient, mockedSerializer, TEST_EVENT_TOPIC, mockedDeviceInfoProvider, TEST_RRESPONSE_TOPIC, mockedResponseDispatcher, null);
     }

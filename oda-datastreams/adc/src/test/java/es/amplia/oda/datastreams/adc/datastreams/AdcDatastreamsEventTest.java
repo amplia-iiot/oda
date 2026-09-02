@@ -3,21 +3,23 @@ package es.amplia.oda.datastreams.adc.datastreams;
 import es.amplia.oda.core.commons.adc.*;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class AdcDatastreamsEventTest {
 
 	private static final String TEST_DATASTREAM = "testDatastream";
@@ -43,7 +45,7 @@ public class AdcDatastreamsEventTest {
 	private ArgumentCaptor<AdcChannelListener> listenerCaptor;
 
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		testEvent = new AdcDatastreamsEvent(TEST_DATASTREAM, TEST_INDEX, mockedService, mockedEventPublisher, TEST_MIN,
 				TEST_MAX);
@@ -73,7 +75,7 @@ public class AdcDatastreamsEventTest {
 
 		testEvent.registerToEventSource();
 
-		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
+		assertTrue(true, ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT);
 	}
 
 	@Test
@@ -93,7 +95,7 @@ public class AdcDatastreamsEventTest {
 
 		testEvent.unregisterFromEventSource();
 
-		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
+		assertTrue(true, ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT);
 	}
 
 	@Test
@@ -104,6 +106,6 @@ public class AdcDatastreamsEventTest {
 
 		testEvent.unregisterFromEventSource();
 
-		assertTrue(ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT, true);
+		assertTrue(true, ADC_DEVICE_EXCEPTION_SHOULD_BE_CAUGHT);
 	}
 }

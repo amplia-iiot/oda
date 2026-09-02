@@ -9,12 +9,13 @@ import es.amplia.oda.datastreams.lora.datastructures.LoraDataPacket;
 import es.amplia.oda.datastreams.lora.datastructures.LoraStatusPacket;
 import es.amplia.oda.datastreams.lora.datastructures.Rxpk;
 import es.amplia.oda.datastreams.lora.datastructures.Stat;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -23,12 +24,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LoraDatastreamsEvent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LoraDatastreamsEventTest {
 
 	private static final byte[] LORA_STATUS_BYTE_ARRAY = {
@@ -152,7 +153,7 @@ public class LoraDatastreamsEventTest {
 
 	@Test
 	public void testRegisterToEventSourceWithExecutionException() throws Exception {
-		doThrow(ExecutionException.class).when(mockedService).isBound();
+		doAnswer(invocation -> { throw new ExecutionException(new Exception()); }).when(mockedService).isBound();
 
 		testDatastreamsEvent.registerToEventSource();
 		TimeUnit.SECONDS.sleep(3);

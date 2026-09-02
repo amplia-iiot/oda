@@ -7,8 +7,8 @@ import es.amplia.oda.core.commons.utils.DatastreamsGettersFinder;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.core.commons.utils.DevicePattern;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -55,9 +55,9 @@ public class PollerImplTest {
     @Mock
     private DatastreamsEvent datastreamsEvent;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         DatastreamsGettersFinder.Return gettersForId1AndId2 = new DatastreamsGettersFinder.Return(Arrays.asList(getterForId1, getterForId2), asSet());
         collector = new PollerImpl(datastreamsGettersFinder, datastreamsEvent);
         futureForId1 = new CompletableFuture<>();

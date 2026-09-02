@@ -4,19 +4,19 @@ import es.amplia.oda.hardware.atmanager.ATParser;
 import es.amplia.oda.hardware.atmanager.ATParserImpl;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ATParserImplTest {
 
     private ATParser atParser;
 
-    @Before
+    @BeforeEach
     public void setup() {
         atParser = new ATParserImpl();
     }
@@ -82,11 +82,11 @@ public class ATParserImplTest {
         assertTrue(atParser.isInResponseMode());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void inResponseModeChangingToResponseModeAgainThrowsException() {
         atParser.setResponseMode("+CGACT");
 
-        atParser.setResponseMode("+CPIN");
+        assertThrows(RuntimeException.class, () -> atParser.setResponseMode("+CPIN"));
     }
 
     @Test

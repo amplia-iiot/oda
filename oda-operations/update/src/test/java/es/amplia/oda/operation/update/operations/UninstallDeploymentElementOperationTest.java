@@ -3,11 +3,13 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 
@@ -15,10 +17,12 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UninstallDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -41,7 +45,7 @@ public class UninstallDeploymentElementOperationTest {
     private UninstallDeploymentElementOperation testUninstallOperation;
     private UninstallDeploymentElementOperation testUninstallConfOperation;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testUninstallOperation = new UninstallDeploymentElementOperation(uninstallDeploymentElement, PATH_TO_INSTALL_FOLDER,
                 mockedFileManager, mockedOperationConfirmationProcessor);
@@ -71,16 +75,14 @@ public class UninstallDeploymentElementOperationTest {
         verify(mockedFileManager).delete(eq(installedFile));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testExecuteSpecificOperationNoFileFound() throws DeploymentElementOperationException, FileException {
         when(mockedFileManager.find(eq(PATH_TO_INSTALL_FOLDER), eq(TEST_NAME))).thenReturn(null);
 
-        testUninstallOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("Deployment Element Operation exception must be thrown");
+        assertThrows(DeploymentElementOperationException.class, () -> testUninstallOperation.executeSpecificOperation(mockedFileManager));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testExecuteSpecificOperationDeleteFileException() throws FileException,
             DeploymentElementOperationException {
         String installedFile = "path/to/installed/file.jar";
@@ -88,9 +90,7 @@ public class UninstallDeploymentElementOperationTest {
         when(mockedFileManager.find(eq(PATH_TO_INSTALL_FOLDER), eq(TEST_NAME + "-" + TEST_VERSION))).thenReturn(installedFile);
         doThrow(new FileException("")).when(mockedFileManager).delete(eq(installedFile));
 
-        testUninstallOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testUninstallOperation.executeSpecificOperation(mockedFileManager));
     }
 
     @Test
@@ -102,14 +102,12 @@ public class UninstallDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(backupFile), eq(PATH_TO_INSTALL_FOLDER));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationFileException() throws FileException {
         String backupFile = "path/to/backup.jar";
 
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(backupFile), eq(PATH_TO_INSTALL_FOLDER));
 
-        testUninstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testUninstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile));
     }
 }

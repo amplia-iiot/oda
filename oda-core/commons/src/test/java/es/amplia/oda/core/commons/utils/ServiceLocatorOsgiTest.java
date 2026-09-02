@@ -1,27 +1,30 @@
 package es.amplia.oda.core.commons.utils;
 
 import lombok.Value;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ServiceLocatorOsgi.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ServiceLocatorOsgiTest {
 
     @Value
@@ -36,22 +39,30 @@ public class ServiceLocatorOsgiTest {
 
     private ServiceLocatorOsgi<TestService> testServiceLocator;
 
-    @Mock
+    private MockedConstruction<ServiceTracker> serviceTrackerConstruction;
+    private final List<List<?>> serviceTrackerArgs = new ArrayList<>();
     private ServiceTracker<TestService, TestService> mockedServiceTracker;
 
-    @Before
+    @BeforeEach
+    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
-        PowerMockito.whenNew(ServiceTracker.class)
-                .withParameterTypes(BundleContext.class, Class.class, ServiceTrackerCustomizer.class)
-                .withArguments(any(BundleContext.class), eq(TestService.class), any())
-                .thenReturn(mockedServiceTracker);
+        serviceTrackerConstruction = mockConstruction(ServiceTracker.class,
+                (mock, mctx) -> serviceTrackerArgs.add(new ArrayList<>(mctx.arguments())));
 
         testServiceLocator = new ServiceLocatorOsgi<>(mockedContext, TestService.class);
+        mockedServiceTracker = serviceTrackerConstruction.constructed().get(0);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        serviceTrackerConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(ServiceTracker.class).withArguments(eq(mockedContext), eq(TestService.class), any());
+        assertEquals(1, serviceTrackerConstruction.constructed().size());
+        assertEquals(mockedContext, serviceTrackerArgs.get(0).get(0));
+        assertEquals(TestService.class, serviceTrackerArgs.get(0).get(1));
         verify(mockedServiceTracker).open();
     }
 

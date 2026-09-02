@@ -11,22 +11,27 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.gpio.configuration.DatastreamsGpioConfigurationHandler;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -37,12 +42,6 @@ public class ActivatorTest {
     private GpioServiceProxy mockedGpioService;
     @Mock
     private EventPublisherProxy mockedEventPublisher;
-    @Mock
-    private GpioDatastreamsFactoryImpl mockedFactory;
-    @Mock
-    private ServiceRegistrationManagerOsgi<DatastreamsGetter> mockedGetterRegistrationManager;
-    @Mock
-    private ServiceRegistrationManagerOsgi<DatastreamsSetter> mockedSetterRegistrationManager;
     @Mock
     private GpioDatastreamsManager mockedManager;
     @Mock
@@ -56,45 +55,71 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(GpioServiceProxy.class).withAnyArguments().thenReturn(mockedGpioService);
-        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
-        PowerMockito.whenNew(GpioDatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(any(BundleContext.class), eq(DatastreamsGetter.class))
-                .thenReturn(mockedGetterRegistrationManager);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(any(BundleContext.class), eq(DatastreamsSetter.class))
-                .thenReturn(mockedSetterRegistrationManager);
-        PowerMockito.whenNew(GpioDatastreamsManager.class).withAnyArguments().thenReturn(mockedManager);
-        PowerMockito.whenNew(DatastreamsGpioConfigurationHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class)
-                .withArguments(any(BundleContext.class), eq(GpioService.class), any())
-                .thenReturn(mockedGpioServiceListener);
-        PowerMockito.whenNew(ServiceListenerBundle.class)
-                .withArguments(any(BundleContext.class), eq(DeviceInfoProvider.class), any())
-                .thenReturn(mockedDeviceInfoProviderServiceListener);
+        List<List<?>> gpioServiceArgs = new ArrayList<>();
+        List<List<?>> eventPublisherArgs = new ArrayList<>();
+        List<List<?>> factoryArgs = new ArrayList<>();
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> managerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        List<List<?>> listenerArgs = new ArrayList<>();
+        try (MockedConstruction<GpioServiceProxy> gpioServiceCons =
+                     mockConstruction(GpioServiceProxy.class,
+                             (mock, mctx) -> gpioServiceArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventPublisherProxy> eventPublisherCons =
+                     mockConstruction(EventPublisherProxy.class,
+                             (mock, mctx) -> eventPublisherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<GpioDatastreamsFactoryImpl> factoryCons =
+                     mockConstruction(GpioDatastreamsFactoryImpl.class,
+                             (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<GpioDatastreamsManager> managerCons =
+                     mockConstruction(GpioDatastreamsManager.class,
+                             (mock, mctx) -> managerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsGpioConfigurationHandler> configHandlerCons =
+                     mockConstruction(DatastreamsGpioConfigurationHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> listenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> listenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(GpioServiceProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(GpioDatastreamsFactoryImpl.class)
-                .withArguments(eq(mockedGpioService), eq(mockedEventPublisher));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
-        PowerMockito.verifyNew(GpioDatastreamsManager.class)
-                .withArguments(eq(mockedFactory), eq(mockedGetterRegistrationManager), eq(mockedSetterRegistrationManager));
-        PowerMockito.verifyNew(DatastreamsGpioConfigurationHandler.class)
-                .withArguments(eq(mockedManager), eq(mockedGpioService));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(GpioService.class), any(Runnable.class));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any(Runnable.class));
+            assertEquals(1, gpioServiceCons.constructed().size());
+            assertEquals(mockedContext, gpioServiceArgs.get(0).get(0));
+            assertEquals(1, eventPublisherCons.constructed().size());
+            assertEquals(mockedContext, eventPublisherArgs.get(0).get(0));
+            assertEquals(1, factoryCons.constructed().size());
+            assertEquals(gpioServiceCons.constructed().get(0), factoryArgs.get(0).get(0));
+            assertEquals(eventPublisherCons.constructed().get(0), factoryArgs.get(0).get(1));
+            assertEquals(2, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(mockedContext, registrationManagerArgs.get(1).get(0));
+            assertEquals(DatastreamsSetter.class, registrationManagerArgs.get(1).get(1));
+            assertEquals(1, managerCons.constructed().size());
+            assertEquals(factoryCons.constructed().get(0), managerArgs.get(0).get(0));
+            assertEquals(registrationManagerCons.constructed().get(0), managerArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(1), managerArgs.get(0).get(2));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(managerCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(gpioServiceCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            assertEquals(2, listenerCons.constructed().size());
+            assertEquals(mockedContext, listenerArgs.get(0).get(0));
+            assertEquals(GpioService.class, listenerArgs.get(0).get(1));
+            assertTrue(listenerArgs.get(0).get(2) instanceof Runnable);
+            assertEquals(mockedContext, listenerArgs.get(1).get(0));
+            assertEquals(DeviceInfoProvider.class, listenerArgs.get(1).get(1));
+            assertTrue(listenerArgs.get(1).get(2) instanceof Runnable);
+        }
     }
 
     @Test

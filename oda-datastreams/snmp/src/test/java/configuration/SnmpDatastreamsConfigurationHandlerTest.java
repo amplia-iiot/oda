@@ -1,21 +1,23 @@
 package configuration;
 
-import es.amplia.oda.core.commons.snmp.SnmpEntry;
 import es.amplia.oda.datastreams.snmp.configuration.SnmpDatastreamsConfigurationHandler;
 import es.amplia.oda.datastreams.snmp.internal.SnmpDatastreamsManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpDatastreamsConfigurationHandlerTest {
 
     private static final String DATATYPE_PROPERTY_NAME = "dataType";
@@ -46,7 +48,7 @@ public class SnmpDatastreamsConfigurationHandlerTest {
         testConfigHandler.loadConfiguration(snmpDatastreamsCompleteConfiguration);
         testConfigHandler.applyConfiguration();
 
-        verify(mockedSnmpDatastreamsManager).loadConfiguration(Mockito.anyListOf(SnmpEntry.class));
+        verify(mockedSnmpDatastreamsManager).loadConfiguration(Mockito.anyList());
     }
 
     @Test

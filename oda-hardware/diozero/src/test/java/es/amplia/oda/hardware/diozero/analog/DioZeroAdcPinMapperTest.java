@@ -2,10 +2,11 @@ package es.amplia.oda.hardware.diozero.analog;
 
 import es.amplia.oda.core.commons.adc.BadAdcChannelException;
 import es.amplia.oda.hardware.diozero.analog.devices.fx30.DioZeroAdcPinMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DioZeroAdcPinMapperTest {
 
@@ -19,10 +20,8 @@ public class DioZeroAdcPinMapperTest {
 		assertEquals(5, DioZeroAdcPinMapper.mapChannelIndexToDevicePin(1));
 	}
 
-	@Test(expected = BadAdcChannelException.class)
+	@Test
 	public void testMapChannelIndexToDevicePinBadAdcChannelException() {
-		DioZeroAdcPinMapper.mapChannelIndexToDevicePin(99);
-
-		fail("Bad ADC Channel Exception should be thrown");
+		assertThrows(BadAdcChannelException.class, () -> DioZeroAdcPinMapper.mapChannelIndexToDevicePin(99));
 	}
 }

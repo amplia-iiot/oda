@@ -6,21 +6,24 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 
 import es.amplia.oda.datastreams.modbus.configuration.ModbusDatastreamsConfiguration;
 import es.amplia.oda.hardware.modbus.ModbusType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Type;
 import java.util.*;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusDatastreamsManagerTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream1";

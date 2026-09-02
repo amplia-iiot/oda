@@ -7,22 +7,25 @@ import es.amplia.oda.datastreams.lora.configuration.LoraDatastreamsConfiguration
 import es.amplia.oda.datastreams.lora.datastreams.LoraDatastreamsEvent;
 import es.amplia.oda.datastreams.lora.datastreams.LoraDatastreamsFactory;
 import es.amplia.oda.datastreams.lora.datastreams.LoraException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LoraDatastreamsOrchestrator.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LoraDatastreamsOrchestratorTest {
 
 	private static final String TEST_DEVICE_ID_PROPERTY_VALUE = "testing_gateway";
@@ -36,56 +39,78 @@ public class LoraDatastreamsOrchestratorTest {
 	@InjectMocks
 	LoraDatastreamsOrchestrator testOrchestrator;
 	@Mock
-	LoraDatastreamsFactory mockedFactory;
-	@Mock
 	LoraDatastreamsEvent mockedDatastreamEvent;
 
 	LoraDatastreamsConfiguration testConfiguration;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testConfiguration = LoraDatastreamsConfiguration.builder().deviceId(TEST_DEVICE_ID_PROPERTY_VALUE).build();
 	}
 
 	@Test
 	public void testLoadConfiguration() throws Exception {
-		whenNew(LoraDatastreamsFactory.class).withAnyArguments().thenReturn(mockedFactory);
-		when(mockedFactory.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+		List<List<?>> factoryArgs = new ArrayList<>();
+		try (MockedConstruction<LoraDatastreamsFactory> factoryCons = mockConstruction(LoraDatastreamsFactory.class,
+				(mock, mctx) -> {
+					factoryArgs.add(new ArrayList<>(mctx.arguments()));
+					when(mock.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+				})) {
 
-		testOrchestrator.loadConfiguration(testConfiguration);
+			testOrchestrator.loadConfiguration(testConfiguration);
 
-		verifyNew(LoraDatastreamsFactory.class).withArguments(mockedService,mockedPublisher, mockedSerializer);
-		LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
-		assertEquals(mockedDatastreamEvent, datastreamsEvent);
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(mockedService, factoryArgs.get(0).get(0));
+			assertEquals(mockedPublisher, factoryArgs.get(0).get(1));
+			assertEquals(mockedSerializer, factoryArgs.get(0).get(2));
+			LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
+			assertEquals(mockedDatastreamEvent, datastreamsEvent);
+		}
 	}
 
 	@Test
 	public void testLoadConfigurationWithInitialConfig() throws Exception {
 		Whitebox.setInternalState(testOrchestrator, "loraDatastreamsEvent", mockedDatastreamEvent);
-		whenNew(LoraDatastreamsFactory.class).withAnyArguments().thenReturn(mockedFactory);
-		when(mockedFactory.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+		List<List<?>> factoryArgs = new ArrayList<>();
+		try (MockedConstruction<LoraDatastreamsFactory> factoryCons = mockConstruction(LoraDatastreamsFactory.class,
+				(mock, mctx) -> {
+					factoryArgs.add(new ArrayList<>(mctx.arguments()));
+					when(mock.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+				})) {
 
-		testOrchestrator.loadConfiguration(testConfiguration);
+			testOrchestrator.loadConfiguration(testConfiguration);
 
-		verify(mockedDatastreamEvent).unregisterFromEventSource();
-		verifyNew(LoraDatastreamsFactory.class).withArguments(mockedService,mockedPublisher, mockedSerializer);
-		LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
-		assertEquals(mockedDatastreamEvent, datastreamsEvent);
+			verify(mockedDatastreamEvent).unregisterFromEventSource();
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(mockedService, factoryArgs.get(0).get(0));
+			assertEquals(mockedPublisher, factoryArgs.get(0).get(1));
+			assertEquals(mockedSerializer, factoryArgs.get(0).get(2));
+			LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
+			assertEquals(mockedDatastreamEvent, datastreamsEvent);
+		}
 	}
 
 	@Test
 	public void testLoadConfigurationWithInitialConfigAndException() throws Exception {
 		Whitebox.setInternalState(testOrchestrator, "loraDatastreamsEvent", mockedDatastreamEvent);
-		whenNew(LoraDatastreamsFactory.class).withAnyArguments().thenReturn(mockedFactory);
 		doThrow(LoraException.class).when(mockedDatastreamEvent).unregisterFromEventSource();
-		when(mockedFactory.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+		List<List<?>> factoryArgs = new ArrayList<>();
+		try (MockedConstruction<LoraDatastreamsFactory> factoryCons = mockConstruction(LoraDatastreamsFactory.class,
+				(mock, mctx) -> {
+					factoryArgs.add(new ArrayList<>(mctx.arguments()));
+					when(mock.createLoraDatastreamsEvent(any())).thenReturn(mockedDatastreamEvent);
+				})) {
 
-		testOrchestrator.loadConfiguration(testConfiguration);
+			testOrchestrator.loadConfiguration(testConfiguration);
 
-		verify(mockedDatastreamEvent).unregisterFromEventSource();
-		verifyNew(LoraDatastreamsFactory.class).withArguments(mockedService,mockedPublisher, mockedSerializer);
-		LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
-		assertEquals(mockedDatastreamEvent, datastreamsEvent);
+			verify(mockedDatastreamEvent).unregisterFromEventSource();
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(mockedService, factoryArgs.get(0).get(0));
+			assertEquals(mockedPublisher, factoryArgs.get(0).get(1));
+			assertEquals(mockedSerializer, factoryArgs.get(0).get(2));
+			LoraDatastreamsEvent datastreamsEvent = Whitebox.getInternalState(testOrchestrator, "loraDatastreamsEvent");
+			assertEquals(mockedDatastreamEvent, datastreamsEvent);
+		}
 	}
 
 	@Test

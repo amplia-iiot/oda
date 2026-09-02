@@ -4,19 +4,22 @@ import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.hardware.modbus.ModbusType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.mockito.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusWriteOperatorProcessorTest {
 
     private static final int TEST_SLAVE_ADDRESS = 2;
@@ -53,11 +56,11 @@ public class ModbusWriteOperatorProcessorTest {
     private Register[] twoMockedRegisters;
     private Register[] fourMockedRegisters;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         twoMockedRegisters = new Register[] { mockedRegister, mockedRegister2 };
         fourMockedRegisters = new Register[] { mockedRegister, mockedRegister2, mockedRegister3, mockedRegister4 };
-        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
     }
 
     @Test
@@ -68,10 +71,10 @@ public class ModbusWriteOperatorProcessorTest {
         verify(mockedModbusMaster).writeCoil(eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(TEST_BOOLEAN_VALUE));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testWriteInvalidTypeToCoil() {
-        testWriteOperatorProcessor
-                .write(TEST_DEVICE_ID, Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_INTEGER_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> testWriteOperatorProcessor
+                .write(TEST_DEVICE_ID, Integer.class, ModbusType.COIL, TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_INTEGER_VALUE));
     }
 
     @Test
@@ -140,10 +143,10 @@ public class ModbusWriteOperatorProcessorTest {
         verify(mockedModbusMaster).writeHoldingRegisters(eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(fourMockedRegisters));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testWriteBooleanToHoldingRegister() {
-        testWriteOperatorProcessor.write(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
-                TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE);
+        assertThrows(IllegalArgumentException.class, () -> testWriteOperatorProcessor.write(TEST_DEVICE_ID, Boolean.class, ModbusType.HOLDING_REGISTER, TEST_SLAVE_ADDRESS,
+                TEST_DATA_ADDRESS, TEST_BOOLEAN_VALUE));
     }
 
     @Test

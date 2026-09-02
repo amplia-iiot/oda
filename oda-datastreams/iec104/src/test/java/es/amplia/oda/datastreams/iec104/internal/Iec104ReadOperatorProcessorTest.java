@@ -4,20 +4,21 @@ import es.amplia.oda.comms.iec104.Iec104Cache;
 import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.datastreams.iec104.Iec104ConnectionsFactory;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104ReadOperatorProcessor.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104ReadOperatorProcessorTest {
 
     @Mock
@@ -53,13 +54,13 @@ public class Iec104ReadOperatorProcessorTest {
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
-        Assert.assertEquals(expectedValue.getValue(), readValue.getValue());
-        Assert.assertEquals(expectedValue.getAt(), readValue.getAt());
-        Assert.assertEquals(expectedValue.getFeed(), readValue.getFeed());
+        Assertions.assertEquals(expectedValue.getValue(), readValue.getValue());
+        Assertions.assertEquals(expectedValue.getAt(), readValue.getAt());
+        Assertions.assertEquals(expectedValue.getFeed(), readValue.getFeed());
 
         // test value in cache already processed is not obtained again
         CollectedValue readValue2 = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
-        Assert.assertNull(readValue2);
+        Assertions.assertNull(readValue2);
     }
 
     @Test
@@ -79,7 +80,7 @@ public class Iec104ReadOperatorProcessorTest {
         verify(mockScadaTranslator, never()).transformValue(anyInt(), any(), anyBoolean(), any());
         verify(mockScadaTranslator, never()).getTranslationInfo(any(), anyBoolean());
 
-        Assert.assertNull(readValue);
+        Assertions.assertNull(readValue);
     }
 
     @Test
@@ -100,9 +101,9 @@ public class Iec104ReadOperatorProcessorTest {
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
-        Assert.assertEquals(expectedValue.getValue(), readValue.getValue());
-        Assert.assertEquals(expectedValue.getAt(), readValue.getAt());
-        Assert.assertNull(readValue.getFeed());
+        Assertions.assertEquals(expectedValue.getValue(), readValue.getValue());
+        Assertions.assertEquals(expectedValue.getAt(), readValue.getAt());
+        Assertions.assertNull(readValue.getFeed());
     }
 
     @Test
@@ -117,6 +118,6 @@ public class Iec104ReadOperatorProcessorTest {
 
         CollectedValue readValue = readOperatorProcessor.read(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
 
-        Assert.assertNull(readValue);
+        Assertions.assertNull(readValue);
     }
 }

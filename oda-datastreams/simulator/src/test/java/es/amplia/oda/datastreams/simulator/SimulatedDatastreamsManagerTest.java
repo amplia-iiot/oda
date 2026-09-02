@@ -10,11 +10,13 @@ import es.amplia.oda.datastreams.simulator.configuration.SimulatedDatastreamsGet
 import es.amplia.oda.datastreams.simulator.internal.SimulatedDatastreamsGetterFactory;
 
 import es.amplia.oda.datastreams.simulator.internal.SimulatedDatastreamsSetterFactory;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +24,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SimulatedDatastreamsManagerTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream";
@@ -65,7 +68,7 @@ public class SimulatedDatastreamsManagerTest {
     @Mock
     private DatastreamsSetter mockedSetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testDatastreamsManager = new SimulatedDatastreamsManager(mockedGetterFactory, mockedSetterFactory,
                 mockedRegistrationGetterManager, mockedRegistrationSetterManager);
@@ -75,7 +78,7 @@ public class SimulatedDatastreamsManagerTest {
     public void testLoadConfiguration() {
         when(mockedGetterFactory.createConstantDatastreamsGetter(anyString(), anyString(), anyString(), any()))
                 .thenReturn(mockedGetter);
-        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), anyString(), anyDouble(), anyDouble(), anyDouble()))
+        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), nullable(String.class), anyDouble(), anyDouble(), anyDouble()))
                 .thenReturn(mockedGetter);
         when(mockedSetterFactory.createSetDatastreamsSetter(anyString(), anyString()))
                 .thenReturn(mockedSetter);

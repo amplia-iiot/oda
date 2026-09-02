@@ -173,11 +173,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>es.amplia.oda.operation</groupId>
-            <artifactId>nashorn</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>es.amplia.oda.subsystem</groupId>
             <artifactId>countermanager</artifactId>
             <version>${project.version}</version>

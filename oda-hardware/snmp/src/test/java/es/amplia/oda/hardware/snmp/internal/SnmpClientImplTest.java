@@ -1,13 +1,14 @@
 package es.amplia.oda.hardware.snmp.internal;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.event.ResponseEvent;
@@ -15,8 +16,10 @@ import org.snmp4j.event.ResponseEvent;
 import java.io.IOException;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpClientImplTest {
 
     private final String DEVICE_ID_TEST = "deviceIdTest";
@@ -37,11 +40,11 @@ public class SnmpClientImplTest {
 
     SnmpClientImpl snmpClientImpl;
 
-    @Before
+    @BeforeEach
     public void start() throws IOException {
-        PowerMockito.when(mockedSnmp.send(Mockito.any(), Mockito.any())).thenReturn(mockedResponseEvent);
-        PowerMockito.when(mockedResponseEvent.getResponse()).thenReturn(mockedPdu);
-        PowerMockito.when(mockedPdu.getErrorStatus()).thenReturn(0);
+        when(mockedSnmp.send(Mockito.any(), Mockito.any())).thenReturn(mockedResponseEvent);
+        when(mockedResponseEvent.getResponse()).thenReturn(mockedPdu);
+        when(mockedPdu.getErrorStatus()).thenReturn(0);
     }
 
     @Test
@@ -50,7 +53,7 @@ public class SnmpClientImplTest {
 
         String actualDeviceId = snmpClientImpl.getDeviceId();
 
-        Assert.assertEquals(DEVICE_ID_TEST, actualDeviceId);
+        Assertions.assertEquals(DEVICE_ID_TEST, actualDeviceId);
     }
 
     @Test
@@ -69,7 +72,7 @@ public class SnmpClientImplTest {
 
         Object actualResponse = snmpClientImpl.getValue(OID_TEST);
 
-        Assert.assertNull(actualResponse);
+        Assertions.assertNull(actualResponse);
     }
 
     @Test
@@ -79,7 +82,7 @@ public class SnmpClientImplTest {
 
         Object actualResponse = snmpClientImpl.getValue(OID_TEST);
 
-        Assert.assertNull(actualResponse);
+        Assertions.assertNull(actualResponse);
     }
 
     @Test

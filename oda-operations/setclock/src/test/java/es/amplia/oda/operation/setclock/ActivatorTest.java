@@ -4,22 +4,28 @@ import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.operation.api.OperationSetClock;
 import es.amplia.oda.operation.setclock.configuration.SetClockConfigurationHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -29,28 +35,41 @@ public class ActivatorTest {
     @Mock
     private StateManagerProxy mockedStateManager;
     @Mock
-    private OperationSetClockImpl mockedSetClock;
-    @Mock
     private ServiceRegistration<OperationSetClock> mockedRegistration;
-    @Mock
-    private SetClockConfigurationHandler mockedHandler;
     @Mock
     private ConfigurableBundleImpl mockedBundle;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
-        PowerMockito.whenNew(OperationSetClockImpl.class).withAnyArguments().thenReturn(mockedSetClock);
-        PowerMockito.whenNew(SetClockConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedBundle);
+        List<List<?>> stateManagerArgs = new ArrayList<>();
+        List<List<?>> setClockArgs = new ArrayList<>();
+        List<List<?>> handlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        try (MockedConstruction<StateManagerProxy> stateManagerCons = mockConstruction(StateManagerProxy.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OperationSetClockImpl> setClockCons = mockConstruction(OperationSetClockImpl.class,
+                     (mock, mctx) -> setClockArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SetClockConfigurationHandler> handlerCons =
+                     mockConstruction(SetClockConfigurationHandler.class,
+                             (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationSetClockImpl.class).withArguments(eq(mockedStateManager));
-        PowerMockito.verifyNew(SetClockConfigurationHandler.class).withArguments(eq(mockedSetClock));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler), any());
-        verify(mockedContext).registerService(eq(OperationSetClock.class), eq(mockedSetClock), any());
+            assertEquals(1, stateManagerCons.constructed().size());
+            assertEquals(mockedContext, stateManagerArgs.get(0).get(0));
+            assertEquals(1, setClockCons.constructed().size());
+            assertEquals(stateManagerCons.constructed().get(0), setClockArgs.get(0).get(0));
+            assertEquals(1, handlerCons.constructed().size());
+            assertEquals(setClockCons.constructed().get(0), handlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(handlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(OperationSetClock.class),
+                    eq(setClockCons.constructed().get(0)), any());
+        }
     }
 
     @Test

@@ -34,8 +34,6 @@
                         <Export-Package>!*</Export-Package>
                         <Import-Package>*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
-                        <Embed-Dependency>httpclient</Embed-Dependency>
-                        <Embed-Directory>lib</Embed-Directory>
                     </instructions>
                 </configuration>
             </plugin>
@@ -103,26 +101,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-nop</artifactId>
             <scope>test</scope>
@@ -131,6 +109,11 @@
             <groupId>org.jacoco</groupId>
             <artifactId>org.jacoco.agent</artifactId>
             <classifier>runtime</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-reflect</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

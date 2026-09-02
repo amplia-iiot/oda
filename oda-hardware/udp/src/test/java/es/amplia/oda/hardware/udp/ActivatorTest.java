@@ -4,21 +4,26 @@ import es.amplia.oda.core.commons.udp.UdpService;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.hardware.udp.configuration.JavaUdpConfigurationUpdateHandler;
 import es.amplia.oda.hardware.udp.udp.JavaUdpService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
 	private final Activator testActivator = new Activator();
@@ -31,18 +36,27 @@ public class ActivatorTest {
 	ServiceRegistration<UdpService> mockedRegistration;
 	@Mock
 	ConfigurableBundleImpl mockedConfigurableBundle;
-	@Mock
-	JavaUdpConfigurationUpdateHandler mockedConfigurationHandler;
 
 	@Test
 	public void testStart() throws Exception {
-		PowerMockito.whenNew(JavaUdpService.class).withNoArguments().thenReturn(mockedUdpService);
-		PowerMockito.whenNew(JavaUdpConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigurationHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		testActivator.start(mockedContext);
-		PowerMockito.verifyNew(JavaUdpService.class).withNoArguments();
-		PowerMockito.verifyNew(JavaUdpConfigurationUpdateHandler.class).withArguments(eq(mockedUdpService));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigurationHandler));
+		List<List<?>> configurationHandlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
+
+		try (MockedConstruction<JavaUdpService> udpServiceCons = mockConstruction(JavaUdpService.class);
+			 MockedConstruction<JavaUdpConfigurationUpdateHandler> configurationHandlerCons =
+					 mockConstruction(JavaUdpConfigurationUpdateHandler.class,
+							 (mock, mctx) -> configurationHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+			testActivator.start(mockedContext);
+			assertEquals(1, udpServiceCons.constructed().size());
+			assertEquals(1, configurationHandlerCons.constructed().size());
+			assertEquals(udpServiceCons.constructed().get(0), configurationHandlerArgs.get(0).get(0));
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(configurationHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+		}
 	}
 
 	@Test

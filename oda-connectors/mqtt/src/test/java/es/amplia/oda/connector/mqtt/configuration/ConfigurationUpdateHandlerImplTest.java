@@ -8,25 +8,29 @@ import es.amplia.oda.comms.mqtt.api.MqttException;
 import es.amplia.oda.connector.mqtt.MqttConnector;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.UUID;
 
 import static es.amplia.oda.connector.mqtt.configuration.ConfigurationUpdateHandlerImpl.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ConfigurationUpdateHandlerImplTest {
 
     private static final String TEST_DEVICE_ID = "testUser";
@@ -207,7 +211,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(TEST_KEY_STORE_PATH, currentConfiguration.getConnectOptions().getSsl().getKeyStore());
 
         // if there is truststore defined there mustn't be socket factory
-        Assert.assertNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
+        Assertions.assertNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
     }
 
     @Test
@@ -246,7 +250,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(DEFAULT_RETRY_DELAY, currentConfiguration.getRetryDelay());
         assertEquals(expectedConfiguration.getMaxlength(), currentConfiguration.getMaxlength());
 
-        Assert.assertNotNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
+        Assertions.assertNotNull(currentConfiguration.getConnectOptions().getSsl().getSslSocketFactory());
     }
 
     @Test
@@ -395,7 +399,7 @@ public class ConfigurationUpdateHandlerImplTest {
         testConfigHandler.loadConfiguration(testProperties);
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingHostRequiredField() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(IOT_TOPIC_PROPERTY_NAME, TEST_IOT_TOPIC);
@@ -405,10 +409,10 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingIotTopicRequiredField() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -418,10 +422,10 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadMinimumMissingRequestTopicRequiredField() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -431,10 +435,10 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadMinimumMissingResponseTopicRequiredField() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -444,10 +448,10 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationPortIllegalArgumentException() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -459,10 +463,10 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMqttVersionIllegalArgumentException() {
         Dictionary<String, String> testProperties = new Hashtable<>();
         testProperties.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -474,7 +478,7 @@ public class ConfigurationUpdateHandlerImplTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(new String(TEST_API_KEY));
 
-        testConfigHandler.loadConfiguration(testProperties);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(testProperties));
     }
 
     @Test
@@ -519,10 +523,10 @@ public class ConfigurationUpdateHandlerImplTest {
 
     @Test
     public void testReapplyConfigurationWithNoLastProperties() throws MqttException {
-        Whitebox.setInternalState(testConfigHandler, "lastProperties", null);
+        Whitebox.setInternalState(testConfigHandler, "lastProperties", (Object) null);
 
         testConfigHandler.reapplyConfiguration();
 
-        verifyZeroInteractions(mockedConnector);
+        verifyNoInteractions(mockedConnector);
     }
 }

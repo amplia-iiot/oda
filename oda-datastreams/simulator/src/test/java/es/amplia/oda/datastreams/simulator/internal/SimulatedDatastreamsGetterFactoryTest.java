@@ -1,15 +1,21 @@
 package es.amplia.oda.datastreams.simulator.internal;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SimulatedDatastreamsGetterFactory.class)
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SimulatedDatastreamsGetterFactoryTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -25,22 +31,32 @@ public class SimulatedDatastreamsGetterFactoryTest {
 
     @Test
     public void createConstantDatastreamsGetter() throws Exception {
-        PowerMockito.whenNew(ConstantDatastreamsGetter.class).withAnyArguments().thenReturn(null);
+        List<List<?>> constantGetterArgs = new ArrayList<>();
+        try (MockedConstruction<ConstantDatastreamsGetter> constantGetterCons =
+                     mockConstruction(ConstantDatastreamsGetter.class,
+                             (mock, mctx) -> constantGetterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testFactory.createConstantDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_VALUE);
+            testFactory.createConstantDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_VALUE);
 
-        PowerMockito.verifyNew(ConstantDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
-                eq(TEST_DEVICE_ID), eq(TEST_FEED), eq(TEST_VALUE));
+            assertEquals(1, constantGetterCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_VALUE),
+                    constantGetterArgs.get(0));
+        }
     }
 
     @Test
     public void createRandomDatastreamsGetter() throws Exception {
-        PowerMockito.whenNew(RandomDatastreamsGetter.class).withAnyArguments().thenReturn(null);
+        List<List<?>> randomGetterArgs = new ArrayList<>();
+        try (MockedConstruction<RandomDatastreamsGetter> randomGetterCons =
+                     mockConstruction(RandomDatastreamsGetter.class,
+                             (mock, mctx) -> randomGetterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testFactory.createRandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_MIN_VALUE, TEST_MAX_VALUE,
-                TEST_MAX_DIFF);
+            testFactory.createRandomDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_MIN_VALUE, TEST_MAX_VALUE,
+                    TEST_MAX_DIFF);
 
-        PowerMockito.verifyNew(RandomDatastreamsGetter.class).withArguments(eq(TEST_DATASTREAM_ID),
-                eq(TEST_DEVICE_ID), eq(TEST_FEED), eq(TEST_MIN_VALUE), eq(TEST_MAX_VALUE), eq(TEST_MAX_DIFF));
+            assertEquals(1, randomGetterCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_DATASTREAM_ID, TEST_DEVICE_ID, TEST_FEED, TEST_MIN_VALUE, TEST_MAX_VALUE,
+                    TEST_MAX_DIFF), randomGetterArgs.get(0));
+        }
     }
 }

@@ -12,16 +12,18 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.DataTransmissionMessa
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.InterrogationCommand;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.SingleCommand;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104CommandHandlerTest {
 
 	private Iec104CommandHandler commandHandler;
@@ -39,7 +41,7 @@ public class Iec104CommandHandlerTest {
 	@Mock
 	private ASDUAddress mockedAsduAddress;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		commandHandler = new Iec104CommandHandler(mockedCache, mockedDispatcher, 0);
 	}
@@ -125,7 +127,7 @@ public class Iec104CommandHandlerTest {
 
 		commandHandler.channelRead(mockedContext, sc);
 
-		verifyZeroInteractions(mockedContext);
+		verifyNoInteractions(mockedContext);
 	}
 
 	@Test

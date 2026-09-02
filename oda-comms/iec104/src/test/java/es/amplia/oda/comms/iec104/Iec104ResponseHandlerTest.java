@@ -12,25 +12,26 @@ import org.eclipse.neoscada.protocol.iec60870.ASDUAddressType;
 import org.eclipse.neoscada.protocol.iec60870.ProtocolOptions;
 import org.eclipse.neoscada.protocol.iec60870.asdu.ASDUHeader;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.*;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104ResponseHandler.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104ResponseHandlerTest {
 
     @Mock
@@ -59,7 +60,7 @@ public class Iec104ResponseHandlerTest {
     ASDUAddress commonAddress;
 
 
-    @Before
+    @BeforeEach
     public void prepareForTest() {
         responseHandler = new Iec104ResponseHandler(cache, TEST_DEVICE_CONNECTION, TEST_COMMON_ADDRESS, TEST_QUALITY_BITS,
                 TEST_QUALITY_BITS_NOTIFY, mockedEventDispatcher, mockedEventPublisher, mockedScadaTablesTranslator);
@@ -174,8 +175,8 @@ public class Iec104ResponseHandlerTest {
         Iec104CacheValue expectedValue = new Iec104CacheValue(TEST_VALUE, asduTime, true);
         Iec104Cache deviceCache = cache.get(TEST_DEVICE);
         Iec104CacheValue valueFromCache = deviceCache.getValue("M_ME_NA_1", TEST_ASDU_ADDRRES);
-        Assert.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
-        Assert.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
+        Assertions.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
+        Assertions.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
     }
 
     @Test
@@ -204,8 +205,8 @@ public class Iec104ResponseHandlerTest {
         Iec104CacheValue expectedValue = new Iec104CacheValue(TEST_VALUE, asduTime, true);
         Iec104Cache deviceCache = cache.get(TEST_DEVICE_CONNECTION);
         Iec104CacheValue valueFromCache = deviceCache.getValue("M_ME_NA_1", TEST_ASDU_ADDRRES);
-        Assert.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
-        Assert.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
+        Assertions.assertEquals(expectedValue.getValue(), valueFromCache.getValue());
+        Assertions.assertEquals(expectedValue.getValueTime(), valueFromCache.getValueTime());
     }
 
 }

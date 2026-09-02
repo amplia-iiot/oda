@@ -1,7 +1,7 @@
 package es.amplia.oda.datastreams.modbusslave.translator;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ModbusToJavaConvertorTest {
 
@@ -27,14 +27,14 @@ public class ModbusToJavaConvertorTest {
 
         // check if byte array has wrong length for data type
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_INT, "Short");
-        Assert.assertNull(valueConverted);
+        Assertions.assertNull(valueConverted);
 
         // call method to test
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_SHORT, "Short");
 
         // assertions
-        Assert.assertNotNull(valueConverted);
-        Assert.assertEquals(TEST_MODBUS_BYTES_SHORT_CONVERTED, valueConverted);
+        Assertions.assertNotNull(valueConverted);
+        Assertions.assertEquals(TEST_MODBUS_BYTES_SHORT_CONVERTED, valueConverted);
     }
 
    @Test
@@ -43,14 +43,14 @@ public class ModbusToJavaConvertorTest {
 
        // check if byte array has wrong length for data type
        valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_SHORT, "Int");
-       Assert.assertNull(valueConverted);
+       Assertions.assertNull(valueConverted);
 
         // call method to test
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_INT, "Int");
 
         // assertions
-        Assert.assertNotNull(valueConverted);
-        Assert.assertEquals(TEST_MODBUS_BYTES_INT_CONVERTED, valueConverted);
+        Assertions.assertNotNull(valueConverted);
+        Assertions.assertEquals(TEST_MODBUS_BYTES_INT_CONVERTED, valueConverted);
     }
 
     @Test
@@ -59,14 +59,14 @@ public class ModbusToJavaConvertorTest {
 
         // check if byte array has wrong length for data type
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_SHORT, "Long");
-        Assert.assertNull(valueConverted);
+        Assertions.assertNull(valueConverted);
 
         // call method to test
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_LONG, "Long");
 
         // assertions
-        Assert.assertNotNull(valueConverted);
-        Assert.assertEquals(TEST_MODBUS_BYTES_LONG_CONVERTED, valueConverted);
+        Assertions.assertNotNull(valueConverted);
+        Assertions.assertEquals(TEST_MODBUS_BYTES_LONG_CONVERTED, valueConverted);
     }
 
     @Test
@@ -75,14 +75,14 @@ public class ModbusToJavaConvertorTest {
 
         // check if byte array has wrong length for data type
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_SHORT, "Float");
-        Assert.assertNull(valueConverted);
+        Assertions.assertNull(valueConverted);
 
         // call method to test
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_FLOAT, "Float");
 
         // assertions
-        Assert.assertNotNull(valueConverted);
-        Assert.assertEquals(TEST_MODBUS_BYTES_FLOAT_CONVERTED, valueConverted);
+        Assertions.assertNotNull(valueConverted);
+        Assertions.assertEquals(TEST_MODBUS_BYTES_FLOAT_CONVERTED, valueConverted);
     }
 
     @Test
@@ -91,14 +91,14 @@ public class ModbusToJavaConvertorTest {
 
         // check if byte array has wrong length for data type
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_SHORT, "Double");
-        Assert.assertNull(valueConverted);
+        Assertions.assertNull(valueConverted);
 
         // call method to test
         valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_DOUBLE, "Double");
 
         // assertions
-        Assert.assertNotNull(valueConverted);
-        Assert.assertEquals(TEST_MODBUS_BYTES_DOUBLE_CONVERTED, valueConverted);
+        Assertions.assertNotNull(valueConverted);
+        Assertions.assertEquals(TEST_MODBUS_BYTES_DOUBLE_CONVERTED, valueConverted);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class ModbusToJavaConvertorTest {
         Object valueConverted = ModbusToJavaTypeConverter.convertRegister(TEST_MODBUS_BYTES_DOUBLE, "NotSupported");
 
         // assertions
-        Assert.assertNull(valueConverted);
+        Assertions.assertNull(valueConverted);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Short", 0);
 
         // assertions
-        Assert.assertEquals(1, numRegister);
+        Assertions.assertEquals(1, numRegister);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Int", 0);
 
         // assertions
-        Assert.assertEquals(2, numRegister);
+        Assertions.assertEquals(2, numRegister);
     }
 
     @Test
@@ -134,7 +134,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Long", 0);
 
         // assertions
-        Assert.assertEquals(4, numRegister);
+        Assertions.assertEquals(4, numRegister);
     }
 
     @Test
@@ -143,7 +143,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Float", 0);
 
         // assertions
-        Assert.assertEquals(2, numRegister);
+        Assertions.assertEquals(2, numRegister);
     }
 
     @Test
@@ -152,7 +152,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("Double", 0);
 
         // assertions
-        Assert.assertEquals(4, numRegister);
+        Assertions.assertEquals(4, numRegister);
     }
 
     @Test
@@ -161,7 +161,7 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("List",50);
 
         // assertions
-        Assert.assertEquals(50, numRegister);
+        Assertions.assertEquals(50, numRegister);
     }
 
     @Test
@@ -170,6 +170,6 @@ public class ModbusToJavaConvertorTest {
         int numRegister = ModbusToJavaTypeConverter.getNumRegisters("NotSupported",0);
 
         // assertions
-        Assert.assertEquals(0, numRegister);
+        Assertions.assertEquals(0, numRegister);
     }
 }

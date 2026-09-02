@@ -4,21 +4,25 @@ import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterFactory;
 import es.amplia.oda.hardware.modbus.internal.ModbusMasterManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import static es.amplia.oda.hardware.modbus.configuration.ModbusMasterConfigurationUpdateHandler.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusMasterConfigurationUpdateHandlerTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -95,7 +99,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         verify(mockedModbusMasterFactory).createTCPModbusMaster(TEST_TCP_DEFAULT_CONFIGURATION);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadTCPInvalidConfiguration() {
         Dictionary<String, String>  tcpInvalidConfiguration = new Hashtable<>();
         tcpInvalidConfiguration.put(TYPE_PROPERTY_NAME, TCP_MODBUS_TYPE);
@@ -103,9 +107,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         tcpInvalidConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
         tcpInvalidConfiguration.put(NEW_CONNECTION_PER_REQUEST_PROPERTY_NAME, Boolean.toString(TEST_NEW_CONN_PER_REQUEST));
 
-        testConfigHandler.loadConfiguration(tcpInvalidConfiguration);
-
-        verify(mockedModbusMasterFactory).createTCPModbusMaster(TEST_TCP_COMPLETE_CONFIGURATION);
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(tcpInvalidConfiguration));
     }
 
     @Test
@@ -131,7 +133,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         verify(mockedModbusMasterFactory).createUDPModbusMaster(TEST_UDP_DEFAULT_CONFIGURATION);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadUDPInvalidConfiguration() {
         Dictionary<String, String>  udpInvalidConfiguration = new Hashtable<>();
         udpInvalidConfiguration.put(TYPE_PROPERTY_NAME, UDP_MODBUS_TYPE);
@@ -139,7 +141,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         udpInvalidConfiguration.put(TIMEOUT_PROPERTY_NAME, Integer.toString(TEST_TIMEOUT));
         udpInvalidConfiguration.put(DEVICE_ID, TEST_DEVICE_ID);
 
-        testConfigHandler.loadConfiguration(udpInvalidConfiguration);
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(udpInvalidConfiguration));
     }
 
     @Test
@@ -173,7 +175,7 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         verify(mockedModbusMasterFactory).createSerialModbusMaster(TEST_SERIAL_DEFAULT_CONFIGURATION);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadSerialInvalidConfiguration() {
         Dictionary<String, String>  serialInvalidConfiguration = new Hashtable<>();
         serialInvalidConfiguration.put(TYPE_PROPERTY_NAME, SERIAL_MODBUS_TYPE);
@@ -186,20 +188,20 @@ public class ModbusMasterConfigurationUpdateHandlerTest {
         serialInvalidConfiguration.put(ENCODING_PROPERTY_NAME, TEST_ENCODING);
         serialInvalidConfiguration.put(ECHO_PROPERTY_NAME, Boolean.toString(TEST_ECHO));
 
-        testConfigHandler.loadConfiguration(serialInvalidConfiguration);
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(serialInvalidConfiguration));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationInvalidConfiguration() {
         Dictionary<String, String>  invalidConfiguration = new Hashtable<>();
         invalidConfiguration.put(TYPE_PROPERTY_NAME, "invalidType");
 
-        testConfigHandler.loadConfiguration(invalidConfiguration);
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(invalidConfiguration));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadDefaultConfigurationNotAllowed() {
-        testConfigHandler.loadDefaultConfiguration();
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadDefaultConfiguration());
     }
 
     @Test

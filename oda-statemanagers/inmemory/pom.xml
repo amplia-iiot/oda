@@ -32,7 +32,7 @@
                         <Bundle-Version>${project.version}</Bundle-Version>
                         <Bundle-Activator>${bundle.namespace}.Activator</Bundle-Activator>
                         <Export-Package>!*</Export-Package>
-                        <Embed-Dependency>sqlite-jdbc, derby</Embed-Dependency>
+                        <Embed-Dependency>derby</Embed-Dependency>
                         <Import-Package>!org.ibex.nestedvm,!com.ibm.jvm,!org.apache.derby.impl.drda,!org.w3c.dom.xpath,*</Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                     </instructions>
@@ -111,21 +111,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-nop</artifactId>
             <scope>test</scope>
@@ -141,6 +126,11 @@
             <artifactId>derby</artifactId>
             <version>10.8.3.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-reflect</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

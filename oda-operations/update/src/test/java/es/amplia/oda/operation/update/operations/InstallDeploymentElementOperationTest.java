@@ -3,22 +3,26 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class InstallDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -36,7 +40,7 @@ public class InstallDeploymentElementOperationTest {
 
     private InstallDeploymentElementOperation testInstallOperation;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testInstallOperation = new InstallDeploymentElementOperation(installDeploymentElement, LOCAL_FILE, PATH_TO_INSTALL_FOLDER,
                 mockedFileManager, mockedOperationConfirmationProcessor);
@@ -49,13 +53,11 @@ public class InstallDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_INSTALL_FOLDER));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testExecuteSpecificOperationFileException() throws FileException {
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_INSTALL_FOLDER));
 
-        testInstallOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testInstallOperation.executeSpecificOperation(mockedFileManager));
     }
 
     @Test
@@ -74,10 +76,10 @@ public class InstallDeploymentElementOperationTest {
     public void testRollbackSpecificOperationNoInstalledFile() throws FileException {
         testInstallOperation.rollbackSpecificOperation(mockedFileManager, null);
 
-        verifyZeroInteractions(mockedFileManager);
+        verifyNoInteractions(mockedFileManager);
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationFileException() throws FileException {
         String backupFile = "path/to/backup.jar";
         String installedFile = "path/to/installed.jar";
@@ -86,8 +88,6 @@ public class InstallDeploymentElementOperationTest {
 
         doThrow(new FileException("")).when(mockedFileManager).delete(eq(installedFile));
 
-        testInstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testInstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile));
     }
 }

@@ -4,19 +4,20 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(I2CDatastreamsRegistry.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class I2CDatastreamsRegistryTest {
 
 	private static final String TEST_DATASTREAM_ID = "datastreamId";
@@ -39,7 +40,7 @@ public class I2CDatastreamsRegistryTest {
 	private DatastreamsSetter mockedSetter;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testRegistry = new I2CDatastreamsRegistry(mockedFactory, mockedGetterRegistrationManager,
 				mockedSetterRegistrationManager);

@@ -2,30 +2,33 @@ package es.amplia.oda.hardware.udp.udp;
 
 import es.amplia.oda.core.commons.udp.UdpException;
 import es.amplia.oda.core.commons.udp.UdpPacket;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(JavaUdpService.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JavaUdpServiceTest {
 
 	private static final int PACKET_SIZE_TEST_VALUE = 512;
@@ -35,12 +38,7 @@ public class JavaUdpServiceTest {
 	@InjectMocks
 	private static final JavaUdpService testService = new JavaUdpService();
 
-	@Mock
-	JavaUdpPacket mockedPacket;
-	@Mock
-	DatagramPacket mockedDatagramPacket;
-
-	@Before
+	@BeforeEach
 	public void setUp() {
 		Whitebox.setInternalState(testService, "packetSize", PACKET_SIZE_TEST_VALUE);
 	}
@@ -48,42 +46,44 @@ public class JavaUdpServiceTest {
 	@Test
 	public void testReceiveMessage() throws Exception {
 		doNothing().when(mockedSocket).receive(any());
-		whenNew(JavaUdpPacket.class).withAnyArguments().thenReturn(mockedPacket);
 
 		CompletableFuture<UdpPacket> futurePacket = testService.receiveMessage();
 
 		assertNotNull(futurePacket);
 		UdpPacket udpPacket = futurePacket.get();
-		assertEquals(this.mockedPacket, udpPacket);
-
+		assertTrue(udpPacket instanceof JavaUdpPacket);
+		assertEquals(PACKET_SIZE_TEST_VALUE, udpPacket.getDataAsBytes().length);
+		verify(mockedSocket).receive(any(DatagramPacket.class));
 	}
 
-	@Test(expected = ExecutionException.class)
+	@Test
 	public void testReceiveMessageExceptionOnReceive() throws Exception {
 		doThrow(new IOException()).when(mockedSocket).receive(any());
 
 		CompletableFuture<UdpPacket> packet = testService.receiveMessage();
 
-		packet.get();
+		assertThrows(ExecutionException.class, () -> packet.get());
 	}
 
 	@Test
 	public void testSendMessage() throws Exception {
 		byte[] testBytes= {0x00, 0x01, 0x02, 0x03, 0x04};
-		whenNew(DatagramPacket.class).withAnyArguments().thenReturn(mockedDatagramPacket);
 
 		testService.sendMessage(testBytes);
 
-		verifyNew(DatagramPacket.class).withArguments(eq(testBytes), eq(0), eq(testBytes.length));
-		verify(mockedSocket).send(mockedDatagramPacket);
+		ArgumentCaptor<DatagramPacket> packetCaptor = ArgumentCaptor.forClass(DatagramPacket.class);
+		verify(mockedSocket).send(packetCaptor.capture());
+		assertEquals(testBytes, packetCaptor.getValue().getData());
+		assertEquals(0, packetCaptor.getValue().getOffset());
+		assertEquals(testBytes.length, packetCaptor.getValue().getLength());
 	}
 
-	@Test(expected = UdpException.class)
+	@Test
 	public void testSendMessageExceptionOnReceive() throws Exception {
 		byte[] testBytes= {0x00, 0x01, 0x02, 0x03, 0x04};
 		doThrow(new IOException()).when(mockedSocket).send(any());
 
-		testService.sendMessage(testBytes);
+		assertThrows(UdpException.class, () -> testService.sendMessage(testBytes));
 	}
 
 	@Test
@@ -92,11 +92,16 @@ public class JavaUdpServiceTest {
 		int uplink = 1008;
 		int downlink = 1002;
 		int packetSize = 2048;
-		whenNew(DatagramSocket.class).withAnyArguments().thenReturn(mockedSocket);
+		List<List<?>> socketArgs = new ArrayList<>();
 
-		testService.loadConfiguration(testHost, uplink, downlink, packetSize);
+		try (MockedConstruction<DatagramSocket> socketCons = mockConstruction(DatagramSocket.class,
+				(mock, mctx) -> socketArgs.add(new ArrayList<>(mctx.arguments())))) {
+			testService.loadConfiguration(testHost, uplink, downlink, packetSize);
 
-		verifyNew(DatagramSocket.class).withArguments(eq(uplink), eq(InetAddress.getByName(testHost)));
+			assertEquals(1, socketCons.constructed().size());
+			assertEquals(uplink, socketArgs.get(0).get(0));
+			assertEquals(InetAddress.getByName(testHost), socketArgs.get(0).get(1));
+		}
 //		verify(mockedSocket).connect(any(), eq(downlink));
 		assertEquals(packetSize, (int) Whitebox.getInternalState(testService, "packetSize"));
 	}

@@ -4,23 +4,29 @@ import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.core.commons.utils.DatastreamsGettersFinderImpl;
 import es.amplia.oda.operation.api.OperationGetDeviceParameters;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -30,26 +36,34 @@ public class ActivatorTest {
     @Mock
     private StateManagerProxy mockedStateManager;
     @Mock
-    private OperationGetDeviceParametersImpl mockedGetDeviceParametersImpl;
-    @Mock
     private ServiceRegistration<OperationGetDeviceParameters> mockedRegistration;
     @Mock
     private DatastreamsGettersFinderImpl mockedDatastreamsGettersFinder;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
-        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedDatastreamsGettersFinder);
-        PowerMockito.whenNew(OperationGetDeviceParametersImpl.class).withAnyArguments()
-                .thenReturn(mockedGetDeviceParametersImpl);
-        when(mockedContext.registerService(eq(OperationGetDeviceParameters.class), any(OperationGetDeviceParameters.class), any()))
-                .thenReturn(mockedRegistration);
+        List<List<?>> stateManagerArgs = new ArrayList<>();
+        List<List<?>> getDeviceParametersArgs = new ArrayList<>();
+        try (MockedConstruction<StateManagerProxy> stateManagerCons = mockConstruction(StateManagerProxy.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsGettersFinderImpl> gettersFinderCons =
+                     mockConstruction(DatastreamsGettersFinderImpl.class);
+             MockedConstruction<OperationGetDeviceParametersImpl> getDeviceParametersCons =
+                     mockConstruction(OperationGetDeviceParametersImpl.class,
+                             (mock, mctx) -> getDeviceParametersArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedContext.registerService(eq(OperationGetDeviceParameters.class), any(OperationGetDeviceParameters.class), any()))
+                    .thenReturn(mockedRegistration);
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationGetDeviceParametersImpl.class).withArguments(mockedStateManager, mockedDatastreamsGettersFinder);
-        when(mockedContext.registerService(eq(OperationGetDeviceParameters.class), eq(mockedGetDeviceParametersImpl), any()));
+            assertEquals(1, stateManagerCons.constructed().size());
+            assertEquals(mockedContext, stateManagerArgs.get(0).get(0));
+            assertEquals(1, getDeviceParametersCons.constructed().size());
+            assertEquals(stateManagerCons.constructed().get(0), getDeviceParametersArgs.get(0).get(0));
+            assertEquals(gettersFinderCons.constructed().get(0), getDeviceParametersArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(OperationGetDeviceParameters.class),
+                    eq(getDeviceParametersCons.constructed().get(0)), any());
+        }
     }
 
     @Test

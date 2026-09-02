@@ -8,22 +8,30 @@ import es.amplia.oda.core.commons.utils.DatastreamsSettersFinderImpl;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.event.api.EventDispatcherProxy;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -31,42 +39,47 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private ServiceLocatorOsgi<DatastreamsGetter> mockedGettersLocator;
-    @Mock
     private DatastreamsGettersFinderImpl mockedGettersFinder;
-    @Mock
-    private ServiceLocatorOsgi<DatastreamsSetter> mockedSettersLocator;
     @Mock
     private DatastreamsSettersFinderImpl mockedSettersFinder;
     @Mock
     private EventDispatcherProxy mockedEventDispatcher;
-    @Mock
-    private RealTimeStateManager mockedStateManager;
     @Mock
     ServiceRegistration<StateManager> mockedRegistration;
 
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ServiceLocatorOsgi.class)
-                .withArguments(any(BundleContext.class), eq(DatastreamsGetter.class)).thenReturn(mockedGettersLocator);
-        PowerMockito.whenNew(DatastreamsGettersFinderImpl.class).withAnyArguments().thenReturn(mockedGettersFinder);
-        PowerMockito.whenNew(ServiceLocatorOsgi.class)
-                .withArguments(any(BundleContext.class), eq(DatastreamsSetter.class)).thenReturn(mockedSettersLocator);
-        PowerMockito.whenNew(DatastreamsSettersFinderImpl.class).withAnyArguments().thenReturn(mockedSettersFinder);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
-        PowerMockito.whenNew(RealTimeStateManager.class).withAnyArguments().thenReturn(mockedStateManager);
+        List<List<?>> locatorArgs = new ArrayList<>();
+        List<List<?>> gettersFinderArgs = new ArrayList<>();
+        List<List<?>> settersFinderArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherArgs = new ArrayList<>();
+        List<List<?>> stateManagerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<ServiceLocatorOsgi> locatorCons = mockConstruction(ServiceLocatorOsgi.class,
+                     (mock, mctx) -> locatorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsGettersFinderImpl> gettersFinderCons = mockConstruction(DatastreamsGettersFinderImpl.class,
+                     (mock, mctx) -> gettersFinderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DatastreamsSettersFinderImpl> settersFinderCons = mockConstruction(DatastreamsSettersFinderImpl.class,
+                     (mock, mctx) -> settersFinderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventDispatcherProxy> eventDispatcherCons = mockConstruction(EventDispatcherProxy.class,
+                     (mock, mctx) -> eventDispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<RealTimeStateManager> stateManagerCons = mockConstruction(RealTimeStateManager.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(DatastreamsGettersFinderImpl.class).withArguments(eq(mockedGettersLocator));
-        PowerMockito.verifyNew(ServiceLocatorOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
-        PowerMockito.verifyNew(DatastreamsSettersFinderImpl.class).withArguments(eq(mockedSettersLocator));
-        PowerMockito.verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(RealTimeStateManager.class).withArguments(eq(mockedGettersFinder),
-                eq(mockedSettersFinder), eq(mockedEventDispatcher));
-        verify(mockedContext).registerService(eq(StateManager.class), eq(mockedStateManager), any());
+            testActivator.start(mockedContext);
+
+            assertEquals(2, locatorCons.constructed().size());
+            assertEquals(Arrays.asList(mockedContext, DatastreamsGetter.class), locatorArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, DatastreamsSetter.class), locatorArgs.get(1));
+            assertEquals(Collections.singletonList(locatorCons.constructed().get(0)), gettersFinderArgs.get(0));
+            assertEquals(Collections.singletonList(locatorCons.constructed().get(1)), settersFinderArgs.get(0));
+            assertEquals(Collections.singletonList(mockedContext), eventDispatcherArgs.get(0));
+            assertEquals(Arrays.asList(gettersFinderCons.constructed().get(0),
+                    settersFinderCons.constructed().get(0), eventDispatcherCons.constructed().get(0)),
+                    stateManagerArgs.get(0));
+            verify(mockedContext).registerService(eq(StateManager.class), eq(stateManagerCons.constructed().get(0)), any());
+        }
     }
 
     @Test

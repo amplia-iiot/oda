@@ -1,28 +1,31 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
 import es.amplia.oda.core.commons.utils.Event;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(EventPublisherProxy.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class EventPublisherProxyTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -40,21 +43,30 @@ public class EventPublisherProxyTest {
 
     private EventPublisherProxy testEventPublisher;
 
-    @Mock
+    private MockedConstruction<StateManagerProxy> stateManagerConstruction;
+    private final List<List<?>> stateManagerArgs = new ArrayList<>();
     private StateManagerProxy mockedStateManager;
 
     @Captor
     private ArgumentCaptor<List<Event>> eventCaptor;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
+        stateManagerConstruction = mockConstruction(StateManagerProxy.class,
+                (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
         testEventPublisher = new EventPublisherProxy(mockedContext);
+        mockedStateManager = stateManagerConstruction.constructed().get(0);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        stateManagerConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
+        assertEquals(1, stateManagerConstruction.constructed().size());
+        assertEquals(mockedContext, stateManagerArgs.get(0).get(0));
     }
 
     @Test

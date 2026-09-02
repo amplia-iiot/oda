@@ -2,11 +2,13 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.hardware.modbus.ModbusType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,11 +17,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusDatastreamsSetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -37,7 +40,7 @@ public class ModbusDatastreamsSetterTest {
 
     private ModbusDatastreamsSetter testSetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testSetter = new ModbusDatastreamsSetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER, TEST_DATA_TYPE,
                 TEST_DATA_ADDRESS, mockedWriterOperatorProcessor);
@@ -67,9 +70,9 @@ public class ModbusDatastreamsSetterTest {
                 eq(TEST_SLAVE_ADDRESS), eq(TEST_DATA_ADDRESS), eq(TEST_VALUE));
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test
     public void setWithUnknownDeviceId() throws ExecutionException, InterruptedException {
         CompletableFuture<Void> future = testSetter.set("unknown", TEST_VALUE);
-        future.get();
+        assertThrows(ExecutionException.class, () -> future.get());
     }
 }

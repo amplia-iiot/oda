@@ -9,13 +9,15 @@ import es.amplia.oda.event.api.EventDispatcher;
 import es.amplia.oda.ruleengine.api.RuleEngine;
 import es.amplia.oda.statemanager.inmemory.configuration.StateManagerInMemoryConfiguration;
 import es.amplia.oda.statemanager.inmemory.database.DatabaseHandler;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -23,16 +25,14 @@ import java.util.Collections;
 import java.util.*;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({InMemoryStateManager.class, DatabaseHandler.class})
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class InMemoryStateManagerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -86,7 +86,7 @@ public class InMemoryStateManagerTest {
     private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     private static final Scheduler scheduler = new SchedulerImpl(executorService);
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testStateManager = new InMemoryStateManager(mockedGettersFinder, mockedSettersFinder, mockedEventDispatcher,
                 mockedEngine, mockedSerializer, executor, scheduler, mockedContext);
@@ -564,7 +564,6 @@ public class InMemoryStateManagerTest {
 
     @Test
     public void testLoadConfiguration() throws Exception {
-        whenNew(DatabaseHandler.class).withAnyArguments().thenReturn(mockedDatabase);
         Map<DatastreamInfo, List<DatastreamValue>> collectData = new HashMap<>();
         DatastreamInfo dsInfo = new DatastreamInfo(TEST_DEVICE_ID, TEST_DATASTREAM_ID);
         DatastreamValue dsValue = new DatastreamValue(TEST_DEVICE_ID, TEST_DATASTREAM_ID, null,
@@ -572,13 +571,21 @@ public class InMemoryStateManagerTest {
         List<DatastreamValue> dsValues = new ArrayList<>();
         dsValues.add(dsValue);
         collectData.put(dsInfo, dsValues);
-        when(mockedDatabase.collectDataFromDatabase()).thenReturn(collectData);
 
-        this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().
-                databasePath("this/is/a/path").maxData(100).forgetTime(3600).forgetPeriod(10).build());
+        List<List<?>> databaseArgs = new ArrayList<>();
+        try (MockedConstruction<DatabaseHandler> databaseCons = mockConstruction(DatabaseHandler.class,
+                (mock, mctx) -> {
+                    databaseArgs.add(new ArrayList<>(mctx.arguments()));
+                    when(mock.collectDataFromDatabase()).thenReturn(collectData);
+                })) {
 
-        verifyNew(DatabaseHandler.class).withArguments(eq("this/is/a/path"), eq(mockedSerializer),
-              eq(scheduler), eq(100), eq((long) 3600), eq((long) 10));
+            this.testStateManager.loadConfiguration(StateManagerInMemoryConfiguration.builder().
+                    databasePath("this/is/a/path").maxData(100).forgetTime(3600).forgetPeriod(10).build());
+
+            assertEquals(1, databaseCons.constructed().size());
+            assertEquals(Arrays.asList("this/is/a/path", mockedSerializer, scheduler, 100, (long) 3600, (long) 10),
+                    databaseArgs.get(0));
+        }
     }
 
     @Test

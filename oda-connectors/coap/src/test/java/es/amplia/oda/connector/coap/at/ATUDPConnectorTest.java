@@ -4,12 +4,14 @@ import es.amplia.oda.hardware.atmanager.api.*;
 import org.apache.commons.codec.binary.Hex;
 import org.eclipse.californium.elements.RawData;
 import org.eclipse.californium.elements.RawDataChannel;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetAddress;
@@ -22,10 +24,11 @@ import java.util.concurrent.TimeUnit;
 
 import static es.amplia.oda.connector.coap.at.ATUDPConnector.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ATUDPConnectorTest {
 
     private static final String TEST_REMOTE_HOST = "127.0.0.1";
@@ -50,7 +53,7 @@ public class ATUDPConnectorTest {
     @Mock
     private CompletableFuture<ATResponse> mockedCompletableFuture;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testConnector = new ATUDPConnector(mockedATManager, TEST_REMOTE_HOST, TEST_REMOTE_PORT, TEST_LOCAL_PORT);
     }
@@ -79,7 +82,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertTrue(Whitebox.getInternalState(testConnector, "running"));
+        assertTrue((boolean) Whitebox.getInternalState(testConnector, "running"));
         assertEquals(localSocketId, (int) Whitebox.getInternalState(testConnector, "localSocketId"));
         assertEquals(TEST_LOCAL_ADDRESS, testConnector.getAddress());
         verify(mockedATManager).send(eq(closeSocketCommand), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
@@ -94,7 +97,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        verifyZeroInteractions(mockedATManager);
+        verifyNoInteractions(mockedATManager);
     }
 
     @Test
@@ -120,7 +123,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertFalse(Whitebox.getInternalState(testConnector, "running"));
+        assertFalse((boolean) Whitebox.getInternalState(testConnector, "running"));
         verify(mockedATManager).send(eq(openSocketCommand), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager).send(eq(getAddressCommand), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager, never()).registerEvent(eq(ARRIVE_SOCKET_MESSAGE_AT_EVENT), any());
@@ -150,7 +153,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertFalse(Whitebox.getInternalState(testConnector, "running"));
+        assertFalse((boolean) Whitebox.getInternalState(testConnector, "running"));
         verify(mockedATManager).send(eq(openSocketCommand), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager).send(eq(getAddressCommand), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager, never()).registerEvent(eq(ARRIVE_SOCKET_MESSAGE_AT_EVENT), any());
@@ -166,7 +169,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertFalse(Whitebox.getInternalState(testConnector, "running"));
+        assertFalse((boolean) Whitebox.getInternalState(testConnector, "running"));
         verify(mockedATManager, atLeastOnce()).send(any(ATCommand.class), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager, never()).registerEvent(eq(ARRIVE_SOCKET_MESSAGE_AT_EVENT), any());
     }
@@ -181,7 +184,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertFalse(Whitebox.getInternalState(testConnector, "running"));
+        assertFalse((boolean) Whitebox.getInternalState(testConnector, "running"));
         verify(mockedATManager, atLeastOnce()).send(any(ATCommand.class), eq(COMMAND_TIMEOUT), eq(TimeUnit.SECONDS));
         verify(mockedATManager, never()).registerEvent(eq(ARRIVE_SOCKET_MESSAGE_AT_EVENT), any());
     }
@@ -212,7 +215,7 @@ public class ATUDPConnectorTest {
 
         testConnector.start();
 
-        assertTrue(Whitebox.getInternalState(testConnector, "running"));
+        assertTrue((boolean) Whitebox.getInternalState(testConnector, "running"));
         assertEquals(localSocketId, (int) Whitebox.getInternalState(testConnector, "localSocketId"));
         assertEquals(TEST_LOCAL_ADDRESS, testConnector.getAddress());
         verify(mockedATManager).registerEvent(eq(ARRIVE_SOCKET_MESSAGE_AT_EVENT), any());
@@ -436,7 +439,7 @@ public class ATUDPConnectorTest {
 
         testConnector.send(testRawData);
 
-        verifyZeroInteractions(mockedSenderExecutor);
+        verifyNoInteractions(mockedSenderExecutor);
     }
 
     @Test
@@ -445,7 +448,7 @@ public class ATUDPConnectorTest {
 
         testConnector.send(null);
 
-        verifyZeroInteractions(mockedSenderExecutor);
+        verifyNoInteractions(mockedSenderExecutor);
     }
 
     @Test
@@ -632,7 +635,7 @@ public class ATUDPConnectorTest {
 
         testConnector.stop();
 
-        verifyZeroInteractions(mockedATManager);
+        verifyNoInteractions(mockedATManager);
     }
 
     @Test

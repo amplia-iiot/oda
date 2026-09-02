@@ -15,11 +15,13 @@ import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,11 +31,13 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OpenGateOperationDispatcherTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -173,25 +177,25 @@ public class OpenGateOperationDispatcherTest {
         verify(mockedSerializer).serialize(eq(TEST_OUTPUT));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testProcessNullInput() {
-        testDispatcher.process(null);
+        assertThrows(IllegalArgumentException.class, () -> testDispatcher.process(null));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testProcessDeserializeException() throws IOException {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenThrow(new IOException());
 
-        testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE);
+        assertThrows(IllegalArgumentException.class, () -> testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testProcessDeserializeNullObject() throws IOException {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(null);
 
-        testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE);
+        assertThrows(IllegalArgumentException.class, () -> testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE));
     }
 
     public void testProcessDeserializeNullOperation() throws IOException {
@@ -208,7 +212,7 @@ public class OpenGateOperationDispatcherTest {
         assertNull(testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE));
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test
     public void testProcessSerializeOutputException() throws IOException, ExecutionException, InterruptedException {
         when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
         when(mockedSerializer.deserialize(any(byte[].class), any())).thenReturn(TEST_INPUT);
@@ -218,6 +222,6 @@ public class OpenGateOperationDispatcherTest {
         when(mockedSerializer.serialize(any(Output.class))).thenThrow(new IOException());
 
         CompletableFuture<byte[]> future = testDispatcher.process(TEST_PAYLOAD, TEST_CONTENT_TYPE);
-        future.get();
+        assertThrows(ExecutionException.class, () -> future.get());
     }
 }

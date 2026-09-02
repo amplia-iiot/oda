@@ -4,23 +4,24 @@ import com.diozero.api.DeviceMode;
 import com.diozero.api.PinInfo;
 import com.diozero.util.BoardPinInfo;
 import es.amplia.oda.core.commons.adc.DeviceType;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OwasysAnalogInputDeviceFactory.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OwasysAnalogInputDeviceFactoryTest {
 	private static final String OWA_ANA_INP_NAME_1 = "ADC1";
 	private static final String OWA_ANA_INP_NAME_2 = "ADC2";
@@ -38,7 +39,7 @@ public class OwasysAnalogInputDeviceFactoryTest {
 
 	private static boolean createdFile;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setUp() throws IOException {
 		File file1 = new File(PATH_TO_ANA_INP_1);
 		File file2 = new File(PATH_TO_ANA_INP_2);
@@ -54,7 +55,7 @@ public class OwasysAnalogInputDeviceFactoryTest {
 		factoryOwa2 = new OwasysAnalogInputDeviceFactory(OWA_ANA_INP_NAME_2, PATH_TO_ANA_INP_2, ACTIVE_LOW_2, DEVICE_TYPE_2);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void setDown() {
 		boolean cont = true;
 		File file1 = new File(PATH_TO_ANA_INP_1);

@@ -7,31 +7,32 @@ import es.amplia.oda.service.scadatables.configuration.BoxEntryConfiguration;
 import es.amplia.oda.service.scadatables.configuration.ScadaTableEntryConfiguration;
 
 import es.amplia.oda.service.scadatables.configuration.ScadaTablesConfigurationHandler;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ScadaTableInfoService.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ScadaTableInfoServiceTest {
 
     private ScadaTableInfoService testScadaTableInfoService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws ScriptException {
         Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesRecollection = new HashMap<>();
         Map< Map<Integer,String>, ScadaTableEntryConfiguration> scadaTablesEvents = new HashMap<>();
@@ -41,8 +42,7 @@ public class ScadaTableInfoServiceTest {
 
         // register script
         String script = "x*10";
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("nashorn");
+        ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
         engine.eval(ScadaTablesConfigurationHandler.REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
         entryBox.setScript((Invocable) engine);
 
@@ -120,12 +120,12 @@ public class ScadaTableInfoServiceTest {
 
         // same datastreamId and deviceId but search for it in events scada table
         ScadaTableTranslator.ScadaInfo scinfoEvent = testScadaTableInfoService.translate(dsinfo, true);
-        Assert.assertNull(scinfoEvent);
+        Assertions.assertNull(scinfoEvent);
 
         // datastreamInfo doesn't exist in scada table
         DatastreamInfo dsinfoNull = new DatastreamInfo("notExists", "notExists");
         ScadaTableTranslator.ScadaInfo scinfoNull = testScadaTableInfoService.translate(dsinfoNull, false);
-        Assert.assertNull(scinfoNull);
+        Assertions.assertNull(scinfoNull);
     }
 
     @Test
@@ -142,13 +142,13 @@ public class ScadaTableInfoServiceTest {
         // same scada info but search in events table
         ScadaTableTranslator.ScadaTranslationInfo scinfoEvent = testScadaTableInfoService.getTranslationInfo(scadaInfo,
                 true);
-        Assert.assertNull(scinfoEvent);
+        Assertions.assertNull(scinfoEvent);
 
         // scada info to search for doesn't exist in tables
         ScadaTableTranslator.ScadaInfo scadaInfoNull = new ScadaTableTranslator.ScadaInfo(36,
                 ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME);
         ScadaTableTranslator.ScadaTranslationInfo scinfoNull = testScadaTableInfoService.getTranslationInfo(scadaInfoNull, false);
-        Assert.assertNull(scinfoNull);
+        Assertions.assertNull(scinfoNull);
 
     }
 
@@ -189,10 +189,10 @@ public class ScadaTableInfoServiceTest {
         assertEquals(2, transformedValue);
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testEventPublishTypeNotValid() {
-        new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, "booxlean",
-                "deviceId", "feed", "notValid");
+        assertThrows(ConfigurationException.class, () -> new BoxEntryConfiguration(ScadaTableEntryConfiguration.BINARY_INPUT_TYPE_NAME, "booxlean",
+                "deviceId", "feed", "notValid"));
     }
 
     @Test

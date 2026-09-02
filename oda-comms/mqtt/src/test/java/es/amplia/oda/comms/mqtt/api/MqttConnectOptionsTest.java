@@ -1,12 +1,12 @@
 package es.amplia.oda.comms.mqtt.api;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
 import static es.amplia.oda.comms.mqtt.api.MqttConnectOptions.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MqttConnectOptionsTest {
 

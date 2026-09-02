@@ -4,23 +4,26 @@ import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CDeviceException;
 import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsSetter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class I2CDatastreamsSetterTest {
 
 	private static final String TEST_DATASTREAMS_ID = "testDevice";
@@ -34,7 +37,7 @@ public class I2CDatastreamsSetterTest {
 	private I2CDevice mockedDevice;
 
 
-	@Before
+	@BeforeEach
 	public void testSetUp() {
 		testSetter = new I2CDatastreamsSetter(TEST_DATASTREAMS_ID, mockedService);
 	}
@@ -65,11 +68,11 @@ public class I2CDatastreamsSetterTest {
 		verify(mockedDevice).write(eq(dumbData));
 	}
 
-	@Test(expected = ExecutionException.class)
+	@Test
 	public void testSetAnException() throws ExecutionException, InterruptedException {
 		ByteBuffer dumbData = ByteBuffer.wrap(new byte[]{new Long(131000000L).byteValue()});
 		doThrow(I2CDeviceException.class).when(mockedService).getI2CFromName(eq(TEST_DATASTREAMS_ID));
 
-		testSetter.set("dumbData", dumbData).get();
+		assertThrows(ExecutionException.class, () -> testSetter.set("dumbData", dumbData).get());
 	}
 }

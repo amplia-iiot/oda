@@ -4,26 +4,29 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.hardware.modbus.ModbusType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.ONE_REGISTER;
 import static java.lang.Thread.sleep;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CoilCacheTest {
 
     private static final int NUM_REGISTERS_TO_READ = 4;
@@ -47,7 +50,7 @@ public class CoilCacheTest {
     private ModbusReadOperatorProcessor testReadOperatorProcessor;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         // ini boolean array
         TEST_BOOLEAN_ARRAY[0] = false;
@@ -56,10 +59,10 @@ public class CoilCacheTest {
         TEST_BOOLEAN_ARRAY[3] = false;
 
         List<ModbusMaster> listModbusConnections = Collections.singletonList(mockedModbusMaster);
-        PowerMockito.when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
-        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
-        PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
-        PowerMockito.when(mockedModbusMaster.readCoils(anyInt(), anyInt(), anyInt())).thenReturn(TEST_BOOLEAN_ARRAY);
+        when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
+        when(mockedModbusMaster.readCoils(anyInt(), anyInt(), anyInt())).thenReturn(TEST_BOOLEAN_ARRAY);
 
         testReadOperatorProcessor = new ModbusReadOperatorProcessor(mockedConnectionsLocator, mockedConverter);
 
