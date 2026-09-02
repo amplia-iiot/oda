@@ -1,13 +1,16 @@
 package es.amplia.oda.statemanager.inmemory.configuration;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class StateManagerInMemoryConfigurationTest {
 
 	private static final String PATH_FIELD_VALUE = "/country/road/to/home/";
@@ -20,7 +23,7 @@ public class StateManagerInMemoryConfigurationTest {
 
 	private StateManagerInMemoryConfiguration testConfiguration;
 
-	@Before
+	@BeforeEach
 	public void setup() {
 		testConfiguration = new StateManagerInMemoryConfiguration(PATH_FIELD_VALUE, MAX_DATA_FIELD_VALUE,
 				FORGET_TIME_FIELD_NAME, FORGET_PERIOD_FIELD_NAME, TASKS_PROCESSING_THREADS_VALUE, TASKS_PROCESSING_QUEUE_SIZE_VALUE);

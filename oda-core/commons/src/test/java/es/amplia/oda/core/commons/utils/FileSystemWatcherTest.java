@@ -1,8 +1,9 @@
 package es.amplia.oda.core.commons.utils;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,31 +11,33 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileSystemWatcherTest {
 
 	private Path tempDir;
 	private FileSystemWatcher watcher;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws IOException {
 		tempDir = Files.createTempDirectory("fswatcher-test");
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		if (watcher != null) {
 			watcher.stop();
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test
+	@Timeout(value = 5000, unit = TimeUnit.MILLISECONDS)
 	public void firesHandlerOnFileEvent() throws Exception {
 		List<String> events = new CopyOnWriteArrayList<>();
 		watcher = new FileSystemWatcher(tempDir,
@@ -50,7 +53,7 @@ public class FileSystemWatcherTest {
 			Thread.sleep(50);
 		}
 
-		assertFalse("expected a filesystem event to be dispatched", events.isEmpty());
+		assertFalse(events.isEmpty(), "expected a filesystem event to be dispatched");
 		assertTrue(events.stream().anyMatch(e -> e.contains("created.txt")));
 	}
 

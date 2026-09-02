@@ -1,11 +1,13 @@
 package es.amplia.oda.core.commons.utils;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -18,7 +20,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ServiceRegistrationManagerOsgiTest {
 
     private interface TestService {}
@@ -34,7 +37,7 @@ public class ServiceRegistrationManagerOsgiTest {
     @Mock
     private ServiceRegistration<TestService> mockedRegistration2;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testServiceServiceRegistrationManager = new ServiceRegistrationManagerOsgi<>(mockedContext, TestService.class);
     }

@@ -1,9 +1,8 @@
 package es.amplia.oda.core.commons.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CommandProcessorImplTest {
 
@@ -20,10 +19,8 @@ public class CommandProcessorImplTest {
         assertEquals(HELLO_WORLD, result);*/
     }
 
-    @Test(expected = CommandExecutionException.class)
-    public void testExecuteWrongCommand() throws CommandExecutionException {
-        commandProcessor.execute(WRONG_COMMAND + HELLO_WORLD);
-
-        fail("Command execution exception must be thrown");
+    @Test
+    public void testExecuteWrongCommand() {
+        assertThrows(CommandExecutionException.class, () -> commandProcessor.execute(WRONG_COMMAND + HELLO_WORLD));
     }
 }

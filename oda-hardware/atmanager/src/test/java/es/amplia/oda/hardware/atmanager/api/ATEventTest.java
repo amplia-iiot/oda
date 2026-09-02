@@ -1,9 +1,10 @@
 package es.amplia.oda.hardware.atmanager.api;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ATEventTest {
 
@@ -13,19 +14,19 @@ public class ATEventTest {
         assertThat(actual, is("+F: 1"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void eventsMustBeginWithPlus() {
-        ATEvent.event("FOO");
+        assertThrows(AssertionError.class, () -> ATEvent.event("FOO"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void eventsMustHaveTwoChars() {
-        ATEvent.event("+");
+        assertThrows(AssertionError.class, () -> ATEvent.event("+"));
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void eventsMustHaveOneParameter() {
-        ATEvent.event("+F");
+        assertThrows(AssertionError.class, () -> ATEvent.event("+F"));
     }
 
     @Test

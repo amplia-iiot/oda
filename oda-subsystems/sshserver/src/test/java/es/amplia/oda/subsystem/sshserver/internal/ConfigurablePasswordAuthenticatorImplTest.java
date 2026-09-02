@@ -1,9 +1,9 @@
 package es.amplia.oda.subsystem.sshserver.internal;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.powermock.reflect.Whitebox;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ConfigurablePasswordAuthenticatorImplTest {
 

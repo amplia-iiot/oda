@@ -1,11 +1,13 @@
 package es.amplia.oda.service.scadatables.configuration;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import es.amplia.oda.service.scadatables.internal.ScadaTableInfoService;
@@ -13,16 +15,17 @@ import es.amplia.oda.service.scadatables.internal.ScadaTableInfoService;
 import java.util.*;
 
 import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ScadaTablesConfigurationHandlerTest {
     @Mock
     ScadaTableInfoService mockedScadaTableInfoService;
 
     ScadaTablesConfigurationHandler testScadaTablesConfigurationHandler;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testScadaTablesConfigurationHandler = new ScadaTablesConfigurationHandler(mockedScadaTableInfoService);
     }
@@ -75,7 +78,7 @@ public class ScadaTablesConfigurationHandlerTest {
         Map<Integer, String> pairAsduAddress2 = java.util.Collections.singletonMap(10011, "BinaryInput");
         ScadaTableEntryConfiguration scadaInfo2 = scadaTableRecollection.get(pairAsduAddress2);
         assertEquals("BinaryInput", scadaInfo2.getDataType());
-        Assert.assertNull(scadaInfo2.getDeviceId());
+        Assertions.assertNull(scadaInfo2.getDeviceId());
         assertEquals("recoleccion", scadaInfo2.getFeed());
         assertFalse(scadaInfo2.isEvent());
         assertNull(scadaInfo2.getScript());

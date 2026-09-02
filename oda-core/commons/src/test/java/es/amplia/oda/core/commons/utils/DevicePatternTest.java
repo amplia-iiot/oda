@@ -1,13 +1,14 @@
 package es.amplia.oda.core.commons.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DevicePatternTest {
     @SafeVarargs
@@ -27,14 +28,14 @@ public class DevicePatternTest {
         assertThat(dp.match("bye"), is(true));
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test
     public void thePatternCanHaveAtMostOneAsterisk() {
-        new DevicePattern("**");
+        assertThrows(IllegalArgumentException.class, () -> new DevicePattern("**"));
     }
     
-    @Test(expected=IllegalArgumentException.class)
+    @Test
     public void thePatternCannotBeNull() {
-        new DevicePattern(null);
+        assertThrows(IllegalArgumentException.class, () -> new DevicePattern(null));
     }
     
     @Test

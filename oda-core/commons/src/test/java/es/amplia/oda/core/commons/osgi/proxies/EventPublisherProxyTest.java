@@ -1,15 +1,17 @@
 package es.amplia.oda.core.commons.osgi.proxies;
 
 import es.amplia.oda.core.commons.utils.Event;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 
 import java.util.ArrayList;
@@ -18,11 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class EventPublisherProxyTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -47,7 +50,7 @@ public class EventPublisherProxyTest {
     @Captor
     private ArgumentCaptor<List<Event>> eventCaptor;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         stateManagerConstruction = mockConstruction(StateManagerProxy.class,
                 (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
@@ -55,7 +58,7 @@ public class EventPublisherProxyTest {
         mockedStateManager = stateManagerConstruction.constructed().get(0);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         stateManagerConstruction.close();
     }
