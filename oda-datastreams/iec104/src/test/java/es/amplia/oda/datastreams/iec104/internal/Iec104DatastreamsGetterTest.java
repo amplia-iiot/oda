@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -13,10 +13,10 @@ import java.util.concurrent.ExecutionException;
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Iec104DatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";

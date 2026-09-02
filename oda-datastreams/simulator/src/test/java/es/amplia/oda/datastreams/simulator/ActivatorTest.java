@@ -11,18 +11,19 @@ import es.amplia.oda.datastreams.simulator.internal.SimulatedDatastreamsSetterFa
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -30,45 +31,50 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private SimulatedDatastreamsGetterFactory mockedGetterFactory;
-    @Mock
-    private SimulatedDatastreamsSetterFactory mockedSetterFactory;
-    @Mock
-    private ServiceRegistrationManagerOsgi<DatastreamsGetter> mockedRegistrationGetterManager;
-    @Mock
-    private ServiceRegistrationManagerOsgi<DatastreamsSetter> mockedRegistrationSetterManager;
-    @Mock
     private SimulatedDatastreamsManager mockedDatastreamsManager;
-    @Mock
-    private SimulatedDatastreamsConfigurationHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
 
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(SimulatedDatastreamsGetterFactory.class).withAnyArguments().thenReturn(mockedGetterFactory);
-        PowerMockito.whenNew(SimulatedDatastreamsSetterFactory.class).withAnyArguments().thenReturn(mockedSetterFactory);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withArguments(any(), eq(DatastreamsGetter.class))
-                .thenReturn(mockedRegistrationGetterManager);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withArguments(any(), eq(DatastreamsSetter.class))
-                .thenReturn(mockedRegistrationSetterManager);
-        PowerMockito.whenNew(SimulatedDatastreamsManager.class).withAnyArguments().thenReturn(mockedDatastreamsManager);
-        PowerMockito.whenNew(SimulatedDatastreamsConfigurationHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> datastreamsManagerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        try (MockedConstruction<SimulatedDatastreamsGetterFactory> getterFactoryCons =
+                     mockConstruction(SimulatedDatastreamsGetterFactory.class);
+             MockedConstruction<SimulatedDatastreamsSetterFactory> setterFactoryCons =
+                     mockConstruction(SimulatedDatastreamsSetterFactory.class);
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SimulatedDatastreamsManager> datastreamsManagerCons =
+                     mockConstruction(SimulatedDatastreamsManager.class,
+                             (mock, mctx) -> datastreamsManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SimulatedDatastreamsConfigurationHandler> configHandlerCons =
+                     mockConstruction(SimulatedDatastreamsConfigurationHandler.class);
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(SimulatedDatastreamsGetterFactory.class).withNoArguments();
-        PowerMockito.verifyNew(SimulatedDatastreamsSetterFactory.class).withNoArguments();
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
-        PowerMockito.verifyNew(SimulatedDatastreamsManager.class)
-                .withArguments(eq(mockedGetterFactory), eq(mockedSetterFactory), eq(mockedRegistrationGetterManager), eq(mockedRegistrationSetterManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+            assertEquals(1, getterFactoryCons.constructed().size());
+            assertEquals(1, setterFactoryCons.constructed().size());
+            assertEquals(2, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(mockedContext, registrationManagerArgs.get(1).get(0));
+            assertEquals(DatastreamsSetter.class, registrationManagerArgs.get(1).get(1));
+            assertEquals(1, datastreamsManagerCons.constructed().size());
+            assertEquals(getterFactoryCons.constructed().get(0), datastreamsManagerArgs.get(0).get(0));
+            assertEquals(setterFactoryCons.constructed().get(0), datastreamsManagerArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(0), datastreamsManagerArgs.get(0).get(2));
+            assertEquals(registrationManagerCons.constructed().get(1), datastreamsManagerArgs.get(0).get(3));
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+        }
     }
 
     @Test

@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import static es.amplia.oda.statemanager.realtime.RealTimeStateManager.VALUE_NOT
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RealTimeStateManagerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -318,7 +318,7 @@ public class RealTimeStateManagerTest {
         verify(mockedSetter1).set(eq(TEST_DEVICE_ID), eq(TEST_VALUE_1));
         verify(mockedSetter2).set(eq(TEST_DEVICE_ID), eq(TEST_VALUE_2));
         verify(mockedSetter3).set(eq(TEST_DEVICE_ID), eq(TEST_VALUE_3));
-        verifyZeroInteractions(mockedSetter4);
+        verifyNoInteractions(mockedSetter4);
     }
 
 

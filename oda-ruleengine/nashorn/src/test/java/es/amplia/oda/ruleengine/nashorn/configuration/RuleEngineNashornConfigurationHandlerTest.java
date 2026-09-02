@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
@@ -16,7 +16,7 @@ import java.util.Hashtable;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RuleEngineNashornConfigurationHandlerTest {
 
 	RuleEngineConfigurationHandler testHandler;

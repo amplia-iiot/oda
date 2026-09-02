@@ -7,11 +7,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,8 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(FtpClient.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class FtpClientTest {
 
     private static final String FTP_IP = "127.0.0.1";
@@ -34,18 +31,21 @@ public class FtpClientTest {
     private static final String FTP_USER = "test";
     private static final String FTP_PASSWD = "passwd";
 
-    @Mock
     FTPClient mockedApacheFtpClient;
     FtpClient ftpClient = new FtpClient(FTP_IP, FTP_PORT, FTP_USER, FTP_PASSWD, false);
 
     @Before()
     public void setup() throws Exception {
-        PowerMockito.whenNew(FTPClient.class).withAnyArguments().thenReturn(mockedApacheFtpClient);
-        Mockito.when(mockedApacheFtpClient.getReplyCode()).thenReturn(200);
-        Mockito.when(mockedApacheFtpClient.login(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        try (MockedConstruction<FTPClient> ftpClientCons = Mockito.mockConstruction(FTPClient.class,
+                (mock, mctx) -> {
+                    Mockito.when(mock.getReplyCode()).thenReturn(200);
+                    Mockito.when(mock.login(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+                })) {
+            boolean connectResult = ftpClient.connect();
+            Assert.assertTrue(connectResult);
 
-        boolean connectResult = ftpClient.connect();
-        Assert.assertTrue(connectResult);
+            mockedApacheFtpClient = ftpClientCons.constructed().get(0);
+        }
 
         Path destPath = Paths.get("src/test/resources/downloadedTest.txt");
         if(Files.exists(destPath)) {

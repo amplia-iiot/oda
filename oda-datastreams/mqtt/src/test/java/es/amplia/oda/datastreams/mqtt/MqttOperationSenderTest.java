@@ -8,27 +8,27 @@ import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.operation.request.Operation;
 import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
 import es.amplia.oda.core.commons.utils.operation.request.Request;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MqttCounters.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MqttOperationSenderTest {
 
     private static final String TEST_REQUEST_TOPIC = "test/request/topic";
@@ -50,9 +50,16 @@ public class MqttOperationSenderTest {
     
     private MqttOperationSender testHandler;
 
+    private MockedStatic<MqttCounters> mockedCounters;
+
     @Before
     public void setUp() {
-        PowerMockito.mockStatic(MqttCounters.class);
+        mockedCounters = mockStatic(MqttCounters.class);
+    }
+
+    @After
+    public void tearDown() {
+        mockedCounters.close();
     }
 
     @Test

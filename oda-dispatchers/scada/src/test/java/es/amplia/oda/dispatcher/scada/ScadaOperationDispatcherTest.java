@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +26,7 @@ import static es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableV
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ScadaOperationDispatcherTest {
 
     private static final int TEST_INDEX = 1;
@@ -67,7 +67,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
-        verifyZeroInteractions(mockedSetDeviceParameters);
+        verifyNoInteractions(mockedSetDeviceParameters);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
-        verifyZeroInteractions(mockedSetDeviceParameters);
+        verifyNoInteractions(mockedSetDeviceParameters);
     }
 
     // Should never happen
@@ -109,7 +109,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
-        verifyZeroInteractions(mockedSetDeviceParameters);
+        verifyNoInteractions(mockedSetDeviceParameters);
     }
 
     // Should never happen
@@ -130,7 +130,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedGetDeviceParameters)
                 .getDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singleton(TEST_DATASTREAM_ID)));
-        verifyZeroInteractions(mockedSetDeviceParameters);
+        verifyNoInteractions(mockedSetDeviceParameters);
     }
 
     @Test
@@ -153,7 +153,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
-        verifyZeroInteractions(mockedGetDeviceParameters);
+        verifyNoInteractions(mockedGetDeviceParameters);
     }
 
     @Test
@@ -176,7 +176,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
-        verifyZeroInteractions(mockedGetDeviceParameters);
+        verifyNoInteractions(mockedGetDeviceParameters);
     }
 
     // Should not happen
@@ -201,7 +201,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
-        verifyZeroInteractions(mockedGetDeviceParameters);
+        verifyNoInteractions(mockedGetDeviceParameters);
     }
 
     // Should not happen
@@ -224,7 +224,7 @@ public class ScadaOperationDispatcherTest {
         verify(mockedTranslator).getTranslationInfo(eq(new ScadaInfo(TEST_INDEX, TEST_TYPE)), eq(false));
         verify(mockedSetDeviceParameters)
                 .setDeviceParameters(eq(TEST_DEVICE_ID), eq(Collections.singletonList(setValue)));
-        verifyZeroInteractions(mockedGetDeviceParameters);
+        verifyNoInteractions(mockedGetDeviceParameters);
     }
 
     @Test

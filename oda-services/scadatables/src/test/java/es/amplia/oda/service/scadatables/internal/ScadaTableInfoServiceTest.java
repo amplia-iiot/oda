@@ -11,12 +11,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,8 +24,7 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ScadaTableInfoService.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ScadaTableInfoServiceTest {
 
     private ScadaTableInfoService testScadaTableInfoService;
@@ -41,8 +39,7 @@ public class ScadaTableInfoServiceTest {
 
         // register script
         String script = "x*10";
-        final ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("nashorn");
+        ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
         engine.eval(ScadaTablesConfigurationHandler.REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
         entryBox.setScript((Invocable) engine);
 

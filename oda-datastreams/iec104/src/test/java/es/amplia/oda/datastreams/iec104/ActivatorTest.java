@@ -1,8 +1,8 @@
 package es.amplia.oda.datastreams.iec104;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.interfaces.ScadaTableInfo;
-import es.amplia.oda.core.commons.interfaces.ScadaTableTranslator;
 import es.amplia.oda.core.commons.osgi.proxies.EventPublisherProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
@@ -13,18 +13,19 @@ import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -34,13 +35,7 @@ public class ActivatorTest {
     @Mock
     private Iec104ConnectionsFactory mockedConnectionsFactory;
     @Mock
-    private Iec104DatastreamsFactoryImpl mockedFactory;
-    @Mock
-    private ServiceRegistrationManagerOsgi mockedRegistrationManager;
-    @Mock
     private Iec104DatastreamsManager mockedIec104DatastreamsManager;
-    @Mock
-    private Iec104DatastreamsConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundle;
     @Mock
@@ -52,31 +47,56 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(Iec104ConnectionsFactory.class).withAnyArguments().thenReturn(mockedConnectionsFactory);
-        PowerMockito.whenNew(Iec104DatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-                .thenReturn(mockedRegistrationManager);
-        PowerMockito.whenNew(Iec104DatastreamsManager.class).withAnyArguments()
-                .thenReturn(mockedIec104DatastreamsManager);
-        PowerMockito.whenNew(Iec104DatastreamsConfigurationUpdateHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+        List<List<?>> factoryArgs = new ArrayList<>();
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> managerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<Iec104ConnectionsFactory> connectionsFactoryCons =
+                     mockConstruction(Iec104ConnectionsFactory.class);
+             MockedConstruction<Iec104DatastreamsFactoryImpl> factoryCons =
+                     mockConstruction(Iec104DatastreamsFactoryImpl.class,
+                             (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<Iec104DatastreamsManager> iec104DatastreamsManagerCons =
+                     mockConstruction(Iec104DatastreamsManager.class,
+                             (mock, mctx) -> managerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<Iec104DatastreamsConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(Iec104DatastreamsConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventPublisherProxy> eventPublisherCons =
+                     mockConstruction(EventPublisherProxy.class);
+             MockedConstruction<EventDispatcherProxy> eventDispatcherCons =
+                     mockConstruction(EventDispatcherProxy.class)) {
 
-        PowerMockito.verifyNew(Iec104DatastreamsFactoryImpl.class).withArguments(any(ScadaTableTranslator.class), eq(mockedConnectionsFactory));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(Iec104DatastreamsManager.class)
-                .withArguments(eq(mockedFactory), eq(mockedRegistrationManager), eq(mockedRegistrationManager),
-                        eq(mockedConnectionsFactory), any(ScadaTableTranslator.class));
-        PowerMockito.verifyNew(Iec104DatastreamsConfigurationUpdateHandler.class)
-                .withArguments(eq(mockedIec104DatastreamsManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+            testActivator.start(mockedContext);
+
+            assertEquals(1, factoryCons.constructed().size());
+            assertEquals(connectionsFactoryCons.constructed().get(0), factoryArgs.get(0).get(1));
+            assertEquals(2, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(mockedContext, registrationManagerArgs.get(1).get(0));
+            assertEquals(DatastreamsSetter.class, registrationManagerArgs.get(1).get(1));
+            assertEquals(1, iec104DatastreamsManagerCons.constructed().size());
+            assertEquals(factoryCons.constructed().get(0), managerArgs.get(0).get(0));
+            assertEquals(registrationManagerCons.constructed().get(0), managerArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(1), managerArgs.get(0).get(2));
+            assertEquals(connectionsFactoryCons.constructed().get(0), managerArgs.get(0).get(3));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(iec104DatastreamsManagerCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            assertEquals(1, eventPublisherCons.constructed().size());
+            assertEquals(1, eventDispatcherCons.constructed().size());
+        }
     }
 
     @Test

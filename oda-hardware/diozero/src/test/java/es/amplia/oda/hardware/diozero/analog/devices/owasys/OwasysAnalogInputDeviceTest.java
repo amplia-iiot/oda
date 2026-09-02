@@ -6,8 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -18,8 +17,7 @@ import java.io.RandomAccessFile;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OwasysAnalogInputDevice.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OwasysAnalogInputDeviceTest {
 	@Mock
 	private static OwasysAnalogInputDeviceFactory mockedOwasysAnalogInputDevice;
@@ -61,7 +59,7 @@ public class OwasysAnalogInputDeviceTest {
 
 	@Test
 	public void getValueExceptionTest() throws IOException {
-		doThrow(new IOException()).when(mockedRandomAccessFile).seek(anyInt());
+		doThrow(new IOException()).when(mockedRandomAccessFile).seek(anyLong());
 		Whitebox.setInternalState(testDevice, "value", mockedRandomAccessFile);
 
 		float value = testDevice.getValue();

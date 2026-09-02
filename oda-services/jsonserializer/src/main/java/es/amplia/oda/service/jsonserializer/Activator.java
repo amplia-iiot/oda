@@ -12,30 +12,40 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-public class Activator  implements BundleActivator {
+/**
+ * Registers the JSON and CBOR serializers (previously two separate bundles). Both are Jackson
+ * based and share the embedded Jackson; each is published as a {@code Serializer} service tagged
+ * with its {@link ContentType}, so the SerializerProvider keeps picking one by content type.
+ */
+public class Activator implements BundleActivator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
-    private ServiceRegistration<Serializer> registration;
+    private ServiceRegistration<Serializer> jsonRegistration;
+    private ServiceRegistration<Serializer> cborRegistration;
 
     @Override
     public void start(BundleContext bundleContext) {
-        LOGGER.info("Starting Service JSON Serializer");
+        LOGGER.info("Starting Service JSON/CBOR Serializer");
 
-        JsonSerializer jsonSerializer = new JsonSerializer();
-        Dictionary<String, String> serializerProps = new MapBasedDictionary<>(String.class);
-        serializerProps.put(ContentType.PROPERTY_NAME, ContentType.JSON.toString());
-        registration = bundleContext.registerService(Serializer.class, jsonSerializer, serializerProps);
+        Dictionary<String, String> jsonProps = new MapBasedDictionary<>(String.class);
+        jsonProps.put(ContentType.PROPERTY_NAME, ContentType.JSON.toString());
+        jsonRegistration = bundleContext.registerService(Serializer.class, new JsonSerializer(), jsonProps);
 
-        LOGGER.info("JSON Serializer Activator started");
+        Dictionary<String, String> cborProps = new MapBasedDictionary<>(String.class);
+        cborProps.put(ContentType.PROPERTY_NAME, ContentType.CBOR.toString());
+        cborRegistration = bundleContext.registerService(Serializer.class, new CborSerializer(), cborProps);
+
+        LOGGER.info("JSON/CBOR Serializer Activator started");
     }
 
     @Override
     public void stop(BundleContext bundleContext) {
-        LOGGER.info("Stopping Service JSON Serializer");
-        
-        registration.unregister();
-        
-        LOGGER.info("JSON Serializer Activator stopped");
+        LOGGER.info("Stopping Service JSON/CBOR Serializer");
+
+        jsonRegistration.unregister();
+        cborRegistration.unregister();
+
+        LOGGER.info("JSON/CBOR Serializer Activator stopped");
     }
 }

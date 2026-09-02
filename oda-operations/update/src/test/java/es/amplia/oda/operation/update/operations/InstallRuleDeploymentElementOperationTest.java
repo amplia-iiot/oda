@@ -7,8 +7,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.util.Collections;
@@ -18,7 +18,7 @@ import static es.amplia.oda.operation.update.FileManager.FileException;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class InstallRuleDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -97,7 +97,7 @@ public class InstallRuleDeploymentElementOperationTest {
     public void testRollbackSpecificOperationNoInstalledFile() throws FileException {
         testRulesInstallOperation.rollbackSpecificOperation(mockedFileManager, null);
 
-        verifyZeroInteractions(mockedFileManager);
+        verifyNoInteractions(mockedFileManager);
     }
 
     @Test(expected = FileException.class)

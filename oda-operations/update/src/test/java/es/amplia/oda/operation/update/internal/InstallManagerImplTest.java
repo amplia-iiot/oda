@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Collections;
@@ -23,12 +23,12 @@ import java.util.Map;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class InstallManagerImplTest {
 
     private static final String TEST_NAME_1 = "test1";
@@ -195,7 +195,7 @@ public class InstallManagerImplTest {
         try {
             testInstallManager.install(installSoftwareElement, null);
         } finally {
-            verifyZeroInteractions(spiedInstalledElements);
+            verifyNoInteractions(spiedInstalledElements);
         }
 
         fail(INSTALL_EXCEPTION_MESSAGE);
@@ -206,7 +206,7 @@ public class InstallManagerImplTest {
         try {
             testInstallManager.install(upgradeConfigurationElement, null);
         } finally {
-            verifyZeroInteractions(spiedInstalledElements);
+            verifyNoInteractions(spiedInstalledElements);
         }
 
         fail(INSTALL_EXCEPTION_MESSAGE);

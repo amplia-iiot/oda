@@ -4,27 +4,28 @@ import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.DevicePattern;
 import es.amplia.oda.core.commons.utils.Event;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(StateManagerProxy.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class StateManagerProxyTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -40,7 +41,8 @@ public class StateManagerProxyTest {
     private BundleContext mockedContext;
     private StateManagerProxy testProxy;
 
-    @Mock
+    private MockedConstruction<OsgiServiceProxy> proxyConstruction;
+    private final List<List<?>> proxyArgs = new ArrayList<>();
     private OsgiServiceProxy<StateManager> mockedProxy;
     @Mock
     private StateManager mockedStateManager;
@@ -56,15 +58,25 @@ public class StateManagerProxyTest {
 
 
     @Before
+    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
-        PowerMockito.whenNew(OsgiServiceProxy.class).withAnyArguments().thenReturn(mockedProxy);
+        proxyConstruction = mockConstruction(OsgiServiceProxy.class,
+                (mock, mctx) -> proxyArgs.add(new ArrayList<>(mctx.arguments())));
 
         testProxy = new StateManagerProxy(mockedContext);
+        mockedProxy = proxyConstruction.constructed().get(0);
+    }
+
+    @After
+    public void tearDown() {
+        proxyConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(OsgiServiceProxy.class).withArguments(eq(StateManager.class), eq(mockedContext));
+        assertEquals(1, proxyConstruction.constructed().size());
+        assertEquals(StateManager.class, proxyArgs.get(0).get(0));
+        assertEquals(mockedContext, proxyArgs.get(0).get(1));
     }
 
     @Test

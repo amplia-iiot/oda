@@ -1,28 +1,24 @@
 package es.amplia.oda.ruleengine.api;
 
+import es.amplia.oda.core.commons.utils.FileSystemWatcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchService;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MainDirectoryWatcher.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MainDirectoryWatcherTest {
 
 	@Mock
@@ -32,9 +28,6 @@ public class MainDirectoryWatcherTest {
 
 	@InjectMocks
 	MainDirectoryWatcher testDirectoryWatcher;
-
-	@Mock
-	Thread mockedThread;
 
 	@Test
 	public void testConstructor() {
@@ -47,14 +40,13 @@ public class MainDirectoryWatcherTest {
 	}
 
 	@Test
-	public void testStart() throws Exception {
-		Whitebox.setInternalState(testDirectoryWatcher, "creatingWatcherThread", mockedThread);
-		whenNew(Thread.class).withAnyArguments().thenReturn(mockedThread);
+	public void testStart() {
+		try (MockedConstruction<FileSystemWatcher> watcherConstruction = mockConstruction(FileSystemWatcher.class)) {
+			testDirectoryWatcher.start();
 
-		testDirectoryWatcher.start();
-
-		verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE), eq(StandardWatchEventKinds.ENTRY_DELETE));
-		verify(mockedThread).start();
+			assertEquals(1, watcherConstruction.constructed().size());
+			verify(watcherConstruction.constructed().get(0)).start();
+		}
 	}
 
 	@Test
@@ -70,6 +62,7 @@ public class MainDirectoryWatcherTest {
 		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).createDatastreamDirectory("tempDir");
 
 		fileToCreate.delete();
+		testDirectoryWatcher.stop();
 	}
 
 	@Test
@@ -84,11 +77,17 @@ public class MainDirectoryWatcherTest {
 		fileToCreate.delete();
 
 		Mockito.verify(mockedEngine, Mockito.timeout(1000).atLeastOnce()).deleteDatastreamDirectory("tempDir");
+		testDirectoryWatcher.stop();
 	}
 
 	@Test
-	public void testThreadException() throws IOException {
-		String root = new File(".").getCanonicalPath();
+	public void testThreadException() {
+		String root;
+		try {
+			root = new File(".").getCanonicalPath();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		String testRoute = root + "/src/test/java";
 		testDirectoryWatcher = new MainDirectoryWatcher(Paths.get(testRoute), mockedEngine);
 
@@ -101,10 +100,11 @@ public class MainDirectoryWatcherTest {
 
 	@Test
 	public void testStop() {
-		Whitebox.setInternalState(testDirectoryWatcher, "creatingWatcherThread", mockedThread);
+		FileSystemWatcher mockedWatcher = mock(FileSystemWatcher.class);
+		Whitebox.setInternalState(testDirectoryWatcher, "watcher", mockedWatcher);
 
 		testDirectoryWatcher.stop();
 
-		verify(mockedThread).interrupt();
+		verify(mockedWatcher).stop();
 	}
 }

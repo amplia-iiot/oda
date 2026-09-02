@@ -5,20 +5,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ModbusCustomTCPListener.class)
+import static org.mockito.Mockito.mockConstruction;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusCustomTcpListenerTest {
 
     private static final String TEST_DEVICE_IP = "1.2.3.4";
@@ -30,11 +31,11 @@ public class ModbusCustomTcpListenerTest {
     @Mock
     StateManager mockedStateManager;
     @Mock
-    ServerSocket mockedServerSocket;
-    @Mock
     Socket mockedSocket;
     @Mock
     InetAddress mockedInetAddress;
+
+    private final List<ServerSocket> constructedServerSockets = new CopyOnWriteArrayList<>();
 
     @Before
     public void prepare(){
@@ -47,16 +48,22 @@ public class ModbusCustomTcpListenerTest {
     public void handleRequestTest() throws Exception {
         // conditions
         ModbusCustomTCPListener customTcpListener = new ModbusCustomTCPListener(1, requestHandlers);
-        PowerMockito.whenNew(ServerSocket.class).withAnyArguments().thenReturn(mockedServerSocket);
-        PowerMockito.when(mockedServerSocket.accept()).thenReturn(mockedSocket);
-        PowerMockito.when(mockedSocket.getInetAddress()).thenReturn(mockedInetAddress);
-        PowerMockito.when(mockedInetAddress.getHostAddress()).thenReturn(TEST_DEVICE_IP);
-        PowerMockito.when(mockedInetAddress.getHostAddress()).thenReturn(TEST_DEVICE_IP);
+        Mockito.when(mockedSocket.getInetAddress()).thenReturn(mockedInetAddress);
+        Mockito.when(mockedInetAddress.getHostAddress()).thenReturn(TEST_DEVICE_IP);
 
         // call method
         // execute in a new thread because it's an infinite loop
+        // the ServerSocket construction mock must be created in the same thread that runs the listener
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(customTcpListener);
+        Future<?> future = executor.submit(() -> {
+            try (MockedConstruction<ServerSocket> ignored = mockConstruction(ServerSocket.class,
+                    (mock, mctx) -> {
+                        Mockito.when(mock.accept()).thenReturn(mockedSocket);
+                        constructedServerSockets.add(mock);
+                    })) {
+                customTcpListener.run();
+            }
+        });
 
         // wait 1 second and then cancel thread
         Thread.sleep(1000);
@@ -66,6 +73,6 @@ public class ModbusCustomTcpListenerTest {
         customTcpListener.setTimeout(1000);
         customTcpListener.stop();
 
-        Mockito.verify(mockedServerSocket, Mockito.atLeastOnce()).accept();
+        Mockito.verify(constructedServerSockets.get(0), Mockito.atLeastOnce()).accept();
     }
 }

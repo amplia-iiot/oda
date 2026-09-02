@@ -16,7 +16,6 @@
     </parent>
 
     <modules>
-        <module>cborserializer</module>
         <module>jsonserializer</module>
         <module>scadatables</module>
 		<module>zipcompress</module>

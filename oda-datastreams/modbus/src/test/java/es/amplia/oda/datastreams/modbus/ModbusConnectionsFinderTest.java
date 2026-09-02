@@ -2,25 +2,24 @@ package es.amplia.oda.datastreams.modbus;
 
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ModbusConnectionsFinder.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusConnectionsFinderTest {
 
     private final String TEST_DEVICE_ID = "testDevice";
@@ -31,8 +30,9 @@ public class ModbusConnectionsFinderTest {
     @Mock
     private ModbusMaster mockedModbusMaster;
     private final List<ModbusMaster> mockedModbusConnectionsList = new ArrayList<>();
-    @Mock
     private ServiceLocatorOsgi<ModbusMaster> mockedModbusConnectionsLocator;
+
+    private MockedConstruction<ServiceLocatorOsgi> mockedLocatorCons;
 
     private ModbusConnectionsFinder testConnectionsFinder;
 
@@ -40,19 +40,23 @@ public class ModbusConnectionsFinderTest {
     public void setUp() throws Exception {
 
         // conditions
-        PowerMockito.whenNew(ServiceLocatorOsgi.class)
-                .withArguments(any(BundleContext.class), eq(ModbusMaster.class))
-                .thenReturn(mockedModbusConnectionsLocator);
+        mockedLocatorCons = mockConstruction(ServiceLocatorOsgi.class,
+                (mock, mctx) -> when(mock.findAll()).thenReturn(mockedModbusConnectionsList));
 
-        PowerMockito.when(mockedModbusConnectionsLocator.findAll()).thenReturn(mockedModbusConnectionsList);
-        PowerMockito.when(mockedModbusMaster.getDeviceId()).thenReturn(TEST_DEVICE_ID);
+        when(mockedModbusMaster.getDeviceId()).thenReturn(TEST_DEVICE_ID);
 
         // ini class to test
         testConnectionsFinder = new ModbusConnectionsFinder(mockedContext);
+        mockedModbusConnectionsLocator = mockedLocatorCons.constructed().get(0);
 
         // add mockedModbusMaster to list of connections
         mockedModbusConnectionsList.add(mockedModbusMaster);
 
+    }
+
+    @After
+    public void tearDown() {
+        mockedLocatorCons.close();
     }
 
     @Test
@@ -68,7 +72,7 @@ public class ModbusConnectionsFinderTest {
     @Test
     public void testGetModbusConnectionWithIdNoMatch() {
 
-        PowerMockito.when(mockedModbusMaster.getDeviceId()).thenReturn("NoMatch");
+        when(mockedModbusMaster.getDeviceId()).thenReturn("NoMatch");
 
         ModbusMaster connectionFound = testConnectionsFinder.getModbusConnectionWithId(TEST_DEVICE_ID);
 

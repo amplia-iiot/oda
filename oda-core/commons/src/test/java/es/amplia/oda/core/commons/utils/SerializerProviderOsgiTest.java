@@ -3,23 +3,24 @@ package es.amplia.oda.core.commons.utils;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.osgi.proxies.SerializerProxy;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SerializerProviderOsgi.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SerializerProviderOsgiTest {
 
     @Mock
@@ -27,34 +28,52 @@ public class SerializerProviderOsgiTest {
 
     private SerializerProviderOsgi testSerializerProvider;
 
-    @Mock
+    private MockedConstruction<SerializerProxy> serializerConstruction;
+    private final List<List<?>> serializerArgs = new ArrayList<>();
     private SerializerProxy mockedCborSerializer;
-    @Mock
     private SerializerProxy mockedJsonSerializer;
-    @Mock
     private SerializerProxy mockedMessagePackSerializer;
 
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.whenNew(SerializerProxy.class).withArguments(any(BundleContext.class), eq(ContentType.CBOR))
-                .thenReturn(mockedCborSerializer);
-        when(mockedCborSerializer.getContentType()).thenReturn(ContentType.CBOR);
-        PowerMockito.whenNew(SerializerProxy.class).withArguments(any(BundleContext.class), eq(ContentType.JSON))
-                .thenReturn(mockedJsonSerializer);
-        when(mockedJsonSerializer.getContentType()).thenReturn(ContentType.JSON);
-        PowerMockito.whenNew(SerializerProxy.class).withArguments(any(BundleContext.class), eq(ContentType.MESSAGE_PACK))
-                .thenReturn(mockedMessagePackSerializer);
-        when(mockedMessagePackSerializer.getContentType()).thenReturn(ContentType.MESSAGE_PACK);
+        serializerConstruction = mockConstruction(SerializerProxy.class,
+                (mock, mctx) -> {
+                    serializerArgs.add(new ArrayList<>(mctx.arguments()));
+                    when(mock.getContentType()).thenReturn((ContentType) mctx.arguments().get(1));
+                });
 
         testSerializerProvider = new SerializerProviderOsgi(mockedContext);
+
+        for (SerializerProxy constructedSerializer : serializerConstruction.constructed()) {
+            switch (constructedSerializer.getContentType()) {
+                case CBOR:
+                    mockedCborSerializer = constructedSerializer;
+                    break;
+                case JSON:
+                    mockedJsonSerializer = constructedSerializer;
+                    break;
+                case MESSAGE_PACK:
+                    mockedMessagePackSerializer = constructedSerializer;
+                    break;
+            }
+        }
+    }
+
+    @After
+    public void tearDown() {
+        serializerConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
-        PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.MESSAGE_PACK));
+        assertEquals(ContentType.values().length, serializerConstruction.constructed().size());
+        for (List<?> constructorArgs : serializerArgs) {
+            assertEquals(mockedContext, constructorArgs.get(0));
+        }
+        assertNotNull(mockedCborSerializer);
+        assertNotNull(mockedJsonSerializer);
+        assertNotNull(mockedMessagePackSerializer);
     }
 
     @Test

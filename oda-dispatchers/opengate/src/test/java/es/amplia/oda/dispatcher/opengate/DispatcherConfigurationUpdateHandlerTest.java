@@ -10,8 +10,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -19,11 +19,11 @@ import java.util.concurrent.TimeUnit;
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.EVENT_CONTENT_TYPE_PROPERTY_NAME;
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.REDUCED_OUTPUT_PROPERTY_NAME;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DispatcherConfigurationUpdateHandlerTest {
 
     @Mock

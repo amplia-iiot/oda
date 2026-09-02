@@ -9,15 +9,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.lang.reflect.Type;
 import java.util.List;
 
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpDatastreamsSetterTest {
 
     private static final String TEST_DEVICE_ID_VALUE = "testDevice";
@@ -60,7 +59,7 @@ public class SnmpDatastreamsSetterTest {
 
     @Test
     public void setValueTest() {
-        PowerMockito.when(mockedSnmpClientsFinder.getSnmpClient(Mockito.any())).thenReturn(mockedSnmpClient);
+        Mockito.when(mockedSnmpClientsFinder.getSnmpClient(Mockito.any())).thenReturn(mockedSnmpClient);
 
         datastreamSetter.set(TEST_DEVICE_ID_VALUE, TEST_WRITE_VALUE);
 

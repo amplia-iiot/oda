@@ -9,20 +9,21 @@ import es.amplia.oda.datastreams.deviceinfo.configuration.ScriptsLoader;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -30,36 +31,47 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private CommandProcessorImpl mockedCommandProcessor;
-    @Mock
     private DeviceInfoDatastreamsGetter mockedDeviceDatastreamsGetter;
-    @Mock
-    private DeviceInfoConfigurationHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
     @Mock
     private ServiceRegistration<DeviceInfoProvider> mockedDeviceInfoProviderRegistration;
-    @Mock
-    private ScriptsLoader mockedScriptsLoader;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(CommandProcessorImpl.class).withAnyArguments().thenReturn(mockedCommandProcessor);
-        PowerMockito.whenNew(DeviceInfoDatastreamsGetter.class).withAnyArguments()
-                .thenReturn(mockedDeviceDatastreamsGetter);
-        PowerMockito.whenNew(ScriptsLoader.class).withAnyArguments().thenReturn(mockedScriptsLoader);
-        PowerMockito.whenNew(DeviceInfoConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-        when(mockedContext.registerService(eq(DeviceInfoProvider.class), any(), any()))
-                .thenReturn(mockedDeviceInfoProviderRegistration);
-        when(mockedContext.getBundles()).thenReturn(new Bundle[0]);
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        try (MockedConstruction<CommandProcessorImpl> commandProcessorCons =
+                     mockConstruction(CommandProcessorImpl.class);
+             MockedConstruction<DeviceInfoDatastreamsGetter> getterCons =
+                     mockConstruction(DeviceInfoDatastreamsGetter.class);
+             MockedConstruction<ScriptsLoader> scriptsLoaderCons = mockConstruction(ScriptsLoader.class);
+             MockedConstruction<DeviceInfoConfigurationHandler> configHandlerCons =
+                     mockConstruction(DeviceInfoConfigurationHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedContext.registerService(eq(DeviceInfoProvider.class), any(), any()))
+                    .thenReturn(mockedDeviceInfoProviderRegistration);
+            when(mockedContext.getBundles()).thenReturn(new Bundle[0]);
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(DeviceInfoConfigurationHandler.class).withArguments(eq(mockedDeviceDatastreamsGetter), eq(mockedScriptsLoader));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler),
-                eq(Collections.singletonList(mockedDeviceInfoProviderRegistration)));
-        verify(mockedContext).registerService(eq(DeviceInfoProvider.class), eq(mockedDeviceDatastreamsGetter), eq(null));
+            assertEquals(1, commandProcessorCons.constructed().size());
+            assertEquals(1, getterCons.constructed().size());
+            assertEquals(1, scriptsLoaderCons.constructed().size());
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(getterCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(scriptsLoaderCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            assertEquals(Collections.singletonList(mockedDeviceInfoProviderRegistration),
+                    configBundleArgs.get(0).get(2));
+            verify(mockedContext).registerService(eq(DeviceInfoProvider.class),
+                    eq(getterCons.constructed().get(0)), eq(null));
+        }
     }
 
     @Test

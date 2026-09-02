@@ -17,21 +17,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MqttDatastreamsOrchestrator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MqttDatastreamsOrchestratorTest {
 
     private static final String TEST_SERVER_URI = "tcp://test.uri.com";
@@ -83,16 +85,28 @@ public class MqttDatastreamsOrchestratorTest {
     @Test
     public void testLoadConfiguration() throws Exception {
         when(mockedMqttClientFactory.createMqttClient(anyString(), anyString())).thenReturn(mockedClient);
-        PowerMockito.whenNew(MqttDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
-        PowerMockito.whenNew(MqttOperationSender.class).withAnyArguments().thenReturn(mockedOpSender);
+        List<List<?>> eventArgs = new ArrayList<>();
+        List<List<?>> opSenderArgs = new ArrayList<>();
+        try (MockedConstruction<MqttDatastreamsEvent> eventCons =
+                     mockConstruction(MqttDatastreamsEvent.class,
+                             (mock, mctx) -> eventArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<MqttOperationSender> opSenderCons =
+                     mockConstruction(MqttOperationSender.class,
+                             (mock, mctx) -> opSenderArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
+            testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
 
-        verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
-        PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
-        Thread.sleep(100);
-        verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
+            verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
+            assertEquals(1, eventCons.constructed().size());
+            assertEquals(Arrays.asList(mockedEventPublisher, mockedClient, mockedSerializer, TEST_EVENT_TOPIC,
+                    mockedDeviceInfoProvider, TEST_RESPONSE_TOPIC, mockedResponseDispatcher, TEST_EMPTY_SET),
+                    eventArgs.get(0));
+            assertEquals(1, opSenderCons.constructed().size());
+            assertEquals(Arrays.asList(mockedClient, mockedSerializer, TEST_REQUEST_TOPIC, TEST_QOS, TEST_RETAINED,
+                    TEST_EMPTY_SET), opSenderArgs.get(0));
+            Thread.sleep(100);
+            verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
+        }
     }
 
     @Test
@@ -102,19 +116,31 @@ public class MqttDatastreamsOrchestratorTest {
         Whitebox.setInternalState(testOrchestrator, OP_SENDER_REG_FIELD_NAME, mockedOpSendRegistration);
 
         when(mockedMqttClientFactory.createMqttClient(anyString(), anyString())).thenReturn(mockedClient);
-        PowerMockito.whenNew(MqttDatastreamsEvent.class).withAnyArguments().thenReturn(mockedEvent);
-        PowerMockito.whenNew(MqttOperationSender.class).withAnyArguments().thenReturn(mockedOpSender);
+        List<List<?>> eventArgs = new ArrayList<>();
+        List<List<?>> opSenderArgs = new ArrayList<>();
+        try (MockedConstruction<MqttDatastreamsEvent> eventCons =
+                     mockConstruction(MqttDatastreamsEvent.class,
+                             (mock, mctx) -> eventArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<MqttOperationSender> opSenderCons =
+                     mockConstruction(MqttOperationSender.class,
+                             (mock, mctx) -> opSenderArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
+            testOrchestrator.loadConfiguration(TEST_CONFIGURATION);
 
-        verify(mockedEvent).unregisterFromEventSource();
-        verify(mockedOpSendRegistration).unregister();
-        verify(mockedClient).disconnect();
-        verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
-        PowerMockito.verifyNew(MqttDatastreamsEvent.class).withArguments(eq(mockedEventPublisher), eq(mockedClient), eq(mockedSerializer), eq(TEST_EVENT_TOPIC), eq(mockedDeviceInfoProvider), eq(TEST_RESPONSE_TOPIC), eq(mockedResponseDispatcher), eq(TEST_EMPTY_SET));
-        PowerMockito.verifyNew(MqttOperationSender.class).withArguments(eq(mockedClient), eq(mockedSerializer), eq(TEST_REQUEST_TOPIC), eq(TEST_QOS), eq(TEST_RETAINED), eq(TEST_EMPTY_SET));
-        Thread.sleep(100);
-        verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
+            verify(mockedEvent).unregisterFromEventSource();
+            verify(mockedOpSendRegistration).unregister();
+            verify(mockedClient).disconnect();
+            verify(mockedMqttClientFactory).createMqttClient(eq(TEST_SERVER_URI), eq(TEST_CLIENT_ID));
+            assertEquals(1, eventCons.constructed().size());
+            assertEquals(Arrays.asList(mockedEventPublisher, mockedClient, mockedSerializer, TEST_EVENT_TOPIC,
+                    mockedDeviceInfoProvider, TEST_RESPONSE_TOPIC, mockedResponseDispatcher, TEST_EMPTY_SET),
+                    eventArgs.get(0));
+            assertEquals(1, opSenderCons.constructed().size());
+            assertEquals(Arrays.asList(mockedClient, mockedSerializer, TEST_REQUEST_TOPIC, TEST_QOS, TEST_RETAINED,
+                    TEST_EMPTY_SET), opSenderArgs.get(0));
+            Thread.sleep(100);
+            verify(mockedClient).connect(eq(MqttConnectOptions.builder(TEST_CLIENT_ID, TEST_PASSWORD.toCharArray()).build()), any(MqttActionListener.class));
+        }
     }
 
     @Test

@@ -14,19 +14,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import static es.amplia.oda.connector.coap.COAPConnector.UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Request.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class COAPConnectorTest {
 
     private static final String COAP_SCHEME = "coap";
@@ -60,7 +59,7 @@ public class COAPConnectorTest {
 
 
     @Test
-    public void testLoadAndInit() {Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+    public void testLoadAndInit() {Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
         when(mockedCOAPClientFactory.createClient(any(ConnectorConfiguration.class)))
                 .thenReturn(mockedClient);
         when(mockedCOAPClientFactory.createOptions(any(ConnectorConfiguration.class)))
@@ -103,21 +102,22 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_JSON);
-        verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
-        verify(mockedRequest).setOptions(eq(mockedOptionSet));
-        verify(mockedClient).advanced(eq(mockedRequest));
-        verify(mockedResponse).getCode();
+            verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_JSON);
+            verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
+            verify(mockedRequest).setOptions(eq(mockedOptionSet));
+            verify(mockedClient).advanced(eq(mockedRequest));
+            verify(mockedResponse).getCode();
+        }
     }
 
     @Test
@@ -125,21 +125,22 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
 
-        testConnector.uplink(TEST_PAYLOAD, ContentType.CBOR);
+            testConnector.uplink(TEST_PAYLOAD, ContentType.CBOR);
 
-        verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_CBOR);
-        verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
-        verify(mockedRequest).setOptions(eq(mockedOptionSet));
-        verify(mockedClient).advanced(eq(mockedRequest));
-        verify(mockedResponse).getCode();
+            verify(mockedOptionSet).setContentFormat(MediaTypeRegistry.APPLICATION_CBOR);
+            verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
+            verify(mockedRequest).setOptions(eq(mockedOptionSet));
+            verify(mockedClient).advanced(eq(mockedRequest));
+            verify(mockedResponse).getCode();
+        }
     }
 
     @Test
@@ -147,26 +148,27 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedOptionSet.setContentFormat(anyInt())).thenReturn(mockedOptionSet);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.CREATED);
 
-        testConnector.uplink(TEST_PAYLOAD, ContentType.MESSAGE_PACK);
+            testConnector.uplink(TEST_PAYLOAD, ContentType.MESSAGE_PACK);
 
-        verify(mockedOptionSet).setContentFormat(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE);
-        verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
-        verify(mockedRequest).setOptions(eq(mockedOptionSet));
-        verify(mockedClient).advanced(eq(mockedRequest));
-        verify(mockedResponse).getCode();
+            verify(mockedOptionSet).setContentFormat(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE);
+            verify(mockedRequest).setPayload(eq(TEST_PAYLOAD));
+            verify(mockedRequest).setOptions(eq(mockedOptionSet));
+            verify(mockedClient).advanced(eq(mockedRequest));
+            verify(mockedResponse).getCode();
+        }
     }
 
     @Test
     public void testUplinkNoClient() {
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         testConnector.uplink(TEST_PAYLOAD);
 
@@ -177,15 +179,16 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenReturn(null);
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenReturn(null);
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        }
     }
 
     @Test
@@ -193,16 +196,17 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.BAD_REQUEST);
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getCode()).thenReturn(CoAP.ResponseCode.BAD_REQUEST);
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        }
     }
 
     @Test
@@ -210,15 +214,16 @@ public class COAPConnectorTest {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedClient);
         Whitebox.setInternalState(testConnector, OPTION_SET_FIELD_NAME, mockedOptionSet);
 
-        PowerMockito.mockStatic(Request.class);
-        PowerMockito.when(Request.newPost()).thenReturn(mockedRequest);
-        when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
-        when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
-        when(mockedClient.advanced(any(Request.class))).thenThrow(new RuntimeException(""));
+        try (MockedStatic<Request> requestStatic = mockStatic(Request.class)) {
+            requestStatic.when(Request::newPost).thenReturn(mockedRequest);
+            when(mockedRequest.setPayload(any(byte[].class))).thenReturn(mockedRequest);
+            when(mockedRequest.setOptions(any(OptionSet.class))).thenReturn(mockedRequest);
+            when(mockedClient.advanced(any(Request.class))).thenThrow(new RuntimeException(""));
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        }
     }
 
     @Test
@@ -234,7 +239,7 @@ public class COAPConnectorTest {
 
     @Test
     public void testIsConnectedNoClient() {
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         boolean connected = testConnector.isConnected();
 
@@ -266,7 +271,7 @@ public class COAPConnectorTest {
 
     @Test
     public void testCloseWithoutCOAPClient() {
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         testConnector.close();
 

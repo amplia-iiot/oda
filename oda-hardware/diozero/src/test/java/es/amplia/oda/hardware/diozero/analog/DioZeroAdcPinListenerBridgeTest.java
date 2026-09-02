@@ -6,15 +6,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DioZeroAdcPinListenerBridge.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DioZeroAdcPinListenerBridgeTest {
 
     private static final AnalogInputEvent TEST_EVENT =
@@ -25,16 +28,18 @@ public class DioZeroAdcPinListenerBridgeTest {
     @InjectMocks
     private DioZeroAdcPinListenerBridge testBridge;
 
-    @Mock
-    private DioZeroAdcEvent mockedEvent;
-
     @Test
     public void testValueChanged() throws Exception {
-        PowerMockito.whenNew(DioZeroAdcEvent.class).withAnyArguments().thenReturn(mockedEvent);
+        List<List<?>> eventArgs = new ArrayList<>();
 
-        testBridge.valueChanged(TEST_EVENT);
+        try (MockedConstruction<DioZeroAdcEvent> eventCons = mockConstruction(DioZeroAdcEvent.class,
+                (mock, mctx) -> eventArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(DioZeroAdcEvent.class).withArguments(eq(TEST_EVENT));
-        verify(mockedListener).channelValueChanged(eq(mockedEvent));
+            testBridge.valueChanged(TEST_EVENT);
+
+            assertEquals(1, eventCons.constructed().size());
+            assertEquals(TEST_EVENT, eventArgs.get(0).get(0));
+            verify(mockedListener).channelValueChanged(eq(eventCons.constructed().get(0)));
+        }
     }
 }

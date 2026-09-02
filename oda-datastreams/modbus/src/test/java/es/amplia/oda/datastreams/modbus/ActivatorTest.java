@@ -1,6 +1,7 @@
 package es.amplia.oda.datastreams.modbus;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
+import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
@@ -10,18 +11,19 @@ import es.amplia.oda.datastreams.modbus.internal.ModbusDatastreamsFactoryImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -30,10 +32,6 @@ public class ActivatorTest {
     private BundleContext mockedContext;
     @Mock
     private ModbusConnectionsFinder mockedConnectionsFinder;
-    @Mock
-    private ModbusDatastreamsFactoryImpl mockedFactory;
-    @Mock
-    private ServiceRegistrationManagerOsgi mockedRegistrationManager;
     @Mock
     private ModbusDatastreamsManager mockedModbusDatastreamsManager;
     @Mock
@@ -45,33 +43,58 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ModbusConnectionsFinder.class).withAnyArguments().thenReturn(mockedConnectionsFinder);
-        PowerMockito.whenNew(ModbusDatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
-        PowerMockito.whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-                .thenReturn(mockedRegistrationManager);
-        PowerMockito.whenNew(ModbusDatastreamsManager.class).withAnyArguments()
-                .thenReturn(mockedModbusDatastreamsManager);
-        PowerMockito.whenNew(ModbusDatastreamsConfigurationUpdateHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedModbusMasterListener);
+        List<List<?>> factoryArgs = new ArrayList<>();
+        List<List<?>> registrationManagerArgs = new ArrayList<>();
+        List<List<?>> managerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        List<List<?>> listenerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<ModbusConnectionsFinder> connectionsFinderCons =
+                     mockConstruction(ModbusConnectionsFinder.class);
+             MockedConstruction<ModbusDatastreamsFactoryImpl> factoryCons =
+                     mockConstruction(ModbusDatastreamsFactoryImpl.class,
+                             (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+                     mockConstruction(ServiceRegistrationManagerOsgi.class,
+                             (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ModbusDatastreamsManager> modbusDatastreamsManagerCons =
+                     mockConstruction(ModbusDatastreamsManager.class,
+                             (mock, mctx) -> managerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ModbusDatastreamsConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(ModbusDatastreamsConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> listenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> listenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ModbusDatastreamsFactoryImpl.class).withArguments(eq(mockedConnectionsFinder));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(ServiceRegistrationManagerOsgi.class)
-                .withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-        PowerMockito.verifyNew(ModbusDatastreamsManager.class)
-                .withArguments(eq(mockedFactory), eq(mockedRegistrationManager), eq(mockedRegistrationManager));
-        PowerMockito.verifyNew(ModbusDatastreamsConfigurationUpdateHandler.class)
-                .withArguments(eq(mockedModbusDatastreamsManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(ModbusMaster.class), any());
+            testActivator.start(mockedContext);
 
-        verify(mockedConnectionsFinder).connect();
+            assertEquals(1, factoryCons.constructed().size());
+            assertEquals(connectionsFinderCons.constructed().get(0), factoryArgs.get(0).get(0));
+            assertEquals(2, registrationManagerCons.constructed().size());
+            assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+            assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+            assertEquals(mockedContext, registrationManagerArgs.get(1).get(0));
+            assertEquals(DatastreamsSetter.class, registrationManagerArgs.get(1).get(1));
+            assertEquals(1, modbusDatastreamsManagerCons.constructed().size());
+            assertEquals(factoryCons.constructed().get(0), managerArgs.get(0).get(0));
+            assertEquals(registrationManagerCons.constructed().get(0), managerArgs.get(0).get(1));
+            assertEquals(registrationManagerCons.constructed().get(1), managerArgs.get(0).get(2));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(modbusDatastreamsManagerCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            assertEquals(1, listenerCons.constructed().size());
+            assertEquals(mockedContext, listenerArgs.get(0).get(0));
+            assertEquals(ModbusMaster.class, listenerArgs.get(0).get(1));
+
+            verify(connectionsFinderCons.constructed().get(0)).connect();
+        }
     }
 
     @Test

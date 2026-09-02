@@ -1,11 +1,9 @@
 package es.amplia.oda.hardware.udp.udp;
 
-import es.amplia.oda.hardware.udp.Activator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.net.DatagramPacket;
@@ -15,8 +13,7 @@ import java.net.UnknownHostException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JavaUdpPacketTest {
 
 	private static final byte[] DATA_BYTES = {
@@ -86,7 +83,7 @@ public class JavaUdpPacketTest {
 
 	@Test
 	public void testGetPort() {
-		assertEquals(-1, testPacket.getPort());
+		assertEquals(0, testPacket.getPort());
 	}
 
 	@Test

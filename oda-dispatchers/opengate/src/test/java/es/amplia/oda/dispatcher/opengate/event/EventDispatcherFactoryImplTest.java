@@ -12,18 +12,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(EventDispatcherFactoryImpl.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class EventDispatcherFactoryImplTest {
 
     private static final ContentType TEST_CONTENT_TYPE = ContentType.CBOR;
@@ -39,50 +41,73 @@ public class EventDispatcherFactoryImplTest {
     private EventDispatcherFactoryImpl testFactory;
 
     @Mock
-    private EventParserImpl mockedEventParser;
-    @Mock
-    private EventParserReducedOutputImpl mockedReducedEventParser;
-    @Mock
     private Serializer mockedSerializer;
-    @Mock
-    private EventDispatcherImpl mockedEventDispatcher;
-    @Mock
-    private EventCollectorImpl mockedEventCollector;
     @Mock
     private Scheduler mockedScheduler;
 
 
     @Test
     public void testCreateEventCollectorNotReduced() throws Exception {
-        PowerMockito.whenNew(EventParserImpl.class).withAnyArguments().thenReturn(mockedEventParser);
-        PowerMockito.whenNew(EventDispatcherImpl.class).withAnyArguments().thenReturn(mockedEventDispatcher);
-        PowerMockito.whenNew(EventCollectorImpl.class).withAnyArguments().thenReturn(mockedEventCollector);
-        when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
+        List<List<?>> eventParserArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherArgs = new ArrayList<>();
+        List<List<?>> eventCollectorArgs = new ArrayList<>();
+        try (MockedConstruction<EventParserImpl> eventParserCons = mockConstruction(EventParserImpl.class,
+                     (mock, mctx) -> eventParserArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventDispatcherImpl> eventDispatcherCons =
+                     mockConstruction(EventDispatcherImpl.class,
+                             (mock, mctx) -> eventDispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventCollectorImpl> eventCollectorCons =
+                     mockConstruction(EventCollectorImpl.class,
+                             (mock, mctx) -> eventCollectorArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
 
-        EventCollector eventCollector = testFactory.createEventCollector(false, TEST_CONTENT_TYPE);
+            EventCollector eventCollector = testFactory.createEventCollector(false, TEST_CONTENT_TYPE);
 
-        assertEquals(mockedEventCollector, eventCollector);
-        PowerMockito.verifyNew(EventParserImpl.class).withArguments(eq(mockedDeviceInfoProvider));
-        verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
-        PowerMockito.verifyNew(EventDispatcherImpl.class)
-                .withArguments(eq(mockedEventParser), eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector), eq(mockedScheduler));
-        PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
+            assertEquals(eventCollectorCons.constructed().get(0), eventCollector);
+            assertEquals(1, eventParserCons.constructed().size());
+            assertEquals(mockedDeviceInfoProvider, eventParserArgs.get(0).get(0));
+            verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
+            assertEquals(1, eventDispatcherCons.constructed().size());
+            assertEquals(eventParserCons.constructed().get(0), eventDispatcherArgs.get(0).get(0));
+            assertEquals(mockedSerializer, eventDispatcherArgs.get(0).get(1));
+            assertEquals(TEST_CONTENT_TYPE, eventDispatcherArgs.get(0).get(2));
+            assertEquals(mockedConnector, eventDispatcherArgs.get(0).get(3));
+            assertEquals(mockedScheduler, eventDispatcherArgs.get(0).get(4));
+            assertEquals(1, eventCollectorCons.constructed().size());
+            assertEquals(eventDispatcherCons.constructed().get(0), eventCollectorArgs.get(0).get(0));
+        }
     }
 
     @Test
     public void testCreateEventCollectorReduced() throws Exception {
-        PowerMockito.whenNew(EventParserReducedOutputImpl.class).withAnyArguments().thenReturn(mockedReducedEventParser);
-        PowerMockito.whenNew(EventDispatcherImpl.class).withAnyArguments().thenReturn(mockedEventDispatcher);
-        PowerMockito.whenNew(EventCollectorImpl.class).withAnyArguments().thenReturn(mockedEventCollector);
-        when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
+        List<List<?>> eventParserArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherArgs = new ArrayList<>();
+        List<List<?>> eventCollectorArgs = new ArrayList<>();
+        try (MockedConstruction<EventParserReducedOutputImpl> eventParserCons =
+                     mockConstruction(EventParserReducedOutputImpl.class,
+                             (mock, mctx) -> eventParserArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventDispatcherImpl> eventDispatcherCons =
+                     mockConstruction(EventDispatcherImpl.class,
+                             (mock, mctx) -> eventDispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventCollectorImpl> eventCollectorCons =
+                     mockConstruction(EventCollectorImpl.class,
+                             (mock, mctx) -> eventCollectorArgs.add(new ArrayList<>(mctx.arguments())))) {
+            when(mockedSerializerProvider.getSerializer(any(ContentType.class))).thenReturn(mockedSerializer);
 
-        EventCollector eventCollector = testFactory.createEventCollector(true, TEST_CONTENT_TYPE);
+            EventCollector eventCollector = testFactory.createEventCollector(true, TEST_CONTENT_TYPE);
 
-        assertEquals(mockedEventCollector, eventCollector);
-        PowerMockito.verifyNew(EventParserReducedOutputImpl.class).withArguments(eq(mockedDeviceInfoProvider));
-        verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
-        PowerMockito.verifyNew(EventDispatcherImpl.class).withArguments(eq(mockedReducedEventParser),
-                eq(mockedSerializer), eq(TEST_CONTENT_TYPE), eq(mockedConnector), eq(mockedScheduler));
-        PowerMockito.verifyNew(EventCollectorImpl.class).withArguments(eq(mockedEventDispatcher));
+            assertEquals(eventCollectorCons.constructed().get(0), eventCollector);
+            assertEquals(1, eventParserCons.constructed().size());
+            assertEquals(mockedDeviceInfoProvider, eventParserArgs.get(0).get(0));
+            verify(mockedSerializerProvider).getSerializer(eq(TEST_CONTENT_TYPE));
+            assertEquals(1, eventDispatcherCons.constructed().size());
+            assertEquals(eventParserCons.constructed().get(0), eventDispatcherArgs.get(0).get(0));
+            assertEquals(mockedSerializer, eventDispatcherArgs.get(0).get(1));
+            assertEquals(TEST_CONTENT_TYPE, eventDispatcherArgs.get(0).get(2));
+            assertEquals(mockedConnector, eventDispatcherArgs.get(0).get(3));
+            assertEquals(mockedScheduler, eventDispatcherArgs.get(0).get(4));
+            assertEquals(1, eventCollectorCons.constructed().size());
+            assertEquals(eventDispatcherCons.constructed().get(0), eventCollectorArgs.get(0).get(0));
+        }
     }
 }
