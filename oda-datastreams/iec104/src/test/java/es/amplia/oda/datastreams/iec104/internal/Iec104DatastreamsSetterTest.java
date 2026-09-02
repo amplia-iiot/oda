@@ -1,21 +1,24 @@
 package es.amplia.oda.datastreams.iec104.internal;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104DatastreamsSetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -28,7 +31,7 @@ public class Iec104DatastreamsSetterTest {
 
     private Iec104DatastreamsSetter testSetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testSetter = new Iec104DatastreamsSetter(TEST_DATASTREAM_ID, Arrays.asList(TEST_DEVICE_ID), mockedWriterOperatorProcessor);
     }

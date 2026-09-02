@@ -9,14 +9,16 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.message.SinglePointInformatio
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.CauseOfTransmission;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.QualityInformation;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.Value;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -24,14 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104CacheTest {
 	private final Iec104Cache testCache = new Iec104Cache(null);
 	private static Map<String, Map<Integer, Iec104CacheValue>> cache;
@@ -40,7 +43,7 @@ public class Iec104CacheTest {
 	private Map<String, Map<Integer, Iec104CacheValue>> mockedCache;
 
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		cache = new HashMap<>();
 		Map<Integer, Iec104CacheValue> value = new HashMap<>();
@@ -84,8 +87,8 @@ public class Iec104CacheTest {
 
 		Map<String, Map<Integer, Iec104CacheValue>> internalCache = (Map<String, Map<Integer, Iec104CacheValue>>) Whitebox.getInternalState(testCache, "cache");
 		Iec104CacheValue internalIEC104Value = internalCache.get(typeId).get(index);
-		Assert.assertEquals(internalIEC104Value.getValue(), cacheValue.get(index).getValue());
-		Assert.assertEquals(internalIEC104Value.isProcessed(), cacheValue.get(index).isProcessed());
+		Assertions.assertEquals(internalIEC104Value.getValue(), cacheValue.get(index).getValue());
+		Assertions.assertEquals(internalIEC104Value.isProcessed(), cacheValue.get(index).isProcessed());
 	}
 
 	@Test

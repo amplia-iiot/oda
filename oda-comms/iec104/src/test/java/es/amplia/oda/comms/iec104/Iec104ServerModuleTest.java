@@ -15,23 +15,26 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDU;
 import org.eclipse.neoscada.protocol.iec60870.server.Server;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104ServerModuleTest {
 
 	@Mock
@@ -53,7 +56,7 @@ public class Iec104ServerModuleTest {
 	@Mock
 	private ChannelPipeline mockedPipeline;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		module = new Iec104ServerModule(mockedCache, mockedOptions, mockedDispatcher, 0);
 	}
@@ -150,6 +153,6 @@ public class Iec104ServerModuleTest {
 
 		module.send(asdu);
 
-		assertTrue("Exception should be caught", true);
+		assertTrue(true, "Exception should be caught");
 	}
 }
