@@ -5,16 +5,19 @@ import com.ghgande.j2mod.modbus.msg.*;
 import com.ghgande.j2mod.modbus.procimg.Register;
 import com.ghgande.j2mod.modbus.util.BitVector;
 import es.amplia.oda.core.commons.utils.Event;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusToEventConverterTest {
 
     private static final String TEST_DEVICE_ID = "deviceId";
@@ -55,11 +58,11 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusCoilRequest);
 
         // assertions
-        Assert.assertEquals(1, eventsGenerated.size());
-        Assert.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
-        Assert.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
-        Assert.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
-        Assert.assertEquals(true, eventsGenerated.get(0).getValue());
+        Assertions.assertEquals(1, eventsGenerated.size());
+        Assertions.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
+        Assertions.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
+        Assertions.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
+        Assertions.assertEquals(true, eventsGenerated.get(0).getValue());
     }
 
     @Test
@@ -77,7 +80,7 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusCoilRequest);
 
         // assertions
-        Assert.assertEquals(0, eventsGenerated.size());
+        Assertions.assertEquals(0, eventsGenerated.size());
     }
 
     @Test
@@ -103,11 +106,11 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusCoilsRequest);
 
         // assertions
-        Assert.assertEquals(1, eventsGenerated.size());
-        Assert.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
-        Assert.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
-        Assert.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
-        Assert.assertEquals(true, eventsGenerated.get(0).getValue());
+        Assertions.assertEquals(1, eventsGenerated.size());
+        Assertions.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
+        Assertions.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
+        Assertions.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
+        Assertions.assertEquals(true, eventsGenerated.get(0).getValue());
     }
 
     @Test
@@ -129,7 +132,7 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusCoilsRequest);
 
         // assertions
-        Assert.assertEquals(0, eventsGenerated.size());
+        Assertions.assertEquals(0, eventsGenerated.size());
     }
 
     @Test
@@ -152,11 +155,11 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusRegisterRequest);
 
         // assertions
-        Assert.assertEquals(1, eventsGenerated.size());
-        Assert.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
-        Assert.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
-        Assert.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
-        Assert.assertEquals((short) 256, eventsGenerated.get(0).getValue());
+        Assertions.assertEquals(1, eventsGenerated.size());
+        Assertions.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
+        Assertions.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
+        Assertions.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
+        Assertions.assertEquals((short) 256, eventsGenerated.get(0).getValue());
     }
 
     @Test
@@ -175,7 +178,7 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusRegisterRequest);
 
         // assertions
-        Assert.assertEquals(0, eventsGenerated.size());
+        Assertions.assertEquals(0, eventsGenerated.size());
     }
 
     @Test
@@ -202,11 +205,11 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusRegistersRequest);
 
         // assertions
-        Assert.assertEquals(1, eventsGenerated.size());
-        Assert.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
-        Assert.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
-        Assert.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
-        Assert.assertEquals((short) 256, eventsGenerated.get(0).getValue());
+        Assertions.assertEquals(1, eventsGenerated.size());
+        Assertions.assertEquals(TEST_DEVICE_ID, eventsGenerated.get(0).getDeviceId());
+        Assertions.assertEquals(TEST_DATASTREAM_ID, eventsGenerated.get(0).getDatastreamId());
+        Assertions.assertEquals(TEST_FEED_ID, eventsGenerated.get(0).getFeed());
+        Assertions.assertEquals((short) 256, eventsGenerated.get(0).getValue());
     }
 
     @Test
@@ -229,6 +232,6 @@ public class ModbusToEventConverterTest {
         List<Event> eventsGenerated = ModbusToEventConverter.translateEvent(TEST_DEVICE_ID, mockedModbusRegistersRequest);
 
         // assertions
-        Assert.assertEquals(0, eventsGenerated.size());
+        Assertions.assertEquals(0, eventsGenerated.size());
     }
 }

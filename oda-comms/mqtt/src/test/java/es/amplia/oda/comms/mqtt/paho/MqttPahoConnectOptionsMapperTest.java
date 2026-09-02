@@ -6,12 +6,12 @@ import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyStoreType;
 import es.amplia.oda.comms.mqtt.api.MqttConnectOptions.MqttVersion;
 
 import org.eclipse.paho.client.mqttv3.internal.security.SSLSocketFactoryFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MqttPahoConnectOptionsMapperTest {
 

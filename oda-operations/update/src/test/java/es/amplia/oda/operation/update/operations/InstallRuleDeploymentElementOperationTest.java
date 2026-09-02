@@ -2,23 +2,27 @@ package es.amplia.oda.operation.update.operations;
 
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.File;
 import java.util.Collections;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.FileManager.FileException;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class InstallRuleDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -37,13 +41,13 @@ public class InstallRuleDeploymentElementOperationTest {
 
     private InstallRuleDeploymentElementOperation testRulesInstallOperation;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testRulesInstallOperation = new InstallRuleDeploymentElementOperation(installDeploymentElement, LOCAL_FILE,
                 PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanUp() {
         StringBuilder path = new StringBuilder(PATH_TO_RULES_FILE);
         do {
@@ -72,13 +76,11 @@ public class InstallRuleDeploymentElementOperationTest {
         mainDir.delete();
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testExecuteSpecificOperationFileException() throws FileException {
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
 
-        testRulesInstallOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testRulesInstallOperation.executeSpecificOperation(mockedFileManager));
     }
 
     @Test
@@ -100,7 +102,7 @@ public class InstallRuleDeploymentElementOperationTest {
         verifyNoInteractions(mockedFileManager);
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationFileException() throws FileException {
         String backupFile = "path/to/backup.jar";
         String installedFile = "path/to/installed.jar";
@@ -109,8 +111,6 @@ public class InstallRuleDeploymentElementOperationTest {
 
         doThrow(new FileException("")).when(mockedFileManager).delete(eq(installedFile));
 
-        testRulesInstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile);
-
-        fail("File exception must be thrown");
+        assertThrows(FileException.class, () -> testRulesInstallOperation.rollbackSpecificOperation(mockedFileManager, backupFile));
     }
 }

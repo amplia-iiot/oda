@@ -8,16 +8,18 @@ import es.amplia.oda.comms.mqtt.api.MqttMessageListener;
 import es.amplia.oda.core.commons.entities.ContentType;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -25,7 +27,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttPahoClientTest {
 
     private static final String TEST_USERNAME = "testUser";
@@ -51,11 +54,11 @@ public class MqttPahoClientTest {
         verify(mockedInnerClient).connect();
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testConnectThrowException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).connect();
 
-        testClient.connect();
+        assertThrows(MqttException.class, () -> testClient.connect());
     }
 
     @Test
@@ -77,7 +80,7 @@ public class MqttPahoClientTest {
         }
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testConnectWithOptionsException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         MqttConnectOptions options = MqttConnectOptions.builder(TEST_USERNAME, TEST_API_KEY).build();
         org.eclipse.paho.client.mqttv3.MqttConnectOptions mockedInnerOptions =
@@ -89,7 +92,7 @@ public class MqttPahoClientTest {
                     .thenReturn(mockedInnerOptions);
             doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).connect(any(), any(), any());
 
-            testClient.connect(options, null);
+            assertThrows(MqttException.class, () -> testClient.connect(options, null));
         }
     }
 
@@ -112,7 +115,7 @@ public class MqttPahoClientTest {
         verify(mockedInnerClient).publish(eq(TEST_TOPIC), eq(testPayload), eq(testQos), eq(true));
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testPublishException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         byte[] testPayload = new byte[] { 0x1, 0x2, 0x3, 0x4 };
         int testQos = 1;
@@ -121,7 +124,7 @@ public class MqttPahoClientTest {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient)
                 .publish(anyString(), any(byte[].class), anyInt(), anyBoolean());
 
-        testClient.publish(TEST_TOPIC, testMessage, ContentType.JSON);
+        assertThrows(MqttException.class, () -> testClient.publish(TEST_TOPIC, testMessage, ContentType.JSON));
     }
 
     /*@Test
@@ -136,7 +139,7 @@ public class MqttPahoClientTest {
         assertEquals(mockedListener, Whitebox.getInternalState(innerListener, "mqttMessageListener"));
     }*/
 
-    /*@Test(expected = MqttException.class)
+    /*@Test
     public void testSubscribeException() throws Exception {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient)
                 .subscribe(anyString(), eq(2), any(MqttPahoMessageListener.class));
@@ -151,11 +154,11 @@ public class MqttPahoClientTest {
         verify(mockedInnerClient).unsubscribe(eq(TEST_TOPIC));
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testUnsubscribeException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).unsubscribe(anyString());
 
-        testClient.unsubscribe(TEST_TOPIC);
+        assertThrows(MqttException.class, () -> testClient.unsubscribe(TEST_TOPIC));
     }
 
     @Test
@@ -165,10 +168,10 @@ public class MqttPahoClientTest {
         verify(mockedInnerClient).disconnect();
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testDisconnectException() throws MqttException, org.eclipse.paho.client.mqttv3.MqttException {
         doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).disconnect();
 
-        testClient.disconnect();
+        assertThrows(MqttException.class, () -> testClient.disconnect());
     }
 }

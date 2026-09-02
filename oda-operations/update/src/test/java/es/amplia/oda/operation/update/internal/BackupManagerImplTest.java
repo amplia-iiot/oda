@@ -4,13 +4,15 @@ import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.update.BackupManager;
 import es.amplia.oda.operation.update.FileManager;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,10 +20,11 @@ import java.util.Map;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class BackupManagerImplTest {
 
     private static final String DEPLOYMENT_ELEMENT_NAME = "testBundle";
@@ -68,7 +71,7 @@ public class BackupManagerImplTest {
 
     private Map<DeploymentElement, String> spiedBackups;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Map<DeploymentElement, String> backups = new HashMap<>();
         backups.put(DEPLOYMENT_ELEMENT_1, BACKUP_FILE_1);
@@ -96,15 +99,13 @@ public class BackupManagerImplTest {
         verify(mockedFileManager, never()).createDirectory(eq(BACKUP_FOLDER));
     }
 
-    @Test(expected = BackupManager.BackupException.class)
+    @Test
     public void testCreateBackupDirectoryFileException() throws FileManager.FileException,
             BackupManager.BackupException {
         when(mockedFileManager.exist(eq(BACKUP_FOLDER))).thenReturn(false);
         doThrow(new FileManager.FileException("")).when(mockedFileManager).createDirectory(eq(BACKUP_FOLDER));
 
-        testBackupManager.createBackupDirectory();
-
-        fail("File exception must be thrown");
+        assertThrows(BackupManager.BackupException.class, () -> testBackupManager.createBackupDirectory());
     }
 
     @Test
@@ -122,23 +123,19 @@ public class BackupManagerImplTest {
         verify(spiedBackups).put(eq(DEPLOYMENT_ELEMENT), eq(backupFile));
     }
 
-    @Test(expected = BackupManager.BackupException.class)
+    @Test
     public void testBackupNoFileFound() throws BackupManager.BackupException {
         when(mockedFileManager.find(eq(BASE_PATH), eq(DEPLOYMENT_ELEMENT_NAME))).thenReturn(null);
 
-        testBackupManager.backup(DEPLOYMENT_ELEMENT, BASE_PATH);
-
-        fail("Backup Exception must not be thrown");
+        assertThrows(BackupManager.BackupException.class, () -> testBackupManager.backup(DEPLOYMENT_ELEMENT, BASE_PATH));
     }
 
-    @Test(expected = BackupManager.BackupException.class)
+    @Test
     public void testBackupNoFileManagerException() throws FileManager.FileException, BackupManager.BackupException {
         when(mockedFileManager.find(eq(BASE_PATH), eq(DEPLOYMENT_ELEMENT_NAME))).thenReturn(FILE_TO_BACKUP);
         doThrow(new FileManager.FileException("")).when(mockedFileManager).copy(eq(FILE_TO_BACKUP), eq(BACKUP_FOLDER));
 
-        testBackupManager.backup(DEPLOYMENT_ELEMENT, BASE_PATH);
-
-        fail("Backup Exception must not be thrown");
+        assertThrows(BackupManager.BackupException.class, () -> testBackupManager.backup(DEPLOYMENT_ELEMENT, BASE_PATH));
     }
 
     @Test

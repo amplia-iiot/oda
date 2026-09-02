@@ -3,13 +3,15 @@ package es.amplia.oda.datastreams.modbus.internal;
 import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.hardware.modbus.ModbusType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -17,12 +19,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusDatastreamsFactoryImplTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -53,7 +56,7 @@ public class ModbusDatastreamsFactoryImplTest {
     private final List<List<?>> readOperatorProcessorArgs = new ArrayList<>();
     private final List<List<?>> writeOperatorProcessorArgs = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         modbusTypeConverterCons = mockConstruction(ModbusTypeToJavaTypeConverter.class);
         javaTypeConverterCons = mockConstruction(JavaTypeToModbusTypeConverter.class);
@@ -66,7 +69,7 @@ public class ModbusDatastreamsFactoryImplTest {
         testFactory = new ModbusDatastreamsFactoryImpl(mockedConnectionsFinder);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         writeOperatorProcessorCons.close();
         readOperatorProcessorCons.close();

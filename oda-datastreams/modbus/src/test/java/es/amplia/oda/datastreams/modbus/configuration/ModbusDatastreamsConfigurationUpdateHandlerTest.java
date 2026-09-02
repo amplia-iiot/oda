@@ -1,12 +1,14 @@
 package es.amplia.oda.datastreams.modbus.configuration;
 
 import es.amplia.oda.datastreams.modbus.ModbusDatastreamsManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -15,7 +17,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusDatastreamsConfigurationUpdateHandlerTest {
 
     @Mock

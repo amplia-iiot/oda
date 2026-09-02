@@ -11,11 +11,13 @@ import es.amplia.oda.operation.api.OperationUpdate;
 import es.amplia.oda.operation.api.OperationUpdate.OperationResultCodes;
 import es.amplia.oda.operation.api.OperationUpdate.UpdateStepName;
 import es.amplia.oda.operation.update.configuration.UpdateConfiguration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -24,12 +26,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OperationUpdateImplTest {
 
     private static final String TEST_NAME = "testBundle";

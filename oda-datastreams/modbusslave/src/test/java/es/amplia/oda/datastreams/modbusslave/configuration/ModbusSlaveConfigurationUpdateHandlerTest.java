@@ -4,19 +4,23 @@ import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.datastreams.modbusslave.internal.ModbusSlaveManager;
 import es.amplia.oda.datastreams.modbusslave.translator.ModbusEventTranslator;
 import es.amplia.oda.datastreams.modbusslave.translator.TranslationEntry;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import java.util.*;
 import static es.amplia.oda.datastreams.modbusslave.configuration.ModbusSlaveConfigurationUpdateHandler.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusSlaveConfigurationUpdateHandlerTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -42,7 +46,7 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
     @InjectMocks
     private ModbusSlaveConfigurationUpdateHandler testConfigHandler;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         // expected slave configuration
         ModbusTCPDeviceConfiguration expectedSlaveConfiguration = new ModbusTCPDeviceConfiguration(TEST_ADDRESS,
@@ -66,7 +70,7 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
         Object currentModbusSlaves = Whitebox.getInternalState(testConfigHandler, "currentModbusSlaveConfigurations");
 
         // assertions
-        Assert.assertEquals(expectedModbusSlaves, currentModbusSlaves);
+        Assertions.assertEquals(expectedModbusSlaves, currentModbusSlaves);
     }
 
     @Test
@@ -106,12 +110,12 @@ public class ModbusSlaveConfigurationUpdateHandlerTest {
         List<TranslationEntry> translationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(expectedTranslationEntry, translationEntries.get(0));
+        Assertions.assertEquals(expectedTranslationEntry, translationEntries.get(0));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadDefaultConfigurationNotAllowed() {
-        testConfigHandler.loadDefaultConfiguration();
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadDefaultConfiguration());
     }
 
     @Test

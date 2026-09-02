@@ -5,25 +5,28 @@ import es.amplia.oda.core.commons.modbus.ModbusMaster;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.datastreams.modbus.ModbusConnectionsFinder;
 import es.amplia.oda.hardware.modbus.ModbusType;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
 import static java.lang.Thread.sleep;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class HoldingRegisterCacheTest {
 
     private static final int NUM_REGISTERS_TO_READ = 5;
@@ -49,7 +52,7 @@ public class HoldingRegisterCacheTest {
     private ModbusReadOperatorProcessor testReadOperatorProcessor;
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws InterruptedException {
         // ini boolean array
         TEST_HOLDING_REGISTER_ARRAY[0] = new Register(0);

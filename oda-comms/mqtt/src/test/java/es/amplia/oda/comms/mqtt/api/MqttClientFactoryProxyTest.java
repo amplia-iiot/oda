@@ -1,21 +1,24 @@
 package es.amplia.oda.comms.mqtt.api;
 
 import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -23,7 +26,8 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttClientFactoryProxyTest {
 
     private static final String TEST_SERVER = "test.server.host";
@@ -41,7 +45,7 @@ public class MqttClientFactoryProxyTest {
     @Mock
     private MqttClientFactory mockedFactory;
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("unchecked")
     public void setUp() {
         try (MockedConstruction<OsgiServiceProxy> osgiProxyCons =
@@ -68,22 +72,22 @@ public class MqttClientFactoryProxyTest {
         verify(mockedFactory).createMqttClient(eq(TEST_SERVER), eq(TEST_CLIENT_ID));
     }
 
-    @Test(expected = MqttClientFactoryProxy.MqttExceptionWrapper.class)
+    @Test
     public void testCreateMqttClientWrapMqttException() throws MqttException {
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenThrow(new MqttException("", 0));
 
         testProxy.createMqttClient(TEST_SERVER, TEST_CLIENT_ID);
 
         verify(mockedOsgiProxy).callFirst(createMqttClientFunctionCaptor.capture());
-        createMqttClientFunctionCaptor.getValue().apply(mockedFactory);
+        assertThrows(MqttClientFactoryProxy.MqttExceptionWrapper.class, () -> createMqttClientFunctionCaptor.getValue().apply(mockedFactory));
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testCreateMqttClientUnwrapMqttException() throws MqttException {
         when(mockedOsgiProxy.callFirst(any()))
                 .thenThrow(new MqttClientFactoryProxy.MqttExceptionWrapper(new MqttException("", 0)));
 
-        testProxy.createMqttClient(TEST_SERVER, TEST_CLIENT_ID);
+        assertThrows(MqttException.class, () -> testProxy.createMqttClient(TEST_SERVER, TEST_CLIENT_ID));
     }
 
     @Test

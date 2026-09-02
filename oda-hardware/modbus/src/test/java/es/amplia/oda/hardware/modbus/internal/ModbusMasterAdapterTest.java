@@ -7,21 +7,24 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.hardware.modbus.ModbusCounters;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusMasterAdapterTest {
 
     private static final int TEST_UNIT_ID = 5;
@@ -49,7 +52,7 @@ public class ModbusMasterAdapterTest {
     private MockedStatic<ModbusCounters> mockedModbusCounters;
 
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
 
         // ini class to test
@@ -58,7 +61,7 @@ public class ModbusMasterAdapterTest {
         mockedModbusCounters = mockStatic(ModbusCounters.class);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mockedModbusCounters.close();
     }
@@ -70,11 +73,11 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).connect();
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testConnectThrowsException() throws Exception {
         doThrow(new RuntimeException()).when(mockedModbusMaster).connect();
 
-        testModbusMasterAdapter.connect();
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.connect());
     }
 
     @Test
@@ -101,12 +104,12 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).readInputDiscretes(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_COUNT));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testReadInputDiscretesThrowModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedModbusMaster.readInputDiscretes(anyInt(), anyInt(), anyInt()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.readInputDiscretes(TEST_UNIT_ID, TEST_REF, TEST_COUNT);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.readInputDiscretes(TEST_UNIT_ID, TEST_REF, TEST_COUNT));
     }
 
     @Test
@@ -135,12 +138,12 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).readCoils(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_COUNT));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testReadInputCoilsThrowModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedModbusMaster.readCoils(anyInt(), anyInt(), anyInt()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.readCoils(TEST_UNIT_ID, TEST_REF, TEST_COUNT);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.readCoils(TEST_UNIT_ID, TEST_REF, TEST_COUNT));
     }
 
     @Test
@@ -150,12 +153,12 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).writeCoil(eq(TEST_UNIT_ID), eq(TEST_REF), eq(true));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testWriteCoilThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedModbusMaster.writeCoil(anyInt(), anyInt(), anyBoolean()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.writeCoil(TEST_UNIT_ID, TEST_REF, true);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.writeCoil(TEST_UNIT_ID, TEST_REF, true));
     }
 
     @Test
@@ -168,13 +171,13 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).writeMultipleCoils(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_BIT_VECTOR));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testWriteCoilsThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedMapper.mapValuesToBitVector(any(Boolean[].class))).thenReturn(TEST_BIT_VECTOR);
         doThrow(new com.ghgande.j2mod.modbus.ModbusException()).when(mockedModbusMaster)
                 .writeMultipleCoils(anyInt(), anyInt(), any(BitVector.class));
 
-        testModbusMasterAdapter.writeCoils(TEST_UNIT_ID, TEST_REF, TEST_VALUES);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.writeCoils(TEST_UNIT_ID, TEST_REF, TEST_VALUES));
     }
 
     @Test
@@ -201,12 +204,12 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).readInputRegisters(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_COUNT));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testReadInputRegistersThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.readInputRegister(TEST_UNIT_ID, TEST_REF);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.readInputRegister(TEST_UNIT_ID, TEST_REF));
     }
 
     @Test
@@ -234,12 +237,12 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).readMultipleRegisters(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_COUNT));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testReadHoldingRegistersThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedModbusMaster.readMultipleRegisters(anyInt(), anyInt(), anyInt()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.readHoldingRegisters(TEST_UNIT_ID, TEST_REF, TEST_COUNT);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.readHoldingRegisters(TEST_UNIT_ID, TEST_REF, TEST_COUNT));
     }
 
     @Test
@@ -252,13 +255,13 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).writeSingleRegister(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_J2MOD_REGISTER));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testWriteHoldingRegisterThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedMapper.mapToJ2ModbusRegister(any(Register.class))).thenReturn(TEST_J2MOD_REGISTER);
         doThrow(new com.ghgande.j2mod.modbus.ModbusException()).when(mockedModbusMaster)
                 .writeSingleRegister(anyInt(), anyInt(), any(com.ghgande.j2mod.modbus.procimg.Register.class));
 
-        testModbusMasterAdapter.writeHoldingRegister(TEST_UNIT_ID, TEST_REF, TEST_REGISTER);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.writeHoldingRegister(TEST_UNIT_ID, TEST_REF, TEST_REGISTER));
     }
 
     @Test
@@ -271,13 +274,13 @@ public class ModbusMasterAdapterTest {
         verify(mockedModbusMaster).writeMultipleRegisters(eq(TEST_UNIT_ID), eq(TEST_REF), eq(TEST_J2MOD_REGISTERS));
     }
 
-    @Test(expected = ModbusException.class)
+    @Test
     public void testWriteHoldingRegistersThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
         when(mockedMapper.mapToJ2ModbusRegisters(any(Register[].class))).thenReturn(TEST_J2MOD_REGISTERS);
         doThrow(new com.ghgande.j2mod.modbus.ModbusException()).when(mockedModbusMaster)
                 .writeMultipleRegisters(anyInt(), anyInt(), any(com.ghgande.j2mod.modbus.procimg.Register[].class));
 
-        testModbusMasterAdapter.writeHoldingRegisters(TEST_UNIT_ID, TEST_REF, TEST_REGISTERS);
+        assertThrows(ModbusException.class, () -> testModbusMasterAdapter.writeHoldingRegisters(TEST_UNIT_ID, TEST_REF, TEST_REGISTERS));
     }
 
     @Test
@@ -291,13 +294,13 @@ public class ModbusMasterAdapterTest {
     public void testGetDeviceId() throws Exception {
         String deviceId = testModbusMasterAdapter.getDeviceId();
 
-        Assert.assertEquals(TEST_DEVICE_ID, deviceId);
+        Assertions.assertEquals(TEST_DEVICE_ID, deviceId);
     }
 
     @Test
     public void testGetDeviceManufacturer() throws Exception {
         String deviceManufacturer = testModbusMasterAdapter.getDeviceManufacturer();
 
-        Assert.assertEquals(TEST_DEVICE_MANUFACTURER, deviceManufacturer);
+        Assertions.assertEquals(TEST_DEVICE_MANUFACTURER, deviceManufacturer);
     }
 }

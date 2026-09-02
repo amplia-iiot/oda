@@ -3,11 +3,13 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 
@@ -15,11 +17,13 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeploymentElementOperationBaseTest {
 
     private static final String TEST_NAME = "test";
@@ -38,7 +42,7 @@ public class DeploymentElementOperationBaseTest {
     private DeploymentElementOperationBase testOperationBase;
     private DeploymentElementOperationBase spiedTestOperationBase;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testOperationBase = new DeploymentElementOperationBase(DEPLOYMENT_ELEMENT,
                                                                mockedFileManager,
@@ -81,22 +85,18 @@ public class DeploymentElementOperationBaseTest {
         verify(mockedOperationConfirmationProcessor).waitForConfirmation(eq(DEPLOYMENT_ELEMENT));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testExecuteNotConfirmed() throws DeploymentElementOperationException {
         when(mockedOperationConfirmationProcessor.waitForConfirmation(any(DeploymentElement.class))).thenReturn(false);
 
-        testOperationBase.execute();
-
-        fail(DEPLOYMENT_ELEMENT_OPERATION_EXCEPTION_MESSAGE);
+        assertThrows(DeploymentElementOperationException.class, () -> testOperationBase.execute());
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testExecuteSpecificOperationException() throws DeploymentElementOperationException, FileException {
         doThrow(new FileException("")).when(spiedTestOperationBase).executeSpecificOperation(eq(mockedFileManager));
 
-        spiedTestOperationBase.execute();
-
-        fail(DEPLOYMENT_ELEMENT_OPERATION_EXCEPTION_MESSAGE);
+        assertThrows(DeploymentElementOperationException.class, () -> spiedTestOperationBase.execute());
     }
 
     @Test
@@ -109,22 +109,18 @@ public class DeploymentElementOperationBaseTest {
         verify(mockedOperationConfirmationProcessor).waitForRollbackConfirmation(eq(DEPLOYMENT_ELEMENT));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testRollbackException() throws DeploymentElementOperationException {
         when(mockedOperationConfirmationProcessor.waitForConfirmation(eq(DEPLOYMENT_ELEMENT))).thenReturn(false);
 
-        testOperationBase.rollback(PATH_TO_BACKUP);
-
-        fail(DEPLOYMENT_ELEMENT_OPERATION_EXCEPTION_MESSAGE);
+        assertThrows(DeploymentElementOperationException.class, () -> testOperationBase.rollback(PATH_TO_BACKUP));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testRollbackSpecificOperationException() throws FileException, DeploymentElementOperationException {
         doThrow(new FileException("")).when(spiedTestOperationBase)
                 .rollbackSpecificOperation(eq(mockedFileManager), eq(PATH_TO_BACKUP));
 
-        spiedTestOperationBase.rollback(PATH_TO_BACKUP);
-
-        fail(DEPLOYMENT_ELEMENT_OPERATION_EXCEPTION_MESSAGE);
+        assertThrows(DeploymentElementOperationException.class, () -> spiedTestOperationBase.rollback(PATH_TO_BACKUP));
     }
 }

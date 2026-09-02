@@ -3,21 +3,25 @@ package es.amplia.oda.comms.mqtt.paho;
 import es.amplia.oda.comms.mqtt.api.MqttException;
 
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockConstruction;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttPahoClientFactoryTest {
 
     private static final String TEST_SERVER_URI = "tcp://testhost.server";
@@ -52,14 +56,14 @@ public class MqttPahoClientFactoryTest {
         }
     }
 
-    @Test(expected = MqttException.class)
+    @Test
     public void testCreateMqttClientThrowsMqttException() throws Exception {
         try (MockedConstruction<MemoryPersistence> persistenceCons =
                      mockConstruction(MemoryPersistence.class,
                              (mock, mctx) -> doThrow(new org.eclipse.paho.client.mqttv3.MqttPersistenceException(1))
                                      .when(mock).open(anyString(), anyString()))) {
 
-            testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID);
+            assertThrows(MqttException.class, () -> testFactory.createMqttClient(TEST_SERVER_URI, TEST_CLIENT_ID));
         }
     }
 }

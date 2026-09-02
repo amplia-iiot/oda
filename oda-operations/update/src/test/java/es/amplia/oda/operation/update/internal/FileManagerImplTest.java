@@ -2,18 +2,20 @@ package es.amplia.oda.operation.update.internal;
 
 import es.amplia.oda.operation.update.FileManager;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -21,7 +23,8 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FileManagerImplTest {
 
     private static final String DIRECTORY_TO_SEARCH = "directory/to/search";
@@ -66,7 +69,7 @@ public class FileManagerImplTest {
         }
     }
 
-    @Test(expected = FileManager.FileException.class)
+    @Test
     public void testCreateDirectoryIOException() throws Exception {
         String newDirectory = "new/directory";
 
@@ -75,9 +78,7 @@ public class FileManagerImplTest {
              MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
             mockedFiles.when(() -> Files.createDirectory(eq(mockedPath))).thenThrow(new IOException(""));
 
-            testFileManager.createDirectory(newDirectory);
-
-            fail("File Exception must be thrown");
+            assertThrows(FileManager.FileException.class, () -> testFileManager.createDirectory(newDirectory));
         }
     }
 
@@ -133,7 +134,7 @@ public class FileManagerImplTest {
         }
     }
 
-    @Test(expected = FileManager.FileException.class)
+    @Test
     public void testCopyIOException() throws Exception {
         String sourceFile = "test/source/file.jar";
         String targetFile = "test/target/file.jar";
@@ -149,9 +150,7 @@ public class FileManagerImplTest {
              MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
             mockedFiles.when(() -> Files.copy(eq(mockedPath), eq(mockedPath2))).thenThrow(new IOException(""));
 
-            testFileManager.copy(sourceFile, targetFile);
-
-            fail("File Exception must be thrown");
+            assertThrows(FileManager.FileException.class, () -> testFileManager.copy(sourceFile, targetFile));
         }
     }
 
@@ -169,7 +168,7 @@ public class FileManagerImplTest {
         }
     }
 
-    @Test(expected = FileManager.FileException.class)
+    @Test
     public void testDeleteIOException() throws Exception {
         String deleteFile = "file/to/delete.jar";
 
@@ -178,9 +177,7 @@ public class FileManagerImplTest {
              MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
             mockedFiles.when(() -> Files.delete(eq(mockedPath))).thenThrow(new IOException(""));
 
-            testFileManager.delete(deleteFile);
-
-            mockedFiles.verify(() -> Files.delete(eq(mockedPath)));
+            assertThrows(FileManager.FileException.class, () -> testFileManager.delete(deleteFile));
         }
     }
 

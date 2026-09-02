@@ -1,13 +1,15 @@
 package es.amplia.oda.datastreams.modbusslave.internal;
 
 import es.amplia.oda.core.commons.interfaces.StateManager;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -19,7 +21,8 @@ import java.util.concurrent.*;
 
 import static org.mockito.Mockito.mockConstruction;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusCustomTcpListenerTest {
 
     private static final String TEST_DEVICE_IP = "1.2.3.4";
@@ -37,7 +40,7 @@ public class ModbusCustomTcpListenerTest {
 
     private final List<ServerSocket> constructedServerSockets = new CopyOnWriteArrayList<>();
 
-    @Before
+    @BeforeEach
     public void prepare(){
         CustomModbusRequestHandler modbusRequestHandler = new CustomModbusRequestHandler(TEST_DEVICE_ID, TEST_DEVICE_IP,
                 TEST_SLAVE_ADDRESS, mockedStateManager);

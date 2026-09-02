@@ -2,14 +2,16 @@ package es.amplia.oda.datastreams.modbusslave.internal;
 
 import es.amplia.oda.core.commons.interfaces.StateManager;
 import es.amplia.oda.datastreams.modbusslave.configuration.ModbusTCPDeviceConfiguration;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,7 +20,8 @@ import java.util.Map;
 
 import static es.amplia.oda.datastreams.modbusslave.configuration.ModbusSlaveConfigurationUpdateHandler.TCP_MODBUS_TYPE;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusSlaveManagerTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -38,7 +41,7 @@ public class ModbusSlaveManagerTest {
     @InjectMocks
     private ModbusSlaveManager modbusSlaveManager;
 
-    @Before
+    @BeforeEach
     public void prepare() {
         modbusDevicesConfig.put(TCP_MODBUS_TYPE, Collections.singletonList(TEST_TCP_CONFIGURATION));
     }
@@ -50,9 +53,9 @@ public class ModbusSlaveManagerTest {
         // assertions
         Map<Integer, ModbusCustomTCPListener> modbusPortListeners = (Map<Integer, ModbusCustomTCPListener>)
                 Whitebox.getInternalState(modbusSlaveManager, "modbusPortListeners");
-        Assert.assertEquals(1, modbusPortListeners.size());
+        Assertions.assertEquals(1, modbusPortListeners.size());
         Map<String, CustomModbusRequestHandlerTest> modbusRequestHandlers = (Map<String, CustomModbusRequestHandlerTest>)
                 Whitebox.getInternalState(modbusSlaveManager, "modbusRequestHandlers");
-        Assert.assertEquals(1, modbusRequestHandlers.size());
+        Assertions.assertEquals(1, modbusRequestHandlers.size());
     }
 }

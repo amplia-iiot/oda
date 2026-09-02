@@ -2,11 +2,13 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.hardware.modbus.ModbusType;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -17,11 +19,13 @@ import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ModbusDatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -39,7 +43,7 @@ public class ModbusDatastreamsGetterTest {
 
     private ModbusDatastreamsGetter testGetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testGetter = new ModbusDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DATASTREAM_TYPE, TEST_MAPPER, TEST_DATA_TYPE,
                 TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, TEST_REGISTERS_TO_READ, mockedReadOperatorProcessor);
@@ -65,9 +69,8 @@ public class ModbusDatastreamsGetterTest {
                         eq(TEST_DATA_ADDRESS), eq (TEST_READ_FROM_CACHE), eq (TEST_REGISTERS_TO_READ));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetUnknownDevice() throws ExecutionException, InterruptedException {
-        CompletableFuture<CollectedValue> future = testGetter.get("unknown");
-        future.get();
+        assertThrows(IllegalArgumentException.class, () -> testGetter.get("unknown"));
     }
 }

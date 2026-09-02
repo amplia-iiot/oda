@@ -1,11 +1,13 @@
 package es.amplia.oda.operation.update.internal;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -28,12 +30,13 @@ import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandle
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.OPERATION_TIMEOUT;
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.UNINSTALL_BUNDLE_EVENT;
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.UPDATE_CONFIGURATION_EVENT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OperationUpdateEventHandlerTest {
 
     private static final String TEST_BUNDLE = "testBundle";

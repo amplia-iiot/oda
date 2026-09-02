@@ -3,12 +3,14 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 
@@ -16,13 +18,15 @@ import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UpgradeDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testBundle";
@@ -46,7 +50,7 @@ public class UpgradeDeploymentElementOperationTest {
 
     private UpgradeDeploymentElementOperation testUpgradeOperation;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testUpgradeOperation = new UpgradeDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT, LOCAL_FILE, INSTALL_FOLDER,
                 mockedFileManager, mockedOperationConfirmationProcessor);
@@ -64,25 +68,21 @@ public class UpgradeDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(INSTALL_FOLDER));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testExecuteOldVersionNotFoundException() throws DeploymentElementOperationException, FileException {
         when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME))).thenReturn(null);
 
-        testUpgradeOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("Deployment Element Operation exception must be thrown");
+        assertThrows(DeploymentElementOperationException.class, () -> testUpgradeOperation.executeSpecificOperation(mockedFileManager));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testExecuteFileException() throws DeploymentElementOperationException, FileException {
         String oldVersion = "/path/to/last/version";
 
         when(mockedFileManager.find(eq(INSTALL_FOLDER), eq(TEST_NAME))).thenReturn(oldVersion);
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(INSTALL_FOLDER));
 
-        testUpgradeOperation.executeSpecificOperation(mockedFileManager);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.executeSpecificOperation(mockedFileManager));
     }
 
     @Test
@@ -95,25 +95,21 @@ public class UpgradeDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(PATH_TO_BACKUP_CFG), eq(INSTALL_FOLDER));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationDeleteFileException() throws FileException {
         Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_CFG);
 
         doThrow(new FileException("")).when(mockedFileManager).delete(eq(PATH_TO_UPGRADED_CFG));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationCopyFileException() throws FileException {
         Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_CFG);
 
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(PATH_TO_BACKUP_CFG), eq(INSTALL_FOLDER));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_CFG));
     }
 }

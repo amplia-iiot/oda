@@ -12,15 +12,17 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import javax.net.ssl.SSLContext;
@@ -35,13 +37,14 @@ import java.util.Map;
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.API_KEY_HEADER;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DownloadManagerImplTest {
 
     private static final String DOWNLOAD_FOLDER = "downloads/";
@@ -79,14 +82,14 @@ public class DownloadManagerImplTest {
 
     private Map<DeploymentElement, String> testDownloadedFiles;
 
-    @BeforeClass
+    @BeforeAll
     public static void loadClassesUsedInsideMockedScopes() throws Exception {
         Class.forName(DownloadManagerImpl.class.getName() + "$1");
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(null, null, null);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testDownloadedFiles = new HashMap<>();
         testDownloadedFiles.put(deploymentElement1, DOWNLOADED_FILE_1);
@@ -115,14 +118,12 @@ public class DownloadManagerImplTest {
         verify(mockedFileManager, never()).createDirectory(eq(DOWNLOAD_FOLDER));
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testCreateDownloadDirectoryFileException() throws FileException, DownloadException {
         when(mockedFileManager.exist(eq(DOWNLOAD_FOLDER))).thenReturn(false);
         doThrow(new FileException("")).when(mockedFileManager).createDirectory(eq(DOWNLOAD_FOLDER));
 
-        testDownloadManager.createDownloadDirectory();
-
-        fail("File exception must be thrown");
+        assertThrows(DownloadException.class, () -> testDownloadManager.createDownloadDirectory());
     }
 
     @Test
@@ -316,7 +317,7 @@ public class DownloadManagerImplTest {
         }
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testDownloadHttpGetExecuteError() throws Exception {
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
@@ -330,13 +331,11 @@ public class DownloadManagerImplTest {
             when(mockedBuilder.build()).thenReturn(mockedClient);
             when(mockedClient.execute(any(HttpGet.class))).thenThrow(new IOException(""));
 
-            testDownloadManager.download(deploymentElement1);
-
-            fail("Download exception must be thrown");
+            assertThrows(DownloadException.class, () -> testDownloadManager.download(deploymentElement1));
         }
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testDownloadHttpResponseError() throws Exception {
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
@@ -362,9 +361,7 @@ public class DownloadManagerImplTest {
             when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
             when(mockedStatusLine.getStatusCode()).thenReturn(404);
 
-            testDownloadManager.download(deploymentElement1);
-
-            fail("Download exception must be thrown");
+            assertThrows(DownloadException.class, () -> testDownloadManager.download(deploymentElement1));
         }
     }
 

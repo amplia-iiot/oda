@@ -3,13 +3,15 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,10 +20,11 @@ import java.io.File;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockConstruction;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeploymentElementOperationFactoryTest {
 
     private static final String LOCAL_FILE_JAR = "path/to/local/file.jar";
@@ -39,7 +42,7 @@ public class DeploymentElementOperationFactoryTest {
 
 
 
-    @After
+    @AfterEach
     public void cleanUp() {
         StringBuilder path = new StringBuilder(PATH_TO_RULES);
         do {

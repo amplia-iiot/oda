@@ -8,27 +8,30 @@ import es.amplia.oda.core.commons.interfaces.Serializer;
 import es.amplia.oda.core.commons.utils.operation.request.Operation;
 import es.amplia.oda.core.commons.utils.operation.request.OperationRequest;
 import es.amplia.oda.core.commons.utils.operation.request.Request;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttOperationSenderTest {
 
     private static final String TEST_REQUEST_TOPIC = "test/request/topic";
@@ -52,12 +55,12 @@ public class MqttOperationSenderTest {
 
     private MockedStatic<MqttCounters> mockedCounters;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         mockedCounters = mockStatic(MqttCounters.class);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mockedCounters.close();
     }
