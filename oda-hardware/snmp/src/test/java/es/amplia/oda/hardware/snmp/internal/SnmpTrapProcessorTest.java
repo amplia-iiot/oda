@@ -6,8 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.smi.Address;
@@ -15,7 +14,9 @@ import org.snmp4j.smi.Address;
 import java.util.HashMap;
 import java.util.Map;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpTrapProcessorTest {
 
     @Mock
@@ -35,9 +36,9 @@ public class SnmpTrapProcessorTest {
     @Before
     public void start(){
         snmpTrapProcessor = new SnmpTrapProcessor(mockedSnmpTranslator, mockedStateManager, devicesIps);
-        PowerMockito.when(mockedResponderEvent.getPDU()).thenReturn(mockedPdu);
-        PowerMockito.when(mockedResponderEvent.getPeerAddress()).thenReturn(mockedAddress);
-        PowerMockito.when(mockedAddress.toString()).thenReturn("0.0.0.0");
+        when(mockedResponderEvent.getPDU()).thenReturn(mockedPdu);
+        when(mockedResponderEvent.getPeerAddress()).thenReturn(mockedAddress);
+        when(mockedAddress.toString()).thenReturn("0.0.0.0");
     }
 
     @Test

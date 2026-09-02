@@ -9,12 +9,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.HashMap;
@@ -22,12 +22,10 @@ import java.util.List;
 import static es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter.*;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DeviceInfoDatastreamsGetter.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DeviceInfoDatastreamsGetterTest {
 
     private static final String A_DEVICE_ID = "aDeviceId";
@@ -43,8 +41,6 @@ public class DeviceInfoDatastreamsGetterTest {
     @InjectMocks
     private DeviceInfoDatastreamsGetter deviceInfoDatastreamsGetter;
     @Mock
-    private File mockedFile;
-    @Mock
     private Bundle mockedBundle;
     @Mock
     private BundleContext mockedContext;
@@ -54,10 +50,10 @@ public class DeviceInfoDatastreamsGetterTest {
     @Test
     public void loadConfigurationCachesValuesOfDeviceInfoConfiguration() throws Exception {
         when(mockedCommandProcessor.execute(anyString())).thenReturn(A_SERIAL_NUMBER);
-        whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        when(mockedFile.listFiles()).thenReturn(new File[0]);
-
-        deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
+        try (MockedConstruction<File> fileCons = mockConstruction(File.class,
+                (mock, mctx) -> when(mock.listFiles()).thenReturn(new File[0]))) {
+            deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
+        }
 
         verify(mockedCommandProcessor).execute(A_PATH + "/" + SERIAL_NUMBER_SCRIPT);
         assertEquals(A_DEVICE_ID, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "deviceId"));
@@ -70,10 +66,10 @@ public class DeviceInfoDatastreamsGetterTest {
     public void loadConfigurationCaughtCommandProcessorException() throws Exception {
         doThrow(new CommandExecutionException("","", new RuntimeException())).when(mockedCommandProcessor)
                 .execute(anyString());
-        whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        when(mockedFile.listFiles()).thenReturn(new File[0]);
-        
-        deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
+        try (MockedConstruction<File> fileCons = mockConstruction(File.class,
+                (mock, mctx) -> when(mock.listFiles()).thenReturn(new File[0]))) {
+            deviceInfoDatastreamsGetter.loadConfiguration(TEST_CONFIGURATION);
+        }
 
         verify(mockedCommandProcessor).execute(A_PATH + "/" + SERIAL_NUMBER_SCRIPT);
         assertEquals(A_DEVICE_ID, Whitebox.getInternalState(deviceInfoDatastreamsGetter, "deviceId"));
@@ -93,7 +89,7 @@ public class DeviceInfoDatastreamsGetterTest {
     
     @Test
     public void getDeviceIdReturnsSerialNumberIfConfigurationDoesntHaveDeviceId() {
-        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "deviceId", null);
+        Whitebox.setInternalState(deviceInfoDatastreamsGetter, "deviceId", (String) null);
         Whitebox.setInternalState(deviceInfoDatastreamsGetter, "serialNumber", A_SERIAL_NUMBER);
 
         String actual = deviceInfoDatastreamsGetter.getDeviceId();

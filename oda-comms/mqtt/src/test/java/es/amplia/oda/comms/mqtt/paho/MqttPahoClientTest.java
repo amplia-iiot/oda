@@ -12,22 +12,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.UUID;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MqttPahoConnectOptionsMapper.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MqttPahoClientTest {
 
     private static final String TEST_USERNAME = "testUser";
@@ -66,16 +64,17 @@ public class MqttPahoClientTest {
         org.eclipse.paho.client.mqttv3.MqttConnectOptions mockedInnerOptions =
                 mock(org.eclipse.paho.client.mqttv3.MqttConnectOptions.class);
 
-        PowerMockito.mockStatic(MqttPahoConnectOptionsMapper.class);
-        PowerMockito.when(MqttPahoConnectOptionsMapper.from(any(MqttConnectOptions.class)))
-                .thenReturn(mockedInnerOptions);
+        try (MockedStatic<MqttPahoConnectOptionsMapper> optionsMapperStatic =
+                     mockStatic(MqttPahoConnectOptionsMapper.class)) {
+            optionsMapperStatic.when(() -> MqttPahoConnectOptionsMapper.from(any(MqttConnectOptions.class)))
+                    .thenReturn(mockedInnerOptions);
 
-        testClient.connect(options, null);
+            testClient.connect(options, null);
 
-        PowerMockito.verifyStatic(MqttPahoConnectOptionsMapper.class);
-        MqttPahoConnectOptionsMapper.from(eq(options));
-        verify(mockedResubscribeTopicsCallback).listenTo(eq(mockedInnerClient));
-        verify(mockedInnerClient).connect(eq(mockedInnerOptions), eq(null), any(IMqttActionListener.class));
+            optionsMapperStatic.verify(() -> MqttPahoConnectOptionsMapper.from(eq(options)));
+            verify(mockedResubscribeTopicsCallback).listenTo(eq(mockedInnerClient));
+            verify(mockedInnerClient).connect(eq(mockedInnerOptions), eq(null), any(IMqttActionListener.class));
+        }
     }
 
     @Test(expected = MqttException.class)
@@ -84,12 +83,14 @@ public class MqttPahoClientTest {
         org.eclipse.paho.client.mqttv3.MqttConnectOptions mockedInnerOptions =
                 mock(org.eclipse.paho.client.mqttv3.MqttConnectOptions.class);
 
-        PowerMockito.mockStatic(MqttPahoConnectOptionsMapper.class);
-        PowerMockito.when(MqttPahoConnectOptionsMapper.from(any(MqttConnectOptions.class)))
-                .thenReturn(mockedInnerOptions);
-        doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).connect(any(), any(), any());
+        try (MockedStatic<MqttPahoConnectOptionsMapper> optionsMapperStatic =
+                     mockStatic(MqttPahoConnectOptionsMapper.class)) {
+            optionsMapperStatic.when(() -> MqttPahoConnectOptionsMapper.from(any(MqttConnectOptions.class)))
+                    .thenReturn(mockedInnerOptions);
+            doThrow(new org.eclipse.paho.client.mqttv3.MqttException(1)).when(mockedInnerClient).connect(any(), any(), any());
 
-        testClient.connect(options, null);
+            testClient.connect(options, null);
+        }
     }
 
     @Test

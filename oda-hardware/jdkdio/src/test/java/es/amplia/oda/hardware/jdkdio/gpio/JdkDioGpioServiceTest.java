@@ -6,19 +6,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(JdkDioGpioService.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JdkDioGpioServiceTest {
 
     private static final String TEST_NAME = "testPin";
@@ -53,7 +54,7 @@ public class JdkDioGpioServiceTest {
         availablePins.put(3, mockedPin3);
         availablePins.put(4, mockedPin4);
 
-        spiedAvailablePins = spy(availablePins);
+        spiedAvailablePins = availablePins;
         Whitebox.setInternalState(testJdkDioGpioService, "pins", spiedAvailablePins);
     }
 
@@ -96,8 +97,6 @@ public class JdkDioGpioServiceTest {
 
     @Test
     public void testGetPinByNameWithConfigDifferentConfig() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
-
         when(mockedPin3.getIndex()).thenReturn(TEST_INDEX);
         when(mockedPin3.getName()).thenReturn(TEST_NAME);
         when(mockedPin3.getDirection()).thenReturn(TEST_DIRECTION);
@@ -106,17 +105,20 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isActiveLow()).thenReturn(false);
         when(mockedPin3.getInitialValue()).thenReturn(false);
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
+        List<List<?>> newPinArgs = new ArrayList<>();
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class,
+                (mock, mctx) -> newPinArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        assertEquals(newMockedPin, resultPin);
-        PowerMockito.verifyNew(JdkDioGpioPin.class)
-                .withArguments(eq(TEST_INDEX), eq(TEST_NAME), eq(TEST_DIRECTION), eq(TEST_MODE), eq(TEST_TRIGGER),
-                        eq(TEST_ACTIVE_LOW), eq(TEST_INITIAL_VALUE));
-        verify(spiedAvailablePins).put(eq(TEST_INDEX), eq(newMockedPin));
+            assertEquals(1, newPinCons.constructed().size());
+            assertEquals(newPinCons.constructed().get(0), resultPin);
+            assertEquals(Arrays.asList(TEST_INDEX, TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER,
+                    TEST_ACTIVE_LOW, TEST_INITIAL_VALUE), newPinArgs.get(0));
+            assertEquals(newPinCons.constructed().get(0), spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
@@ -129,17 +131,15 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isActiveLow()).thenReturn(TEST_ACTIVE_LOW);
         when(mockedPin3.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(mock(JdkDioGpioPin.class));
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class)) {
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
-
-        assertEquals(mockedPin3, resultPin);
-        PowerMockito.verifyNew(JdkDioGpioPin.class, never())
-                .withArguments(anyInt(), anyString(), any(GpioDirection.class), any(GpioMode.class),
-                        any(GpioTrigger.class), anyBoolean(), anyBoolean());
-        verify(spiedAvailablePins, never()).put(anyInt(), any(JdkDioGpioPin.class));
+            assertEquals(mockedPin3, resultPin);
+            assertEquals(0, newPinCons.constructed().size());
+            assertEquals(mockedPin3, spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
@@ -172,17 +172,15 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isOpen()).thenReturn(true);
         doThrow(GpioDeviceException.class).when(mockedPin3).close();
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(mock(JdkDioGpioPin.class));
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class)) {
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByName(TEST_NAME, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
-
-        assertEquals(mockedPin3, resultPin);
-        verify(mockedPin3).close();
-        PowerMockito.verifyNew(JdkDioGpioPin.class, never())
-                .withArguments(anyInt(), anyString(), any(GpioDirection.class), any(GpioMode.class),
-                        any(GpioTrigger.class), anyBoolean(), anyBoolean());
+            assertEquals(mockedPin3, resultPin);
+            verify(mockedPin3).close();
+            assertEquals(0, newPinCons.constructed().size());
+        }
     }
 
     @Test(expected = GpioDeviceException.class)
@@ -239,8 +237,6 @@ public class JdkDioGpioServiceTest {
 
     @Test
     public void getPinByIndexWithConfigDifferentConfig() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
-
         when(mockedPin3.getIndex()).thenReturn(TEST_INDEX);
         when(mockedPin3.getName()).thenReturn(TEST_NAME);
         when(mockedPin3.getDirection()).thenReturn(TEST_DIRECTION);
@@ -249,28 +245,24 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isActiveLow()).thenReturn(false);
         when(mockedPin3.getInitialValue()).thenReturn(false);
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
-        when(newMockedPin.getDirection()).thenReturn(TEST_DIRECTION);
-        when(newMockedPin.getMode()).thenReturn(TEST_MODE);
-        when(newMockedPin.getTrigger()).thenReturn(TEST_TRIGGER);
-        when(newMockedPin.isActiveLow()).thenReturn(TEST_ACTIVE_LOW);
-        when(newMockedPin.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
+        List<List<?>> newPinArgs = new ArrayList<>();
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class,
+                (mock, mctx) -> newPinArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        assertEquals(mockedPin3, resultPin);
-        PowerMockito.verifyNew(JdkDioGpioPin.class)
-                .withArguments(eq(TEST_INDEX), eq(null), eq(TEST_DIRECTION), eq(TEST_MODE), eq(TEST_TRIGGER),
-                        eq(TEST_ACTIVE_LOW), eq(TEST_INITIAL_VALUE));
-        verify(spiedAvailablePins).put(eq(TEST_INDEX), eq(newMockedPin));
+            assertEquals(mockedPin3, resultPin);
+            assertEquals(1, newPinCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_INDEX, null, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER,
+                    TEST_ACTIVE_LOW, TEST_INITIAL_VALUE), newPinArgs.get(0));
+            assertEquals(newPinCons.constructed().get(0), spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
     public void getPinByIndexWithConfigSameConfig() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
-
         when(mockedPin3.getIndex()).thenReturn(TEST_INDEX);
         when(mockedPin3.getName()).thenReturn(TEST_NAME);
         when(mockedPin3.getDirection()).thenReturn(TEST_DIRECTION);
@@ -279,28 +271,19 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isActiveLow()).thenReturn(TEST_ACTIVE_LOW);
         when(mockedPin3.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
-        when(newMockedPin.getDirection()).thenReturn(TEST_DIRECTION);
-        when(newMockedPin.getMode()).thenReturn(TEST_MODE);
-        when(newMockedPin.getTrigger()).thenReturn(TEST_TRIGGER);
-        when(newMockedPin.isActiveLow()).thenReturn(TEST_ACTIVE_LOW);
-        when(newMockedPin.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class)) {
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
-
-        assertEquals(mockedPin3, resultPin);
-        PowerMockito.verifyNew(JdkDioGpioPin.class, never())
-                .withArguments(anyInt(), anyString(), any(GpioDirection.class), any(GpioMode.class),
-                        any(GpioTrigger.class), anyBoolean(), anyBoolean());
-        verify(spiedAvailablePins, never()).put(anyInt(), any(JdkDioGpioPin.class));
+            assertEquals(mockedPin3, resultPin);
+            assertEquals(0, newPinCons.constructed().size());
+            assertEquals(mockedPin3, spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
     public void getPinByIndexWithConfigSameConfigOpenPin() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
-
         when(mockedPin3.getIndex()).thenReturn(TEST_INDEX);
         when(mockedPin3.getName()).thenReturn(TEST_NAME);
         when(mockedPin3.getDirection()).thenReturn(TEST_DIRECTION);
@@ -310,29 +293,20 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
         when(mockedPin3.isOpen()).thenReturn(true);
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
-        when(newMockedPin.getDirection()).thenReturn(TEST_DIRECTION);
-        when(newMockedPin.getMode()).thenReturn(TEST_MODE);
-        when(newMockedPin.getTrigger()).thenReturn(TEST_TRIGGER);
-        when(newMockedPin.isActiveLow()).thenReturn(TEST_ACTIVE_LOW);
-        when(newMockedPin.getInitialValue()).thenReturn(TEST_INITIAL_VALUE);
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class)) {
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
-
-        assertEquals(mockedPin3, resultPin);
-        verify(mockedPin3).close();
-        PowerMockito.verifyNew(JdkDioGpioPin.class, never())
-                .withArguments(anyInt(), anyString(), any(GpioDirection.class), any(GpioMode.class),
-                        any(GpioTrigger.class), anyBoolean(), anyBoolean());
-        verify(spiedAvailablePins, never()).put(anyInt(), any(JdkDioGpioPin.class));
+            assertEquals(mockedPin3, resultPin);
+            verify(mockedPin3).close();
+            assertEquals(0, newPinCons.constructed().size());
+            assertEquals(mockedPin3, spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
     public void getPinByIndexWithConfigSameConfigOpenPinCloseException() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
-
         when(mockedPin3.getIndex()).thenReturn(TEST_INDEX);
         when(mockedPin3.getName()).thenReturn(TEST_NAME);
         when(mockedPin3.getDirection()).thenReturn(TEST_DIRECTION);
@@ -343,36 +317,35 @@ public class JdkDioGpioServiceTest {
         when(mockedPin3.isOpen()).thenReturn(true);
         doThrow(GpioDeviceException.class).when(mockedPin3).close();
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class)) {
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByIndex(TEST_INDEX, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
-
-        assertEquals(mockedPin3, resultPin);
-        verify(mockedPin3).close();
-        PowerMockito.verifyNew(JdkDioGpioPin.class, never())
-                .withArguments(anyInt(), anyString(), any(GpioDirection.class), any(GpioMode.class),
-                        any(GpioTrigger.class), anyBoolean(), anyBoolean());
-        verify(spiedAvailablePins, never()).put(anyInt(), any(JdkDioGpioPin.class));
+            assertEquals(mockedPin3, resultPin);
+            verify(mockedPin3).close();
+            assertEquals(0, newPinCons.constructed().size());
+            assertEquals(mockedPin3, spiedAvailablePins.get(TEST_INDEX));
+        }
     }
 
     @Test
     public void getPinByIndexWithConfigNewPin() throws Exception {
-        JdkDioGpioPin newMockedPin = mock(JdkDioGpioPin.class);
         int newIndex = 99;
 
-        PowerMockito.whenNew(JdkDioGpioPin.class).withAnyArguments().thenReturn(newMockedPin);
+        List<List<?>> newPinArgs = new ArrayList<>();
+        try (MockedConstruction<JdkDioGpioPin> newPinCons = mockConstruction(JdkDioGpioPin.class,
+                (mock, mctx) -> newPinArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        GpioPin resultPin =
-                testJdkDioGpioService.getPinByIndex(newIndex, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
-                        TEST_INITIAL_VALUE);
+            GpioPin resultPin =
+                    testJdkDioGpioService.getPinByIndex(newIndex, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER, TEST_ACTIVE_LOW,
+                            TEST_INITIAL_VALUE);
 
-        assertEquals(newMockedPin, resultPin);
-        PowerMockito.verifyNew(JdkDioGpioPin.class)
-                .withArguments(eq(newIndex), eq(null), eq(TEST_DIRECTION), eq(TEST_MODE), eq(TEST_TRIGGER),
-                        eq(TEST_ACTIVE_LOW), eq(TEST_INITIAL_VALUE));
-        verify(spiedAvailablePins).put(eq(newIndex), eq(newMockedPin));
+            assertEquals(newPinCons.constructed().get(0), resultPin);
+            assertEquals(Arrays.asList(newIndex, null, TEST_DIRECTION, TEST_MODE, TEST_TRIGGER,
+                    TEST_ACTIVE_LOW, TEST_INITIAL_VALUE), newPinArgs.get(0));
+            assertEquals(newPinCons.constructed().get(0), spiedAvailablePins.get(newIndex));
+        }
     }
 
     @Test
@@ -397,7 +370,7 @@ public class JdkDioGpioServiceTest {
         testJdkDioGpioService.addConfiguredPin(newMockedPin);
 
         verify(newMockedPin, never()).open();
-        verify(spiedAvailablePins).put(eq(TEST_INDEX), eq(newMockedPin));
+        assertEquals(newMockedPin, spiedAvailablePins.get(TEST_INDEX));
     }
 
     @Test
@@ -412,7 +385,7 @@ public class JdkDioGpioServiceTest {
 
         verify(newMockedPin).open();
         verify(newMockedPin).setValue(eq(TEST_INITIAL_VALUE));
-        verify(spiedAvailablePins).put(eq(TEST_INDEX), eq(newMockedPin));
+        assertEquals(newMockedPin, spiedAvailablePins.get(TEST_INDEX));
     }
 
     @Test
@@ -422,7 +395,10 @@ public class JdkDioGpioServiceTest {
 
         testJdkDioGpioService.release();
 
-        spiedAvailablePins.values().forEach(pin -> verify(pin).isOpen());
+        verify(mockedPin1).isOpen();
+        verify(mockedPin2).isOpen();
+        verify(mockedPin3).isOpen();
+        verify(mockedPin4).isOpen();
         verify(mockedPin1, never()).close();
         verify(mockedPin2).close();
         verify(mockedPin3, never()).close();
@@ -437,7 +413,10 @@ public class JdkDioGpioServiceTest {
 
         testJdkDioGpioService.release();
 
-        spiedAvailablePins.values().forEach(pin -> verify(pin).isOpen());
+        verify(mockedPin1).isOpen();
+        verify(mockedPin2).isOpen();
+        verify(mockedPin3).isOpen();
+        verify(mockedPin4).isOpen();
         verify(mockedPin1, never()).close();
         verify(mockedPin2).close();
         verify(mockedPin3, never()).close();

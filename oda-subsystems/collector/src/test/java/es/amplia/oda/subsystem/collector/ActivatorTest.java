@@ -9,20 +9,23 @@ import es.amplia.oda.event.api.EventDispatcherProxy;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -34,31 +37,44 @@ public class ActivatorTest {
     @Mock
     private EventDispatcherProxy mockedEventDispatcher;
     @Mock
-    private CollectorImpl mockedCollector;
-    @Mock
     private SchedulerImpl mockedScheduler;
-    @Mock
-    private CollectorConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
-        PowerMockito.whenNew(EventDispatcherProxy.class).withAnyArguments().thenReturn(mockedEventDispatcher);
-        PowerMockito.whenNew(CollectorImpl.class).withAnyArguments().thenReturn(mockedCollector);
-        PowerMockito.whenNew(SchedulerImpl.class).withAnyArguments().thenReturn(mockedScheduler);
-        PowerMockito.whenNew(CollectorConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        List<List<?>> stateManagerArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherArgs = new ArrayList<>();
+        List<List<?>> collectorArgs = new ArrayList<>();
+        List<List<?>> schedulerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<StateManagerProxy> stateManagerCons = mockConstruction(StateManagerProxy.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<EventDispatcherProxy> eventDispatcherCons = mockConstruction(EventDispatcherProxy.class,
+                     (mock, mctx) -> eventDispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<CollectorImpl> collectorCons = mockConstruction(CollectorImpl.class,
+                     (mock, mctx) -> collectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SchedulerImpl> schedulerCons = mockConstruction(SchedulerImpl.class,
+                     (mock, mctx) -> schedulerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<CollectorConfigurationUpdateHandler> configHandlerCons = mockConstruction(CollectorConfigurationUpdateHandler.class,
+                     (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(EventDispatcherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(CollectorImpl.class).withArguments(eq(mockedStateManager), eq(mockedEventDispatcher));
-        PowerMockito.verifyNew(SchedulerImpl.class).withArguments(any(ScheduledExecutorService.class));
-        PowerMockito.verifyNew(CollectorConfigurationUpdateHandler.class).withArguments(eq(mockedCollector), eq(mockedScheduler));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+            testActivator.start(mockedContext);
+
+            assertEquals(Collections.singletonList(mockedContext), stateManagerArgs.get(0));
+            assertEquals(Collections.singletonList(mockedContext), eventDispatcherArgs.get(0));
+            assertEquals(Arrays.asList(stateManagerCons.constructed().get(0),
+                    eventDispatcherCons.constructed().get(0)), collectorArgs.get(0));
+            assertEquals(1, schedulerCons.constructed().size());
+            assertTrue(schedulerArgs.get(0).get(0) instanceof ScheduledExecutorService);
+            assertEquals(Arrays.asList(collectorCons.constructed().get(0),
+                    schedulerCons.constructed().get(0)), configHandlerArgs.get(0));
+            assertEquals(Arrays.asList(mockedContext, configHandlerCons.constructed().get(0)), configBundleArgs.get(0));
+        }
     }
 
     @Test

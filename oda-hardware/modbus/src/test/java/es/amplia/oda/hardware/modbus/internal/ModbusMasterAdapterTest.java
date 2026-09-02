@@ -7,22 +7,21 @@ import com.ghgande.j2mod.modbus.util.BitVector;
 import es.amplia.oda.core.commons.modbus.ModbusException;
 import es.amplia.oda.core.commons.modbus.Register;
 import es.amplia.oda.hardware.modbus.ModbusCounters;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalMatchers.aryEq;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ModbusMasterAdapter.class, ModbusCounters.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusMasterAdapterTest {
 
     private static final int TEST_UNIT_ID = 5;
@@ -47,6 +46,8 @@ public class ModbusMasterAdapterTest {
 
     private ModbusMasterAdapter<ModbusTCPMaster> testModbusMasterAdapter;
 
+    private MockedStatic<ModbusCounters> mockedModbusCounters;
+
 
     @Before
     public void setUp() throws Exception {
@@ -54,7 +55,12 @@ public class ModbusMasterAdapterTest {
         // ini class to test
         testModbusMasterAdapter = new ModbusMasterAdapter<>(mockedModbusMaster, mockedMapper, TEST_DEVICE_ID, TEST_DEVICE_MANUFACTURER);
 
-        PowerMockito.mockStatic(ModbusCounters.class);
+        mockedModbusCounters = mockStatic(ModbusCounters.class);
+    }
+
+    @After
+    public void tearDown() {
+        mockedModbusCounters.close();
     }
 
     @Test
@@ -149,7 +155,7 @@ public class ModbusMasterAdapterTest {
         when(mockedModbusMaster.writeCoil(anyInt(), anyInt(), anyBoolean()))
                 .thenThrow(new com.ghgande.j2mod.modbus.ModbusException());
 
-        testModbusMasterAdapter.writeCoil(eq(TEST_UNIT_ID), eq(TEST_REF), eq(true));
+        testModbusMasterAdapter.writeCoil(TEST_UNIT_ID, TEST_REF, true);
     }
 
     @Test
@@ -267,7 +273,7 @@ public class ModbusMasterAdapterTest {
 
     @Test(expected = ModbusException.class)
     public void testWriteHoldingRegistersThrowsModbusException() throws com.ghgande.j2mod.modbus.ModbusException {
-        when(mockedMapper.mapToJ2ModbusRegister(any(Register.class))).thenReturn(TEST_J2MOD_REGISTER);
+        when(mockedMapper.mapToJ2ModbusRegisters(any(Register[].class))).thenReturn(TEST_J2MOD_REGISTERS);
         doThrow(new com.ghgande.j2mod.modbus.ModbusException()).when(mockedModbusMaster)
                 .writeMultipleRegisters(anyInt(), anyInt(), any(com.ghgande.j2mod.modbus.procimg.Register[].class));
 
@@ -283,10 +289,6 @@ public class ModbusMasterAdapterTest {
 
     @Test
     public void testGetDeviceId() throws Exception {
-        PowerMockito.whenNew(ModbusMasterAdapter.class).
-                withAnyArguments().
-                thenReturn(testModbusMasterAdapter);
-
         String deviceId = testModbusMasterAdapter.getDeviceId();
 
         Assert.assertEquals(TEST_DEVICE_ID, deviceId);
@@ -294,10 +296,6 @@ public class ModbusMasterAdapterTest {
 
     @Test
     public void testGetDeviceManufacturer() throws Exception {
-        PowerMockito.whenNew(ModbusMasterAdapter.class).
-                withAnyArguments().
-                thenReturn(testModbusMasterAdapter);
-
         String deviceManufacturer = testModbusMasterAdapter.getDeviceManufacturer();
 
         Assert.assertEquals(TEST_DEVICE_MANUFACTURER, deviceManufacturer);

@@ -11,20 +11,20 @@ import es.amplia.oda.datastreams.lora.configuration.LoraDatastreamsConfiguration
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
 	@Mock
@@ -48,24 +48,51 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		whenNew(UdpServiceProxy.class).withAnyArguments().thenReturn(mockedService);
-		whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
-		whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedPublisher);
-		whenNew(LoraDatastreamsOrchestrator.class).withAnyArguments().thenReturn(mockedOrchestrator);
-		whenNew(LoraDatastreamsConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
-		whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedServiceListener);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
+		List<List<?>> udpServiceArgs = new ArrayList<>();
+		List<List<?>> serializerArgs = new ArrayList<>();
+		List<List<?>> publisherArgs = new ArrayList<>();
+		List<List<?>> orchestratorArgs = new ArrayList<>();
+		List<List<?>> handlerArgs = new ArrayList<>();
+		List<List<?>> serviceListenerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
 
-		testActivator.start(mockedContext);
+		try (MockedConstruction<UdpServiceProxy> udpServiceCons = mockConstruction(UdpServiceProxy.class,
+					(mock, mctx) -> udpServiceArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<SerializerProxy> serializerCons = mockConstruction(SerializerProxy.class,
+					(mock, mctx) -> serializerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<EventPublisherProxy> publisherCons = mockConstruction(EventPublisherProxy.class,
+					(mock, mctx) -> publisherArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<LoraDatastreamsOrchestrator> orchestratorCons = mockConstruction(LoraDatastreamsOrchestrator.class,
+					(mock, mctx) -> orchestratorArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<LoraDatastreamsConfigurationHandler> handlerCons = mockConstruction(LoraDatastreamsConfigurationHandler.class,
+					(mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceListenerBundle> serviceListenerCons = mockConstruction(ServiceListenerBundle.class,
+					(mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+					(mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		verifyNew(UdpServiceProxy.class).withArguments(eq(mockedContext));
-		verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.JSON));
-		verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
-		verifyNew(LoraDatastreamsOrchestrator.class)
-				.withArguments(eq(mockedService), eq(mockedPublisher), eq(mockedSerializer));
-		verifyNew(LoraDatastreamsConfigurationHandler.class).withArguments(eq(mockedOrchestrator));
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler));
-		verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(UdpService.class), any());
+			testActivator.start(mockedContext);
+
+			assertEquals(1, udpServiceCons.constructed().size());
+			assertEquals(mockedContext, udpServiceArgs.get(0).get(0));
+			assertEquals(1, serializerCons.constructed().size());
+			assertEquals(mockedContext, serializerArgs.get(0).get(0));
+			assertEquals(ContentType.JSON, serializerArgs.get(0).get(1));
+			assertEquals(1, publisherCons.constructed().size());
+			assertEquals(mockedContext, publisherArgs.get(0).get(0));
+			assertEquals(1, orchestratorCons.constructed().size());
+			assertEquals(udpServiceCons.constructed().get(0), orchestratorArgs.get(0).get(0));
+			assertEquals(publisherCons.constructed().get(0), orchestratorArgs.get(0).get(1));
+			assertEquals(serializerCons.constructed().get(0), orchestratorArgs.get(0).get(2));
+			assertEquals(1, handlerCons.constructed().size());
+			assertEquals(orchestratorCons.constructed().get(0), handlerArgs.get(0).get(0));
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(handlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+			assertEquals(1, serviceListenerCons.constructed().size());
+			assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+			assertEquals(UdpService.class, serviceListenerArgs.get(0).get(1));
+		}
 	}
 
 	@Test
@@ -80,7 +107,7 @@ public class ActivatorTest {
 	@Test
 	public void testOnServiceChangedWithException() {
 		Whitebox.setInternalState(testActivator, "configurationHandler", mockedHandler);
-		doThrow(Exception.class).when(mockedHandler).applyConfiguration();
+		doThrow(RuntimeException.class).when(mockedHandler).applyConfiguration();
 
 		testActivator.onServiceChanged();
 

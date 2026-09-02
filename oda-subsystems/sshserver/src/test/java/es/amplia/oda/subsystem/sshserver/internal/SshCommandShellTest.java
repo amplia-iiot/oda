@@ -11,20 +11,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ SshCommandShell.class, ServerBuilder.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SshCommandShellTest {
 
     private static final String TEST_IP = "localhost";
@@ -49,25 +50,17 @@ public class SshCommandShellTest {
     private SshServer mockedServer;
     @Mock
     private ServerBuilder mockedBuilder;
-    @Mock
-    private ShellFactoryImpl mockedShellFactory;
-    @Mock
-    private ShellCommandFactory mockedShellCommandFactory;
-    @Mock
-    private SimpleGeneratorHostKeyProvider mockedHostKeyProvider;
-    @Mock
-    private UserAuthPasswordFactory mockedUserAuthFactory;
 
 
     @Test
     public void testLoadConfiguration() {
-        Whitebox.setInternalState(testSshCommandShell, SERVER_FIELD_NAME, null);
+        Whitebox.setInternalState(testSshCommandShell, SERVER_FIELD_NAME, (Object) null);
 
         testSshCommandShell.loadConfiguration(TEST_CONFIGURATION);
 
         assertNull(Whitebox.getInternalState(testSshCommandShell, SERVER_FIELD_NAME));
         assertEquals(TEST_IP, Whitebox.getInternalState(testSshCommandShell, IP_FIELD_NAME));
-        assertEquals(TEST_PORT, Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
+        assertEquals(TEST_PORT, (int) Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
         verify(mockedPasswordAuthenticator).loadCredentials(eq(TEST_USERNAME), eq(TEST_PASSWORD));
     }
 
@@ -80,7 +73,7 @@ public class SshCommandShellTest {
         verify(mockedServer).stop();
         assertNull(Whitebox.getInternalState(testSshCommandShell, SERVER_FIELD_NAME));
         assertEquals(TEST_IP, Whitebox.getInternalState(testSshCommandShell, IP_FIELD_NAME));
-        assertEquals(TEST_PORT, Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
+        assertEquals(TEST_PORT, (int) Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
         verify(mockedPasswordAuthenticator).loadCredentials(eq(TEST_USERNAME), eq(TEST_PASSWORD));
     }
 
@@ -95,7 +88,7 @@ public class SshCommandShellTest {
         verify(mockedServer).stop();
         assertNull(Whitebox.getInternalState(testSshCommandShell, SERVER_FIELD_NAME));
         assertEquals(TEST_IP, Whitebox.getInternalState(testSshCommandShell, IP_FIELD_NAME));
-        assertEquals(TEST_PORT, Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
+        assertEquals(TEST_PORT, (int) Whitebox.getInternalState(testSshCommandShell, PORT_FIELD_NAME));
         verify(mockedPasswordAuthenticator).loadCredentials(eq(TEST_USERNAME), eq(TEST_PASSWORD));
     }
 
@@ -104,28 +97,34 @@ public class SshCommandShellTest {
         Whitebox.setInternalState(testSshCommandShell, IP_FIELD_NAME, TEST_IP);
         Whitebox.setInternalState(testSshCommandShell, PORT_FIELD_NAME, TEST_PORT);
 
-        PowerMockito.mockStatic(ServerBuilder.class);
-        PowerMockito.when(ServerBuilder.builder()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedServer);
-        PowerMockito.whenNew(ShellFactoryImpl.class).withAnyArguments().thenReturn(mockedShellFactory);
-        PowerMockito.whenNew(ShellCommandFactory.class).withAnyArguments().thenReturn(mockedShellCommandFactory);
-        PowerMockito.whenNew(SimpleGeneratorHostKeyProvider.class).withAnyArguments().thenReturn(mockedHostKeyProvider);
-        PowerMockito.whenNew(UserAuthPasswordFactory.class).withAnyArguments().thenReturn(mockedUserAuthFactory);
+        List<List<?>> shellFactoryArgs = new ArrayList<>();
+        List<List<?>> shellCommandFactoryArgs = new ArrayList<>();
 
-        testSshCommandShell.init();
+        try (MockedStatic<ServerBuilder> serverBuilderStatic = mockStatic(ServerBuilder.class);
+             MockedConstruction<ShellFactoryImpl> shellFactoryCons = mockConstruction(ShellFactoryImpl.class,
+                     (mock, mctx) -> shellFactoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ShellCommandFactory> shellCommandFactoryCons = mockConstruction(ShellCommandFactory.class,
+                     (mock, mctx) -> shellCommandFactoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SimpleGeneratorHostKeyProvider> hostKeyProviderCons = mockConstruction(SimpleGeneratorHostKeyProvider.class);
+             MockedConstruction<UserAuthPasswordFactory> userAuthFactoryCons = mockConstruction(UserAuthPasswordFactory.class)) {
+            serverBuilderStatic.when(ServerBuilder::builder).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedServer);
 
-        mockedServer.setHost(eq(TEST_IP));
-        mockedServer.setPort(eq(TEST_PORT));
-        PowerMockito.verifyNew(ShellFactoryImpl.class).withArguments(eq(mockedCommandProcessor));
-        verify(mockedServer).setShellFactory(eq(mockedShellFactory));
-        PowerMockito.verifyNew(ShellCommandFactory.class).withArguments(eq(mockedCommandProcessor));
-        verify(mockedServer).setCommandFactory(eq(mockedShellCommandFactory));
-        PowerMockito.verifyNew(SimpleGeneratorHostKeyProvider.class).withNoArguments();
-        verify(mockedServer).setKeyPairProvider(eq(mockedHostKeyProvider));
-        PowerMockito.verifyNew(UserAuthPasswordFactory.class).withNoArguments();
-        verify(mockedServer).setUserAuthFactories(eq(Collections.singletonList(mockedUserAuthFactory)));
-        verify(mockedServer).setPasswordAuthenticator(eq(mockedPasswordAuthenticator));
-        verify(mockedServer).start();
+            testSshCommandShell.init();
+
+            verify(mockedServer).setHost(eq(TEST_IP));
+            verify(mockedServer).setPort(eq(TEST_PORT));
+            assertEquals(Collections.singletonList(mockedCommandProcessor), shellFactoryArgs.get(0));
+            verify(mockedServer).setShellFactory(eq(shellFactoryCons.constructed().get(0)));
+            assertEquals(Collections.singletonList(mockedCommandProcessor), shellCommandFactoryArgs.get(0));
+            verify(mockedServer).setCommandFactory(eq(shellCommandFactoryCons.constructed().get(0)));
+            assertEquals(1, hostKeyProviderCons.constructed().size());
+            verify(mockedServer).setKeyPairProvider(eq(hostKeyProviderCons.constructed().get(0)));
+            assertEquals(1, userAuthFactoryCons.constructed().size());
+            verify(mockedServer).setUserAuthFactories(eq(Collections.singletonList(userAuthFactoryCons.constructed().get(0))));
+            verify(mockedServer).setPasswordAuthenticator(eq(mockedPasswordAuthenticator));
+            verify(mockedServer).start();
+        }
     }
 
     @Test
@@ -140,7 +139,7 @@ public class SshCommandShellTest {
 
     @Test
     public void testCloseWithNoServer() {
-        Whitebox.setInternalState(testSshCommandShell, SERVER_FIELD_NAME, null);
+        Whitebox.setInternalState(testSshCommandShell, SERVER_FIELD_NAME, (Object) null);
 
         testSshCommandShell.close();
 

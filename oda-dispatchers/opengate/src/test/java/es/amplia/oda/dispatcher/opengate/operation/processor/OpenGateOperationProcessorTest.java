@@ -7,16 +7,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Map;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OpenGateOperationProcessorTest {
 
     private static final String TEST_OPERATION = "TEST_OPERATION";
@@ -49,7 +49,7 @@ public class OpenGateOperationProcessorTest {
 
         verify(mockedOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
-        verifyZeroInteractions(mockedCustomOperationProcessor);
+        verifyNoInteractions(mockedCustomOperationProcessor);
     }
 
     @Test
@@ -61,6 +61,6 @@ public class OpenGateOperationProcessorTest {
 
         verify(mockedCustomOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
-        verifyZeroInteractions(mockedOperationProcessor);
+        verifyNoInteractions(mockedOperationProcessor);
     }
 }

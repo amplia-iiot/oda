@@ -3,15 +3,13 @@ package es.amplia.oda.datastreams.lora.datastructures;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Stat.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class StatTest {
 
 	private static final String TEST_TIME_PROPERTY_VALUE = "2020-11-11 13:11:52 GMT";

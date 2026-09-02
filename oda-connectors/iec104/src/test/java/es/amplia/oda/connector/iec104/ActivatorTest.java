@@ -9,25 +9,27 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.*;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mockConstruction;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 	private final Activator testActivator = new Activator();
 
 	@Mock
 	private BundleContext mockedContext;
-	@Mock
-	private Iec104Cache mockedCache;
 	@Mock
 	private ScadaDispatcherProxy mockedDispatcher;
 	@Mock
@@ -43,21 +45,51 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		PowerMockito.whenNew(ScadaDispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
-		PowerMockito.whenNew(Iec104Cache.class).withAnyArguments().thenReturn(mockedCache);
-		PowerMockito.whenNew(Iec104Connector.class).withAnyArguments().thenReturn(mockedConnector);
-		PowerMockito.whenNew(Iec104ConnectorConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigurationHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurable);
-		PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
+		List<List<?>> dispatcherArgs = new ArrayList<>();
+		List<List<?>> cacheArgs = new ArrayList<>();
+		List<List<?>> connectorArgs = new ArrayList<>();
+		List<List<?>> configHandlerArgs = new ArrayList<>();
+		List<List<?>> configurableArgs = new ArrayList<>();
+		List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-		testActivator.start(mockedContext);
+		try (MockedConstruction<ScadaDispatcherProxy> dispatcherCons =
+					 mockConstruction(ScadaDispatcherProxy.class,
+							 (mock, mctx) -> dispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<Iec104Cache> cacheCons =
+					 mockConstruction(Iec104Cache.class,
+							 (mock, mctx) -> cacheArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<Iec104Connector> connectorCons =
+					 mockConstruction(Iec104Connector.class,
+							 (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<Iec104ConnectorConfigurationUpdateHandler> configHandlerCons =
+					 mockConstruction(Iec104ConnectorConfigurationUpdateHandler.class,
+							 (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+					 mockConstruction(ServiceListenerBundle.class,
+							 (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		PowerMockito.verifyNew(ScadaDispatcherProxy.class).withArguments(eq(mockedContext));
-		PowerMockito.verifyNew(Iec104Cache.class).withArguments(null);
-		PowerMockito.verifyNew(Iec104Connector.class).withArguments(eq(mockedCache), eq(mockedDispatcher));
-		PowerMockito.verifyNew(Iec104ConnectorConfigurationUpdateHandler.class).withArguments(mockedConnector);
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigurationHandler));
-		PowerMockito.verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(ScadaTableInfo.class), any(Runnable.class));
+			testActivator.start(mockedContext);
+
+			assertEquals(1, dispatcherCons.constructed().size());
+			assertEquals(mockedContext, dispatcherArgs.get(0).get(0));
+			assertEquals(1, cacheCons.constructed().size());
+			assertNull(cacheArgs.get(0).get(0));
+			assertEquals(1, connectorCons.constructed().size());
+			assertEquals(cacheCons.constructed().get(0), connectorArgs.get(0).get(0));
+			assertEquals(dispatcherCons.constructed().get(0), connectorArgs.get(0).get(1));
+			assertEquals(1, configHandlerCons.constructed().size());
+			assertEquals(connectorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+			assertEquals(1, configurableCons.constructed().size());
+			assertEquals(mockedContext, configurableArgs.get(0).get(0));
+			assertEquals(configHandlerCons.constructed().get(0), configurableArgs.get(0).get(1));
+			assertEquals(1, serviceListenerCons.constructed().size());
+			assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+			assertEquals(ScadaTableInfo.class, serviceListenerArgs.get(0).get(1));
+			assertTrue(serviceListenerArgs.get(0).get(2) instanceof Runnable);
+		}
 	}
 
 	@Test

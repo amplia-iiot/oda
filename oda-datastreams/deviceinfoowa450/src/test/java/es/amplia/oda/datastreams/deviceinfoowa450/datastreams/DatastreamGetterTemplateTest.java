@@ -3,7 +3,7 @@ package es.amplia.oda.datastreams.deviceinfoowa450.datastreams;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DatastreamGetterTemplateTest {
 
 	private DatastreamGetterTemplate testTemplate;

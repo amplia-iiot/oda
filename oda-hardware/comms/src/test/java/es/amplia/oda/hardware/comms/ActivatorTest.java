@@ -7,17 +7,19 @@ import es.amplia.oda.hardware.comms.configuration.CommsConfigurationUpdateHandle
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -25,33 +27,43 @@ public class ActivatorTest {
     @Mock
     private BundleContext mockedContext;
     @Mock
-    private CommandProcessorImpl mockedCommandProcessor;
-    @Mock
     private ScriptsLoaderImpl mockedScriptsLoader;
     @Mock
-    private ResourceManagerImpl mockedResourceManager;
-    @Mock
     private CommsManagerImpl mockedCommsManager;
-    @Mock
-    private CommsConfigurationUpdateHandler mockedConfigHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigBundle;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(CommandProcessorImpl.class).withNoArguments().thenReturn(mockedCommandProcessor);
-        PowerMockito.whenNew(ScriptsLoaderImpl.class).withAnyArguments().thenReturn(mockedScriptsLoader);
-        PowerMockito.whenNew(CommsManagerImpl.class).withAnyArguments().thenReturn(mockedCommsManager);
-        PowerMockito.whenNew(CommsConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
+        List<List<?>> scriptsLoaderArgs = new ArrayList<>();
+        List<List<?>> commsManagerArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<CommandProcessorImpl> commandProcessorCons = mockConstruction(CommandProcessorImpl.class);
+             MockedConstruction<ScriptsLoaderImpl> scriptsLoaderCons = mockConstruction(ScriptsLoaderImpl.class,
+                     (mock, mctx) -> scriptsLoaderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<CommsManagerImpl> commsManagerCons = mockConstruction(CommsManagerImpl.class,
+                     (mock, mctx) -> commsManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<CommsConfigurationUpdateHandler> configHandlerCons = mockConstruction(CommsConfigurationUpdateHandler.class,
+                     (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(CommandProcessorImpl.class).withNoArguments();
-        PowerMockito.verifyNew(ScriptsLoaderImpl.class).withArguments(eq(mockedCommandProcessor));
-        PowerMockito.verifyNew(CommsManagerImpl.class).withArguments(eq(mockedCommandProcessor));
-        PowerMockito.verifyNew(CommsConfigurationUpdateHandler.class).withArguments(eq(mockedScriptsLoader), eq(mockedCommsManager));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
+            testActivator.start(mockedContext);
+
+            assertEquals(1, commandProcessorCons.constructed().size());
+            assertEquals(1, scriptsLoaderCons.constructed().size());
+            assertEquals(1, commsManagerCons.constructed().size());
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(commandProcessorCons.constructed().get(0), scriptsLoaderArgs.get(0).get(0));
+            assertEquals(commandProcessorCons.constructed().get(0), commsManagerArgs.get(0).get(0));
+            assertEquals(scriptsLoaderCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(commsManagerCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+        }
     }
 
     @Test

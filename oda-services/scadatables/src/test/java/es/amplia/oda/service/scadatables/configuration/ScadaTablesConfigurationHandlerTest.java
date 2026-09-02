@@ -5,8 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import es.amplia.oda.service.scadatables.internal.ScadaTableInfoService;
@@ -15,17 +14,11 @@ import java.util.*;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ScadaTablesConfigurationHandler.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ScadaTablesConfigurationHandlerTest {
     @Mock
     ScadaTableInfoService mockedScadaTableInfoService;
-    @Mock
-    ScadaTableEntryConfiguration mockedEntry;
 
     ScadaTablesConfigurationHandler testScadaTablesConfigurationHandler;
 
@@ -36,8 +29,6 @@ public class ScadaTablesConfigurationHandlerTest {
 
     @Test
     public void testLoadConfiguration() throws Exception {
-        whenNew(ScadaTableEntryConfiguration.class).withAnyArguments().thenReturn(mockedEntry);
-        doNothing().when(mockedEntry).setScript(any());
         Dictionary<String, String> dic = new Hashtable<String, String>() {{
             put("BinaryInput,10001", "datastream:batteryAlarm, device:testDevice");
             put("BinaryInput,10015", "datastream:doorAlarm, device:testDevice2");

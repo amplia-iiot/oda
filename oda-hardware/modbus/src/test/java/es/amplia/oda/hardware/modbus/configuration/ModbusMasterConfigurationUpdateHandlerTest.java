@@ -8,8 +8,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Dictionary;
@@ -18,7 +18,7 @@ import java.util.Hashtable;
 import static es.amplia.oda.hardware.modbus.configuration.ModbusMasterConfigurationUpdateHandler.*;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusMasterConfigurationUpdateHandlerTest {
 
     private static final String TEST_ADDRESS = "localhost";

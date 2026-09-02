@@ -8,30 +8,31 @@ import es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
 	private final Activator testActivator = new Activator();
 
 	@Mock
 	DioZeroAdcService mockedService;
-	@Mock
-	DioZeroConfigurationHandler mockedHandler;
 	@Mock
 	ConfigurableBundleImpl mockedConfigurableBundle;
 	@Mock
@@ -44,20 +45,32 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		whenNew(DioZeroAdcService.class).withAnyArguments().thenReturn(mockedService);
-		whenNew(DioZeroConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
 		when(mockedContext.registerService(eq(AdcService.class), any(), any())).thenReturn(mockedRegistration);
 		when(mockedContext.getBundle()).thenReturn(mockedBundle);
 		when(mockedBundle.getSymbolicName()).thenReturn("");
 
-		testActivator.start(mockedContext);
+		List<List<?>> handlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
 
-		verifyNew(DioZeroAdcService.class).withNoArguments();
-		verifyNew(DioZeroConfigurationHandler.class).withArguments(eq(mockedService));
-		verify(mockedContext).registerService(eq(AdcService.class), eq(mockedService), any());
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler),
-				eq(Collections.singletonList(mockedRegistration)));
+		try (MockedConstruction<DioZeroAdcService> serviceCons = mockConstruction(DioZeroAdcService.class);
+			 MockedConstruction<DioZeroConfigurationHandler> handlerCons =
+					 mockConstruction(DioZeroConfigurationHandler.class,
+							 (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+
+			testActivator.start(mockedContext);
+
+			assertEquals(1, serviceCons.constructed().size());
+			assertEquals(1, handlerCons.constructed().size());
+			assertEquals(serviceCons.constructed().get(0), handlerArgs.get(0).get(0));
+			verify(mockedContext).registerService(eq(AdcService.class), eq(serviceCons.constructed().get(0)), any());
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(handlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+			assertEquals(Collections.singletonList(mockedRegistration), configurableBundleArgs.get(0).get(2));
+		}
 	}
 
 	@Test

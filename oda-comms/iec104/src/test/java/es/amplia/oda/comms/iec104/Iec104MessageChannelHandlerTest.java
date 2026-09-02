@@ -11,17 +11,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import es.amplia.oda.comms.iec104.slave.Iec104MessageChannelHandler;
 
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
+import java.util.ArrayList;
+import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104MessageChannelHandler.class)
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Iec104MessageChannelHandlerTest {
 
 	@Mock
@@ -33,8 +34,6 @@ public class Iec104MessageChannelHandlerTest {
 	@Mock
 	ChannelPromise mockedPromise;
 	@Mock
-	Timer mockedTimer;
-	@Mock
 	ByteBufAllocator mockedAllocator;
 	@Mock
 	ByteBuf mockedBuf;
@@ -42,17 +41,29 @@ public class Iec104MessageChannelHandlerTest {
 	@Test
 	public void testChannelActive() throws Exception {
 		int time = 1000;
-		when(mockedContext.newPromise()).thenReturn(mockedPromise);
-		whenNew(Timer.class).withAnyArguments().thenReturn(mockedTimer);
-		when(mockedOptions.getTimeout1()).thenReturn(time);
-		when(mockedOptions.getTimeout3()).thenReturn(time);
+		List<List<?>> timerArgs = new ArrayList<>();
+		try (MockedConstruction<Timer> timerCons = mockConstruction(Timer.class,
+				(mock, mctx) -> timerArgs.add(new ArrayList<>(mctx.arguments())))) {
+			when(mockedContext.newPromise()).thenReturn(mockedPromise);
+			when(mockedOptions.getTimeout1()).thenReturn(time);
+			when(mockedOptions.getTimeout3()).thenReturn(time);
 
-		handler.channelActive(mockedContext);
+			handler.channelActive(mockedContext);
 
-		verifyNew(Timer.class).withArguments(eq(mockedContext), eq("T1"), any());
-		verifyNew(Timer.class).withArguments(eq(mockedContext), eq("T2"), any());
-		verifyNew(Timer.class).withArguments(eq(mockedContext), eq("T3"), any());
-		verify(mockedTimer, times(2)).start(eq((long)time));
+			assertEquals(3, timerCons.constructed().size());
+			assertEquals(mockedContext, timerArgs.get(0).get(0));
+			assertEquals("T1", timerArgs.get(0).get(1));
+			assertEquals(mockedContext, timerArgs.get(1).get(0));
+			assertEquals("T2", timerArgs.get(1).get(1));
+			assertEquals(mockedContext, timerArgs.get(2).get(0));
+			assertEquals("T3", timerArgs.get(2).get(1));
+			long timerStarts = timerCons.constructed().stream()
+					.filter(timer -> mockingDetails(timer).getInvocations().stream()
+							.anyMatch(invocation -> "start".equals(invocation.getMethod().getName())
+									&& Long.valueOf(time).equals(invocation.getArgument(0))))
+					.count();
+			assertEquals(2, timerStarts);
+		}
 	}
 
 	@Test

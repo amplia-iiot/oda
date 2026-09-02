@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SimulatedDatastreamsManagerTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream";
@@ -75,7 +75,7 @@ public class SimulatedDatastreamsManagerTest {
     public void testLoadConfiguration() {
         when(mockedGetterFactory.createConstantDatastreamsGetter(anyString(), anyString(), anyString(), any()))
                 .thenReturn(mockedGetter);
-        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), anyString(), anyDouble(), anyDouble(), anyDouble()))
+        when(mockedGetterFactory.createRandomDatastreamsGetter(anyString(), anyString(), nullable(String.class), anyDouble(), anyDouble(), anyDouble()))
                 .thenReturn(mockedGetter);
         when(mockedSetterFactory.createSetDatastreamsSetter(anyString(), anyString()))
                 .thenReturn(mockedSetter);

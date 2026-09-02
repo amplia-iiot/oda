@@ -11,13 +11,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Map;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class CustomModbusRequestHandlerTest {
 
     private static final String TEST_DEVICE_IP = "1.2.3.4";
@@ -39,7 +38,7 @@ public class CustomModbusRequestHandlerTest {
         // conditions
         CustomModbusRequestHandler modbusRequestHandler = new CustomModbusRequestHandler(TEST_DEVICE_ID, TEST_DEVICE_IP,
                 TEST_SLAVE_ADDRESS, mockedStateManager);
-        PowerMockito.when(mockedModbusTransport.readRequest(mockedModbusListener)).thenReturn(mockedModbusRequest);
+        Mockito.when(mockedModbusTransport.readRequest(mockedModbusListener)).thenReturn(mockedModbusRequest);
 
         // call method
         modbusRequestHandler.handleRequest(mockedModbusTransport, mockedModbusListener);

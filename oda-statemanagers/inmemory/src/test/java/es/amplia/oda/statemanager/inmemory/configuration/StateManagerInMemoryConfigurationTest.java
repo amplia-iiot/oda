@@ -3,13 +3,11 @@ package es.amplia.oda.statemanager.inmemory.configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(StateManagerInMemoryConfiguration.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class StateManagerInMemoryConfigurationTest {
 
 	private static final String PATH_FIELD_VALUE = "/country/road/to/home/";

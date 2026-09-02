@@ -11,21 +11,24 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -34,10 +37,6 @@ public class ActivatorTest {
     private BundleContext mockedContext;
     @Mock
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
-    @Mock
-    private HttpClientFactoryImpl mockedHttpClientFactory;
-    @Mock
-    private HttpConnector mockedConnector;
     @Mock
     private HttpConnectorConfigurationUpdateHandler mockedConfigHandler;
     @Mock
@@ -50,24 +49,50 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
-        PowerMockito.whenNew(HttpConnector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(HttpConnectorConfigurationUpdateHandler.class).withAnyArguments()
-                .thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
-        PowerMockito.whenNew(HttpClientFactoryImpl.class).withNoArguments().thenReturn(mockedHttpClientFactory);
+        List<List<?>> deviceInfoProviderArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        List<List<?>> serviceListenerArgs = new ArrayList<>();
 
+        try (MockedConstruction<DeviceInfoProviderProxy> deviceInfoProviderCons =
+                     mockConstruction(DeviceInfoProviderProxy.class,
+                             (mock, mctx) -> deviceInfoProviderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<HttpClientFactoryImpl> httpClientFactoryCons =
+                     mockConstruction(HttpClientFactoryImpl.class);
+             MockedConstruction<HttpConnector> connectorCons =
+                     mockConstruction(HttpConnector.class,
+                             (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<HttpConnectorConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(HttpConnectorConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(HttpConnector.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedHttpClientFactory));
-        PowerMockito.verifyNew(HttpConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any(Runnable.class));
+            assertEquals(1, deviceInfoProviderCons.constructed().size());
+            assertEquals(mockedContext, deviceInfoProviderArgs.get(0).get(0));
+            assertEquals(1, httpClientFactoryCons.constructed().size());
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(deviceInfoProviderCons.constructed().get(0), connectorArgs.get(0).get(0));
+            assertEquals(httpClientFactoryCons.constructed().get(0), connectorArgs.get(0).get(1));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(connectorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(OpenGateConnector.class),
+                    eq(connectorCons.constructed().get(0)), any());
+            assertEquals(1, serviceListenerCons.constructed().size());
+            assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+            assertEquals(DeviceInfoProvider.class, serviceListenerArgs.get(0).get(1));
+            assertTrue(serviceListenerArgs.get(0).get(2) instanceof Runnable);
+        }
     }
 
     @Test

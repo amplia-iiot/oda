@@ -15,21 +15,24 @@ import es.amplia.oda.operation.localprotocoldiscovery.configuration.LocalProtoco
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
 	private final Activator testActivator = new Activator();
@@ -42,8 +45,6 @@ public class ActivatorTest {
 	private MqttDatastreamsServiceProxy mockedMqttDatastreamsService;
 	@Mock
 	private SerializerProxy mockedSerializer;
-	@Mock
-	private OperationLocalProtocolDiscoveryImpl mockedOperation;
 	@Mock
 	private LocalProtocolDiscoveryConfigurationUpdateHandler mockedConfigHandler;
 	@Mock
@@ -59,38 +60,63 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		PowerMockito.whenNew(MqttClientFactoryProxy.class).withAnyArguments().thenReturn(mockedFactory);
-		PowerMockito.whenNew(MqttDatastreamsServiceProxy.class).withAnyArguments()
-				.thenReturn(mockedMqttDatastreamsService);
-		PowerMockito.whenNew(SerializerProxy.class).withAnyArguments().thenReturn(mockedSerializer);
-		PowerMockito.whenNew(OperationLocalProtocolDiscoveryImpl.class).withAnyArguments().thenReturn(mockedOperation);
-		PowerMockito.whenNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class).withAnyArguments()
-				.thenReturn(mockedConfigHandler);
-		PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-		PowerMockito.whenNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any()).thenReturn(mockedListener);
-		PowerMockito.whenNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any()).thenReturn(mockedDatastreamsListener);
-		PowerMockito.whenNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(Serializer.class), any()).thenReturn(mockedSerializerListener);
+		List<List<?>> factoryArgs = new ArrayList<>();
+		List<List<?>> datastreamsServiceArgs = new ArrayList<>();
+		List<List<?>> serializerArgs = new ArrayList<>();
+		List<List<?>> operationArgs = new ArrayList<>();
+		List<List<?>> configHandlerArgs = new ArrayList<>();
+		List<List<?>> configBundleArgs = new ArrayList<>();
+		List<List<?>> listenerArgs = new ArrayList<>();
+		try (MockedConstruction<MqttClientFactoryProxy> factoryCons = mockConstruction(MqttClientFactoryProxy.class,
+					 (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<MqttDatastreamsServiceProxy> datastreamsServiceCons =
+					 mockConstruction(MqttDatastreamsServiceProxy.class,
+							 (mock, mctx) -> datastreamsServiceArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<SerializerProxy> serializerCons = mockConstruction(SerializerProxy.class,
+					 (mock, mctx) -> serializerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<OperationLocalProtocolDiscoveryImpl> operationCons =
+					 mockConstruction(OperationLocalProtocolDiscoveryImpl.class,
+							 (mock, mctx) -> operationArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<LocalProtocolDiscoveryConfigurationUpdateHandler> configHandlerCons =
+					 mockConstruction(LocalProtocolDiscoveryConfigurationUpdateHandler.class,
+							 (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceListenerBundle> listenerCons = mockConstruction(ServiceListenerBundle.class,
+					 (mock, mctx) -> listenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		testActivator.start(mockedContext);
+			testActivator.start(mockedContext);
 
-		PowerMockito.verifyNew(MqttClientFactoryProxy.class).withArguments(eq(mockedContext));
-		PowerMockito.verifyNew(MqttDatastreamsServiceProxy.class).withArguments(eq(mockedContext));
-		PowerMockito.verifyNew(SerializerProxy.class).withArguments(eq(mockedContext), eq(ContentType.CBOR));
-		PowerMockito.verifyNew(OperationLocalProtocolDiscoveryImpl.class)
-				.withArguments(eq(mockedFactory), eq(mockedMqttDatastreamsService), eq(mockedSerializer));
-		PowerMockito.verifyNew(LocalProtocolDiscoveryConfigurationUpdateHandler.class)
-				.withArguments(eq(mockedOperation));
-		PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-		verify(mockedContext).registerService(eq(OperationDiscover.class), eq(mockedOperation), any());
-		PowerMockito.verifyNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(MqttClientFactory.class), any(Runnable.class));
-		PowerMockito.verifyNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(MqttDatastreamsService.class), any(Runnable.class));
-		PowerMockito.verifyNew(ServiceListenerBundle.class)
-				.withArguments(eq(mockedContext), eq(Serializer.class), any(Runnable.class));
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(mockedContext, factoryArgs.get(0).get(0));
+			assertEquals(1, datastreamsServiceCons.constructed().size());
+			assertEquals(mockedContext, datastreamsServiceArgs.get(0).get(0));
+			assertEquals(1, serializerCons.constructed().size());
+			assertEquals(mockedContext, serializerArgs.get(0).get(0));
+			assertEquals(ContentType.CBOR, serializerArgs.get(0).get(1));
+			assertEquals(1, operationCons.constructed().size());
+			assertEquals(factoryCons.constructed().get(0), operationArgs.get(0).get(0));
+			assertEquals(datastreamsServiceCons.constructed().get(0), operationArgs.get(0).get(1));
+			assertEquals(serializerCons.constructed().get(0), operationArgs.get(0).get(2));
+			assertEquals(1, configHandlerCons.constructed().size());
+			assertEquals(operationCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+			assertEquals(1, configBundleCons.constructed().size());
+			assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+			assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+			verify(mockedContext).registerService(eq(OperationDiscover.class),
+					eq(operationCons.constructed().get(0)), any());
+			assertEquals(3, listenerCons.constructed().size());
+			assertEquals(mockedContext, listenerArgs.get(0).get(0));
+			assertEquals(MqttClientFactory.class, listenerArgs.get(0).get(1));
+			assertTrue(listenerArgs.get(0).get(2) instanceof Runnable);
+			assertEquals(mockedContext, listenerArgs.get(1).get(0));
+			assertEquals(MqttDatastreamsService.class, listenerArgs.get(1).get(1));
+			assertTrue(listenerArgs.get(1).get(2) instanceof Runnable);
+			assertEquals(mockedContext, listenerArgs.get(2).get(0));
+			assertEquals(Serializer.class, listenerArgs.get(2).get(1));
+			assertTrue(listenerArgs.get(2).get(2) instanceof Runnable);
+		}
 	}
 
 	@Test
@@ -105,7 +131,7 @@ public class ActivatorTest {
 	@Test
 	public void testOnServiceChangedWithExceptionIsCaught() {
 		Whitebox.setInternalState(testActivator, "configHandler", mockedConfigHandler);
-		Mockito.doThrow(Exception.class).when(mockedConfigHandler).applyConfiguration();
+		Mockito.doThrow(RuntimeException.class).when(mockedConfigHandler).applyConfiguration();
 
 		testActivator.onServiceChanged();
 

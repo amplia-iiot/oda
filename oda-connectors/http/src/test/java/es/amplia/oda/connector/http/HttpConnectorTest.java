@@ -1,7 +1,6 @@
 package es.amplia.oda.connector.http;
 
 import es.amplia.oda.comms.http.HttpClientFactoryImpl;
-import es.amplia.oda.comms.http.HttpClientImpl;
 import es.amplia.oda.connector.http.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
@@ -18,10 +17,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -33,14 +31,13 @@ import static es.amplia.oda.connector.http.HttpConnector.*;
 
 import static es.amplia.oda.core.commons.entities.ContentType.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ HttpConnector.class, HttpClientBuilder.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class HttpConnectorTest {
 
     private static final String TEST_HOST = "localhost";
@@ -75,7 +72,7 @@ public class HttpConnectorTest {
         assertEquals(TEST_GENERAL_PATH, Whitebox.getInternalState(testConnector, "generalPath"));
         assertEquals(TEST_COLLECTION_PATH, Whitebox.getInternalState(testConnector, "collectionPath"));
         assertEquals(TEST_COMPRESSION_ENABLED, Whitebox.getInternalState(testConnector, "compressionEnabled"));
-        assertEquals(TEST_COMPRESSION_THRESHOLD, Whitebox.getInternalState(testConnector, "compressionThreshold"));
+        assertEquals(TEST_COMPRESSION_THRESHOLD, (int) Whitebox.getInternalState(testConnector, "compressionThreshold"));
     }
 
     @Test(expected = ConfigurationException.class)
@@ -103,29 +100,28 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
-        assertNull(httpEntity.getContentEncoding());
-        byte[] buffer = new byte[TEST_PAYLOAD.length];
-        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
-        assertArrayEquals(TEST_PAYLOAD, buffer);
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
+            assertNull(httpEntity.getContentEncoding());
+            byte[] buffer = new byte[TEST_PAYLOAD.length];
+            assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+            assertArrayEquals(TEST_PAYLOAD, buffer);
+        }
     }
 
 
@@ -144,29 +140,28 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD, CBOR);
+            testConnector.uplink(TEST_PAYLOAD, CBOR);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(CBOR_MEDIA_TYPE, httpEntity.getContentType().getValue());
-        assertNull(httpEntity.getContentEncoding());
-        byte[] buffer = new byte[TEST_PAYLOAD.length];
-        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
-        assertArrayEquals(TEST_PAYLOAD, buffer);
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(CBOR_MEDIA_TYPE, httpEntity.getContentType().getValue());
+            assertNull(httpEntity.getContentEncoding());
+            byte[] buffer = new byte[TEST_PAYLOAD.length];
+            assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+            assertArrayEquals(TEST_PAYLOAD, buffer);
+        }
     }
 
     @Test
@@ -184,29 +179,28 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(CREATED_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD, MESSAGE_PACK);
+            testConnector.uplink(TEST_PAYLOAD, MESSAGE_PACK);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE, httpEntity.getContentType().getValue());
-        assertNull(httpEntity.getContentEncoding());
-        byte[] buffer = new byte[TEST_PAYLOAD.length];
-        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
-        assertArrayEquals(TEST_PAYLOAD, buffer);
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE, httpEntity.getContentType().getValue());
+            assertNull(httpEntity.getContentEncoding());
+            byte[] buffer = new byte[TEST_PAYLOAD.length];
+            assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+            assertArrayEquals(TEST_PAYLOAD, buffer);
+        }
     }
 
     @Test
@@ -224,29 +218,28 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
-        assertNull(httpEntity.getContentEncoding());
-        byte[] buffer = new byte[TEST_PAYLOAD.length];
-        assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
-        assertArrayEquals(TEST_PAYLOAD, buffer);
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
+            assertNull(httpEntity.getContentEncoding());
+            byte[] buffer = new byte[TEST_PAYLOAD.length];
+            assertEquals(TEST_PAYLOAD.length, httpEntity.getContent().read(buffer));
+            assertArrayEquals(TEST_PAYLOAD, buffer);
+        }
     }
 
     @Test
@@ -266,26 +259,25 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
-        assertEquals(GZIP_ENCODING, httpEntity.getContentEncoding().getValue());
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
+            assertEquals(GZIP_ENCODING, httpEntity.getContentEncoding().getValue());
+        }
     }
 
     @Test
@@ -305,39 +297,37 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(OK_HTTP_CODE);
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(httpPostCaptor.capture());
-        HttpPost httpPost = httpPostCaptor.getValue();
-        assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
-        assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
-        HttpEntity httpEntity = httpPost.getEntity();
-        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
-        assertNull(httpEntity.getContentEncoding());
+            verify(mockedClient).execute(httpPostCaptor.capture());
+            HttpPost httpPost = httpPostCaptor.getValue();
+            assertEquals(testHostUrl + "/" + TEST_DEVICE_ID + TEST_COLLECTION_PATH, httpPost.getURI().toString());
+            assertEquals(TEST_API_KEY, httpPost.getFirstHeader(API_KEY_HEADER_NAME).getValue());
+            HttpEntity httpEntity = httpPost.getEntity();
+            assertEquals(ContentType.APPLICATION_JSON.getMimeType(), httpEntity.getContentType().getValue());
+            assertNull(httpEntity.getContentEncoding());
+        }
     }
 
     @Test
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public void testUplinkConnectorNoConfigured() {
-        Whitebox.setInternalState(testConnector, "hostUrl", null);
+        Whitebox.setInternalState(testConnector, "hostUrl", (Object) null);
 
-        PowerMockito.mockStatic(HttpClientBuilder.class);
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            testConnector.uplink(TEST_PAYLOAD);
 
-        testConnector.uplink(TEST_PAYLOAD);
-
-        PowerMockito.verifyStatic(HttpClientBuilder.class, never());
-        HttpClientBuilder.create();
+            httpClientBuilderStatic.verify(HttpClientBuilder::create, never());
+        }
     }
 
     @Test
@@ -350,10 +340,11 @@ public class HttpConnectorTest {
         Whitebox.setInternalState(testConnector, "collectionPath", TEST_COLLECTION_PATH);
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(null);
 
-        testConnector.uplink(TEST_PAYLOAD);
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            testConnector.uplink(TEST_PAYLOAD);
 
-        PowerMockito.verifyStatic(HttpClientBuilder.class, never());
-        HttpClientBuilder.create();
+            httpClientBuilderStatic.verify(HttpClientBuilder::create, never());
+        }
     }
 
     @Test
@@ -367,10 +358,11 @@ public class HttpConnectorTest {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(null);
 
-        testConnector.uplink(TEST_PAYLOAD);
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            testConnector.uplink(TEST_PAYLOAD);
 
-        PowerMockito.verifyStatic(HttpClientBuilder.class, never());
-        HttpClientBuilder.create();
+            httpClientBuilderStatic.verify(HttpClientBuilder::create, never());
+        }
     }
 
     @Test
@@ -389,21 +381,20 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
-        when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(500);
-        when(mockedStatusLine.getReasonPhrase()).thenReturn("Error");
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenReturn(mockedHttpResponse);
+            when(mockedHttpResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(500);
+            when(mockedStatusLine.getReasonPhrase()).thenReturn("Error");
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(any(HttpPost.class));
+            verify(mockedClient).execute(any(HttpPost.class));
+        }
     }
 
     @Test
@@ -420,19 +411,18 @@ public class HttpConnectorTest {
 
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        when(HttpClientBuilder.create()).thenReturn(mockedClientBuilder);
-        when(mockedClientBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpPost.class))).thenThrow(new IOException());
-        HttpClientImpl mockedHttpClient = mock(HttpClientImpl.class);
-        PowerMockito.whenNew(HttpClientImpl.class).withAnyArguments().thenReturn(mockedHttpClient);
-        when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
-        when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
+        try (MockedStatic<HttpClientBuilder> httpClientBuilderStatic = mockStatic(HttpClientBuilder.class)) {
+            httpClientBuilderStatic.when(HttpClientBuilder::create).thenReturn(mockedClientBuilder);
+            when(mockedClientBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpPost.class))).thenThrow(new IOException());
+            when(mockedHttpClientFactory.createHttpClient()).thenCallRealMethod();
+            when(mockedHttpClientFactory.createHttpClient(anyBoolean())).thenCallRealMethod();
 
-        testConnector.uplink(TEST_PAYLOAD);
+            testConnector.uplink(TEST_PAYLOAD);
 
-        verify(mockedClient).execute(any(HttpPost.class));
-        assertTrue("Exception is caught", true);
+            verify(mockedClient).execute(any(HttpPost.class));
+            assertTrue("Exception is caught", true);
+        }
     }
 
     @Test
@@ -445,21 +435,21 @@ public class HttpConnectorTest {
         Whitebox.setInternalState(testConnector, "generalPath", TEST_GENERAL_PATH);
         Whitebox.setInternalState(testConnector, "collectionPath", TEST_COLLECTION_PATH);
 
-        PowerMockito.mockStatic(InetAddress.class);
-        when(InetAddress.getByName(anyString())).thenReturn(mockedAddress);
-        when(mockedAddress.isReachable(anyInt())).thenReturn(true);
+        try (MockedStatic<InetAddress> inetAddressStatic = mockStatic(InetAddress.class)) {
+            inetAddressStatic.when(() -> InetAddress.getByName(anyString())).thenReturn(mockedAddress);
+            when(mockedAddress.isReachable(anyInt())).thenReturn(true);
 
-        boolean connected = testConnector.isConnected();
+            boolean connected = testConnector.isConnected();
 
-        assertTrue(connected);
-        PowerMockito.verifyStatic(InetAddress.class);
-        InetAddress.getByName(TEST_HOST);
-        verify(mockedAddress).isReachable(eq(CONNECTION_TIMEOUT * MILLISECONDS_PER_SECOND));
+            assertTrue(connected);
+            inetAddressStatic.verify(() -> InetAddress.getByName(TEST_HOST));
+            verify(mockedAddress).isReachable(eq(CONNECTION_TIMEOUT * MILLISECONDS_PER_SECOND));
+        }
     }
 
     @Test
     public void testIsConnectedNoHostUrlConfigured() {
-        Whitebox.setInternalState(testConnector, "hostUrl", null);
+        Whitebox.setInternalState(testConnector, "hostUrl", (Object) null);
 
         boolean connected = testConnector.isConnected();
 
@@ -471,7 +461,7 @@ public class HttpConnectorTest {
         URL testHostUrl = new URL(HTTP_PROTOCOL, TEST_HOST, TEST_PORT, TEST_GENERAL_PATH);
 
         Whitebox.setInternalState(testConnector, "hostUrl", testHostUrl);
-        Whitebox.setInternalState(testConnector, "generalPath", null);
+        Whitebox.setInternalState(testConnector, "generalPath", (Object) null);
 
         boolean connected = testConnector.isConnected();
 
@@ -484,7 +474,7 @@ public class HttpConnectorTest {
 
         Whitebox.setInternalState(testConnector, "hostUrl", testHostUrl);
         Whitebox.setInternalState(testConnector, "generalPath", TEST_GENERAL_PATH);
-        Whitebox.setInternalState(testConnector, "collectionPath", null);
+        Whitebox.setInternalState(testConnector, "collectionPath", (Object) null);
 
         boolean connected = testConnector.isConnected();
 
@@ -501,15 +491,15 @@ public class HttpConnectorTest {
         Whitebox.setInternalState(testConnector, "generalPath", TEST_GENERAL_PATH);
         Whitebox.setInternalState(testConnector, "collectionPath", TEST_COLLECTION_PATH);
 
-        PowerMockito.mockStatic(InetAddress.class);
-        when(InetAddress.getByName(anyString())).thenReturn(mockedAddress);
-        when(mockedAddress.isReachable(anyInt())).thenThrow(new IOException());
+        try (MockedStatic<InetAddress> inetAddressStatic = mockStatic(InetAddress.class)) {
+            inetAddressStatic.when(() -> InetAddress.getByName(anyString())).thenReturn(mockedAddress);
+            when(mockedAddress.isReachable(anyInt())).thenThrow(new IOException());
 
-        boolean connected = testConnector.isConnected();
+            boolean connected = testConnector.isConnected();
 
-        assertFalse(connected);
-        PowerMockito.verifyStatic(InetAddress.class);
-        InetAddress.getByName(TEST_HOST);
-        verify(mockedAddress).isReachable(eq(CONNECTION_TIMEOUT * MILLISECONDS_PER_SECOND));
+            assertFalse(connected);
+            inetAddressStatic.verify(() -> InetAddress.getByName(TEST_HOST));
+            verify(mockedAddress).isReachable(eq(CONNECTION_TIMEOUT * MILLISECONDS_PER_SECOND));
+        }
     }
 }

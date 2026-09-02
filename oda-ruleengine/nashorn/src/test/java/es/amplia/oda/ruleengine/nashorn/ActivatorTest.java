@@ -5,23 +5,25 @@ import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfigurationHan
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ManagedService;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
 	Activator testActivator = new Activator();
@@ -43,20 +45,36 @@ public class ActivatorTest {
 
 	@Test
 	public void testStart() throws Exception {
-		whenNew(NashornScriptTranslator.class).withAnyArguments().thenReturn(mockedTranslator);
-		whenNew(RuleEngineNashorn.class).withAnyArguments().thenReturn(mockedRuleEngine);
-		whenNew(RuleEngineConfigurationHandler.class).withAnyArguments().thenReturn(mockedRuleEngineHandler);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		when(mockedContext.registerService(eq(ManagedService.class), any(), any())).thenReturn(mockedServiceRegistration);
-		when(mockedContext.getBundle()).thenReturn(mockedBundle);
-		when(mockedBundle.getSymbolicName()).thenReturn("symbolicName");
+		List<List<?>> ruleEngineArgs = new ArrayList<>();
+		List<List<?>> handlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
+		try (MockedConstruction<NashornScriptTranslator> translatorConstruction =
+					 mockConstruction(NashornScriptTranslator.class);
+			 MockedConstruction<RuleEngineNashorn> ruleEngineConstruction =
+					 mockConstruction(RuleEngineNashorn.class,
+							 (mock, mctx) -> ruleEngineArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<RuleEngineConfigurationHandler> handlerConstruction =
+					 mockConstruction(RuleEngineConfigurationHandler.class,
+							 (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleConstruction =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+			when(mockedContext.registerService(eq(ManagedService.class), any(), any())).thenReturn(mockedServiceRegistration);
+			when(mockedContext.getBundle()).thenReturn(mockedBundle);
+			when(mockedBundle.getSymbolicName()).thenReturn("symbolicName");
 
-		testActivator.start(mockedContext);
+			testActivator.start(mockedContext);
 
-		verifyNew(NashornScriptTranslator.class).withNoArguments();
-		verifyNew(RuleEngineNashorn.class).withArguments(eq(mockedTranslator));
-		verifyNew(RuleEngineConfigurationHandler.class).withArguments(eq(mockedRuleEngine), eq(mockedTranslator));
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedRuleEngineHandler));
+			assertEquals(1, translatorConstruction.constructed().size());
+			assertEquals(1, ruleEngineConstruction.constructed().size());
+			assertEquals(translatorConstruction.constructed().get(0), ruleEngineArgs.get(0).get(0));
+			assertEquals(1, handlerConstruction.constructed().size());
+			assertEquals(ruleEngineConstruction.constructed().get(0), handlerArgs.get(0).get(0));
+			assertEquals(translatorConstruction.constructed().get(0), handlerArgs.get(0).get(1));
+			assertEquals(1, configurableBundleConstruction.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(handlerConstruction.constructed().get(0), configurableBundleArgs.get(0).get(1));
+		}
 	}
 
 	@Test

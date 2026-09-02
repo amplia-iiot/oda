@@ -9,8 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,12 +17,13 @@ import java.util.List;
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class InputRegisterCacheTest {
 
     private static final int NUM_REGISTERS_TO_READ = 5;
@@ -59,10 +59,10 @@ public class InputRegisterCacheTest {
         TEST_INPUT_REGISTER_ARRAY[4] = new Register(4);
 
         List<ModbusMaster> listModbusConnections = Collections.singletonList(mockedModbusMaster);
-        PowerMockito.when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
-        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
-        PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
-        PowerMockito.when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(TEST_INPUT_REGISTER_ARRAY);
+        when(mockedConnectionsLocator.getAllModbusConnections()).thenReturn(listModbusConnections);
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
+        when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(TEST_INPUT_REGISTER_ARRAY);
 
         testReadOperatorProcessor = new ModbusReadOperatorProcessor(mockedConnectionsLocator, new ModbusTypeToJavaTypeConverter());
 

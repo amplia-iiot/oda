@@ -57,7 +57,7 @@ public class PollerImplTest {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         DatastreamsGettersFinder.Return gettersForId1AndId2 = new DatastreamsGettersFinder.Return(Arrays.asList(getterForId1, getterForId2), asSet());
         collector = new PollerImpl(datastreamsGettersFinder, datastreamsEvent);
         futureForId1 = new CompletableFuture<>();

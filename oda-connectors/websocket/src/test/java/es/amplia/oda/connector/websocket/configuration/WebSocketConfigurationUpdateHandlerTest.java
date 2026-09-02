@@ -5,21 +5,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import static es.amplia.oda.connector.websocket.configuration.WebSocketConfigurationUpdateHandler.*;
 import static es.amplia.oda.connector.websocket.configuration.ConnectorConfiguration.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class WebSocketConfigurationUpdateHandlerTest {
 
     private static final String TEST_HOST = "localhost";

@@ -8,23 +8,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DeviceInfoFX30.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DeviceInfoFX30Test {
 
 	private DeviceInfoFX30 deviceInfo;
@@ -37,8 +36,6 @@ public class DeviceInfoFX30Test {
 	private CommandExecutionException mockedCommandExecutionException;
 	@Mock
 	private Bundle mockedBundle;
-	@Mock
-	private File mockedFile;
 
 	@Before
 	public void beforeTests() {
@@ -54,10 +51,8 @@ public class DeviceInfoFX30Test {
 		bundles[0] = mockedBundle;
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
 		Whitebox.setInternalState(deviceInfo, "bundles", bundles);
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
 		when(mockedBundle.getSymbolicName()).thenReturn("MyName");
 		when(mockedBundle.getVersion()).thenReturn(new Version("1"));
-		when(mockedFile.listFiles()).thenReturn(new File[0]);
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SERIAL_NUMBER_SCRIPT)).thenReturn("serialNumber");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.MODEL_SCRIPT)).thenReturn("model");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.IMEI_SCRIPT)).thenReturn("imei");
@@ -70,7 +65,10 @@ public class DeviceInfoFX30Test {
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_TOTAL_SCRIPT)).thenReturn("2000");
 		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.DISK_TOTAL_SCRIPT)).thenReturn("4000");
 
-		deviceInfo.loadConfiguration(configuration);
+		try (MockedConstruction<File> fileCons = mockConstruction(File.class,
+				(mock, mctx) -> when(mock.listFiles()).thenReturn(new File[0]))) {
+			deviceInfo.loadConfiguration(configuration);
+		}
 
 		assertEquals("deviceId", deviceInfo.getDeviceId());
 		assertEquals("apiKey", deviceInfo.getApiKey());
@@ -97,10 +95,11 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
 		Whitebox.setInternalState(deviceInfo, "bundles", bundles);
 		when(mockedCommandProcessor.execute(any())).thenThrow(mockedCommandExecutionException);
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-		when(mockedFile.listFiles()).thenReturn(new File[0]);
 
-		deviceInfo.loadConfiguration(configuration);
+		try (MockedConstruction<File> fileCons = mockConstruction(File.class,
+				(mock, mctx) -> when(mock.listFiles()).thenReturn(new File[0]))) {
+			deviceInfo.loadConfiguration(configuration);
+		}
 
 		assertNull(deviceInfo.getSerialNumber());
 		assertNull(deviceInfo.getModel());

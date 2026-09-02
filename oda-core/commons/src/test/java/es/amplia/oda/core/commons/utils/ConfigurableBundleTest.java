@@ -2,12 +2,15 @@ package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.osgi.proxies.EventAdminProxy;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -15,11 +18,9 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.event.Event;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
@@ -30,8 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ConfigurableBundleImpl.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ConfigurableBundleTest {
 
     private static final String EXPECTED_UPDATED_TOPIC = CONFIGURATION_EVENT_BASE_TOPIC + CONFIGURATION_UPDATED_EVENT;
@@ -45,7 +45,8 @@ public class ConfigurableBundleTest {
 
     private ConfigurableBundle testConfigurableBundle;
 
-    @Mock
+    private MockedConstruction<EventAdminProxy> eventAdminConstruction;
+    private final List<List<?>> eventAdminArgs = new ArrayList<>();
     private EventAdminProxy mockedEventAdmin;
     @Mock
     private ServiceRegistration<?> mockedServiceRegistration;
@@ -63,18 +64,26 @@ public class ConfigurableBundleTest {
         when(mockedContext.getBundle()).thenReturn(mockedBundle);
         String bundleName = "testBundle";
         when(mockedBundle.getSymbolicName()).thenReturn(bundleName);
-        PowerMockito.whenNew(EventAdminProxy.class).withAnyArguments().thenReturn(mockedEventAdmin);
+        eventAdminConstruction = mockConstruction(EventAdminProxy.class,
+                (mock, mctx) -> eventAdminArgs.add(new ArrayList<>(mctx.arguments())));
         List<ServiceRegistration<?>> serviceRegistrations =
                 java.util.Collections.singletonList(mockedServiceRegistration);
 
         testConfigurableBundle = new ConfigurableBundleImpl(mockedContext, mockedHandler, serviceRegistrations);
+        mockedEventAdmin = eventAdminConstruction.constructed().get(0);
+    }
+
+    @After
+    public void tearDown() {
+        eventAdminConstruction.close();
     }
 
     @Test
     public void testConstructor() throws Exception {
         assertNotNull(testConfigurableBundle);
 
-        PowerMockito.verifyNew(EventAdminProxy.class).withArguments(eq(mockedContext));
+        assertEquals(1, eventAdminConstruction.constructed().size());
+        assertEquals(mockedContext, eventAdminArgs.get(0).get(0));
         verify(mockedContext).registerService(eq(ManagedService.class), eq(testConfigurableBundle), any());
     }
 
@@ -92,7 +101,7 @@ public class ConfigurableBundleTest {
 
     @Test (expected = ConfigurationException.class)
     public void testDeleteConfigurationException() throws Exception {
-        doThrow(Exception.class).when(mockedHandler).loadDefaultConfiguration();
+        doThrow(RuntimeException.class).when(mockedHandler).loadDefaultConfiguration();
 
         try {
             testConfigurableBundle.updated(null);
@@ -131,7 +140,7 @@ public class ConfigurableBundleTest {
 
     @Test(expected = ConfigurationException.class)
     public void testUpdateConfigurationException() throws Exception {
-        doThrow(Exception.class).when(mockedHandler).loadConfiguration(any());
+        doThrow(RuntimeException.class).when(mockedHandler).loadConfiguration(any());
 
         try {
             testConfigurableBundle.updated(mockedProps);
@@ -156,7 +165,6 @@ public class ConfigurableBundleTest {
     @Test
     public void testClose() {
         Whitebox.setInternalState(testConfigurableBundle, "configServiceRegistration", mockedRegistration);
-        Whitebox.setInternalState(testConfigurableBundle, "eventAdmin", mockedEventAdmin);
 
         testConfigurableBundle.close();
 

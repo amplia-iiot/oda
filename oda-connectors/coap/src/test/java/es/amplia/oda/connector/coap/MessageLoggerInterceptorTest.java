@@ -5,22 +5,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 
 import static es.amplia.oda.connector.coap.MessageLoggerInterceptor.*;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ MessageLoggerInterceptor.class, LoggerFactory.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class MessageLoggerInterceptorTest {
 
     private static final InetAddress TEST_ADDRESS = InetAddress.getLoopbackAddress();

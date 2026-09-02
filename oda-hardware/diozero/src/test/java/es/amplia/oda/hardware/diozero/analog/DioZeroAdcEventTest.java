@@ -4,12 +4,12 @@ import com.diozero.api.AnalogInputEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 
 import static org.junit.Assert.*;
 
-@RunWith(PowerMockRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class DioZeroAdcEventTest {
 
 	private static final long epochTime = System.currentTimeMillis();

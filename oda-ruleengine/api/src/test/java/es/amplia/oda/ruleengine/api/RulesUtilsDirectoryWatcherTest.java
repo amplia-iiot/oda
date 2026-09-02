@@ -5,8 +5,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -17,14 +17,13 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchService;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(RulesUtilsDirectoryWatcher.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class RulesUtilsDirectoryWatcherTest {
 
 	@Mock
@@ -50,14 +49,13 @@ public class RulesUtilsDirectoryWatcherTest {
 
 	@Test
 	public void testStart() throws Exception {
-		Whitebox.setInternalState(testDirectoryWatcher, "creatingWatcherThread", mockedThread);
-		whenNew(Thread.class).withAnyArguments().thenReturn(mockedThread);
+		try (MockedConstruction<Thread> threadConstruction = mockConstruction(Thread.class)) {
+			testDirectoryWatcher.start();
 
-		testDirectoryWatcher.start();
-
-		verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE),
-				eq(StandardWatchEventKinds.ENTRY_DELETE), eq(StandardWatchEventKinds.ENTRY_MODIFY));
-		verify(mockedThread).start();
+			verify(mockedPath).register(any(WatchService.class), eq(StandardWatchEventKinds.ENTRY_CREATE),
+					eq(StandardWatchEventKinds.ENTRY_DELETE), eq(StandardWatchEventKinds.ENTRY_MODIFY));
+			verify(threadConstruction.constructed().get(0)).start();
+		}
 	}
 
 	@Test

@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.util.Dictionary;
@@ -17,11 +17,11 @@ import static es.amplia.oda.subsystem.sshserver.configuration.SshConfigurationUp
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SshConfigurationUpdateHandlerTest {
 
     private static final String TEST_IP = "localhost";
@@ -74,7 +74,7 @@ public class SshConfigurationUpdateHandlerTest {
 
     @Test
     public void testApplyConfigurationNoCurrentConfiguration() throws IOException {
-        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, null);
+        Whitebox.setInternalState(testHandler, CURRENT_CONFIGURATION_FIELD_NAME, (Object) null);
 
         testHandler.applyConfiguration();
 

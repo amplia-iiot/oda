@@ -5,7 +5,7 @@ import es.amplia.oda.core.commons.gpio.GpioPinListener;
 import jdk.dio.gpio.PinEvent;
 import org.junit.Test;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class JdkDioGpioPinListenerBridgeTest {

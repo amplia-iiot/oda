@@ -10,19 +10,22 @@ import es.amplia.oda.operation.api.osgi.proxies.OperationSetDeviceParametersProx
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -38,34 +41,58 @@ public class ActivatorTest {
     @Mock
     private ScadaConnectorProxy mockedConnector;
     @Mock
-    private ScadaOperationDispatcher mockedOperationDispatcher;
-    @Mock
-    private ScadaEventDispatcher mockedEventDispatcher;
-    @Mock
     private ServiceRegistration<ScadaDispatcher> mockedOperationDispatcherReg;
     @Mock
     private ServiceRegistration<EventDispatcher> mockedEventDispatcherReg;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ScadaTableTranslatorProxy.class).withAnyArguments().thenReturn(mockedTranslator);
-        PowerMockito.whenNew(OperationGetDeviceParametersProxy.class).withAnyArguments().thenReturn(mockedGetOperation);
-        PowerMockito.whenNew(OperationSetDeviceParametersProxy.class).withAnyArguments().thenReturn(mockedSetOperation);
-        PowerMockito.whenNew(ScadaConnectorProxy.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(ScadaOperationDispatcher.class).withAnyArguments().thenReturn(mockedOperationDispatcher);
-        PowerMockito.whenNew(ScadaEventDispatcher.class).withAnyArguments().thenReturn(mockedEventDispatcher);
+        List<List<?>> translatorArgs = new ArrayList<>();
+        List<List<?>> getOperationArgs = new ArrayList<>();
+        List<List<?>> setOperationArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> operationDispatcherArgs = new ArrayList<>();
+        List<List<?>> eventDispatcherArgs = new ArrayList<>();
+        try (MockedConstruction<ScadaTableTranslatorProxy> translatorCons =
+                     mockConstruction(ScadaTableTranslatorProxy.class,
+                             (mock, mctx) -> translatorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OperationGetDeviceParametersProxy> getOperationCons =
+                     mockConstruction(OperationGetDeviceParametersProxy.class,
+                             (mock, mctx) -> getOperationArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OperationSetDeviceParametersProxy> setOperationCons =
+                     mockConstruction(OperationSetDeviceParametersProxy.class,
+                             (mock, mctx) -> setOperationArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ScadaConnectorProxy> connectorCons = mockConstruction(ScadaConnectorProxy.class,
+                     (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ScadaOperationDispatcher> operationDispatcherCons =
+                     mockConstruction(ScadaOperationDispatcher.class,
+                             (mock, mctx) -> operationDispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ScadaEventDispatcher> eventDispatcherCons =
+                     mockConstruction(ScadaEventDispatcher.class,
+                             (mock, mctx) -> eventDispatcherArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(ScadaTableTranslatorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationGetDeviceParametersProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationSetDeviceParametersProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ScadaConnectorProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ScadaOperationDispatcher.class)
-                .withArguments(eq(mockedTranslator), eq(mockedGetOperation), eq(mockedSetOperation));
-        PowerMockito.verifyNew(ScadaEventDispatcher.class).withArguments(eq(mockedTranslator), eq(mockedConnector));
-        verify(mockedContext).registerService(eq(ScadaDispatcher.class), eq(mockedOperationDispatcher), any());
-        verify(mockedContext).registerService(eq(EventDispatcher.class), eq(mockedEventDispatcher), any());
+            assertEquals(1, translatorCons.constructed().size());
+            assertEquals(mockedContext, translatorArgs.get(0).get(0));
+            assertEquals(1, getOperationCons.constructed().size());
+            assertEquals(mockedContext, getOperationArgs.get(0).get(0));
+            assertEquals(1, setOperationCons.constructed().size());
+            assertEquals(mockedContext, setOperationArgs.get(0).get(0));
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(mockedContext, connectorArgs.get(0).get(0));
+            assertEquals(1, operationDispatcherCons.constructed().size());
+            assertEquals(translatorCons.constructed().get(0), operationDispatcherArgs.get(0).get(0));
+            assertEquals(getOperationCons.constructed().get(0), operationDispatcherArgs.get(0).get(1));
+            assertEquals(setOperationCons.constructed().get(0), operationDispatcherArgs.get(0).get(2));
+            assertEquals(1, eventDispatcherCons.constructed().size());
+            assertEquals(translatorCons.constructed().get(0), eventDispatcherArgs.get(0).get(0));
+            assertEquals(connectorCons.constructed().get(0), eventDispatcherArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(ScadaDispatcher.class),
+                    eq(operationDispatcherCons.constructed().get(0)), any());
+            verify(mockedContext).registerService(eq(EventDispatcher.class),
+                    eq(eventDispatcherCons.constructed().get(0)), any());
+        }
     }
 
     @Test

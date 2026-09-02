@@ -9,13 +9,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.Snmp;
 import org.snmp4j.UserTarget;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class SnmpClientFactoryTest {
 
     private static final String VERSION_PROPERTY_NAME = "version";
@@ -60,8 +59,6 @@ public class SnmpClientFactoryTest {
 
     @Mock
     private Snmp mockedSnmp;
-    @Mock
-    private Snmp mockedSnmpClient;
     @InjectMocks
     private SnmpClientFactory testClientFactory;
 
@@ -81,8 +78,6 @@ public class SnmpClientFactoryTest {
     public void createClientV3Test() throws Exception {
         SnmpClientImpl expectedSnmpClient = new SnmpClientImpl(mockedSnmp, TEST_VERSION_3_VALUE, new UserTarget(),
                 TEST_CONTEXT_NAME_VALUE, TEST_DEVICE_ID_VALUE);
-
-        PowerMockito.whenNew(Snmp.class).withNoArguments().thenReturn(mockedSnmpClient);
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(TEST_SNMP_V3_COMPLETE_CONFIGURATION);
         // disconnect to allow other test to use same ports

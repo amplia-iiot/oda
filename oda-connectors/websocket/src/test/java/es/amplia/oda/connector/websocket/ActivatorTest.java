@@ -12,20 +12,24 @@ import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -36,8 +40,6 @@ public class ActivatorTest {
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
     @Mock
     private DispatcherProxy mockedDispatcher;
-    @Mock
-    private WebSocketClientFactory mockedFactory;
     @Mock
     private WebSocketConnector mockedConnector;
     @Mock
@@ -51,25 +53,59 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
-        PowerMockito.whenNew(DispatcherProxy.class).withAnyArguments().thenReturn(mockedDispatcher);
-        PowerMockito.whenNew(WebSocketClientFactory.class).withAnyArguments().thenReturn(mockedFactory);
-        PowerMockito.whenNew(WebSocketConnector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(WebSocketConfigurationUpdateHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
+        List<List<?>> deviceInfoProviderArgs = new ArrayList<>();
+        List<List<?>> dispatcherArgs = new ArrayList<>();
+        List<List<?>> factoryArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<DeviceInfoProviderProxy> deviceInfoProviderCons =
+                     mockConstruction(DeviceInfoProviderProxy.class,
+                             (mock, mctx) -> deviceInfoProviderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<DispatcherProxy> dispatcherCons =
+                     mockConstruction(DispatcherProxy.class,
+                             (mock, mctx) -> dispatcherArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<WebSocketClientFactory> factoryCons =
+                     mockConstruction(WebSocketClientFactory.class,
+                             (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<WebSocketConnector> connectorCons =
+                     mockConstruction(WebSocketConnector.class,
+                             (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<WebSocketConfigurationUpdateHandler> configHandlerCons =
+                     mockConstruction(WebSocketConfigurationUpdateHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(DispatcherProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(WebSocketClientFactory.class).withArguments(eq(mockedDispatcher));
-        PowerMockito.verifyNew(WebSocketConnector.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedFactory));
-        PowerMockito.verifyNew(WebSocketConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any(Runnable.class));
+            testActivator.start(mockedContext);
+
+            assertEquals(1, deviceInfoProviderCons.constructed().size());
+            assertEquals(mockedContext, deviceInfoProviderArgs.get(0).get(0));
+            assertEquals(1, dispatcherCons.constructed().size());
+            assertEquals(mockedContext, dispatcherArgs.get(0).get(0));
+            assertEquals(1, factoryCons.constructed().size());
+            assertEquals(dispatcherCons.constructed().get(0), factoryArgs.get(0).get(0));
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(deviceInfoProviderCons.constructed().get(0), connectorArgs.get(0).get(0));
+            assertEquals(factoryCons.constructed().get(0), connectorArgs.get(0).get(1));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(connectorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleCons.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+            verify(mockedContext).registerService(eq(OpenGateConnector.class),
+                    eq(connectorCons.constructed().get(0)), any());
+            assertEquals(1, serviceListenerCons.constructed().size());
+            assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+            assertEquals(DeviceInfoProvider.class, serviceListenerArgs.get(0).get(1));
+            assertTrue(serviceListenerArgs.get(0).get(2) instanceof Runnable);
+        }
     }
 
     @Test

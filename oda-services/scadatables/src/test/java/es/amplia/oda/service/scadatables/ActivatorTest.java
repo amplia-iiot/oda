@@ -9,30 +9,23 @@ import es.amplia.oda.service.scadatables.internal.ScadaTableInfoService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
-import javax.script.ScriptEngineManager;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
     private final Activator testActivator = new Activator();
 
-    @Mock
-    private ScadaTableInfoService mockedScadaTableInfoService;
-    @Mock
-    private ScriptEngineManager mockedScriptEngineManager;
-    @Mock
-    private ScadaTablesConfigurationHandler mockedScadaTablesConfigurationHandler;
     @Mock
     private ConfigurableBundleImpl mockedConfigurableBundleImpl;
     @Mock
@@ -45,20 +38,26 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(ScadaTableInfoService.class).withAnyArguments()
-                .thenReturn(mockedScadaTableInfoService);
-        PowerMockito.whenNew(ScriptEngineManager.class).withAnyArguments()
-                .thenReturn(mockedScriptEngineManager);
-        PowerMockito.whenNew(ScadaTablesConfigurationHandler.class).withAnyArguments()
-                .thenReturn(mockedScadaTablesConfigurationHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments()
-                .thenReturn(mockedConfigurableBundleImpl);
+        List<List<?>> handlerArgs = new ArrayList<>();
+        List<List<?>> configurableBundleArgs = new ArrayList<>();
+        try (MockedConstruction<ScadaTableInfoService> infoServiceConstruction =
+                     mockConstruction(ScadaTableInfoService.class);
+             MockedConstruction<ScadaTablesConfigurationHandler> handlerConstruction =
+                     mockConstruction(ScadaTablesConfigurationHandler.class,
+                             (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configurableBundleConstruction =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(ScadaTableInfoService.class).withNoArguments();
-        PowerMockito.verifyNew(ScadaTablesConfigurationHandler.class).withArguments(eq(mockedScadaTableInfoService));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedScadaTablesConfigurationHandler), any());
+            assertEquals(1, infoServiceConstruction.constructed().size());
+            assertEquals(1, handlerConstruction.constructed().size());
+            assertEquals(infoServiceConstruction.constructed().get(0), handlerArgs.get(0).get(0));
+            assertEquals(1, configurableBundleConstruction.constructed().size());
+            assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+            assertEquals(handlerConstruction.constructed().get(0), configurableBundleArgs.get(0).get(1));
+        }
     }
 
     @Test

@@ -10,16 +10,18 @@ import com.ghgande.j2mod.modbus.facade.ModbusUDPMaster;
 import com.ghgande.j2mod.modbus.util.SerialParameters;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ModbusMasterFactory.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusMasterFactoryTest {
 
     private static final String TEST_ADDRESS = "localhost";
@@ -51,45 +53,54 @@ public class ModbusMasterFactoryTest {
 
     private final ModbusMasterFactory testFactory = new ModbusMasterFactory();
 
-    @Mock
-    private ModbusTCPMaster mockedTCPMaster;
-    @Mock
-    private ModbusUDPMaster mockedUDPMaster;
-    @Mock
-    private ModbusSerialMaster mockedSerialMaster;
-    @Mock
-    private SerialParameters mockedSerialParams;
-
     @Test
     public void testCreateTCPModbusMaster() throws Exception {
-        PowerMockito.whenNew(ModbusTCPMaster.class).withAnyArguments().thenReturn(mockedTCPMaster);
+        List<List<?>> tcpMasterArgs = new ArrayList<>();
 
-        testFactory.createTCPModbusMaster(TEST_TCP_CONFIGURATION);
+        try (MockedConstruction<ModbusTCPMaster> tcpMasterCons = mockConstruction(ModbusTCPMaster.class,
+                (mock, mctx) -> tcpMasterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ModbusTCPMaster.class).withArguments(eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_TIMEOUT),
-                eq(TEST_NEW_CONN_PER_REQUEST));
+            testFactory.createTCPModbusMaster(TEST_TCP_CONFIGURATION);
+
+            assertEquals(1, tcpMasterCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_ADDRESS, TEST_PORT, TEST_TIMEOUT, TEST_NEW_CONN_PER_REQUEST),
+                    tcpMasterArgs.get(0));
+        }
     }
 
     @Test
     public void testCreateUDPModbusMaster() throws Exception {
-        PowerMockito.whenNew(ModbusUDPMaster.class).withAnyArguments().thenReturn(mockedUDPMaster);
+        List<List<?>> udpMasterArgs = new ArrayList<>();
 
-        testFactory.createUDPModbusMaster(TEST_UDP_CONFIGURATION);
+        try (MockedConstruction<ModbusUDPMaster> udpMasterCons = mockConstruction(ModbusUDPMaster.class,
+                (mock, mctx) -> udpMasterArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(ModbusUDPMaster.class).withArguments(eq(TEST_ADDRESS), eq(TEST_PORT), eq(TEST_TIMEOUT));
+            testFactory.createUDPModbusMaster(TEST_UDP_CONFIGURATION);
+
+            assertEquals(1, udpMasterCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_ADDRESS, TEST_PORT, TEST_TIMEOUT), udpMasterArgs.get(0));
+        }
     }
 
     @Test
     public void testCreateSerialModbusMaster() throws Exception {
-        PowerMockito.whenNew(ModbusSerialMaster.class).withAnyArguments().thenReturn(mockedSerialMaster);
-        PowerMockito.whenNew(SerialParameters.class).withAnyArguments().thenReturn(mockedSerialParams);
+        List<List<?>> serialParamsArgs = new ArrayList<>();
+        List<List<?>> serialMasterArgs = new ArrayList<>();
 
-        testFactory.createSerialModbusMaster(TEST_SERIAL_CONFIGURATION);
+        try (MockedConstruction<ModbusSerialMaster> serialMasterCons = mockConstruction(ModbusSerialMaster.class,
+                (mock, mctx) -> serialMasterArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<SerialParameters> serialParamsCons = mockConstruction(SerialParameters.class,
+                     (mock, mctx) -> serialParamsArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(SerialParameters.class).withArguments(eq(TEST_PORT_NAME), eq(TEST_BAUD_RATE),
-                eq(TEST_FLOW_CONTROL_IN), eq(TEST_FLOW_CONTROL_OUT), eq(TEST_DATA_BITS), eq(TEST_STOP_BITS),
-                eq(TEST_PARITY), eq(TEST_ECHO));
-        verify(mockedSerialParams).setEncoding(TEST_ENCODING);
-        PowerMockito.verifyNew(ModbusSerialMaster.class).withArguments(eq(mockedSerialParams), eq(TEST_TIMEOUT));
+            testFactory.createSerialModbusMaster(TEST_SERIAL_CONFIGURATION);
+
+            assertEquals(1, serialParamsCons.constructed().size());
+            assertEquals(Arrays.asList(TEST_PORT_NAME, TEST_BAUD_RATE, TEST_FLOW_CONTROL_IN, TEST_FLOW_CONTROL_OUT,
+                    TEST_DATA_BITS, TEST_STOP_BITS, TEST_PARITY, TEST_ECHO), serialParamsArgs.get(0));
+            verify(serialParamsCons.constructed().get(0)).setEncoding(TEST_ENCODING);
+            assertEquals(1, serialMasterCons.constructed().size());
+            assertEquals(serialParamsCons.constructed().get(0), serialMasterArgs.get(0).get(0));
+            assertEquals(TEST_TIMEOUT, serialMasterArgs.get(0).get(1));
+        }
     }
 }

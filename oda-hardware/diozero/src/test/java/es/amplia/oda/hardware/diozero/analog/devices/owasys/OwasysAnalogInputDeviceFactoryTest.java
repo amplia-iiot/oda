@@ -8,8 +8,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -19,8 +18,7 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OwasysAnalogInputDeviceFactory.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OwasysAnalogInputDeviceFactoryTest {
 	private static final String OWA_ANA_INP_NAME_1 = "ADC1";
 	private static final String OWA_ANA_INP_NAME_2 = "ADC2";

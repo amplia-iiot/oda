@@ -9,14 +9,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusWriteOperatorProcessorTest {
 
     private static final int TEST_SLAVE_ADDRESS = 2;
@@ -57,7 +56,7 @@ public class ModbusWriteOperatorProcessorTest {
     public void setUp() {
         twoMockedRegisters = new Register[] { mockedRegister, mockedRegister2 };
         fourMockedRegisters = new Register[] { mockedRegister, mockedRegister2, mockedRegister3, mockedRegister4 };
-        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
     }
 
     @Test

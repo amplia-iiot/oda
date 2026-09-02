@@ -4,16 +4,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,12 +28,12 @@ import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandle
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.OPERATION_TIMEOUT;
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.UNINSTALL_BUNDLE_EVENT;
 import static es.amplia.oda.operation.update.internal.OperationUpdateEventHandler.UPDATE_CONFIGURATION_EVENT;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ OperationUpdateEventHandler.class, DeploymentElement.class, Event.class })
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class OperationUpdateEventHandlerTest {
 
     private static final String TEST_BUNDLE = "testBundle";
@@ -57,7 +58,7 @@ public class OperationUpdateEventHandlerTest {
     @Test
     public void testHandleEventWaitingBundle() {
         String testEventTopic = INSTALL_BUNDLE_EVENT;
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         CountDownLatch mockedCountDownLatch = mock(CountDownLatch.class);
 
         when(mockedEvent.getTopic()).thenReturn(testEventTopic);
@@ -74,7 +75,7 @@ public class OperationUpdateEventHandlerTest {
     @Test
     public void testHandleEventBundleWithDifferentName() {
         String testEventTopic = INSTALL_BUNDLE_EVENT;
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         CountDownLatch mockedCountDownLatch = mock(CountDownLatch.class);
 
         when(mockedEvent.getTopic()).thenReturn(testEventTopic);
@@ -90,7 +91,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testHandleEventDifferentTopic() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         CountDownLatch mockedCountDownLatch = mock(CountDownLatch.class);
 
         when(mockedEvent.getTopic()).thenReturn(INSTALL_BUNDLE_EVENT);
@@ -124,11 +125,12 @@ public class OperationUpdateEventHandlerTest {
         when(mockedBundle3.getSymbolicName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedBundle3.getVersion()).thenReturn(Version.parseVersion(TEST_VERSION_TO_OPERATE));
         when(mockedBundle3.getState()).thenReturn(Bundle.ACTIVE);
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(null);
 
-        testHandler.waitForConfirmation(mockedDeploymentElement);
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class)) {
+            testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        PowerMockito.verifyNew(CountDownLatch.class, never()).withArguments(anyInt());
+            assertEquals(0, latchCons.constructed().size());
+        }
     }
 
     @Test
@@ -152,11 +154,12 @@ public class OperationUpdateEventHandlerTest {
         when(mockedBundle3.getSymbolicName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedBundle3.getVersion()).thenReturn(Version.parseVersion(TEST_VERSION_TO_OPERATE));
         when(mockedBundle3.getState()).thenReturn(Bundle.ACTIVE);
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(null);
 
-        testHandler.waitForConfirmation(mockedDeploymentElement);
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class)) {
+            testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        PowerMockito.verifyNew(CountDownLatch.class, never()).withArguments(anyInt());
+            assertEquals(0, latchCons.constructed().size());
+        }
     }
 
     @Test
@@ -176,11 +179,12 @@ public class OperationUpdateEventHandlerTest {
         when(mockedBundle2.getSymbolicName()).thenReturn(TEST_NAME_2);
         when(mockedBundle2.getVersion()).thenReturn(Version.parseVersion(TEST_VERSION_2));
         when(mockedBundle2.getState()).thenReturn(Bundle.RESOLVED);
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(null);
 
-        testHandler.waitForConfirmation(mockedDeploymentElement);
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class)) {
+            testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        PowerMockito.verifyNew(CountDownLatch.class, never()).withArguments(anyInt());
+            assertEquals(0, latchCons.constructed().size());
+        }
     }
 
     @Test
@@ -200,11 +204,12 @@ public class OperationUpdateEventHandlerTest {
         when(mockedBundle2.getSymbolicName()).thenReturn(TEST_NAME_2);
         when(mockedBundle2.getVersion()).thenReturn(Version.parseVersion(TEST_VERSION_2));
         when(mockedBundle2.getState()).thenReturn(Bundle.RESOLVED);
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(null);
 
-        testHandler.waitForConfirmation(mockedDeploymentElement);
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class)) {
+            testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        PowerMockito.verifyNew(CountDownLatch.class, never()).withArguments(anyInt());
+            assertEquals(0, latchCons.constructed().size());
+        }
     }
 
     @Test
@@ -228,16 +233,17 @@ public class OperationUpdateEventHandlerTest {
         when(mockedBundle3.getSymbolicName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedBundle3.getVersion()).thenReturn(Version.parseVersion("2.0.0"));
         when(mockedBundle3.getState()).thenReturn(Bundle.ACTIVE);
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(null);
 
-        testHandler.waitForConfirmation(mockedDeploymentElement);
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class)) {
+            testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        PowerMockito.verifyNew(CountDownLatch.class, never()).withArguments(anyInt());
+            assertEquals(0, latchCons.constructed().size());
+        }
     }
 
     @Test
     public void testWaitForConfirmationInstallOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -259,7 +265,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationUpgradeOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -281,7 +287,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationUninstallOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         Bundle mockedBundleToUninstall = mock(Bundle.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
@@ -307,7 +313,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationInstallConfigurationOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -329,7 +335,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationUpgradeConfigurationOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -351,7 +357,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationUninstallConfigurationOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         Bundle mockedBundleToUninstall = mock(Bundle.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
@@ -377,22 +383,27 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForConfirmationTimeout() throws Exception {
-        CountDownLatch mockedCountDownLatch = mock(CountDownLatch.class);
-
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
         when(mockedDeploymentElement.getType()).thenReturn(SOFTWARE);
         when(mockedDeploymentElement.getOperation()).thenReturn(DeploymentElementOperationType.INSTALL);
         when(mockedContext.getBundles()).thenReturn(new Bundle[]{});
+
         // Mocked CountDownLatch await to not wait for timeout in test. Timeout is represented by false return value.
-        PowerMockito.whenNew(CountDownLatch.class).withAnyArguments().thenReturn(mockedCountDownLatch);
-        when(mockedCountDownLatch.await(anyLong(), any(TimeUnit.class))).thenReturn(false);
+        List<List<?>> latchArgs = new ArrayList<>();
+        try (MockedConstruction<CountDownLatch> latchCons = mockConstruction(CountDownLatch.class,
+                (mock, mctx) -> {
+                    latchArgs.add(new ArrayList<>(mctx.arguments()));
+                    when(mock.await(anyLong(), any(TimeUnit.class))).thenReturn(false);
+                })) {
 
-        boolean confirmed = testHandler.waitForConfirmation(mockedDeploymentElement);
+            boolean confirmed = testHandler.waitForConfirmation(mockedDeploymentElement);
 
-        assertFalse(confirmed);
-        PowerMockito.verifyNew(CountDownLatch.class).withArguments(eq(1));
-        verify(mockedCountDownLatch).await(eq(OPERATION_TIMEOUT), eq(TimeUnit.SECONDS));
+            assertFalse(confirmed);
+            assertEquals(1, latchCons.constructed().size());
+            assertEquals(1, latchArgs.get(0).get(0));
+            verify(latchCons.constructed().get(0)).await(eq(OPERATION_TIMEOUT), eq(TimeUnit.SECONDS));
+        }
     }
 
     @Test
@@ -410,7 +421,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForRollbackConfirmationInstallOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -432,7 +443,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForRollbackConfirmationUpgradeOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);
         when(mockedDeploymentElement.getVersion()).thenReturn(TEST_VERSION_TO_OPERATE);
@@ -454,7 +465,7 @@ public class OperationUpdateEventHandlerTest {
 
     @Test
     public void testWaitForRollbackConfirmationUninstallOperation() {
-        Event mockedEvent = PowerMockito.mock(Event.class);
+        Event mockedEvent = mock(Event.class);
         Bundle mockedBundleToUninstall = mock(Bundle.class);
 
         when(mockedDeploymentElement.getName()).thenReturn(TEST_BUNDLE_TO_OPERATE);

@@ -9,22 +9,24 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ActivatorTest {
 
     @Mock
@@ -43,18 +45,29 @@ public class ActivatorTest {
 
     @Test
     public void start() throws Exception {
-        PowerMockito.whenNew(JdkDioGpioService.class).withAnyArguments().thenReturn(mockedGpioService);
-        PowerMockito.whenNew(JdkDioConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
         when(mockedContext.registerService(eq(GpioService.class), any(), any())).thenReturn(mockedRegistration);
 
-        testActivator.start(mockedContext);
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
 
-        PowerMockito.verifyNew(JdkDioGpioService.class).withNoArguments();
-        PowerMockito.verifyNew(JdkDioConfigurationHandler.class).withArguments(eq(mockedGpioService));
-        verify(mockedContext).registerService(eq(GpioService.class), eq(mockedGpioService), any());
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler),
-                        eq(Collections.singletonList(mockedRegistration)));
+        try (MockedConstruction<JdkDioGpioService> gpioServiceCons = mockConstruction(JdkDioGpioService.class);
+             MockedConstruction<JdkDioConfigurationHandler> configHandlerCons =
+                     mockConstruction(JdkDioConfigurationHandler.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons = mockConstruction(ConfigurableBundleImpl.class,
+                     (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())))) {
+
+            testActivator.start(mockedContext);
+
+            assertEquals(1, gpioServiceCons.constructed().size());
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(gpioServiceCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            verify(mockedContext).registerService(eq(GpioService.class), eq(gpioServiceCons.constructed().get(0)), any());
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            assertEquals(Collections.singletonList(mockedRegistration), configBundleArgs.get(0).get(2));
+        }
     }
 
     @Test

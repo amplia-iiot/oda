@@ -6,22 +6,22 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import static es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler.*;
 import static es.amplia.oda.connector.http.configuration.ConnectorConfiguration.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class HttpConnectorConfigurationUpdateHandlerTest {
 
     private static final String TEST_HOST = "localhost";
@@ -91,7 +91,7 @@ public class HttpConnectorConfigurationUpdateHandlerTest {
 
     @Test
     public void testApplyConfigurationNoConfiguration() {
-        Whitebox.setInternalState(testConfigHandler, CURRENT_CONFIGURATION_FIELD_NAME, null);
+        Whitebox.setInternalState(testConfigHandler, CURRENT_CONFIGURATION_FIELD_NAME, (Object) null);
 
         testConfigHandler.applyConfiguration();
 

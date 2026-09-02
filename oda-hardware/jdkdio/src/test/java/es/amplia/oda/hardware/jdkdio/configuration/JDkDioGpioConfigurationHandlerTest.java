@@ -3,18 +3,17 @@ package es.amplia.oda.hardware.jdkdio.configuration;
 import es.amplia.oda.core.commons.utils.Collections;
 
 import es.amplia.oda.hardware.jdkdio.gpio.JdkDioGpioService;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.reflect.Whitebox;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
@@ -24,8 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({JdkDioConfigurationHandler.class, Collections.class, JdkDioGpioPinBuilder.class})
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class JDkDioGpioConfigurationHandlerTest {
 
     private static final String GPIO_PINS_CONFIGURATION_FIELD_NAME = "gpioPinsConfiguration";
@@ -35,53 +33,50 @@ public class JDkDioGpioConfigurationHandlerTest {
     @InjectMocks
     private JdkDioConfigurationHandler testConfigHandler;
 
+    @After
+    public void tearDown() {
+        System.clearProperty(JdkDioConfigurationHandler.JDK_DIO_REGISTRY_PROPERTY);
+    }
+
     @Test
     public void testLoadConfiguration() {
         Dictionary<String, String> dictionary = new Hashtable<>();
-        Dictionary<String, String> dictionaryParam = Mockito.any();
         Map<String, String> map = new Hashtable<>();
 
-        PowerMockito.mockStatic(Collections.class);
-        PowerMockito.when(Collections.dictionaryToMap(dictionaryParam)).thenReturn(map);
+        try (MockedStatic<Collections> mockedCollections = mockStatic(Collections.class)) {
+            mockedCollections.when(() -> Collections.dictionaryToMap(any(Dictionary.class))).thenReturn(map);
 
-        testConfigHandler.loadConfiguration(dictionary);
+            testConfigHandler.loadConfiguration(dictionary);
 
-        PowerMockito.verifyStatic(Collections.class);
-        Collections.dictionaryToMap(eq(dictionary));
-        assertEquals(map, Whitebox.getInternalState(testConfigHandler, GPIO_PINS_CONFIGURATION_FIELD_NAME));
+            mockedCollections.verify(() -> Collections.dictionaryToMap(eq(dictionary)));
+            assertEquals(map, Whitebox.getInternalState(testConfigHandler, GPIO_PINS_CONFIGURATION_FIELD_NAME));
+        }
     }
 
     @Test
     public void testLoadDefaultConfiguration() throws Exception {
-        String testPath = "testPath";
-        Properties mockedProperties = mock(Properties.class);
-        FileInputStream mockedFis = mock(FileInputStream.class);
+        File testFile = File.createTempFile("jdkDioTestRegistry", ".properties");
+        testFile.deleteOnExit();
+        try (FileOutputStream fos = new FileOutputStream(testFile)) {
+            fos.write("testKey=testValue\n".getBytes());
+        }
         Map<String, String> map = new Hashtable<>();
 
-        PowerMockito.mockStatic(Collections.class);
+        try (MockedStatic<Collections> mockedCollections = mockStatic(Collections.class)) {
+            System.setProperty(JdkDioConfigurationHandler.JDK_DIO_REGISTRY_PROPERTY, testFile.getAbsolutePath());
 
-        System.setProperty(JdkDioConfigurationHandler.JDK_DIO_REGISTRY_PROPERTY, testPath);
+            mockedCollections.when(() -> Collections.propertiesToMap(any(Properties.class))).thenReturn(map);
 
-        PowerMockito.whenNew(Properties.class).withNoArguments().thenReturn(mockedProperties);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(anyString()).thenReturn(mockedFis);
-        PowerMockito.when(Collections.propertiesToMap(any(Properties.class))).thenReturn(map);
+            testConfigHandler.loadDefaultConfiguration();
 
-        testConfigHandler.loadDefaultConfiguration();
-
-        PowerMockito.verifyNew(Properties.class).withNoArguments();
-        PowerMockito.verifyNew(FileInputStream.class).withArguments(testPath);
-        verify(mockedProperties).load(eq(mockedFis));
-        PowerMockito.verifyStatic(Collections.class);
-        Collections.propertiesToMap(mockedProperties);
-        assertEquals(map, Whitebox.getInternalState(testConfigHandler, GPIO_PINS_CONFIGURATION_FIELD_NAME));
+            mockedCollections.verify(() -> Collections.propertiesToMap(any(Properties.class)));
+            assertEquals(map, Whitebox.getInternalState(testConfigHandler, GPIO_PINS_CONFIGURATION_FIELD_NAME));
+        }
     }
 
     @Test
     public void testLoadDefaultConfigurationNoDefaultFile() throws Exception {
-        Map<String, String> map = new Hashtable<>();
-        PowerMockito.mockStatic(Collections.class);
-
-        PowerMockito.when(Collections.propertiesToMap(any(Properties.class))).thenReturn(map);
+        System.clearProperty(JdkDioConfigurationHandler.JDK_DIO_REGISTRY_PROPERTY);
 
         testConfigHandler.loadDefaultConfiguration();
 
@@ -91,19 +86,11 @@ public class JDkDioGpioConfigurationHandlerTest {
     @Test
     public void testLoadDefaultConfigurationFileNotFound() throws Exception {
         String testPath = "testPath";
-        Properties mockedProperties = mock(Properties.class);
-
-        PowerMockito.mockStatic(Collections.class);
 
         System.setProperty(JdkDioConfigurationHandler.JDK_DIO_REGISTRY_PROPERTY, testPath);
 
-        PowerMockito.whenNew(Properties.class).withNoArguments().thenReturn(mockedProperties);
-        PowerMockito.whenNew(FileInputStream.class).withArguments(anyString()).thenThrow(new FileNotFoundException());
-
         testConfigHandler.loadDefaultConfiguration();
 
-        PowerMockito.verifyNew(Properties.class).withNoArguments();
-        PowerMockito.verifyNew(FileInputStream.class).withArguments(testPath);
         assertNull(Whitebox.getInternalState(testConfigHandler, GPIO_PINS_CONFIGURATION_FIELD_NAME));
     }
 

@@ -16,12 +16,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class Iec104CommandHandlerTest {
 
 	private Iec104CommandHandler commandHandler;
@@ -125,7 +124,7 @@ public class Iec104CommandHandlerTest {
 
 		commandHandler.channelRead(mockedContext, sc);
 
-		verifyZeroInteractions(mockedContext);
+		verifyNoInteractions(mockedContext);
 	}
 
 	@Test

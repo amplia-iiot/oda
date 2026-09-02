@@ -10,17 +10,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 import static es.amplia.oda.datastreams.modbus.internal.ModbusReadOperatorProcessor.*;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class ModbusReadOperatorProcessorTest {
 
     private static final int TEST_SLAVE_ADDRESS = 2;
@@ -50,8 +49,8 @@ public class ModbusReadOperatorProcessorTest {
 
     @Before
     public void setUp() {
-        PowerMockito.when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
-        PowerMockito.when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
+        when(mockedConnectionsLocator.getModbusConnectionWithId(anyString())).thenReturn(mockedModbusMaster);
+        when(mockedModbusMaster.getDeviceManufacturer()).thenReturn(TEST_DEVICE_MANUFACTURER);
     }
 
     @Test
@@ -93,7 +92,7 @@ public class ModbusReadOperatorProcessorTest {
     @Test
     public void testReadByteArrayFromInputRegister() {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
-        when(mockedConverter.convertRegisterToByteArray(any(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
+        when(mockedConverter.convertRegisterToByteArray(nullable(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
 
         CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Byte[].class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, ONE_REGISTER);
@@ -107,7 +106,7 @@ public class ModbusReadOperatorProcessorTest {
     @Test
     public void testReadShortFromInputRegister() {
         when(mockedModbusMaster.readInputRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
-        when(mockedConverter.convertRegisterToShort(any(Register.class))).thenReturn(TEST_SHORT_VALUE);
+        when(mockedConverter.convertRegisterToShort(nullable(Register.class))).thenReturn(TEST_SHORT_VALUE);
 
         CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Short.class, ModbusType.INPUT_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, ONE_REGISTER);
@@ -183,7 +182,7 @@ public class ModbusReadOperatorProcessorTest {
     @Test
     public void testReadByteArrayFromHoldingRegister() {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
-        when(mockedConverter.convertRegisterToByteArray(any(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
+        when(mockedConverter.convertRegisterToByteArray(nullable(Register.class))).thenReturn(TEST_BYTE_ARRAY_VALUE);
 
         CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Byte[].class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, ONE_REGISTER);
@@ -197,7 +196,7 @@ public class ModbusReadOperatorProcessorTest {
     @Test
     public void testReadShortFromHoldingRegister() {
         when(mockedModbusMaster.readHoldingRegisters(anyInt(), anyInt(), anyInt())).thenReturn(dummyRegisters);
-        when(mockedConverter.convertRegisterToShort(any(Register.class))).thenReturn(TEST_SHORT_VALUE);
+        when(mockedConverter.convertRegisterToShort(nullable(Register.class))).thenReturn(TEST_SHORT_VALUE);
 
         CollectedValue collectedValue = testReadOperatorProcessor.read(TEST_DEVICE_ID, Short.class, ModbusType.HOLDING_REGISTER,
                 TEST_SLAVE_ADDRESS, TEST_DATA_ADDRESS, TEST_READ_FROM_CACHE, ONE_REGISTER);
