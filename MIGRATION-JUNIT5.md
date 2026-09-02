@@ -48,9 +48,21 @@ corre ambos engines. Mientras vintage esté, JUnit 4 y 5 conviven y el build no 
 - [x] Infraestructura JUnit 5 + vintage en el pom padre.
 - [x] Piloto: `oda-operations/set` migrado (3 tests bajo jupiter, verde en aislado).
 - [x] Bloqueo JaCoCo-offline + Mockito inline resuelto (ver sección abajo). Reactor completo verde.
-- [ ] Resto de módulos (grind sistemático, por reactor).
-- [ ] Retirar vintage-engine + `junit:junit` cuando no quede JUnit 4.
-- [ ] (Opcional, aparte) Retirar Whitebox.
+- [x] **TODOS los módulos migrados** (~293 ficheros, 41 módulos). Reactor completo verde bajo Jupiter.
+- [x] Retirados `junit-vintage-engine` y `junit:junit`; ya no queda ningún test JUnit 4. hamcrest-core pasa a dep de test global (antes llegaba transitivo vía junit).
+- [ ] (Opcional, aparte) Retirar Whitebox (830 usos vía `powermock-reflect`; refactor independiente).
+
+## Migración masiva — cómo se hizo (sep 2026)
+
+Ejecutada con 2 herramientas + validación `mvn clean test -pl <módulo> -o` por módulo:
+1. **Mecánico** (imports y anotaciones uniformes): `import org.junit.*`→jupiter; `@Before/@After/@BeforeClass/@AfterClass`→`@BeforeEach/@AfterEach/@BeforeAll/@AfterAll`; `@Ignore`→`@Disabled`; `org.junit.Assert`→`Assertions`; `assertThat`→`org.hamcrest.MatcherAssert.assertThat`; `@RunWith(MockitoJUnitRunner.Silent.class)`→`@ExtendWith(MockitoExtension.class)`+`@MockitoSettings(strictness = Strictness.LENIENT)`.
+2. **assertThrows**: `@Test(expected = X.class)`→`@Test` + envolver la sentencia que lanza en `assertThrows(X.class, () -> ...)`.
+3. **Manual** (lo caza el compilador o el test): asserts con mensaje reordenados (`assertEquals(msg, exp, act)`→`assertEquals(exp, act, msg)`, `assertTrue(msg, cond)`→`assertTrue(cond, msg)`); `@Test(timeout=N)`→`@Timeout(value=N, unit=TimeUnit.MILLISECONDS)`.
+
+**Gotchas encontrados** (por si hay que repetir en adif-oda):
+- `@Test(expected=)` cuya última sentencia es `fail(...)`/está en un `finally`/`try-with-resources`: hay que envolver la llamada REAL que lanza, no la última línea textual.
+- `@Test (expected = ...)` con espacio antes del paréntesis: no lo detecta un match ingenuo → jupiter `@Test` no admite `expected`, lo caza el compilador.
+- `assertTrue/assertFalse(Whitebox.getInternalState(...))`: el retorno genérico resuelve al overload `BooleanSupplier` en vez de `boolean` → `ClassCastException` en runtime; arreglar con cast `(boolean)`.
 
 ## ✅ BLOQUEO RESUELTO — JaCoCo offline + Mockito inline (falta de `Offline` en el classpath de test)
 

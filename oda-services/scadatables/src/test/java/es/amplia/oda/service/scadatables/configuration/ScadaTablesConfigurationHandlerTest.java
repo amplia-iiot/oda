@@ -14,7 +14,6 @@ import es.amplia.oda.service.scadatables.internal.ScadaTableInfoService;
 
 import java.util.*;
 
-import static junit.framework.TestCase.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
