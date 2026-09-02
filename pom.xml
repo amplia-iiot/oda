@@ -282,5 +282,17 @@
             <artifactId>mockito-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Runtime del agente JaCoCo (clase Offline) en el classpath de test de TODOS los modulos.
+             Necesario porque un build de reactor que para en la fase 'test' deja instrumentadas
+             las clases de modulos upstream (p.ej. commons); al mockearlas con el inline mock maker
+             de Mockito 5 se dispara su <clinit> ($jacocoInit) y sin este runtime falla con
+             NoClassDefFoundError org/jacoco/agent/rt/.../Offline. Los modulos con instrumentacion
+             offline propia ya lo declaraban; aqui se generaliza para cerrar el hueco. -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <classifier>runtime</classifier>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

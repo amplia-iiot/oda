@@ -47,15 +47,15 @@ corre ambos engines. Mientras vintage esté, JUnit 4 y 5 conviven y el build no 
 
 - [x] Infraestructura JUnit 5 + vintage en el pom padre.
 - [x] Piloto: `oda-operations/set` migrado (3 tests bajo jupiter, verde en aislado).
+- [x] Bloqueo JaCoCo-offline + Mockito inline resuelto (ver sección abajo). Reactor completo verde.
 - [ ] Resto de módulos (grind sistemático, por reactor).
 - [ ] Retirar vintage-engine + `junit:junit` cuando no quede JUnit 4.
 - [ ] (Opcional, aparte) Retirar Whitebox.
 
-## ⚠️ BLOQUEO conocido (a resolver antes de seguir) — JaCoCo offline + Mockito inline
+## ✅ BLOQUEO RESUELTO — JaCoCo offline + Mockito inline (falta de `Offline` en el classpath de test)
 
-Con la infra de esta rama, **3 módulos mock-heavy fallan** en test (aun con sus tests en
-JUnit 4 vía vintage): `oda-datastreams/modbusslave`, `oda-connectors/coap`,
-`oda-ruleengine/nashorn`. Error raíz:
+**Síntoma:** con la infra de esta rama, `oda-datastreams/modbusslave` fallaba en test (14 errores)
+aun con sus tests en JUnit 4 vía vintage:
 
 ```
 MockitoException: Could not create type
@@ -63,19 +63,33 @@ MockitoException: Could not create type
     Caused by: NoClassDefFoundError: org/jacoco/agent/rt/internal_xxxx/Offline
 ```
 
-Es decir: al mockear (inline mock maker de Mockito) una clase **instrumentada offline por
-JaCoCo** (goals `instrument`/`restore-instrumented-classes` de esos poms), la clase no puede
-inicializarse porque no encuentra el runtime `org.jacoco.agent.rt.*.Offline`. En
-`feature/simplification` (sin la infra JUnit 5) estos módulos pasaban; al añadir
-junit-jupiter/vintage/junit-platform al classpath, el conflicto se vuelve consistente.
+(`coap` y `nashorn`, citados antes, en realidad ya pasaban: ambos **declaran**
+`org.jacoco.agent:runtime` en test. El único que fallaba era modbusslave, que no la declaraba.)
 
-**Diagnóstico pendiente / vías de arreglo a evaluar:**
-- Alinear/forzar versión de `org.jacoco.agent:runtime` = jacoco-maven-plugin (ambas 0.8.12);
-  verificar que el hash `internal_xxxx` coincide en instrument vs runtime en presencia de junit-platform.
-- Considerar pasar esos módulos de instrumentación **offline** a la instrumentación **on-the-fly**
-  (agente jacoco), que no choca con el inline mock maker.
-- O aislar el classpath de test (surefire) para que junit-platform no altere el orden que rompe jacoco.
+**Causa raíz (verificada reproduciendo el fallo):**
+- `ModbusSlaveCounters extends Counters`, y `Counters` vive en **commons**.
+- En un build de reactor que para en la fase `test` (`mvn test`, `mvn test -pl X -am`), el goal
+  `restore-instrumented-classes` —ligado a `prepare-package`— **no llega a ejecutarse**, así que
+  las clases de commons quedan **instrumentadas offline** en `target/classes` y los módulos
+  downstream las consumen instrumentadas.
+- Una clase instrumentada tiene un `<clinit>` que llama a `$jacocoInit()` → `org.jacoco.agent.rt.*.Offline`.
+  El **inline mock maker de Mockito 5** (por defecto) fuerza la inicialización de la clase al mockearla,
+  disparando ese `<clinit>`.
+- Los módulos con instrumentación offline propia ya llevaban `org.jacoco.agent:runtime` (que aporta
+  `Offline`); **modbusslave no** → `NoClassDefFoundError`. No es un choque nuevo con junit-platform:
+  es un **hueco de classpath** latente que la infra JUnit 5 (cambio de provider de surefire) hizo aflorar
+  de forma consistente.
 
-Por eso la migración masiva (188 ficheros ya transformados con éxito y que **compilan**) se
-revirtió: no tiene sentido validarla mientras la infra rompe el build. Reaplicar tras resolver
-el bloqueo (el script mecánico y el filtro están probados; ver historial de la sesión).
+**Arreglo aplicado:** se generaliza `org.jacoco.agent:runtime` (scope test, classifier `runtime`,
+versión gestionada `${jacoco.version}` 0.8.12) como **dependencia de test en el pom padre**, heredada
+por todos los módulos. Así `Offline` está siempre en el classpath de test, con instrumentación offline
+propia o heredada del reactor. Los módulos que ya la declaraban quedan con una declaración redundante
+inocua (dependencyManagement dedupe). Cambio de una sola línea efectiva, scope test → no afecta a los
+bundles empaquetados ni a los reportes de cobertura.
+
+**Validado:** `mvn clean test` del reactor completo → **BUILD SUCCESS**, 52 módulos, **1.658 tests,
+0 failures, 0 errors** (2 skipped preexistentes), cero `Offline`/`NoClassDefFoundError`.
+
+Con el bloqueo resuelto, la **migración masiva** (~294 ficheros: `@RunWith`→`@ExtendWith`,
+`@Test(expected=)`→`assertThrows`, revisión de `assertEquals` con mensaje) puede reaplicarse por
+módulos con el build siempre verde. El script mecánico y el filtro están probados (ver historial de la sesión).
