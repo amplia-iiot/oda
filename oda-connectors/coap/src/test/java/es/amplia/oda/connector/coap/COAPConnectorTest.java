@@ -10,22 +10,25 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.network.Endpoint;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import static es.amplia.oda.connector.coap.COAPConnector.UNOFFICIAL_MESSAGE_PACK_MEDIA_TYPE;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class COAPConnectorTest {
 
     private static final String COAP_SCHEME = "coap";
@@ -87,14 +90,12 @@ public class COAPConnectorTest {
         verify(mockedClient).shutdown();
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testLoadAndInitCreateClientException() {
         when(mockedCOAPClientFactory.createClient(any(ConnectorConfiguration.class)))
                 .thenThrow(new RuntimeException(""));
 
-        testConnector.loadAndInit(TEST_CONFIGURATION);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(RuntimeException.class, () -> testConnector.loadAndInit(TEST_CONFIGURATION));
     }
 
     @Test
@@ -172,7 +173,7 @@ public class COAPConnectorTest {
 
         testConnector.uplink(TEST_PAYLOAD);
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
     }
     @Test
     public void testUplinkNoResponse() {
@@ -187,7 +188,7 @@ public class COAPConnectorTest {
 
             testConnector.uplink(TEST_PAYLOAD);
 
-            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
         }
     }
 
@@ -205,7 +206,7 @@ public class COAPConnectorTest {
 
             testConnector.uplink(TEST_PAYLOAD);
 
-            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
         }
     }
 
@@ -222,7 +223,7 @@ public class COAPConnectorTest {
 
             testConnector.uplink(TEST_PAYLOAD);
 
-            assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+            assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
         }
     }
 
@@ -275,7 +276,7 @@ public class COAPConnectorTest {
 
         testConnector.close();
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
     }
 
     @Test
@@ -286,6 +287,6 @@ public class COAPConnectorTest {
 
         testConnector.close();
 
-        assertTrue(NO_EXCEPTION_THROWN_MESSAGE, true);
+        assertTrue(true, NO_EXCEPTION_THROWN_MESSAGE);
     }
 }

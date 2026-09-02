@@ -1,11 +1,13 @@
 package es.amplia.oda.connector.coap;
 
 import org.eclipse.californium.core.coap.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 
@@ -17,7 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MessageLoggerInterceptorTest {
 
     private static final InetAddress TEST_ADDRESS = InetAddress.getLoopbackAddress();
@@ -46,7 +49,7 @@ public class MessageLoggerInterceptorTest {
     private Logger mockedLogger;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Whitebox.setInternalState(MessageLoggerInterceptor.class, "LOGGER", mockedLogger);
     }

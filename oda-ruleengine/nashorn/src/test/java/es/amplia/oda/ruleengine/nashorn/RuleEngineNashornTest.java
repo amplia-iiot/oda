@@ -5,13 +5,15 @@ import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import javax.script.ScriptException;
@@ -24,10 +26,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RuleEngineNashornTest {
 
 	@Mock
@@ -45,7 +48,7 @@ public class RuleEngineNashornTest {
 	@Mock
 	OsgiContext mockedContext;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testRuleEngine = new RuleEngineNashorn(mockedScriptTranslator);
 	}
@@ -242,7 +245,7 @@ public class RuleEngineNashornTest {
 
 		assertEquals(0, ((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).size());
 		assertEquals(0, ((HashMap) Whitebox.getInternalState(testRuleEngine, "watcher")).size());
-		assertFalse(Whitebox.getInternalState(testRuleEngine, "started"));
+		assertFalse((boolean) Whitebox.getInternalState(testRuleEngine, "started"));
 	}
 
 	@Test

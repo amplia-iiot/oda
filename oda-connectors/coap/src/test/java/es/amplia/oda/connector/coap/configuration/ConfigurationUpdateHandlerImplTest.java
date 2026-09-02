@@ -4,11 +4,13 @@ import es.amplia.oda.connector.coap.COAPConnector;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 
 import org.eclipse.californium.core.network.config.NetworkConfig;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
@@ -17,14 +19,16 @@ import java.util.Hashtable;
 import static es.amplia.oda.connector.coap.configuration.ConfigurationUpdateHandlerImpl.*;
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.*;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ConfigurationUpdateHandlerImplTest {
 
     private static final String TEST_TYPE = "AT";
@@ -89,18 +93,16 @@ public class ConfigurationUpdateHandlerImplTest {
         assertEquals(DEFAULT_MESSAGE_PROTOCOL_VERSION, conf.getMessageProtocolVersion());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadConfigurationMissingRequiredProperty() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(HOST_PROPERTY_NAME, TEST_HOST);
         props.put(PROVISION_PATH_PROPERTY_NAME, TEST_PROVISION_PATH);
 
-        testConfigHandler.loadConfiguration(props);
-
-        fail("Illegal Argument Exception must be thrown");
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(props));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadConfigurationInvalidType() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(CONNECTOR_TYPE_PROPERTY_NAME, "INVALID");
@@ -108,12 +110,10 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(PATH_PROPERTY_NAME, TEST_PATH);
         props.put(PROVISION_PATH_PROPERTY_NAME, TEST_PROVISION_PATH);
 
-        testConfigHandler.loadConfiguration(props);
-
-        fail("Illegal Argument Exception must be thrown");
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(props));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testLoadConfigurationInvalidPort() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(HOST_PROPERTY_NAME, TEST_HOST);
@@ -121,9 +121,7 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(PATH_PROPERTY_NAME, TEST_PATH);
         props.put(PROVISION_PATH_PROPERTY_NAME, TEST_PROVISION_PATH);
 
-        testConfigHandler.loadConfiguration(props);
-
-        fail("Illegal Argument Exception must be thrown");
+        assertThrows(IllegalArgumentException.class, () -> testConfigHandler.loadConfiguration(props));
     }
 
     @Test
@@ -184,7 +182,7 @@ public class ConfigurationUpdateHandlerImplTest {
         assertArrayEquals(TEST_TRUSTED_CERTIFICATES, conf.getTrustedCertificates());
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationDTLSInvalidConfiguration() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(CONNECTOR_TYPE_PROPERTY_NAME, ConnectorType.DTLS.toString());
@@ -194,9 +192,7 @@ public class ConfigurationUpdateHandlerImplTest {
         props.put(KEY_STORE_LOCATION_PROPERTY_NAME, TEST_KEY_STORE_LOCATION);
         props.put(TRUST_STORE_LOCATION_PROPERTY_NAME, TEST_TRUST_STORE_LOCATION);
 
-        testConfigHandler.loadConfiguration(props);
-
-        fail("Configuration exception must be thrown because trust store password is missing");
+        assertThrows(ConfigurationException.class, () -> testConfigHandler.loadConfiguration(props));
     }
 
     @Test

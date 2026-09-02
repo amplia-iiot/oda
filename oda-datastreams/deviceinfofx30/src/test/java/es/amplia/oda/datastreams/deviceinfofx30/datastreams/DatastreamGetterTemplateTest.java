@@ -1,9 +1,11 @@
 package es.amplia.oda.datastreams.deviceinfofx30.datastreams;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +13,8 @@ import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertEquals;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DatastreamGetterTemplateTest {
 
 	private DatastreamGetterTemplate testTemplate;
@@ -19,7 +22,7 @@ public class DatastreamGetterTemplateTest {
 	private String datastreamId = "deviceState";
 	private String expectedState = "OK. When it's broken, I'll warn you";
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testTemplate = new DatastreamGetterTemplate(datastreamId, ()-> expectedState);
 	}

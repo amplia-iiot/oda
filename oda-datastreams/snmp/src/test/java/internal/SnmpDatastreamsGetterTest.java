@@ -4,19 +4,22 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.datastreams.snmp.SnmpClientsFinder;
 import es.amplia.oda.datastreams.snmp.internal.SnmpDatastreamsGetter;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpDatastreamsGetterTest {
 
     private static final String TEST_DEVICE_ID_VALUE = "testDevice";
@@ -34,7 +37,7 @@ public class SnmpDatastreamsGetterTest {
 
     private SnmpDatastreamsGetter datastreamGetter;
 
-    @Before
+    @BeforeEach
     public void start(){
         datastreamGetter = new SnmpDatastreamsGetter(mockedSnmpClientsFinder, TEST_OID_VALUE, TEST_DATATYPE_VALUE.getClass(),
                 TEST_DATASTREAM_VALUE, TEST_DEVICE_ID_VALUE, TEST_FEED_VALUE);
@@ -43,13 +46,13 @@ public class SnmpDatastreamsGetterTest {
     @Test
     public void getDatastreamIdTest(){
         String actualDatastreamId = datastreamGetter.getDatastreamIdSatisfied();
-        Assert.assertEquals(TEST_DATASTREAM_VALUE, actualDatastreamId);
+        Assertions.assertEquals(TEST_DATASTREAM_VALUE, actualDatastreamId);
     }
 
     @Test
     public void getDevicesTest(){
         List<String> actualDevices = datastreamGetter.getDevicesIdManaged();
-        Assert.assertEquals(TEST_DEVICE_ID_VALUE, actualDevices.get(0));
+        Assertions.assertEquals(TEST_DEVICE_ID_VALUE, actualDevices.get(0));
     }
 
     @Test
@@ -59,6 +62,6 @@ public class SnmpDatastreamsGetterTest {
 
         CompletableFuture<DatastreamsGetter.CollectedValue> actualCollectedValue = datastreamGetter.get(TEST_DEVICE_ID_VALUE);
 
-        Assert.assertEquals(TEST_RETURN_VALUE, actualCollectedValue.get().getValue().toString());
+        Assertions.assertEquals(TEST_RETURN_VALUE, actualCollectedValue.get().getValue().toString());
     }
 }

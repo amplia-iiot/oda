@@ -1,13 +1,15 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,7 +26,8 @@ import java.util.jar.JarFile;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ScriptsLoaderTest {
 
 	@InjectMocks
@@ -40,7 +43,7 @@ public class ScriptsLoaderTest {
 	String destDir = "tempDest";
 
 
-	@Before
+	@BeforeEach
 	public void start() throws IOException {
 		Path sourceDirPath = Paths.get(sourceDir);
 		Path destDirPath = Paths.get(destDir);
@@ -64,7 +67,7 @@ public class ScriptsLoaderTest {
 		Files.createDirectories(destDirPath);
 	}
 
-	@After
+	@AfterEach
 	public void end() throws IOException {
 		Path sourceDirPath = Paths.get(sourceDir);
 		Path destDirPath = Paths.get(destDir);

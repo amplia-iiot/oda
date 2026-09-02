@@ -5,12 +5,14 @@ import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.ScriptsLoader;
 import es.amplia.oda.datastreams.deviceinfofx30.DeviceInfoFX30;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -21,12 +23,14 @@ import java.util.List;
 
 import static es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30ConfigurationHandler.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeviceInfoFX30ConfigurationHandlerTest {
 
 	private static final String TEST_DEVICE_ID = "deviceId";
@@ -65,34 +69,34 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 		}
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test
 	public void  testLoadConfigurationMissingApiKey() {
 		Dictionary<String, String> props = new Hashtable<>();
 		props.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
 		props.put(SOURCE_PROPERTY_NAME, TEST_SOURCE);
 		props.put(PATH_PROPERTY_NAME, TEST_PATH);
 
-		testHandler.loadConfiguration(props);
+		assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test
 	public void testLoadConfigurationMissingSource() {
 		Dictionary<String, String> props = new Hashtable<>();
 		props.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
 		props.put(API_KEY_PROPERTY_NAME, TEST_API_KEY);
 		props.put(PATH_PROPERTY_NAME, TEST_PATH);
 
-		testHandler.loadConfiguration(props);
+		assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test
 	public void testLoadConfigurationMissingPath() {
 		Dictionary<String, String> props = new Hashtable<>();
 		props.put(DEVICE_ID_PROPERTY_NAME, TEST_DEVICE_ID);
 		props.put(API_KEY_PROPERTY_NAME, TEST_API_KEY);
 		props.put(SOURCE_PROPERTY_NAME, TEST_SOURCE);
 
-		testHandler.loadConfiguration(props);
+		assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
 	}
 
 	@Test
@@ -114,7 +118,7 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 
 		testHandler.applyConfiguration();
 
-		assertTrue("Command Execution Exception is caught", true);
+		assertTrue(true, "Command Execution Exception is caught");
 	}
 
 	@Test
@@ -125,6 +129,6 @@ public class DeviceInfoFX30ConfigurationHandlerTest {
 
 		testHandler.applyConfiguration();
 
-		assertTrue("IO Exception is caught", true);
+		assertTrue(true, "IO Exception is caught");
 	}
 }

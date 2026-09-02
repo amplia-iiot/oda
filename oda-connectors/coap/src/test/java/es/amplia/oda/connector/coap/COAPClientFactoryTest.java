@@ -13,13 +13,15 @@ import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.elements.UDPConnector;
 import org.eclipse.californium.scandium.DTLSConnector;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -35,11 +37,12 @@ import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.COAP_SECURE_SCHEME;
 import static es.amplia.oda.connector.coap.configuration.ConnectorConfiguration.ConnectorType;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class COAPClientFactoryTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -232,14 +235,12 @@ public class COAPClientFactoryTest {
         }
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testCreateDTLSClientIOException() {
-        testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION);
-
-        fail("Configuration Exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testCreateDTLSClientGeneralSecurityException() throws Exception {
         KeyStore mockedKeyStore = mock(KeyStore.class);
 
@@ -251,9 +252,7 @@ public class COAPClientFactoryTest {
             doThrow(new NoSuchAlgorithmException()).when(mockedKeyStore)
                     .load(any(InputStream.class), any(char[].class));
 
-            testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION);
-
-            fail("Configuration exception must be thrown");
+            assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION));
         }
     }
 
@@ -276,23 +275,19 @@ public class COAPClientFactoryTest {
                         && option.getStringValue().equals(TEST_MESSAGE_PROTOCOL_VERSION)));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testCreateOptionsNoDeviceId() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(null);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
 
-        testCoapClientFactory.createOptions(TEST_UDP_CONFIGURATION);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createOptions(TEST_UDP_CONFIGURATION));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testCreateOptionsNoApiKey() {
         when(mockedDeviceInfoProvider.getDeviceId()).thenReturn(TEST_DEVICE_ID);
         when(mockedDeviceInfoProvider.getApiKey()).thenReturn(null);
 
-        testCoapClientFactory.createOptions(TEST_UDP_CONFIGURATION);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createOptions(TEST_UDP_CONFIGURATION));
     }
 }

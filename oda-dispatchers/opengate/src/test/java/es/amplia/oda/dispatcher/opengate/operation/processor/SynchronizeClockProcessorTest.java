@@ -8,22 +8,25 @@ import es.amplia.oda.operation.api.OperationSynchronizeClock;
 import es.amplia.oda.operation.api.OperationSynchronizeClock.Result;
 import es.amplia.oda.operation.api.OperationSynchronizeClock.ResultCode;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.List;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SynchronizeClockProcessor.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SynchronizeClockProcessorTest {
 
     private static final String TEST_ID = "testOperationId";
@@ -51,11 +54,11 @@ public class SynchronizeClockProcessorTest {
         assertEquals("sync", source);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNullParams() {
         RequestSetOrConfigureOperation nullParamsRequest = new RequestSetOrConfigureOperation(null);
 
-        assertNull(testProcessor.parseParameters(nullParamsRequest));
+        assertThrows(IllegalArgumentException.class, () -> assertNull(testProcessor.parseParameters(nullParamsRequest)));
     }
 
     @Test

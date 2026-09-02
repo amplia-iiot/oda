@@ -10,11 +10,13 @@ import es.amplia.oda.operation.api.OperationSetDeviceParameters.ResultCode;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableResult;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters.VariableValue;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.*;
 
@@ -23,11 +25,12 @@ import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationPro
 import static es.amplia.oda.dispatcher.opengate.operation.processor.OperationProcessorTemplate.SUCCESS_RESULT;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetDeviceParametersProcessor.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SetDeviceParametersProcessorTest {
 
     private static final String TEST_ID = "testOperationId";
@@ -66,34 +69,28 @@ public class SetDeviceParametersProcessorTest {
         assertEquals(TEST_VALUE, variableValues.get(1).getValue());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoParams() {
         RequestSetOrConfigureOperation invalidRequest =
                 new RequestSetOrConfigureOperation(null);
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoVariableListParam() {
         RequestSetOrConfigureOperation invalidRequest =
                 new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(null));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersEmptyVariableListParam() {
         RequestSetOrConfigureOperation invalidRequest =
                 new RequestSetOrConfigureOperation(new ParameterSetOrConfigureOperation(new ArrayList<>()));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
     @Test

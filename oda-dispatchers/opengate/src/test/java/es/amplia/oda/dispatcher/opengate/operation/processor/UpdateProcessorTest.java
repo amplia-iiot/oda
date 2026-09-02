@@ -13,21 +13,24 @@ import es.amplia.oda.operation.api.OperationUpdate.StepResult;
 import es.amplia.oda.operation.api.OperationUpdate.StepResultCodes;
 import es.amplia.oda.operation.api.OperationUpdate.UpdateStepName;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.*;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.UpdateProcessor.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UpdateProcessorTest {
 
     private static final String TEST_ID = "testOperationId";
@@ -104,49 +107,39 @@ public class UpdateProcessorTest {
         assertEquals(TEST_DEPLOYMENT_ELEMENT_OLDVERSION, deploymentElement.getOldVersion());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoParams() {
         RequestUpdateOperation invalidRequest = new RequestUpdateOperation(null);
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoBundleNameParam() {
         RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation(null, "1.0.0", TEST_DEPLOYMENT_ELEMENTS));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoBundleVersionParam() {
         RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", null, TEST_DEPLOYMENT_ELEMENTS));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersNoDeploymentElementParam() {
         RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", "1.0.0", null));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersEmptyDeploymentElementsParam() {
         RequestUpdateOperation invalidRequest = new RequestUpdateOperation(new ParameterUpdateOperation("thisIsAName", "1.0.0", Collections.emptyList()));
 
-        testProcessor.parseParameters(invalidRequest);
-
-        fail("Illegal argument exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(invalidRequest));
     }
 
     @Test

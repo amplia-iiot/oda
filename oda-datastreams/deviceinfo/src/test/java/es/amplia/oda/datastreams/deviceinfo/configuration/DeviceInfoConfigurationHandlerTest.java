@@ -2,23 +2,27 @@ package es.amplia.oda.datastreams.deviceinfo.configuration;
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.datastreams.deviceinfo.DeviceInfoDatastreamsGetter;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeviceInfoConfigurationHandlerTest {
 
     private static final String TEST_DEVICE_ID = "testDevice";
@@ -73,42 +77,36 @@ public class DeviceInfoConfigurationHandlerTest {
         assertEquals(TEST_PATH, configuration.getPath());
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingApiKey() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(DeviceInfoConfigurationHandler.SOURCE_PROPERTY_NAME, TEST_SOURCE);
         props.put(DeviceInfoConfigurationHandler.PATH_PROPERTY_NAME, TEST_PATH);
 
-        testHandler.loadConfiguration(props);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingSource() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(DeviceInfoConfigurationHandler.API_KEY_PROPERTY_NAME, TEST_API_KEY);
         props.put(DeviceInfoConfigurationHandler.PATH_PROPERTY_NAME, TEST_PATH);
 
-        testHandler.loadConfiguration(props);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadConfigurationMissingPathCommand() {
         Dictionary<String, String> props = new Hashtable<>();
         props.put(DeviceInfoConfigurationHandler.API_KEY_PROPERTY_NAME, TEST_API_KEY);
         props.put(DeviceInfoConfigurationHandler.SOURCE_PROPERTY_NAME, TEST_SOURCE);
 
-        testHandler.loadConfiguration(props);
-
-        fail("Configuration exception must be thrown");
+        assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test
     public void testLoadDefaultConfiguration() {
-        testHandler.loadDefaultConfiguration();
+        assertThrows(ConfigurationException.class, () -> testHandler.loadDefaultConfiguration());
     }
 
     @Test

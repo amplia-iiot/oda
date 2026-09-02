@@ -3,20 +3,24 @@ package es.amplia.oda.ruleengine.nashorn.configuration;
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
 import es.amplia.oda.ruleengine.nashorn.NashornScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.RuleEngineNashorn;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RuleEngineNashornConfigurationHandlerTest {
 
 	RuleEngineConfigurationHandler testHandler;
@@ -26,7 +30,7 @@ public class RuleEngineNashornConfigurationHandlerTest {
 	@Mock
 	RuleEngineNashorn mockedEngine;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testHandler = new RuleEngineConfigurationHandler(mockedEngine, mockedScriptTranslator);
 	}
@@ -51,11 +55,11 @@ public class RuleEngineNashornConfigurationHandlerTest {
 		verify(mockedEngine).loadConfiguration(null);
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test
 	public void testMissingPath() {
 		Dictionary<String, String> props = new Hashtable<>();
 		props.put("path", "this/is/a/path");
 
-		testHandler.loadConfiguration(props);
+		assertThrows(ConfigurationException.class, () -> testHandler.loadConfiguration(props));
 	}
 }

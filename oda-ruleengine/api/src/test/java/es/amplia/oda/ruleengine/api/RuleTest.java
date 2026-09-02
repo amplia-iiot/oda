@@ -3,21 +3,25 @@ package es.amplia.oda.ruleengine.api;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import javax.script.ScriptException;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RuleTest {
 
 	Rule testRule;
@@ -35,11 +39,11 @@ public class RuleTest {
 		verify(mockedTranslator).initScript("Norma");
 	}
 
-	@Test (expected = ScriptException.class)
+	@Test
 	public void testConstructorException() throws ScriptException {
 		doThrow(new ScriptException("")).when(mockedTranslator).initScript(anyString());
 
-		testRule = new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator);
+		assertThrows(ScriptException.class, () -> new Rule("Norma", Collections.singletonList("Presión"), mockedTranslator));
 	}
 	
 	@Test

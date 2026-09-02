@@ -3,11 +3,13 @@ package es.amplia.oda.hardware.snmp.configuration;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientFactory;
 import es.amplia.oda.hardware.snmp.internal.SnmpClientManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -16,7 +18,8 @@ import java.util.List;
 
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpConfigurationUpdateHandlerTest {
 
     private static final String VERSION_PROPERTY_NAME = "version";

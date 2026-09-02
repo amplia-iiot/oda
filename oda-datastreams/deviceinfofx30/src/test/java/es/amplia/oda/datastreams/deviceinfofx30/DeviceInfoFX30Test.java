@@ -4,12 +4,14 @@ import es.amplia.oda.core.commons.entities.Software;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.CommandProcessor;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30Configuration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
@@ -18,12 +20,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeviceInfoFX30Test {
 
 	private DeviceInfoFX30 deviceInfo;
@@ -37,7 +40,7 @@ public class DeviceInfoFX30Test {
 	@Mock
 	private Bundle mockedBundle;
 
-	@Before
+	@BeforeEach
 	public void beforeTests() {
 		bundles = new Bundle[0];
 		configuration = new DeviceInfoFX30Configuration("deviceId", "apiKey", "source", "path");

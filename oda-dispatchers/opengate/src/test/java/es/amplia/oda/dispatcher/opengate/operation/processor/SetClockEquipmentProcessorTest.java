@@ -8,11 +8,13 @@ import es.amplia.oda.operation.api.OperationSetClock;
 import es.amplia.oda.operation.api.OperationSetClock.Result;
 import es.amplia.oda.operation.api.OperationSetClock.ResultCode;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.*;
 import java.util.List;
@@ -20,12 +22,13 @@ import java.util.concurrent.CompletableFuture;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
 import static es.amplia.oda.dispatcher.opengate.operation.processor.SetClockEquipmentProcessor.SET_CLOCK_EQUIPMENT_OPERATION_NAME;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SetClockEquipmentProcessorTest {
 
     private static final String TEST_ID = "testOperationId";
@@ -34,13 +37,6 @@ public class SetClockEquipmentProcessorTest {
     private static final Long TEST_TIMESTAMP = 123567789L;
     private static final ZoneId GMT_ZONE_ID = ZoneId.of("GMT+02:00");
     private static final String TEST_REQUEST_ID = "testRequest";
-    private static final Datetime TEST_DATETIME = new Datetime();
-    static {
-        TEST_DATETIME.setDate(ZonedDateTime.now(GMT_ZONE_ID).toLocalDate().toString());
-        TEST_DATETIME.setTime(ZonedDateTime.now(GMT_ZONE_ID).toLocalTime().toString());
-        TEST_DATETIME.setTimezone(2);
-        TEST_DATETIME.setDst(-1);
-    }
 
     @Mock
     private OperationSetClock mockedOperationSetClock;
@@ -50,7 +46,12 @@ public class SetClockEquipmentProcessorTest {
     @Test
     public void testParseParametersWithDateAndTime() {
         ZonedDateTime dateTime = ZonedDateTime.now(GMT_ZONE_ID).plusHours(1);
-        ParameterSetClockOperation parameters = new ParameterSetClockOperation(TEST_DATETIME);
+        Datetime testDatetime = new Datetime();
+        testDatetime.setDate(ZonedDateTime.now(GMT_ZONE_ID).toLocalDate().toString());
+        testDatetime.setTime(ZonedDateTime.now(GMT_ZONE_ID).toLocalTime().toString());
+        testDatetime.setTimezone(2);
+        testDatetime.setDst(-1);
+        ParameterSetClockOperation parameters = new ParameterSetClockOperation(testDatetime);
         RequestSetClockOperation request = new RequestSetClockOperation(parameters);
 
         Long timestamp = testProcessor.parseParameters(request);
@@ -75,11 +76,11 @@ public class SetClockEquipmentProcessorTest {
         assertEquals(dateTime.toInstant().toEpochMilli(), timestamp.longValue());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersWithNullParams() {
         RequestSetClockOperation request = new RequestSetClockOperation(null);
 
-        testProcessor.parseParameters(request);
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(request));
     }
 
     @Test
@@ -95,24 +96,24 @@ public class SetClockEquipmentProcessorTest {
         assertTrue(timestamp <= ZonedDateTime.now(GMT_ZONE_ID).plusHours(2).toInstant().toEpochMilli());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersWithInvalidDateFormat() {
         Datetime datetime = new Datetime();
         datetime.setDate("this is not a date, sorry");
         datetime.setTime("09:00:00");
         RequestSetClockOperation request = new RequestSetClockOperation(new ParameterSetClockOperation(datetime));
 
-        testProcessor.parseParameters(request);
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(request));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersWithInvalidTimeFormat() {
         Datetime datetime = new Datetime();
         datetime.setDate("2019-01-01");
         datetime.setTime("ISO 8601 is too hard for me");
         RequestSetClockOperation request = new RequestSetClockOperation(new ParameterSetClockOperation(datetime));
 
-        testProcessor.parseParameters(request);
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(request));
     }
 
     @Test

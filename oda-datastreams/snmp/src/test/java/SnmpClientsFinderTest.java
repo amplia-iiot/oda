@@ -1,15 +1,17 @@
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.core.commons.utils.ServiceLocatorOsgi;
 import es.amplia.oda.datastreams.snmp.SnmpClientsFinder;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
 
 import java.util.ArrayList;
@@ -18,7 +20,8 @@ import java.util.List;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpClientsFinderTest {
 
     private static final String TEST_DEVICE_ID_VALUE = "testDevice";
@@ -35,7 +38,7 @@ public class SnmpClientsFinderTest {
 
     SnmpClientsFinder snmpClientsFinder;
 
-    @Before
+    @BeforeEach
     @SuppressWarnings("unchecked")
     public void start() {
         serviceLocatorCons = mockConstruction(ServiceLocatorOsgi.class);
@@ -45,7 +48,7 @@ public class SnmpClientsFinderTest {
         mockedSnmpClientLocator = serviceLocatorCons.constructed().get(0);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         serviceLocatorCons.close();
     }
@@ -53,7 +56,7 @@ public class SnmpClientsFinderTest {
     @Test
     public void getSnmpClientNoMatchTest() {
         SnmpClient actualSnmpClient = snmpClientsFinder.getSnmpClient(TEST_DEVICE_ID_VALUE_NO_MATCH);
-        Assert.assertNull(actualSnmpClient);
+        Assertions.assertNull(actualSnmpClient);
     }
 
     @Test
@@ -64,8 +67,8 @@ public class SnmpClientsFinderTest {
         Mockito.when(mockedSnmpClient.getDeviceId()).thenReturn(TEST_DEVICE_ID_VALUE);
 
         SnmpClient actualSnmpClient = snmpClientsFinder.getSnmpClient(TEST_DEVICE_ID_VALUE);
-        Assert.assertNotNull(actualSnmpClient);
-        Assert.assertEquals(TEST_DEVICE_ID_VALUE, actualSnmpClient.getDeviceId());
+        Assertions.assertNotNull(actualSnmpClient);
+        Assertions.assertEquals(TEST_DEVICE_ID_VALUE, actualSnmpClient.getDeviceId());
     }
 
     @Test
