@@ -4,27 +4,30 @@ import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.connector.mqtt.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttConnectorTest {
 
     private static final String TEST_USERNAME = "testUser";
@@ -66,7 +69,7 @@ public class MqttConnectorTest {
 
     private MockedStatic<MqttCounters> mqttCountersStatic;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedMqttClient);
         Whitebox.setInternalState(testConnector, IOT_TOPIC_FIELD_NAME, TEST_IOT_TOPIC);
@@ -83,7 +86,7 @@ public class MqttConnectorTest {
         mqttCountersStatic = mockStatic(MqttCounters.class);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mqttCountersStatic.close();
     }
@@ -330,7 +333,7 @@ public class MqttConnectorTest {
 
         testConnector.close();
 
-        assertTrue("No exception is thrown", true);
+        assertTrue(true, "No exception is thrown");
     }
 
     @Test
