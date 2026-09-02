@@ -2,12 +2,14 @@ package es.amplia.oda.hardware.diozero.gpio;
 
 import es.amplia.oda.core.commons.gpio.*;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
@@ -17,10 +19,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroGpioServiceTest {
 
     private static final String TEST_NAME = "testPin";
@@ -45,7 +48,7 @@ public class DioZeroGpioServiceTest {
 
     private DioZeroGpioService testService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testService = new DioZeroGpioService();
 
@@ -68,16 +71,14 @@ public class DioZeroGpioServiceTest {
         assertEquals(mockedPin3, resultPin);
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testGetPinByNamePinNotFound() {
         when(mockedPin1.getName()).thenReturn("GPIO1");
         when(mockedPin2.getName()).thenReturn("GPIO2");
         when(mockedPin3.getName()).thenReturn("GPIO3");
         when(mockedPin4.getName()).thenReturn("GPIO4");
 
-        testService.getPinByName(TEST_NAME);
-
-        fail(GPIO_DEVICE_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> testService.getPinByName(TEST_NAME));
     }
 
     @Test
@@ -112,11 +113,9 @@ public class DioZeroGpioServiceTest {
         assertEquals(mockedPin3, resultPin);
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testGetPinByIndexPinNotFound() {
-        testService.getPinByIndex(99);
-
-        fail(GPIO_DEVICE_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> testService.getPinByIndex(99));
     }
 
     @Test

@@ -4,21 +4,24 @@ import es.amplia.oda.core.commons.adc.AdcChannel;
 import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.datastreams.adc.DatastreamsRegistry;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.powermock.reflect.Whitebox;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.*;
 
 import static es.amplia.oda.datastreams.adc.configuration.DatastreamsAdcConfigurationHandler.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DatastreamsAdcConfigurationHandlerTest {
 
 	private static final int TEST_INDEX_1 = 1;

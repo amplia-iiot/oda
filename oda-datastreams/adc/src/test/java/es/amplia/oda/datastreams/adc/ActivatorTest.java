@@ -9,22 +9,25 @@ import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.adc.configuration.DatastreamsAdcConfigurationHandler;
 import es.amplia.oda.datastreams.adc.datastreams.DatastreamsFactoryImpl;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
 	private final Activator activator = new Activator();
@@ -111,7 +114,7 @@ public class ActivatorTest {
 
 		activator.onServiceChanged();
 
-		assertTrue("Exception should be caught", true);
+		assertTrue(true, "Exception should be caught");
 	}
 
 	@Test

@@ -2,14 +2,14 @@ package es.amplia.oda.datastreams.simulator.internal;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RandomDatastreamsGetterTest {
 

@@ -2,14 +2,16 @@ package es.amplia.oda.hardware.udp.udp;
 
 import es.amplia.oda.core.commons.udp.UdpException;
 import es.amplia.oda.core.commons.udp.UdpPacket;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -21,11 +23,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JavaUdpServiceTest {
 
 	private static final int PACKET_SIZE_TEST_VALUE = 512;
@@ -35,7 +38,7 @@ public class JavaUdpServiceTest {
 	@InjectMocks
 	private static final JavaUdpService testService = new JavaUdpService();
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		Whitebox.setInternalState(testService, "packetSize", PACKET_SIZE_TEST_VALUE);
 	}
@@ -53,13 +56,13 @@ public class JavaUdpServiceTest {
 		verify(mockedSocket).receive(any(DatagramPacket.class));
 	}
 
-	@Test(expected = ExecutionException.class)
+	@Test
 	public void testReceiveMessageExceptionOnReceive() throws Exception {
 		doThrow(new IOException()).when(mockedSocket).receive(any());
 
 		CompletableFuture<UdpPacket> packet = testService.receiveMessage();
 
-		packet.get();
+		assertThrows(ExecutionException.class, () -> packet.get());
 	}
 
 	@Test
@@ -75,12 +78,12 @@ public class JavaUdpServiceTest {
 		assertEquals(testBytes.length, packetCaptor.getValue().getLength());
 	}
 
-	@Test(expected = UdpException.class)
+	@Test
 	public void testSendMessageExceptionOnReceive() throws Exception {
 		byte[] testBytes= {0x00, 0x01, 0x02, 0x03, 0x04};
 		doThrow(new IOException()).when(mockedSocket).send(any());
 
-		testService.sendMessage(testBytes);
+		assertThrows(UdpException.class, () -> testService.sendMessage(testBytes));
 	}
 
 	@Test

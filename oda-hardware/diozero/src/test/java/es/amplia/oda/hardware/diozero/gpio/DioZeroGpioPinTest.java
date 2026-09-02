@@ -6,19 +6,22 @@ import com.diozero.api.DigitalInputDevice;
 import com.diozero.api.DigitalOutputDevice;
 import com.diozero.api.GpioEventTrigger;
 import com.diozero.api.GpioPullUpDown;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroGpioPinTest {
 
     private static final int TEST_INDEX = 5;
@@ -123,19 +126,19 @@ public class DioZeroGpioPinTest {
         }
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testSetValueOnInputThrows() {
         try (MockedConstruction<DigitalInputDevice> ignored = mockConstruction(DigitalInputDevice.class)) {
             DioZeroGpioPin pin = inputPin(false);
             pin.open();
 
-            pin.setValue(true);
+            assertThrows(GpioDeviceException.class, () -> pin.setValue(true));
         }
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testGetValueClosedThrows() {
-        outputPin(false, false).getValue();
+        assertThrows(GpioDeviceException.class, () -> outputPin(false, false).getValue());
     }
 
     @Test
@@ -155,13 +158,13 @@ public class DioZeroGpioPinTest {
         }
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testAddListenerOnOutputThrows() {
         try (MockedConstruction<DigitalOutputDevice> ignored = mockConstruction(DigitalOutputDevice.class)) {
             DioZeroGpioPin pin = outputPin(false, false);
             pin.open();
 
-            pin.addGpioPinListener(mock(GpioPinListener.class));
+            assertThrows(GpioDeviceException.class, () -> pin.addGpioPinListener(mock(GpioPinListener.class)));
         }
     }
 

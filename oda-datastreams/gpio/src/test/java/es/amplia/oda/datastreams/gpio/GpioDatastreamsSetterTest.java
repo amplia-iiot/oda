@@ -4,21 +4,25 @@ import es.amplia.oda.core.commons.gpio.GpioDeviceException;
 import es.amplia.oda.core.commons.gpio.GpioPin;
 import es.amplia.oda.core.commons.gpio.GpioService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GpioDatastreamsSetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -30,7 +34,7 @@ public class GpioDatastreamsSetterTest {
 
     private GpioDatastreamsSetter testDatastreamsSetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testDatastreamsSetter =
                 new GpioDatastreamsSetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService);
@@ -83,23 +87,19 @@ public class GpioDatastreamsSetterTest {
         verify(mockedGpioPin).setValue(eq(TEST_VALUE));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testSetInvalidValueForDatastream() throws ExecutionException, InterruptedException {
         Object testValue = "invalidValue";
 
-        CompletableFuture<Void> future = testDatastreamsSetter.set("", testValue);
-        future.get();
-
-        fail("Invalid value for datastream runtime exception must be thrown");
+        assertThrows(RuntimeException.class, () -> testDatastreamsSetter.set("", testValue));
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test
     public void testSetGpioDeviceException() throws ExecutionException, InterruptedException {
         when(mockedGpioService.getPinByIndex(anyInt())).thenThrow(new GpioDeviceException(""));
 
         CompletableFuture<Void> future = testDatastreamsSetter.set("", TEST_VALUE);
-        future.get();
 
-        fail("Gpio operation error execution exception must be thrown");
+        assertThrows(ExecutionException.class, future::get);
     }
 }

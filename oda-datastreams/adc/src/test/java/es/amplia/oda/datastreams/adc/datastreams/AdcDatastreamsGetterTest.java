@@ -5,20 +5,23 @@ import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.AdcService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class AdcDatastreamsGetterTest {
 
 	private static final String TEST_DATASTREAM = "testDatastream";
@@ -35,7 +38,7 @@ public class AdcDatastreamsGetterTest {
 	@Mock
 	AdcChannel mockedChannel;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		testGetter = new AdcDatastreamsGetter(TEST_DATASTREAM, TEST_INDEX, mockedService, TEST_MINIMUM, TEST_MAXIMUM);
 	}
@@ -63,12 +66,10 @@ public class AdcDatastreamsGetterTest {
 		assertEquals(Collections.emptyList(), collectedValue.getPath());
 	}
 
-	@Test(expected = ExecutionException.class)
+	@Test
 	public void testGetThrowsExecutionException() throws ExecutionException, InterruptedException {
 		when(mockedService.getChannelByIndex(TEST_INDEX)).thenThrow(new AdcDeviceException(""));
 
-		testGetter.get("").get();
-
-		fail("Execution Exception should be thrown");
+		assertThrows(ExecutionException.class, () -> testGetter.get("").get());
 	}
 }

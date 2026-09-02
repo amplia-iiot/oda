@@ -3,20 +3,24 @@ package es.amplia.oda.hardware.diozero.analog;
 import com.diozero.api.AnalogInputDevice;
 import es.amplia.oda.core.commons.adc.AdcChannelListener;
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroAdcChannelTest {
 
 	private static final int index = 0;
@@ -32,7 +36,7 @@ public class DioZeroAdcChannelTest {
 	@Mock
 	AdcChannelListener mockedListener;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		when(mockedAnalogDevice.getGpio()).thenReturn(index);
 		when(mockedAnalogDevice.getRange()).thenReturn(range);
@@ -78,11 +82,11 @@ public class DioZeroAdcChannelTest {
 		verify(mockedAnalogDevice).addListener(any());
 	}
 
-	@Test(expected = AdcDeviceException.class)
+	@Test
 	public void testAddAdcPinListenerWithException() {
 		Whitebox.setInternalState(adcChannel, "device", (Object) null);
 
-		adcChannel.addAdcPinListener(mockedListener);
+		assertThrows(AdcDeviceException.class, () -> adcChannel.addAdcPinListener(mockedListener));
 	}
 
 	@Test
@@ -92,11 +96,11 @@ public class DioZeroAdcChannelTest {
 		verify(mockedAnalogDevice).removeAllListeners();
 	}
 
-	@Test(expected = AdcDeviceException.class)
+	@Test
 	public void testRemoveAllAdcPinListenerWithException() {
 		Whitebox.setInternalState(adcChannel, "device", (Object) null);
 
-		adcChannel.removeAllAdcPinListener();
+		assertThrows(AdcDeviceException.class, () -> adcChannel.removeAllAdcPinListener());
 	}
 
 	@Test

@@ -2,19 +2,22 @@ package es.amplia.oda.hardware.i2c;
 
 import es.amplia.oda.core.commons.i2c.I2CDevice;
 import es.amplia.oda.core.commons.i2c.I2CDeviceException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroI2CServiceTest {
 	private final DioZeroI2CService testService = new DioZeroI2CService();
 
@@ -33,7 +36,7 @@ public class DioZeroI2CServiceTest {
 	@Mock
 	I2CDevice dev3;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		Map<String, I2CDevice> devices = new HashMap<>();
 		devices.put(name1, dev1);
@@ -58,14 +61,14 @@ public class DioZeroI2CServiceTest {
 		assertEquals(dev3, testService.getI2CFromAddress(cont2, add1));
 	}
 
-	@Test(expected = I2CDeviceException.class)
+	@Test
 	public void testGetI2CFromUnknownAddress() {
-		testService.getI2CFromAddress(cont2, add2);
+		assertThrows(I2CDeviceException.class, () -> testService.getI2CFromAddress(cont2, add2));
 	}
 
-	@Test(expected = I2CDeviceException.class)
+	@Test
 	public void testGetI2CFromAddressAndUnknownController() {
-		testService.getI2CFromAddress(3, add2);
+		assertThrows(I2CDeviceException.class, () -> testService.getI2CFromAddress(3, add2));
 	}
 
 	@Test
@@ -75,9 +78,9 @@ public class DioZeroI2CServiceTest {
 		assertEquals(dev3, testService.getI2CFromName(name3));
 	}
 
-	@Test(expected = I2CDeviceException.class)
+	@Test
 	public void testGetI2CFromUnknownName() {
-		testService.getI2CFromName("noname");
+		assertThrows(I2CDeviceException.class, () -> testService.getI2CFromName("noname"));
 	}
 
 	@Test

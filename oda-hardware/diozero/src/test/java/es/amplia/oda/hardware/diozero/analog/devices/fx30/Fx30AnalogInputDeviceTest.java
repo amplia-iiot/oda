@@ -1,11 +1,13 @@
 package es.amplia.oda.hardware.diozero.analog.devices.fx30;
 
 import com.diozero.util.RuntimeIOException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.File;
@@ -14,10 +16,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Fx30AnalogInputDeviceTest {
 
 	private static final double DELTA = 0.0001;
@@ -30,7 +33,7 @@ public class Fx30AnalogInputDeviceTest {
 	@Mock
 	private RandomAccessFile mockedRAF;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() throws Exception {
 		String path = Files.createTempDirectory("fx30adc").toString() + File.separator;
 		File deviceFile = new File(path + 1);
@@ -43,11 +46,10 @@ public class Fx30AnalogInputDeviceTest {
 		Whitebox.setInternalState(device, "value", mockedRAF);
 	}
 
-	@Test(expected = RuntimeIOException.class)
+	@Test
 	public void constructorThrowsException() throws Exception {
-		new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, "an/unknown/path/", 10f);
-
-		fail("Runtime IO Exception should be thrown");
+		assertThrows(RuntimeIOException.class,
+				() -> new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, "an/unknown/path/", 10f));
 	}
 
 	@Test
@@ -83,6 +85,6 @@ public class Fx30AnalogInputDeviceTest {
 
 		device.closeDevice();
 
-		assertTrue("IO Exception is not caught", true);
+		assertTrue(true, "IO Exception is not caught");
 	}
 }

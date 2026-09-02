@@ -7,22 +7,25 @@ import es.amplia.oda.datastreams.lora.configuration.LoraDatastreamsConfiguration
 import es.amplia.oda.datastreams.lora.datastreams.LoraDatastreamsEvent;
 import es.amplia.oda.datastreams.lora.datastreams.LoraDatastreamsFactory;
 import es.amplia.oda.datastreams.lora.datastreams.LoraException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LoraDatastreamsOrchestratorTest {
 
 	private static final String TEST_DEVICE_ID_PROPERTY_VALUE = "testing_gateway";
@@ -40,7 +43,7 @@ public class LoraDatastreamsOrchestratorTest {
 
 	LoraDatastreamsConfiguration testConfiguration;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testConfiguration = LoraDatastreamsConfiguration.builder().deviceId(TEST_DEVICE_ID_PROPERTY_VALUE).build();
 	}

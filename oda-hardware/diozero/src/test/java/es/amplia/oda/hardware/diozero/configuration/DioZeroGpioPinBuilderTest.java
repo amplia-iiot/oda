@@ -6,12 +6,13 @@ import es.amplia.oda.core.commons.gpio.GpioMode;
 import es.amplia.oda.core.commons.gpio.GpioTrigger;
 import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioPin;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DioZeroGpioPinBuilderTest {
 
@@ -28,7 +29,7 @@ public class DioZeroGpioPinBuilderTest {
 
     private DioZeroGpioPinBuilder builder;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         builder = DioZeroGpioPinBuilder.newBuilder();
     }
@@ -60,48 +61,44 @@ public class DioZeroGpioPinBuilderTest {
         assertEquals(DioZeroGpioPinBuilder.DEFAULT_INITIAL_VALUE, testPin.getInitialValue());
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testIncompleteBuild() {
         builder.setName(TEST_NAME);
         builder.setDirection(GpioDirection.OUTPUT);
 
-        builder.build();
 
-        fail(INVALID_DEVICE_CONFIGURATION_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> builder.build());
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testSetIncompatibleInputModeBuild() {
         builder.setIndex(TEST_INDEX);
         builder.setDirection(GpioDirection.INPUT);
         builder.setMode(GpioMode.PUSH_PULL);
 
-        builder.build();
 
-        fail(INVALID_DEVICE_CONFIGURATION_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> builder.build());
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testSetIncompatibleOutputModeBuild() {
         builder.setIndex(TEST_INDEX);
         builder.setDirection(GpioDirection.OUTPUT);
         builder.setMode(GpioMode.PULL_UP);
 
-        builder.build();
 
-        fail(INVALID_DEVICE_CONFIGURATION_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> builder.build());
     }
 
-    @Test(expected = GpioDeviceException.class)
+    @Test
     public void testSetIncompatibleOutputWithTriggerBuild() {
         builder.setIndex(TEST_INDEX);
         builder.setDirection(GpioDirection.OUTPUT);
         builder.setMode(GpioMode.OPEN_DRAIN);
         builder.setTrigger(GpioTrigger.RISING_EDGE);
 
-        builder.build();
 
-        fail(INVALID_DEVICE_CONFIGURATION_EXCEPTION_MESSAGE);
+        assertThrows(GpioDeviceException.class, () -> builder.build());
     }
 
     @Test

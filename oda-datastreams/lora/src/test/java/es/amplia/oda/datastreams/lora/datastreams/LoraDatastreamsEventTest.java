@@ -9,11 +9,13 @@ import es.amplia.oda.datastreams.lora.datastructures.LoraDataPacket;
 import es.amplia.oda.datastreams.lora.datastructures.LoraStatusPacket;
 import es.amplia.oda.datastreams.lora.datastructures.Rxpk;
 import es.amplia.oda.datastreams.lora.datastructures.Stat;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
@@ -22,11 +24,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class LoraDatastreamsEventTest {
 
 	private static final byte[] LORA_STATUS_BYTE_ARRAY = {

@@ -3,7 +3,7 @@ package es.amplia.oda.hardware.diozero.gpio;
 import es.amplia.oda.core.commons.gpio.GpioPinListener;
 
 import com.diozero.api.DigitalInputEvent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;

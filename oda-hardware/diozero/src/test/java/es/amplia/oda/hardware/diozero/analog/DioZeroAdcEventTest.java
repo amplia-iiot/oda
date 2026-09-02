@@ -1,15 +1,18 @@
 package es.amplia.oda.hardware.diozero.analog;
 
 import com.diozero.api.AnalogInputEvent;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroAdcEventTest {
 
 	private static final long epochTime = System.currentTimeMillis();
@@ -20,7 +23,7 @@ public class DioZeroAdcEventTest {
 
 	private DioZeroAdcEvent adcEvent;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		AnalogInputEvent event = new AnalogInputEvent(pinNumber, epochTime, nanoTime, unscaledValue);
 		event.setRange(range);

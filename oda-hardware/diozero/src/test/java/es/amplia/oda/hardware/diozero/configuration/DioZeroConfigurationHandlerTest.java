@@ -7,22 +7,25 @@ import es.amplia.oda.core.commons.gpio.GpioDirection;
 import es.amplia.oda.hardware.diozero.analog.DioZeroAdcService;
 import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioPin;
 import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 
 import static es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationHandler.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroConfigurationHandlerTest {
 
     private static final int TEST_ADC_CHANNEL_1_INDEX = 0;

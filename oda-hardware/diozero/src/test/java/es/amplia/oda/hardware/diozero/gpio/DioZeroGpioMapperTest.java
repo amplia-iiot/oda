@@ -5,10 +5,10 @@ import es.amplia.oda.core.commons.gpio.GpioTrigger;
 
 import com.diozero.api.GpioEventTrigger;
 import com.diozero.api.GpioPullUpDown;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static es.amplia.oda.hardware.diozero.gpio.DioZeroGpioMapper.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class DioZeroGpioMapperTest {
 

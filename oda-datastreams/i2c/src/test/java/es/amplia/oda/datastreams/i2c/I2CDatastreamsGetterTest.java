@@ -6,20 +6,23 @@ import es.amplia.oda.core.commons.i2c.I2CService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsGetter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class I2CDatastreamsGetterTest {
 
 	private static final String TEST_DATASTREAM_ID = "testId";
@@ -38,7 +41,7 @@ public class I2CDatastreamsGetterTest {
 	private I2CDevice mockedDevice;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testGetter = new I2CDatastreamsGetter(TEST_DATASTREAM_ID, TEST_DEFAULT_DEVICE_NAME, TEST_MIN, TEST_MAX, mockedService);
 	}
@@ -68,10 +71,10 @@ public class I2CDatastreamsGetterTest {
 		assertTrue((before<=result.getAt())&&(result.getAt()<=after));
 	}
 
-	@Test(expected = ExecutionException.class)
+	@Test
 	public void testGetAnException() throws ExecutionException, InterruptedException {
 		when(mockedService.getI2CFromName(eq(TEST_DATASTREAM_ID))).thenThrow(new I2CDeviceException(""));
 
-		testGetter.get("dumbData").get();
+		assertThrows(ExecutionException.class, () -> testGetter.get("dumbData").get());
 	}
 }

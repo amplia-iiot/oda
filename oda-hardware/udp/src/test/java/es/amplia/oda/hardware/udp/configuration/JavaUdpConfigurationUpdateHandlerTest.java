@@ -1,22 +1,25 @@
 package es.amplia.oda.hardware.udp.configuration;
 
 import es.amplia.oda.hardware.udp.udp.JavaUdpService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import static es.amplia.oda.hardware.udp.configuration.JavaUdpConfigurationUpdateHandler.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JavaUdpConfigurationUpdateHandlerTest {
 
 	private static final String TEST_HOST_VALUE = "localhost";

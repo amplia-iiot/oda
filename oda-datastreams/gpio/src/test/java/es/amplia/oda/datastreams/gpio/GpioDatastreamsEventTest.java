@@ -6,20 +6,23 @@ import es.amplia.oda.core.commons.gpio.GpioPinListener;
 import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.interfaces.EventPublisher;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GpioDatastreamsEventTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -39,7 +42,7 @@ public class GpioDatastreamsEventTest {
     private GpioPin mockedPin;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(mockedGpioService.getPinByIndex(anyInt())).thenReturn(mockedPin);
         when(mockedPin.isOpen()).thenReturn(false);

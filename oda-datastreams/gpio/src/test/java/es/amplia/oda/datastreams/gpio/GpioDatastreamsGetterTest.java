@@ -5,20 +5,23 @@ import es.amplia.oda.core.commons.gpio.GpioPin;
 import es.amplia.oda.core.commons.gpio.GpioService;
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter.CollectedValue;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GpioDatastreamsGetterTest {
 
     private static final String TEST_DATASTREAM_ID = "testDatastream";
@@ -29,7 +32,7 @@ public class GpioDatastreamsGetterTest {
 
     private GpioDatastreamsGetter testDatastreamsGetter;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testDatastreamsGetter =
                 new GpioDatastreamsGetter(TEST_DATASTREAM_ID, TEST_PIN_INDEX, mockedGpioService);
@@ -72,10 +75,10 @@ public class GpioDatastreamsGetterTest {
         verify(mockedGpioPin).getValue();
     }
 
-    @Test(expected = ExecutionException.class)
+    @Test
     public void testGetExceptionGettingUniqueValue() throws ExecutionException, InterruptedException {
         when(mockedGpioService.getPinByIndex(anyInt())).thenThrow(new GpioDeviceException("whatever"));
 
-        testDatastreamsGetter.get("").get();
+        assertThrows(ExecutionException.class, () -> testDatastreamsGetter.get("").get());
     }
 }

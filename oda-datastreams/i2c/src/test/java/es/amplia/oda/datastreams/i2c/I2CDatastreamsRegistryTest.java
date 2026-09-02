@@ -4,17 +4,20 @@ import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 import es.amplia.oda.core.commons.interfaces.DatastreamsSetter;
 import es.amplia.oda.core.commons.utils.ServiceRegistrationManager;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.Silent.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class I2CDatastreamsRegistryTest {
 
 	private static final String TEST_DATASTREAM_ID = "datastreamId";
@@ -37,7 +40,7 @@ public class I2CDatastreamsRegistryTest {
 	private DatastreamsSetter mockedSetter;
 
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testRegistry = new I2CDatastreamsRegistry(mockedFactory, mockedGetterRegistrationManager,
 				mockedSetterRegistrationManager);
