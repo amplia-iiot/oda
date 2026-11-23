@@ -19,6 +19,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
     static final String REDUCED_OUTPUT_PROPERTY_NAME = "reducedOutput";
     static final String EVENT_CONTENT_TYPE_PROPERTY_NAME = "eventContentType";
     static final String OPERATION_TIMEOUT_PROPERTY_NAME = "operationTimeout";
+    static final int DEFAULT_OPERATION_TIMEOUT = 80;
 
     private final EventDispatcherFactory eventDispatcherFactory;
     private final Scheduler scheduler;
@@ -28,7 +29,7 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
     private final Map<DispatcherConfiguration, Set<String>> currentConfiguration = new HashMap<>();
     private boolean reducedOutput = false;
     private ContentType eventContentType = ContentType.JSON;
-    private int opTimeout = 80;
+    private int opTimeout = DEFAULT_OPERATION_TIMEOUT;
 
     DispatcherConfigurationUpdateHandler(EventDispatcherFactory eventDispatcherFactory, Scheduler scheduler,
                                          ServiceRegistrationManager<EventDispatcher> eventDispatcherRegistrationManager, OpenGateOperationDispatcher ogDispatcher) {
@@ -55,9 +56,17 @@ class DispatcherConfigurationUpdateHandler implements ConfigurationUpdateHandler
             LOGGER.error("Unknown event content type {}. Configuring event content type as {}", contentTypeAsString,
                     ContentType.JSON, e);
         }
-        opTimeout = Optional.ofNullable((String) props.remove(REDUCED_OUTPUT_PROPERTY_NAME))
-                .map(Integer::parseInt)
-                .orElse(80);
+        String opTimeoutAsString = (String) props.remove(OPERATION_TIMEOUT_PROPERTY_NAME);
+        try {
+            opTimeout = Optional.ofNullable(opTimeoutAsString)
+                    .map(String::trim)
+                    .map(Integer::parseInt)
+                    .orElse(DEFAULT_OPERATION_TIMEOUT);
+        } catch (NumberFormatException ex) {
+            LOGGER.error("Invalid {} '{}'. Configuring operation timeout as {}", OPERATION_TIMEOUT_PROPERTY_NAME,
+                    opTimeoutAsString, DEFAULT_OPERATION_TIMEOUT);
+            opTimeout = DEFAULT_OPERATION_TIMEOUT;
+        }
 
         Enumeration<String> e = props.keys();
         while(e.hasMoreElements()) {

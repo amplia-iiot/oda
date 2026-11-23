@@ -99,7 +99,8 @@ public class CustomOperationProcessorTest {
         when(mockedOperationServiceLocator.findAll()).thenReturn(Arrays.asList(mockedOperation1, mockedOperation2));
         when(mockedOperation1.getOperationSatisfied()).thenReturn("otherOperation");
         when(mockedOperation2.getOperationSatisfied()).thenReturn(TEST_CUSTOM_OPERATION_NAME);
-        when(mockedEngine.engine(anyString(), anyString(), anyString(), any(), any())).thenReturn(null);
+        when(mockedOperation2.execute(anyString(), anyString(), any()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(TEST_RESULT));
 
         testProcessor.processOperation(TEST_DEVICE_ID, TEST_ID, params);
 
@@ -108,6 +109,8 @@ public class CustomOperationProcessorTest {
         verify(mockedOperation2).getOperationSatisfied();
         verify(mockedOperation2).execute(eq(TEST_DEVICE_ID), eq(TEST_ID), eq(params));
         verify(mockedOperation1, never()).execute(anyString(), anyString(), any());
+        // A JS script with the same name must not run when an OSGi operation handles the request
+        verify(mockedEngine, never()).engine(anyString(), anyString(), anyString(), any(), any());
     }
 
     @Test
