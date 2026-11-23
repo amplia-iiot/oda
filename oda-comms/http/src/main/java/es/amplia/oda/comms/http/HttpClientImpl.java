@@ -22,10 +22,14 @@ import es.amplia.oda.core.commons.http.HttpClient;
 
 import javax.net.ssl.*;
 import java.io.*;
+import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,51 +42,118 @@ public class HttpClientImpl implements HttpClient {
     private static final int CREATED_HTTP_CODE = 201;
     private static final int ACCEPTED_HTTP_CODE = 202;
     private static final int FOUND_HTTP_CODE = 302;
+    static final int DEFAULT_TIMEOUT_MS = 10000;
 
     private final CloseableHttpClient httpClient;
-    private RequestConfig customConfig;
+    RequestConfig customConfig;
 
     public HttpClientImpl(HttpClientConfiguration httpClientConfig, boolean insecure) {
-        if (httpClientConfig == null) {
-            LOGGER.warn("No http connection configuration indicated. Creating default http client");
-            this.httpClient = HttpClients.createDefault();
-            return;
+        CloseableHttpClient client = insecure ? httpClientSSLNoVerify() : httpClientSSL(httpClientConfig);
+        if (client == null) {
+            LOGGER.error("Falling back to default http client: JVM trusted CAs and no client certificate");
+            client = HttpClients.createDefault();
         }
-
-        if (insecure) {
-            this.httpClient = httpClientSSLNoVerify();
-        } else {
-            this.httpClient = httpClientSSL(httpClientConfig);
-        }
-        setTimeout(10000);
+        this.httpClient = client;
+        setTimeout(DEFAULT_TIMEOUT_MS);
     }
 
-    private CloseableHttpClient httpClientSSL(HttpClientConfiguration httpClientConfig) {
+    // Returns null when the configured SSL material cannot be loaded.
+    CloseableHttpClient httpClientSSL(HttpClientConfiguration config) {
+        boolean hasKeyStore = config != null && config.getKeyStorePath() != null;
+        boolean hasTrustStore = config != null && config.getTrustStorePath() != null;
+        if (!hasKeyStore && !hasTrustStore) {
+            return HttpClients.createDefault();
+        }
+
         try {
-            // load truststore file
-            File truststoreFile = new File(httpClientConfig.getTrustStorePath());
-            KeyStore trustStore = KeyStore.getInstance(httpClientConfig.getTrustStoreType());
-            FileInputStream trustStream = new FileInputStream(truststoreFile);
-            trustStore.load(trustStream, httpClientConfig.getTrustStorePassword().toCharArray());
+            KeyManager[] keyManagers = null;
+            if (hasKeyStore) {
+                KeyStore keyStore = loadStore(config.getKeyStorePath(), config.getKeyStoreType(),
+                        config.getKeyStorePassword());
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(keyStore, toChars(config.getKeyStorePassword()));
+                keyManagers = kmf.getKeyManagers();
+            }
 
-            // load keystore file
-            File keystoreFile = new File(httpClientConfig.getKeyStorePath());
-            KeyStore keyStore = KeyStore.getInstance(httpClientConfig.getKeyStoreType());
-            FileInputStream keyStream = new FileInputStream(keystoreFile);
-            keyStore.load(keyStream, httpClientConfig.getKeyStorePassword().toCharArray());
+            // null keeps the JVM default CAs; a configured truststore is added to them, not a replacement
+            TrustManager[] trustManagers = null;
+            if (hasTrustStore) {
+                KeyStore trustStore = loadStore(config.getTrustStorePath(), config.getTrustStoreType(),
+                        config.getTrustStorePassword());
+                trustManagers = new TrustManager[] {
+                        new CompositeTrustManager(x509TrustManager(trustStore), x509TrustManager(null))
+                };
+            }
 
-            // set ssl context
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(trustStore);
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(keyStore, httpClientConfig.getKeyStorePassword().toCharArray());
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+            sslContext.init(keyManagers, trustManagers, null);
             return HttpClients.custom().setSSLContext(sslContext).build();
-
         } catch (Exception e) {
-            LOGGER.error("Error creating http client: ", e);
+            LOGGER.error("Error loading SSL configuration (keyStore = {}, trustStore = {})",
+                    config.getKeyStorePath(), config.getTrustStorePath(), e);
             return null;
+        }
+    }
+
+    private static KeyStore loadStore(String path, String type, String password)
+            throws IOException, GeneralSecurityException {
+        KeyStore store = KeyStore.getInstance(type);
+        try (InputStream in = new FileInputStream(path)) {
+            store.load(in, toChars(password));
+        }
+        return store;
+    }
+
+    private static char[] toChars(String password) {
+        return password == null ? null : password.toCharArray();
+    }
+
+    private static X509TrustManager x509TrustManager(KeyStore store) throws GeneralSecurityException {
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(store);
+        for (TrustManager tm : tmf.getTrustManagers()) {
+            if (tm instanceof X509TrustManager) {
+                return (X509TrustManager) tm;
+            }
+        }
+        throw new KeyStoreException("No X509TrustManager available");
+    }
+
+    // Trusts a certificate if either the configured truststore or the JVM default CAs accept it.
+    static final class CompositeTrustManager implements X509TrustManager {
+        private final X509TrustManager configured;
+        private final X509TrustManager jvmDefault;
+
+        CompositeTrustManager(X509TrustManager configured, X509TrustManager jvmDefault) {
+            this.configured = configured;
+            this.jvmDefault = jvmDefault;
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            try {
+                configured.checkClientTrusted(chain, authType);
+            } catch (CertificateException e) {
+                jvmDefault.checkClientTrusted(chain, authType);
+            }
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            try {
+                configured.checkServerTrusted(chain, authType);
+            } catch (CertificateException e) {
+                jvmDefault.checkServerTrusted(chain, authType);
+            }
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            X509Certificate[] a = configured.getAcceptedIssuers();
+            X509Certificate[] b = jvmDefault.getAcceptedIssuers();
+            X509Certificate[] all = Arrays.copyOf(a, a.length + b.length);
+            System.arraycopy(b, 0, all, a.length, b.length);
+            return all;
         }
     }
 
