@@ -6,7 +6,7 @@ Este fichero orienta a Claude Code (claude.ai/code) al trabajar con el código d
 
 **ODA (OpenGate Device Agent)** — el agente IoT modular de Amplía Soluciones, construido sobre **OSGi (Apache Felix)**. Recoge datos de dispositivos de campo, los procesa en el edge e intercambia información con la plataforma IoT OpenGate mediante MQTT/CoAP/HTTP/WebSocket/DNP3/IEC-104. Licencia Apache 2.0.
 
-Reactor padre: `es.amplia.oda:oda-parent`, versión `4.16.1-SNAPSHOT`, `packaging=pom`. Este repo **es el framework** en sí; las integraciones aguas abajo (p. ej. `adif-oda`) consumen sus bundles como dependencias Maven desde el Nexus privado de Amplia.
+Reactor padre: `es.amplia.oda:oda-parent`, versión `4.17.0-SNAPSHOT`, `packaging=pom`. Este repo **es el framework** en sí; las integraciones aguas abajo (p. ej. `adif-oda`) consumen sus bundles como dependencias Maven desde el Nexus privado de Amplia.
 
 ## Comandos de build y test
 
