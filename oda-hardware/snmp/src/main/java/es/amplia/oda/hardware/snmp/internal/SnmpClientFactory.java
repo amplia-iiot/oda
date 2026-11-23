@@ -26,7 +26,7 @@ public class SnmpClientFactory {
             if (version == 1 || version == 2) {
                 communityTarget = communityTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(),
                         conf.getOptions().getCommunity());
-                snmpClient = buildSnmpClient(conf.getIp(), conf.getPort());
+                snmpClient = buildSnmpClient();
                 return new SnmpClientImpl(snmpClient, version, communityTarget, conf.getDeviceId());
             } else if (version == 3) {
                 SnmpClientV3Options options = conf.getV3Options();
@@ -34,7 +34,7 @@ public class SnmpClientFactory {
                 userTarget = userTarget(conf.getIp(), conf.getPort(), conf.getRetries(), conf.getTimeout(), securityName);
                 UsmUser user = createV3User(securityName, options.getAuthPassphrase(), options.getPrivPassphrase(),
                         options.getAuthProtocol(), options.getPrivacyProtocol());
-                snmpClient = buildSnmpClient(conf.getIp(), conf.getPort());
+                snmpClient = buildSnmpClient();
                 snmpClient.getUSM().addUser(securityName, user);
                 return new SnmpClientImpl(snmpClient, version, userTarget, options.getContextName(), conf.getDeviceId());
             } else {
@@ -46,10 +46,13 @@ public class SnmpClientFactory {
         }
     }
 
-    private Snmp buildSnmpClient(String ip, int port) throws IOException {
-        UdpAddress address = new UdpAddress(ip + "/" + port);
-        TransportMapping<? extends Address> transport = new DefaultUdpTransportMapping(address);
-        return new Snmp(transport);
+    // The client binds to an ephemeral local port: the device address belongs only in the target.
+    // listen() is required for the transport to read responses; without it every request times out.
+    private Snmp buildSnmpClient() throws IOException {
+        TransportMapping<? extends Address> transport = new DefaultUdpTransportMapping();
+        Snmp snmp = new Snmp(transport);
+        snmp.listen();
+        return snmp;
     }
 
     private CommunityTarget communityTarget(String ip, int port, int numRetries, int timeout, String community) {

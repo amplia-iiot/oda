@@ -64,12 +64,14 @@ class CustomOperationProcessor extends OperationProcessorTemplate<Map<String, Ob
 
     @Override
     CompletableFuture<Result> processOperation(String deviceIdForOperations, String operationId, Map<String, Object> params) {
-        return operationServiceLocator.findAll().stream()
+        Optional<CustomOperation> osgiOperation = operationServiceLocator.findAll().stream()
                 .filter(operation -> customOperationName.equals(operation.getOperationSatisfied()))
-                .findFirst()
-                .map(operation -> operation.execute(deviceIdForOperations, operationId, params))
-                // if there is no custom operation registered in OSGI that matches, check if there is any js operation script that matches
-                .orElse(processOperationScript(deviceIdForOperations, operationId, params));
+                .findFirst();
+        // An OSGi operation always wins: the JS script runs only when none is registered for this name
+        if (osgiOperation.isPresent()) {
+            return osgiOperation.get().execute(deviceIdForOperations, operationId, params);
+        }
+        return processOperationScript(deviceIdForOperations, operationId, params);
     }
 
     private CompletableFuture<Result> processOperationScript(String deviceId, String operationId, Map<String, Object> params) {
