@@ -89,9 +89,12 @@
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
         </dependency>
+        <!-- Only the tests use the factory implementation; at runtime the connector resolves
+             HttpClientFactory through the OSGi service registry. -->
         <dependency>
             <groupId>es.amplia.oda.comms</groupId>
             <artifactId>http</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

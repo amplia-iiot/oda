@@ -1,11 +1,10 @@
 package es.amplia.oda.connector.http;
 
-import es.amplia.oda.comms.http.HttpClientFactoryImpl;
 import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
-import es.amplia.oda.core.commons.http.HttpClientFactory;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
+import es.amplia.oda.core.commons.osgi.proxies.HttpClientFactoryProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundle;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
@@ -21,6 +20,7 @@ public class Activator implements BundleActivator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
 
     private DeviceInfoProviderProxy deviceInfoProvider;
+    private HttpClientFactoryProxy httpClientFactory;
     private HttpConnectorConfigurationUpdateHandler httpConfigHandler;
     private ConfigurableBundle configurableBundle;
     private ServiceRegistration<OpenGateConnector> httpConnectorRegistration;
@@ -31,7 +31,9 @@ public class Activator implements BundleActivator {
         LOGGER.info("Starting HTTP connector bundle");
 
         deviceInfoProvider = new DeviceInfoProviderProxy(bundleContext);
-        HttpClientFactory httpClientFactory = new HttpClientFactoryImpl();
+        // Use the HttpClientFactory published in OSGi: a locally built one never gets its
+        // configuration loaded, so it would run with no timeout and no SSL material.
+        httpClientFactory = new HttpClientFactoryProxy(bundleContext);
         HttpConnector httpConnector = new HttpConnector(deviceInfoProvider, httpClientFactory);
         httpConfigHandler = new HttpConnectorConfigurationUpdateHandler(httpConnector);
         configurableBundle = new ConfigurableBundleImpl(bundleContext, httpConfigHandler);
@@ -61,6 +63,7 @@ public class Activator implements BundleActivator {
         httpConnectorRegistration.unregister();
         deviceInfoProviderListener.close();
         configurableBundle.close();
+        httpClientFactory.close();
         deviceInfoProvider.close();
 
         LOGGER.info("HTTP connector bundle stopped");

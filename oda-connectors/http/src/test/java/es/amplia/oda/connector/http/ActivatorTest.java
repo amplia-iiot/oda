@@ -1,10 +1,10 @@
 package es.amplia.oda.connector.http;
 
-import es.amplia.oda.comms.http.HttpClientFactoryImpl;
 import es.amplia.oda.connector.http.configuration.HttpConnectorConfigurationUpdateHandler;
 import es.amplia.oda.core.commons.interfaces.DeviceInfoProvider;
 import es.amplia.oda.core.commons.interfaces.OpenGateConnector;
 import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
+import es.amplia.oda.core.commons.osgi.proxies.HttpClientFactoryProxy;
 import es.amplia.oda.core.commons.utils.ConfigurableBundleImpl;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 
@@ -35,7 +35,7 @@ public class ActivatorTest {
     @Mock
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
     @Mock
-    private HttpClientFactoryImpl mockedHttpClientFactory;
+    private HttpClientFactoryProxy mockedHttpClientFactory;
     @Mock
     private HttpConnector mockedConnector;
     @Mock
@@ -56,12 +56,13 @@ public class ActivatorTest {
                 .thenReturn(mockedConfigHandler);
         PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
         PowerMockito.whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
-        PowerMockito.whenNew(HttpClientFactoryImpl.class).withNoArguments().thenReturn(mockedHttpClientFactory);
+        PowerMockito.whenNew(HttpClientFactoryProxy.class).withAnyArguments().thenReturn(mockedHttpClientFactory);
 
 
         testActivator.start(mockedContext);
 
         PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
+        PowerMockito.verifyNew(HttpClientFactoryProxy.class).withArguments(eq(mockedContext));
         PowerMockito.verifyNew(HttpConnector.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedHttpClientFactory));
         PowerMockito.verifyNew(HttpConnectorConfigurationUpdateHandler.class).withArguments(eq(mockedConnector));
         PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
@@ -97,12 +98,14 @@ public class ActivatorTest {
         Whitebox.setInternalState(testActivator, "configurableBundle", mockedConfigurableBundle);
         Whitebox.setInternalState(testActivator, "deviceInfoProviderListener", mockedListener);
         Whitebox.setInternalState(testActivator, "httpConnectorRegistration", mockedRegistration);
+        Whitebox.setInternalState(testActivator, "httpClientFactory", mockedHttpClientFactory);
 
         testActivator.stop(mockedContext);
 
         verify(mockedRegistration).unregister();
         verify(mockedListener).close();
         verify(mockedConfigurableBundle).close();
+        verify(mockedHttpClientFactory).close();
         verify(mockedDeviceInfoProvider).close();
     }
 }

@@ -97,6 +97,10 @@ public class HttpConnector implements OpenGateConnector {
 
         try {
             HttpClient client = httpClientFactory.createHttpClient();
+            if (client == null) {
+                LOGGER.error("Error sending HTTP message: no HTTP client factory available in OSGi");
+                return;
+            }
             HashMap<String, String> headers = new HashMap<>();
             boolean compress = false;
 
