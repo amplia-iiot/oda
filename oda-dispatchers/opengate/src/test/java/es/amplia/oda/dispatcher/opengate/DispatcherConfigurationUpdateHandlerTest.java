@@ -16,7 +16,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.DEFAULT_OPERATION_TIMEOUT;
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.EVENT_CONTENT_TYPE_PROPERTY_NAME;
+import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.OPERATION_TIMEOUT_PROPERTY_NAME;
 import static es.amplia.oda.dispatcher.opengate.DispatcherConfigurationUpdateHandler.REDUCED_OUTPUT_PROPERTY_NAME;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.*;
@@ -112,6 +114,39 @@ public class DispatcherConfigurationUpdateHandlerTest {
         testConfigHandler.loadConfiguration(testProperties);
 
         assertEquals(ContentType.JSON, Whitebox.getInternalState(testConfigHandler, "eventContentType"));
+    }
+
+    @Test
+    public void testLoadConfigurationWithOperationTimeout() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put(OPERATION_TIMEOUT_PROPERTY_NAME, "30");
+        testProperties.put("test1", "60");
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        assertEquals(30, (int) Whitebox.getInternalState(testConfigHandler, "opTimeout"));
+        // The timeout key must not be parsed as a datastream to dispatch
+        currentConfiguration = getCurrentConfiguration();
+        assertEquals(1, currentConfiguration.size());
+        assertEquals(Collections.singleton("test1"), currentConfiguration.get(new DispatcherConfiguration(60, 60)));
+    }
+
+    @Test
+    public void testLoadConfigurationWithoutOperationTimeoutUsesDefault() {
+        testConfigHandler.loadConfiguration(new Hashtable<>());
+
+        assertEquals(DEFAULT_OPERATION_TIMEOUT, (int) Whitebox.getInternalState(testConfigHandler, "opTimeout"));
+    }
+
+    @Test
+    public void testLoadConfigurationWithInvalidOperationTimeoutUsesDefault() {
+        Dictionary<String, String> testProperties = new Hashtable<>();
+        testProperties.put(OPERATION_TIMEOUT_PROPERTY_NAME, "abc");
+
+        testConfigHandler.loadConfiguration(testProperties);
+
+        assertEquals(DEFAULT_OPERATION_TIMEOUT, (int) Whitebox.getInternalState(testConfigHandler, "opTimeout"));
+        assertTrue(getCurrentConfiguration().isEmpty());
     }
 
     @Test
