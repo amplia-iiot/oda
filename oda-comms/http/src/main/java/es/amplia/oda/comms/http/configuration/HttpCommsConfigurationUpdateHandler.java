@@ -45,11 +45,11 @@ public class HttpCommsConfigurationUpdateHandler implements ConfigurationUpdateH
                 .trustStorePassword(trustStorePassword.orElse(null))
                 .build();
 
-        log.debug("SSL config : keyStorePath = {}, keyStoreType = {}, keyStorePassword = {}, trustStorePath = {}, " +
-                        "trustStoreType = {}, trustStorePassword = {}", currentConfiguration.getKeyStorePath(),
-                currentConfiguration.getKeyStoreType(), currentConfiguration.getKeyStorePassword(),
+        log.debug("SSL config : keyStorePath = {}, keyStoreType = {}, keyStorePassword set = {}, trustStorePath = {}, " +
+                        "trustStoreType = {}, trustStorePassword set = {}", currentConfiguration.getKeyStorePath(),
+                currentConfiguration.getKeyStoreType(), currentConfiguration.getKeyStorePassword() != null,
                 currentConfiguration.getTrustStorePath(), currentConfiguration.getTrustStoreType(),
-                currentConfiguration.getKeyStorePassword());
+                currentConfiguration.getTrustStorePassword() != null);
 
         log.info("New configuration loaded");
     }
