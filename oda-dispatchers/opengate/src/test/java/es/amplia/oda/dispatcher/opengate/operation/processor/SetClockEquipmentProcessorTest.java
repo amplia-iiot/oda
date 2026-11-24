@@ -45,10 +45,12 @@ public class SetClockEquipmentProcessorTest {
 
     @Test
     public void testParseParametersWithDateAndTime() {
-        ZonedDateTime dateTime = ZonedDateTime.now(GMT_ZONE_ID).plusHours(1);
+        // A single instant for input and expectation: three separate now() calls could straddle a
+        // day boundary and take the date from one day and the time from the next.
+        ZonedDateTime now = ZonedDateTime.now(GMT_ZONE_ID);
         Datetime testDatetime = new Datetime();
-        testDatetime.setDate(ZonedDateTime.now(GMT_ZONE_ID).toLocalDate().toString());
-        testDatetime.setTime(ZonedDateTime.now(GMT_ZONE_ID).toLocalTime().toString());
+        testDatetime.setDate(now.toLocalDate().toString());
+        testDatetime.setTime(now.toLocalTime().toString());
         testDatetime.setTimezone(2);
         testDatetime.setDst(-1);
         ParameterSetClockOperation parameters = new ParameterSetClockOperation(testDatetime);
@@ -57,7 +59,7 @@ public class SetClockEquipmentProcessorTest {
         Long timestamp = testProcessor.parseParameters(request);
 
         assertNotNull(timestamp);
-        assertTrue(Math.abs(timestamp - dateTime.toInstant().toEpochMilli()) < 1000);
+        assertTrue(Math.abs(timestamp - now.plusHours(1).toInstant().toEpochMilli()) < 1000);
     }
 
     @Test

@@ -13,6 +13,8 @@ import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.elements.UDPConnector;
 import org.eclipse.californium.scandium.DTLSConnector;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,13 +25,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.io.FileInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static es.amplia.oda.connector.coap.COAPClientFactory.*;
@@ -55,11 +61,9 @@ public class COAPClientFactoryTest {
     private static final int TEST_TIMEOUT = 20;
     private static final String TEST_MESSAGE_PROTOCOL_VERSION = "1.2.3";
     private static final String TEST_KEY_STORE_TYPE = "PKCS12";
-    private static final String TEST_KEY_STORE_LOCATION = "location/to/keystore";
     private static final String TEST_KEY_STORE_PASSWORD = "somePassword";
     private static final String TEST_CLIENT_KEY_ALIAS = "odaClient";
     private static final String TEST_TRUST_STORE_TYPE = "JCEKS";
-    private static final String TEST_TRUST_STORE_LOCATION = "location/to/truststore";
     private static final String TEST_TRUST_STORE_PASSWORD = "anotherPassword";
     private static final String[] TEST_OPENGATE_CERTIFICATE_NAME = { "opengateCertificate", "letsEncryptCertificate" };
     private static final ConnectorConfiguration TEST_UDP_CONFIGURATION =
@@ -72,17 +76,42 @@ public class COAPClientFactoryTest {
                     .port(TEST_PORT).localPort(TEST_LOCAL_PORT).path(TEST_PATH)
                     .provisionPath(TEST_PROVISION_PATH).timeout(TEST_TIMEOUT)
                     .messageProtocolVersion(TEST_MESSAGE_PROTOCOL_VERSION).build();
-    private static final ConnectorConfiguration TEST_DTLS_CONFIGURATION =
-            ConnectorConfiguration.builder().type(ConnectorType.DTLS).scheme(COAP_SECURE_SCHEME).host(TEST_HOST)
-                    .port(TEST_PORT).localPort(TEST_LOCAL_PORT).path(TEST_PATH)
-                    .provisionPath(TEST_PROVISION_PATH).timeout(TEST_TIMEOUT)
-                    .messageProtocolVersion(TEST_MESSAGE_PROTOCOL_VERSION)
-                    .keyStoreType(TEST_KEY_STORE_TYPE).keyStoreLocation(TEST_KEY_STORE_LOCATION)
-                    .keyStorePassword(TEST_KEY_STORE_PASSWORD).clientKeyAlias(TEST_CLIENT_KEY_ALIAS)
-                    .trustStoreType(TEST_TRUST_STORE_TYPE).trustStoreLocation(TEST_TRUST_STORE_LOCATION)
-                    .trustStorePassword(TEST_TRUST_STORE_PASSWORD)
-                    .trustedCertificates(TEST_OPENGATE_CERTIFICATE_NAME).build();
+    // Real files on disk instead of mocking FileInputStream: with the inline mock maker,
+    // mockConstruction(FileInputStream.class) also intercepts the streams the JVM opens for its
+    // own native/SSL class loading, and this class crashed the forked VM outright
+    // ("The forked VM terminated without properly saying goodbye") depending on runOrder.
+    // KeyStore.getInstance stays mocked, so the content of these files is irrelevant: what
+    // matters is that the paths the factory opens exist. A wrong path now surfaces as
+    // FileNotFoundException, which is a stronger check than asserting the constructor arguments.
+    private Path storesDir;
+    private ConnectorConfiguration testDtlsConfiguration;
 
+
+    @BeforeEach
+    public void createStoreFiles() throws IOException {
+        storesDir = Files.createTempDirectory("oda-coap-stores");
+        Path keyStore = Files.createFile(storesDir.resolve("keystore.p12"));
+        Path trustStore = Files.createFile(storesDir.resolve("truststore.jceks"));
+        testDtlsConfiguration =
+                ConnectorConfiguration.builder().type(ConnectorType.DTLS).scheme(COAP_SECURE_SCHEME).host(TEST_HOST)
+                        .port(TEST_PORT).localPort(TEST_LOCAL_PORT).path(TEST_PATH)
+                        .provisionPath(TEST_PROVISION_PATH).timeout(TEST_TIMEOUT)
+                        .messageProtocolVersion(TEST_MESSAGE_PROTOCOL_VERSION)
+                        .keyStoreType(TEST_KEY_STORE_TYPE).keyStoreLocation(keyStore.toString())
+                        .keyStorePassword(TEST_KEY_STORE_PASSWORD).clientKeyAlias(TEST_CLIENT_KEY_ALIAS)
+                        .trustStoreType(TEST_TRUST_STORE_TYPE).trustStoreLocation(trustStore.toString())
+                        .trustStorePassword(TEST_TRUST_STORE_PASSWORD)
+                        .trustedCertificates(TEST_OPENGATE_CERTIFICATE_NAME).build();
+    }
+
+    @AfterEach
+    public void removeStoreFiles() throws IOException {
+        if (storesDir != null) {
+            try (java.util.stream.Stream<Path> paths = Files.walk(storesDir)) {
+                paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            }
+        }
+    }
 
     @Mock
     private DeviceInfoProvider mockedDeviceInfoProvider;
@@ -171,15 +200,10 @@ public class COAPClientFactoryTest {
         Certificate mockedCertificate = mock(Certificate.class);
         DtlsConnectorConfig mockedDtlsConfiguration = mock(DtlsConnectorConfig.class);
 
-        List<List<?>> fileInputStreamArgs = new ArrayList<>();
         List<List<?>> builderArgs = new ArrayList<>();
         List<List<?>> dtlsConnectorArgs = new ArrayList<>();
         List<List<?>> endpointArgs = new ArrayList<>();
-
-        try (MockedConstruction<FileInputStream> fileInputStreamCons =
-                     mockConstruction(FileInputStream.class,
-                             (mock, mctx) -> fileInputStreamArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedStatic<KeyStore> keyStoreStatic = mockStatic(KeyStore.class);
+        try (MockedStatic<KeyStore> keyStoreStatic = mockStatic(KeyStore.class);
              MockedConstruction<DtlsConnectorConfig.Builder> builderCons =
                      mockConstruction(DtlsConnectorConfig.Builder.class, (mock, mctx) -> {
                          builderArgs.add(new ArrayList<>(mctx.arguments()));
@@ -197,7 +221,7 @@ public class COAPClientFactoryTest {
             keyStoreStatic.when(() -> KeyStore.getInstance(anyString())).thenReturn(mockedKeyStore);
             when(mockedKeyStore.getCertificate(anyString())).thenReturn(mockedCertificate);
 
-            CoapClient client = testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION);
+            CoapClient client = testCoapClientFactory.createClient(testDtlsConfiguration);
 
             assertNotNull(client);
             String uri = client.getURI();
@@ -208,15 +232,10 @@ public class COAPClientFactoryTest {
             assertTrue(uri.contains(TEST_PROVISION_PATH));
             assertEquals(TEST_TIMEOUT * MS_PER_SECOND, client.getTimeout());
 
-            assertEquals(2, fileInputStreamCons.constructed().size());
-            assertEquals(TEST_KEY_STORE_LOCATION, fileInputStreamArgs.get(0).get(0));
-            assertEquals(TEST_TRUST_STORE_LOCATION, fileInputStreamArgs.get(1).get(0));
             keyStoreStatic.verify(() -> KeyStore.getInstance(eq(TEST_KEY_STORE_TYPE)));
             keyStoreStatic.verify(() -> KeyStore.getInstance(eq(TEST_TRUST_STORE_TYPE)));
-            verify(mockedKeyStore).load(eq(fileInputStreamCons.constructed().get(0)),
-                    aryEq(TEST_KEY_STORE_PASSWORD.toCharArray()));
-            verify(mockedKeyStore).load(eq(fileInputStreamCons.constructed().get(1)),
-                    aryEq(TEST_TRUST_STORE_PASSWORD.toCharArray()));
+            verify(mockedKeyStore).load(any(InputStream.class), aryEq(TEST_KEY_STORE_PASSWORD.toCharArray()));
+            verify(mockedKeyStore).load(any(InputStream.class), aryEq(TEST_TRUST_STORE_PASSWORD.toCharArray()));
             verify(mockedKeyStore).getCertificate(eq(TEST_OPENGATE_CERTIFICATE_NAME[0]));
             assertEquals(1, builderCons.constructed().size());
             assertEquals(new InetSocketAddress(TEST_LOCAL_PORT), builderArgs.get(0).get(0));
@@ -237,22 +256,19 @@ public class COAPClientFactoryTest {
 
     @Test
     public void testCreateDTLSClientIOException() {
-        assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION));
+        assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(testDtlsConfiguration));
     }
 
     @Test
     public void testCreateDTLSClientGeneralSecurityException() throws Exception {
         KeyStore mockedKeyStore = mock(KeyStore.class);
-
-        try (MockedConstruction<FileInputStream> fileInputStreamCons =
-                     mockConstruction(FileInputStream.class);
-             MockedStatic<KeyStore> keyStoreStatic = mockStatic(KeyStore.class)) {
+        try (MockedStatic<KeyStore> keyStoreStatic = mockStatic(KeyStore.class)) {
 
             keyStoreStatic.when(() -> KeyStore.getInstance(anyString())).thenReturn(mockedKeyStore);
             doThrow(new NoSuchAlgorithmException()).when(mockedKeyStore)
                     .load(any(InputStream.class), any(char[].class));
 
-            assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(TEST_DTLS_CONFIGURATION));
+            assertThrows(ConfigurationException.class, () -> testCoapClientFactory.createClient(testDtlsConfiguration));
         }
     }
 
