@@ -34,13 +34,6 @@ public class SetClockEquipmentProcessorTest {
     private static final Long TEST_TIMESTAMP = 123567789L;
     private static final ZoneId GMT_ZONE_ID = ZoneId.of("GMT+02:00");
     private static final String TEST_REQUEST_ID = "testRequest";
-    private static final Datetime TEST_DATETIME = new Datetime();
-    static {
-        TEST_DATETIME.setDate(ZonedDateTime.now(GMT_ZONE_ID).toLocalDate().toString());
-        TEST_DATETIME.setTime(ZonedDateTime.now(GMT_ZONE_ID).toLocalTime().toString());
-        TEST_DATETIME.setTimezone(2);
-        TEST_DATETIME.setDst(-1);
-    }
 
     @Mock
     private OperationSetClock mockedOperationSetClock;
@@ -49,14 +42,23 @@ public class SetClockEquipmentProcessorTest {
 
     @Test
     public void testParseParametersWithDateAndTime() {
-        ZonedDateTime dateTime = ZonedDateTime.now(GMT_ZONE_ID).plusHours(1);
-        ParameterSetClockOperation parameters = new ParameterSetClockOperation(TEST_DATETIME);
+        // Input and expectation come from the same instant. Building the input in a static
+        // initializer and computing the expectation at run time made this assertion depend on how
+        // long the rest of the class took to get here, against a tolerance of one second.
+        ZonedDateTime now = ZonedDateTime.now(GMT_ZONE_ID);
+        Datetime testDatetime = new Datetime();
+        testDatetime.setDate(now.toLocalDate().toString());
+        testDatetime.setTime(now.toLocalTime().toString());
+        testDatetime.setTimezone(2);
+        testDatetime.setDst(-1);
+
+        ParameterSetClockOperation parameters = new ParameterSetClockOperation(testDatetime);
         RequestSetClockOperation request = new RequestSetClockOperation(parameters);
 
         Long timestamp = testProcessor.parseParameters(request);
 
         assertNotNull(timestamp);
-        assertTrue(Math.abs(timestamp - dateTime.toInstant().toEpochMilli()) < 1000);
+        assertTrue(Math.abs(timestamp - now.plusHours(1).toInstant().toEpochMilli()) < 1000);
     }
 
     @Test
