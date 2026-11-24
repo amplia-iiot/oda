@@ -29,14 +29,14 @@ function setValueFromDatastreamValue(state, deviceId, datastreamId, value) {
     return state;
 }
 
-function setValue(state, deviceId, datastreamId, value) {
-    var newValue = state.createValue(deviceId, datastreamId, value);
+function setValue(state, deviceId, datastreamId, feed, value) {
+    var newValue = state.createValue(deviceId, datastreamId, feed, value);
     state.refreshValue(deviceId, datastreamId, newValue);
     return state;
 }
 
-function setValueWithTime(state, deviceId, datastreamId, at, value) {
-    var newValue = state.createValue(deviceId, datastreamId, at, value);
+function setValueWithTime(state, deviceId, datastreamId, feed, at, value) {
+    var newValue = state.createValue(deviceId, datastreamId, feed, at, value);
     state.refreshValue(deviceId, datastreamId, newValue);
     return state;
 }
@@ -74,19 +74,19 @@ function filterExpectedValues(state, datastreamValue, expected) {
 // OPERATING VALUES
 
 function sum(state, value, quantity) {
-    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() + quantity);
+    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getFeed(), value.getValue() + quantity);
 }
 
 function sub(state, value, quantity) {
-    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() - quantity);
+    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getFeed(), value.getValue() - quantity);
 }
 
 function mult(state, value, quantity) {
-    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() * quantity);
+    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getFeed(), value.getValue() * quantity);
 }
 
 function div(state, value, quantity) {
-    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getValue() / quantity);
+    return state.createValue(value.getDeviceId(), value.getDatastreamId(), value.getFeed(), value.getValue() / quantity);
 }
 
 // OPERATIONS WITH HISTORIC DATA
@@ -123,11 +123,11 @@ function productOfSequence(state, deviceId, datastreamId, alpha) {
 
 // CONDITIONAL
 
-function conditionalValue(condition, deviceId, datastreamId, valueTrue, valueFalse, state) {
+function conditionalValue(condition, deviceId, datastreamId, feed, valueTrue, valueFalse, state) {
     if(condition) {
-        return state.createValue(deviceId, datastreamId, valueTrue);
+        return state.createValue(deviceId, datastreamId, feed, valueTrue);
     } else {
-        return state.createValue(deviceId, datastreamId, valueFalse);
+        return state.createValue(deviceId, datastreamId, feed, valueFalse);
     }
 }
 
