@@ -89,12 +89,13 @@
             <groupId>es.amplia.oda.core</groupId>
             <artifactId>commons</artifactId>
         </dependency>
-        <!-- Only the tests use the factory implementation; at runtime the connector resolves
-             HttpClientFactory through the OSGi service registry. -->
+        <!-- El conector ya no usa HttpClientFactoryImpl: resuelve HttpClientFactory por el
+             registro de servicios OSGi. Pero HttpConnector sigue necesitando en compilacion
+             org.apache.http.entity.ContentType, que llega transitivamente por aqui, asi que
+             esta dependencia NO puede pasar a scope test. -->
         <dependency>
             <groupId>es.amplia.oda.comms</groupId>
             <artifactId>http</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
