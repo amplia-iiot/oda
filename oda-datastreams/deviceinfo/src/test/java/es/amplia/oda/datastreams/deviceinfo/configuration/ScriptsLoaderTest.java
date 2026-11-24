@@ -5,168 +5,117 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Enumeration;
-import java.util.Objects;
+import java.util.Comparator;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Driven against a real jar on a real filesystem.
+ *
+ * These tests used to mock java.io.File with mockConstruction. With the inline mock maker that
+ * also intercepts the File instances the JDK class loader builds while loading classes, which
+ * poisons class loading for whatever test runs afterwards: the module failed with
+ * NoClassDefFoundError depending on surefire's runOrder, and passed with the default order.
+ */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ScriptsLoaderTest {
 
+	private static final String BUNDLE_JAR_NAME = "es.amplia.oda.datastreams.deviceinfo-1.0.0.jar";
+	private static final String SCRIPT_ENTRY = "getSerialNumber.sh";
+	private static final String SCRIPT_CONTENT = "#!/bin/sh\necho 1234\n";
+
 	@InjectMocks
 	private ScriptsLoader scriptsLoader;
-	@Mock
-	private Enumeration<JarEntry> mockedEnumeration;
-	@Mock
-	private JarEntry mockedJarEntry;
-	@Mock
-	private InputStream mockedInputStream;
 
-	String sourceDir = "tempSource";
-	String destDir = "tempDest";
-
+	private Path sourceDir;
+	private Path destBase;
+	private String destDir;
 
 	@BeforeEach
-	public void start() throws IOException {
-		Path sourceDirPath = Paths.get(sourceDir);
-		Path destDirPath = Paths.get(destDir);
-
-		if (Files.exists(sourceDirPath)) {
-			File dir = new File(String.valueOf(sourceDirPath));
-			for (File insideDirFile : Objects.requireNonNull(dir.listFiles())) {
-				Files.delete(Paths.get(insideDirFile.getPath()));
-			}
-			Files.delete(sourceDirPath);
-		}
-		if (Files.exists(destDirPath)) {
-			File dir = new File(String.valueOf(destDirPath));
-			for (File insideDirFile : Objects.requireNonNull(dir.listFiles())) {
-				Files.delete(Paths.get(insideDirFile.getPath()));
-			}
-			Files.delete(destDirPath);
-		}
-
-		Files.createDirectories(sourceDirPath);
-		Files.createDirectories(destDirPath);
+	public void createDirs() throws IOException {
+		sourceDir = Files.createTempDirectory("oda-scripts-source");
+		destBase = Files.createTempDirectory("oda-scripts-dest");
+		// Deliberately not created: load() only extracts when the scripts dir does not exist.
+		destDir = destBase.resolve("scripts").toString();
 	}
 
 	@AfterEach
-	public void end() throws IOException {
-		Path sourceDirPath = Paths.get(sourceDir);
-		Path destDirPath = Paths.get(destDir);
-
-		if (Files.exists(sourceDirPath)) {
-			File dir = new File(String.valueOf(sourceDirPath));
-			File[] filesInDir = dir.listFiles();
-			if (filesInDir != null) {
-				for (File insideDirFile : filesInDir) {
-					Files.delete(Paths.get(insideDirFile.getPath()));
-				}
-			}
-			Files.delete(sourceDirPath);
-		}
-		if (Files.exists(destDirPath)) {
-			File dir = new File(String.valueOf(destDirPath));
-			File[] filesInDir = dir.listFiles();
-			if (filesInDir != null) {
-				for (File insideDirFile : filesInDir) {
-					Files.delete(Paths.get(insideDirFile.getPath()));
-				}
-			}
-			Files.delete(destDirPath);
-		}
+	public void removeDirs() throws IOException {
+		deleteRecursively(sourceDir);
+		deleteRecursively(destBase);
 	}
 
 	@Test
 	public void testLoad() throws Exception {
+		createJar(BUNDLE_JAR_NAME);
 
-		File resultFile = new File(sourceDir + File.separator + "temp");
-		Files.createFile(resultFile.toPath());
+		scriptsLoader.load(sourceDir.toString(), destDir);
 
-		try (MockedConstruction<File> fileCons = mockConstruction(File.class,
-				(mock, mctx) -> {
-					when(mock.exists()).thenReturn(false);
-					when(mock.listFiles()).thenReturn(new File[] { mock });
-					when(mock.getName()).thenReturn("es.amplia.oda.datastreams.deviceinfo");
-					when(mock.toPath()).thenReturn(Paths.get(sourceDir + File.separator + "temp"));
-				});
-			 MockedConstruction<JarFile> jarFileCons = mockConstruction(JarFile.class,
-				(mock, mctx) -> {
-					when(mock.entries()).thenReturn(mockedEnumeration);
-					when(mock.getInputStream(any())).thenReturn(mockedInputStream);
-				});
-			 MockedConstruction<FileOutputStream> fosCons = mockConstruction(FileOutputStream.class)) {
-
-			//
-			when(mockedEnumeration.hasMoreElements()).thenReturn(true, false);
-			when(mockedEnumeration.nextElement()).thenReturn(mockedJarEntry);
-			when(mockedJarEntry.getName()).thenReturn(".sh");
-
-			//
-			when(mockedInputStream.available()).thenReturn(1, 0);
-			when(mockedInputStream.read()).thenReturn(0);
-
-			// call method
-			scriptsLoader.load(sourceDir, destDir);
-
-			// assertions
-			verify(jarFileCons.constructed().get(0), times(1)).entries();
-			verify(mockedJarEntry, atLeast(1)).getName();
-			verify(mockedInputStream, atLeast(1)).available();
-		}
-
-		// clean files created
-		resultFile.delete();
+		Path extracted = path(destDir).resolve(SCRIPT_ENTRY);
+		assertTrue(Files.exists(extracted), "the script must be extracted from the jar");
+		// Not asserting the content: ScriptsLoader leaves the file as --x--x--x (no read
+		// permission), which is the known ODA-509 defect and is out of scope here.
+		assertFalse(Files.exists(path(destDir).resolve(BUNDLE_JAR_NAME)), "the jar copied to extract from must be removed afterwards");
 	}
 
 	@Test
 	public void testLoadDirAlreadyExists() throws Exception {
+		createJar(BUNDLE_JAR_NAME);
+		Files.createDirectories(path(destDir));
 
-		try (MockedConstruction<File> fileCons = mockConstruction(File.class,
-				(mock, mctx) -> when(mock.exists()).thenReturn(true))) {
+		scriptsLoader.load(sourceDir.toString(), destDir);
 
-			// call method
-			scriptsLoader.load(sourceDir, destDir);
-
-			verify(fileCons.constructed().get(0), times(0)).listFiles();
-			verify(fileCons.constructed().get(0), times(0)).getName();
-		}
+		assertEquals(0, countFiles(path(destDir)), "nothing must be extracted when the scripts dir already exists");
 	}
 
 	@Test
 	public void testLoadJarNotExist() throws Exception {
+		createJar("notExist.jar");
 
-		try (MockedConstruction<File> fileCons = mockConstruction(File.class,
-				(mock, mctx) -> {
-					when(mock.exists()).thenReturn(false);
-					when(mock.listFiles()).thenReturn(new File[] { mock });
-					// bundle to search for not exist
-					when(mock.getName()).thenReturn("notExist");
-				})) {
+		scriptsLoader.load(sourceDir.toString(), destDir);
 
-			// call method
-			scriptsLoader.load(sourceDir, destDir);
+		assertTrue(Files.exists(path(destDir)), "the scripts dir is still created");
+		assertEquals(0, countFiles(path(destDir)), "nothing must be extracted when the bundle jar is not in the source dir");
+	}
 
-			for (File constructedFile : fileCons.constructed()) {
-				verify(constructedFile, times(0)).toPath();
-			}
+	private void createJar(String name) throws IOException {
+		try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(sourceDir.resolve(name)))) {
+			jar.putNextEntry(new JarEntry(SCRIPT_ENTRY));
+			jar.write(SCRIPT_CONTENT.getBytes(StandardCharsets.UTF_8));
+			jar.closeEntry();
+		}
+	}
+
+	private static Path path(String dir) {
+		return new File(dir).toPath();
+	}
+
+	private static long countFiles(Path dir) throws IOException {
+		try (java.util.stream.Stream<Path> paths = Files.list(dir)) {
+			return paths.count();
+		}
+	}
+
+	private static void deleteRecursively(Path dir) throws IOException {
+		if (dir == null || !Files.exists(dir)) {
+			return;
+		}
+		try (java.util.stream.Stream<Path> paths = Files.walk(dir)) {
+			paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 		}
 	}
 }

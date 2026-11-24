@@ -58,6 +58,39 @@ public class FileSystemWatcherTest {
 	}
 
 	@Test
+	@Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
+	public void handlerFailureDoesNotStopTheWatcher() throws Exception {
+		List<String> handled = new CopyOnWriteArrayList<>();
+		watcher = new FileSystemWatcher(tempDir,
+				(dir, event) -> {
+					handled.add(String.valueOf(event.context()));
+					// The first event blows up: the watcher must survive it and keep dispatching.
+					if (handled.size() == 1) {
+						throw new IllegalStateException("handler boom");
+					}
+				},
+				ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+		watcher.start();
+
+		assertTrue(new File(tempDir.toFile(), "first.txt").createNewFile());
+		waitUntil(() -> handled.size() >= 1);
+		assertFalse(handled.isEmpty(), "the handler must have been called at least once");
+
+		assertTrue(new File(tempDir.toFile(), "second.txt").createNewFile());
+		waitUntil(() -> handled.size() >= 2);
+
+		assertTrue(handled.size() >= 2,
+				"the watcher stopped dispatching after the handler threw: " + handled);
+	}
+
+	private void waitUntil(java.util.function.BooleanSupplier condition) throws InterruptedException {
+		long deadline = System.currentTimeMillis() + 4000;
+		while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
+			Thread.sleep(50);
+		}
+	}
+
+	@Test
 	public void stopBeforeStartIsNoOp() {
 		watcher = new FileSystemWatcher(tempDir, (dir, event) -> { }, ENTRY_CREATE);
 		// watchService/executor are still null; stop() must not throw

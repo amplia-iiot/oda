@@ -10,7 +10,7 @@ Reactor padre: `es.amplia.oda:oda-parent`, versión `4.17.0-SNAPSHOT`, `packagin
 
 ## Comandos de build y test
 
-Requiere **JDK 8**, Maven (sin wrapper) y — para compilar las dependencias externas nativas — Git, **Mercurial** (`hg`) y **CMake**.
+Requiere **JDK 17**, Maven (sin wrapper) y — para compilar las dependencias externas nativas — Git, **Mercurial** (`hg`) y **CMake**.
 
 Las dependencias externas (`dnp3`, `diozero`) viven en el **submódulo git `oda-externaldependencies`**, que *no* forma parte del reactor padre y está **vacío en un checkout recién clonado**. Instálalas en `~/.m2` antes de compilar o `mvn package` fallará:
 
@@ -72,11 +72,11 @@ Grupos de apoyo: **oda-core** (`commons` — la base compartida), **oda-comms** 
 
 ## Convenciones de código
 
-- **Java 8**, UTF-8. **Lombok** en todo el proyecto (`@Slf4j`, etc.; ver `lombok.config` en la raíz).
+- **Java 17** (`maven.compiler.release=17`), UTF-8. **Lombok** en todo el proyecto (`@Slf4j`, etc.; ver `lombok.config` en la raíz).
 - **Sin Declarative Services / Blueprint.** La inyección de dependencias es **OSGi programático clásico**: cada bundle tiene un `Activator implements BundleActivator`. En `start()` instancia proxies + service listeners y llama a `bundleContext.registerService(...)`; `stop()` desregistra/cierra. Referencia: `oda-connectors/mqtt/.../Activator.java`.
 - Reutiliza los helpers de `commons` al extender: `OsgiServiceProxy` (+ subclases tipadas como `DispatcherProxy`, `StateManagerProxy`), `ServiceListenerBundle<T>`, `ServiceRegistrationManager`, `ServiceLocator`, `Scheduler`, `ScriptsLoader`, y `ConfigurableBundleImpl` + `ConfigurationUpdateHandler` para la configuración vía ConfigAdmin.
 - **Empaquetado de bundles** (patrón repetido, ver `oda-connectors/mqtt/pom.xml`): `packaging=bundle` con `maven-bundle-plugin`; `Bundle-Activator=${bundle.namespace}.Activator`, `Export-Package=!*` (los bundles no exportan nada por defecto), `Private-Package=${bundle.namespace}.*`, las libs de terceros se embeben con `Embed-Dependency`.
-- **Testing**: JUnit 4.12 + Mockito 1.10.19 + **PowerMock 1.7.4** + Hamcrest 1.3, nomenclatura `*Test.java`, cobertura con JaCoCo. Logging: API SLF4J, `slf4j-nop` en tests.
+- **Testing**: JUnit 4.13.2 + **Mockito 5.14.2** (mock-maker inline por defecto) + Hamcrest 1.3, nomenclatura `*Test.java`, cobertura con JaCoCo. **PowerMock retirado**; solo se conserva `powermock-reflect` por `Whitebox`. Logging: API SLF4J, `slf4j-nop` en tests.
 
 ## Configuración de runtime
 
