@@ -20,7 +20,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <osgi.version>5.0.0</osgi.version>
         <!-- Nashorn eliminado del JDK en Java 15 (JEP 372); se usa el standalone de OpenJDK -->
-        <nashorn.version>15.4</nashorn.version>
+        <nashorn.version>15.7</nashorn.version>
 
         <hamcrest.version>1.3</hamcrest.version>
         <junit.version>4.13.2</junit.version>
