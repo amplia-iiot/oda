@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
@@ -56,7 +57,9 @@ public class FileSystemWatcher {
                 thread.setDaemon(true);
                 return thread;
             });
-            executor.submit(this::watch);
+            // execute() and not submit(): the Future is never read, and submit() would bury
+            // any throwable that escapes watch() in it.
+            executor.execute(this::watch);
         } catch (IOException e) {
             LOGGER.error("Error creating filesystem watcher for directory {}", path, e);
         }
@@ -67,12 +70,30 @@ public class FileSystemWatcher {
             while (!Thread.currentThread().isInterrupted()) {
                 WatchKey key = watchService.take();
                 Thread.sleep(EVENT_DEBOUNCE_MILLIS);
-                key.pollEvents().forEach(event -> eventHandler.accept(path, event));
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    dispatch(event);
+                }
                 key.reset();
             }
         } catch (InterruptedException e) {
             LOGGER.error("Filesystem watcher for directory {} was interrupted. Watcher will be stopped", path, e);
             Thread.currentThread().interrupt();
+        } catch (ClosedWatchServiceException e) {
+            LOGGER.debug("Filesystem watcher for directory {} was closed. Watcher is stopped", path);
+        }
+    }
+
+    /**
+     * A failing handler must not take the watcher down with it: this loop is the only thing
+     * feeding hot reload, so an exception escaping here would stop every further event with
+     * nothing in the log.
+     */
+    private void dispatch(WatchEvent<?> event) {
+        try {
+            eventHandler.accept(path, event);
+        } catch (RuntimeException e) {
+            LOGGER.error("Error handling {} event for {} in directory {}. Watcher keeps running",
+                    event.kind().name(), event.context(), path, e);
         }
     }
 

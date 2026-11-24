@@ -54,6 +54,38 @@ public class FileSystemWatcherTest {
 		assertTrue(events.stream().anyMatch(e -> e.contains("created.txt")));
 	}
 
+	@Test(timeout = 10000)
+	public void handlerFailureDoesNotStopTheWatcher() throws Exception {
+		List<String> handled = new CopyOnWriteArrayList<>();
+		watcher = new FileSystemWatcher(tempDir,
+				(dir, event) -> {
+					handled.add(String.valueOf(event.context()));
+					// The first event blows up: the watcher must survive it and keep dispatching.
+					if (handled.size() == 1) {
+						throw new IllegalStateException("handler boom");
+					}
+				},
+				ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+		watcher.start();
+
+		assertTrue(new File(tempDir.toFile(), "first.txt").createNewFile());
+		waitUntil(() -> handled.size() >= 1);
+		assertFalse("the handler must have been called at least once", handled.isEmpty());
+
+		assertTrue(new File(tempDir.toFile(), "second.txt").createNewFile());
+		waitUntil(() -> handled.size() >= 2);
+
+		assertTrue("the watcher stopped dispatching after the handler threw: " + handled,
+				handled.size() >= 2);
+	}
+
+	private void waitUntil(java.util.function.BooleanSupplier condition) throws InterruptedException {
+		long deadline = System.currentTimeMillis() + 4000;
+		while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
+			Thread.sleep(50);
+		}
+	}
+
 	@Test
 	public void stopBeforeStartIsNoOp() {
 		watcher = new FileSystemWatcher(tempDir, (dir, event) -> { }, ENTRY_CREATE);
