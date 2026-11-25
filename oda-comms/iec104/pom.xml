@@ -38,7 +38,8 @@
                         </Export-Package>
                         <Import-Package>!com.google.code.findbugs,!commons-logging,!log4j,!org.javassist,!commons-beanutils,
                             !com.google.protobuf,!javax.*,!com.jcraft.jzlib,!javassist,!org.apache.commons.*,
-                            !org.apache.log4j.*,!sun.*,!org.jboss.marshalling,*
+                            !org.apache.log4j.*,!sun.*,!org.jboss.marshalling,
+                            !com.google.appengine.*,!com.google.apphosting.*,!android.*,*
                         </Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                         <Embed-Dependency>org.eclipse.neoscada.protocol.iec60870,guava,netty-transport,netty-buffer,netty-codec,
