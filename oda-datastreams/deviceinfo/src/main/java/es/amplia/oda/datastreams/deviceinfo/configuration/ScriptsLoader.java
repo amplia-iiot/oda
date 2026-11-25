@@ -58,9 +58,14 @@ public class ScriptsLoader {
 		}
 
 		if (jarToExtract != null) {
+			// Scripts need READ as well as EXECUTE: the interpreter opens them, so with only
+			// --x--x--x they fail with "Permission denied" unless run as root
 			Set<PosixFilePermission> perms = new HashSet<>();
+			perms.add(PosixFilePermission.OWNER_READ);
 			perms.add(PosixFilePermission.OWNER_EXECUTE);
+			perms.add(PosixFilePermission.GROUP_READ);
 			perms.add(PosixFilePermission.GROUP_EXECUTE);
+			perms.add(PosixFilePermission.OTHERS_READ);
 			perms.add(PosixFilePermission.OTHERS_EXECUTE);
 			try {
 				// copy jar to extract to scripts folder
