@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.operation.api.engine.OperationScriptTranslator;
 import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfiguration;
 import es.amplia.oda.ruleengine.api.ScriptTranslator;
@@ -71,15 +72,15 @@ public class NashornScriptTranslator implements ScriptTranslator, OperationScrip
 
     @Override
     public Object runMethod(String script, String method, Object... params) {
+        Invocable rule = (Invocable) engines.get(script);
         try {
-            Invocable rule = (Invocable) engines.get(script);
-            params[0] = rule.invokeFunction(method, params);
-        } catch (ScriptException e) {
-            log.error("Error trying to execute script " + script + " method " + method, e);
-        } catch (NoSuchMethodException e) {
-            log.error("Method {} doesn't exists on script {}", method, script);
+            // No se asigna a params[0]: si invokeFunction lanza, devolver params[0] entregaria el
+            // primer parametro de entrada (el State en las reglas, el deviceId en las operaciones)
+            // como si fuera el resultado del script
+            return rule.invokeFunction(method, params);
+        } catch (ScriptException | NoSuchMethodException e) {
+            throw new ScriptExecutionException(script, method, e);
         }
-        return params[0];
     }
 
     @Override
