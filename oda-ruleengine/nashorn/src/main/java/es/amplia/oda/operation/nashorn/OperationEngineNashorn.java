@@ -27,7 +27,8 @@ public class OperationEngineNashorn implements OperationEngine {
     private static final Logger LOGGER = LoggerFactory.getLogger(OperationEngineNashorn.class);
 
     private String path;
-    private HashMap<String, OperationScript> operations;
+    // Empty until configured, so unknown operations end in OperationNotFound instead of an NPE
+    private HashMap<String, OperationScript> operations = new HashMap<>();
     private OperationScriptTranslator script;
     private OperationDirectoryWatcher operationsWatcher;
     private OperationDirectoryWatcher operationsUtilsWatcher;
@@ -38,6 +39,7 @@ public class OperationEngineNashorn implements OperationEngine {
     }
 
     public void loadConfiguration(OperationEngineConfiguration config) {
+        stopWatchers();
         this.path = config.getPath();
         this.operations = new HashMap<>();
         this.operationsWatcher = new OperationDirectoryWatcher(Paths.get(this.path), this);
@@ -105,14 +107,18 @@ public class OperationEngineNashorn implements OperationEngine {
 
     public void stop() {
         LOGGER.info("Stopping the operation engine");
-        if (this.operations != null) {
-            this.operations.clear();
-        }
+        this.operations.clear();
+        stopWatchers();
+    }
+
+    private void stopWatchers() {
         if (this.operationsWatcher != null) {
             this.operationsWatcher.stop();
+            this.operationsWatcher = null;
         }
         if (this.operationsUtilsWatcher != null) {
             this.operationsUtilsWatcher.stop();
+            this.operationsUtilsWatcher = null;
         }
     }
 }
