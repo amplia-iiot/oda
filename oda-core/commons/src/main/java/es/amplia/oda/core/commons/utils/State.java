@@ -579,4 +579,64 @@ public class State {
         return new DatastreamValue(deviceId, datastreamId, null, System.currentTimeMillis(), null,
                 DatastreamValue.Status.NOT_FOUND, "Datastream not found", false, false);
     }
+
+    /**
+     * Logs a message in INFO level.
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     * @deprecated kept for backwards compatibility with rules written against 4.15 and earlier.
+     *             Use the equivalent method of {@link OsgiContext} instead.
+     */
+    @Deprecated
+    public void logInfo(String msg, Object...objects) {
+        LOGGER.info(msg, objects);
+    }
+
+    /**
+     * Logs a message in DEBUG level.
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     * @deprecated kept for backwards compatibility with rules written against 4.15 and earlier.
+     *             Use the equivalent method of {@link OsgiContext} instead.
+     */
+    @Deprecated
+    public void logDebug(String msg, Object...objects) {
+        LOGGER.debug(msg, objects);
+    }
+
+    /**
+     * Logs a message in ERROR level.
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     * @deprecated kept for backwards compatibility with rules written against 4.15 and earlier.
+     *             Use the equivalent method of {@link OsgiContext} instead.
+     */
+    @Deprecated
+    public void logError(String msg, Object...objects) {
+        LOGGER.error(msg, objects);
+    }
+
+    /**
+     * Logs a message in TRACE level.
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     * @deprecated kept for backwards compatibility with rules written against 4.15 and earlier.
+     *             Use the equivalent method of {@link OsgiContext} instead.
+     */
+    @Deprecated
+    public void logTrace(String msg, Object...objects) {
+        LOGGER.trace(msg, objects);
+    }
+
+    /**
+     * Logs a message in WARN level.
+     * @param msg the message to log
+     * @param objects the variables used in log message
+     * @deprecated kept for backwards compatibility with rules written against 4.15 and earlier.
+     *             Use the equivalent method of {@link OsgiContext} instead.
+     */
+    @Deprecated
+    public void logWarn(String msg, Object...objects) {
+        LOGGER.warn(msg, objects);
+    }
 }
