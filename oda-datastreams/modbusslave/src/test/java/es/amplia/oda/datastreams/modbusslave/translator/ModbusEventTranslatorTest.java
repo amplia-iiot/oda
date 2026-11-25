@@ -1,6 +1,7 @@
 package es.amplia.oda.datastreams.modbusslave.translator;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,6 +14,12 @@ public class ModbusEventTranslatorTest {
     private static final String TEST_DATATYPE = "Short";
     private static final int TEST_START_MODBUS_ADDRESS = 254;
     private static final int TEST_END_MODBUS_ADDRESS = 286;
+
+    // The translator keeps its entries in static state shared with other test classes
+    @BeforeEach
+    void clearTranslator() {
+        ModbusEventTranslator.clearAllEntries();
+    }
 
     @Test
     public void testAddEntry() {

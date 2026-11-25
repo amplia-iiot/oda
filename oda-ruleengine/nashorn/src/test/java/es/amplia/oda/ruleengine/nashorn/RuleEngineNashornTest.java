@@ -8,6 +8,7 @@ import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -184,15 +185,16 @@ public class RuleEngineNashornTest {
 	}
 
 	@Test
-	public void testCreateDatastreamDirectory() throws Exception {
-		Whitebox.setInternalState(testRuleEngine, "watcher", new HashMap<>());
+	public void testCreateDatastreamDirectory(@TempDir java.nio.file.Path root) throws Exception {
+		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
+		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
+		Whitebox.setInternalState(testRuleEngine, "path", root.toString() + File.separator);
+		java.nio.file.Files.createDirectory(root.resolve("testDatastream"));
 
-		try (MockedConstruction<File> fileConstruction = mockConstruction(File.class,
-				(mock, mctx) -> when(mock.isDirectory()).thenReturn(true))) {
-			testRuleEngine.createDatastreamDirectory("testDatastream");
-		}
+		testRuleEngine.createDatastreamDirectory("testDatastream");
 
-		assertTrue(((HashMap) Whitebox.getInternalState(testRuleEngine, "watcher")).size() > 0);
+		assertTrue(watchers.size() > 0);
+		watchers.values().forEach(DirectoryWatcher::stop);
 	}
 
 	@Test

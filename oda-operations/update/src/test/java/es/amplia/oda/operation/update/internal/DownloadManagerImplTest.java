@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -28,11 +29,15 @@ import org.powermock.reflect.Whitebox;
 import javax.net.ssl.SSLContext;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
@@ -82,6 +87,9 @@ public class DownloadManagerImplTest {
 
     private Map<DeploymentElement, String> testDownloadedFiles;
 
+    @TempDir
+    Path tempDir;
+
     @BeforeAll
     public static void loadClassesUsedInsideMockedScopes() throws Exception {
         Class.forName(DownloadManagerImpl.class.getName() + "$1");
@@ -128,62 +136,7 @@ public class DownloadManagerImplTest {
 
     @Test
     public void testDownloadSoftware() throws Exception {
-        HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
-        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
-        CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-        HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + NAME_1 + "-" + VERSION_1 + ".jar";
-
-        List<List<?>> httpGetArgs = new ArrayList<>();
-        List<List<?>> readerArgs = new ArrayList<>();
-        List<List<?>> fileArgs = new ArrayList<>();
-        try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class,
-                     (mock, mctx) -> httpGetArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class);
-             MockedConstruction<DataInputStream> readerCons = mockConstruction(DataInputStream.class,
-                     (mock, mctx) -> {
-                         readerArgs.add(new ArrayList<>(mctx.arguments()));
-                         when(mock.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
-                     });
-             MockedConstruction<File> fileCons = mockConstruction(File.class,
-                     (mock, mctx) -> fileArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedConstruction<FileOutputStream> fileOutputStreamCons = mockConstruction(FileOutputStream.class);
-             MockedConstruction<DataOutputStream> writerCons = mockConstruction(DataOutputStream.class)) {
-
-            when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-            mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
-            when(mockedBuilder.setSSLContext(any())).thenReturn(mockedBuilder);
-            when(mockedBuilder.build()).thenReturn(mockedClient);
-            when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-            when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-            when(mockedEntity.getContent()).thenReturn(mockedContent);
-            when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-            when(mockedStatusLine.getStatusCode()).thenReturn(200);
-
-            testDownloadManager.download(deploymentElement1);
-
-            HttpGet mockedHttpGet = httpGetCons.constructed().get(0);
-            DataInputStream mockedReader = readerCons.constructed().get(0);
-            DataOutputStream mockedWriter = writerCons.constructed().get(0);
-
-            assertEquals(URL_1, httpGetArgs.get(0).get(0));
-            verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
-            verify(mockedClient).execute(eq(mockedHttpGet));
-            assertEquals(mockedContent, readerArgs.get(0).get(0));
-            assertTrue(fileArgs.stream().anyMatch(args -> args.contains(downloadedFile)));
-
-            //noinspection ResultOfMethodCallIgnored
-            verify(mockedReader, times(3)).read(any());
-            verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-            assertEquals(downloadedFile, testDownloadManager.getDownloadedFile(deploymentElement1));
-
-            verify(mockedClient).close();
-            mockedResponse.close();
-            mockedReader.close();
-            mockedWriter.close();
-        }
+        assertDownloads(deploymentElement1, NAME_1 + "-" + VERSION_1 + ".jar");
     }
 
     @Test
@@ -193,62 +146,8 @@ public class DownloadManagerImplTest {
                 new DeploymentElement(configurationDeploymentElementName, TEST_VERSION, DeploymentElementType.CONFIGURATION,
                         URL_1, "configuration/", 1L, DeploymentElementOperationType.INSTALL,
                         Collections.EMPTY_LIST, 0L, "0.0.9", DeploymentElementOption.MANDATORY);
-        HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
-        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
-        CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-        HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + configurationDeploymentElementName + ".cfg";
 
-        List<List<?>> httpGetArgs = new ArrayList<>();
-        List<List<?>> readerArgs = new ArrayList<>();
-        List<List<?>> fileArgs = new ArrayList<>();
-        try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class,
-                     (mock, mctx) -> httpGetArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class);
-             MockedConstruction<DataInputStream> readerCons = mockConstruction(DataInputStream.class,
-                     (mock, mctx) -> {
-                         readerArgs.add(new ArrayList<>(mctx.arguments()));
-                         when(mock.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
-                     });
-             MockedConstruction<File> fileCons = mockConstruction(File.class,
-                     (mock, mctx) -> fileArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedConstruction<FileOutputStream> fileOutputStreamCons = mockConstruction(FileOutputStream.class);
-             MockedConstruction<DataOutputStream> writerCons = mockConstruction(DataOutputStream.class)) {
-
-            when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-            mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
-            when(mockedBuilder.setSSLContext(any())).thenReturn(mockedBuilder);
-            when(mockedBuilder.build()).thenReturn(mockedClient);
-            when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-            when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-            when(mockedEntity.getContent()).thenReturn(mockedContent);
-            when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-            when(mockedStatusLine.getStatusCode()).thenReturn(200);
-
-            testDownloadManager.download(configurationDeploymentElement);
-
-            HttpGet mockedHttpGet = httpGetCons.constructed().get(0);
-            DataInputStream mockedReader = readerCons.constructed().get(0);
-            DataOutputStream mockedWriter = writerCons.constructed().get(0);
-
-            assertEquals(URL_1, httpGetArgs.get(0).get(0));
-            verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
-            verify(mockedClient).execute(eq(mockedHttpGet));
-            assertEquals(mockedContent, readerArgs.get(0).get(0));
-            assertTrue(fileArgs.stream().anyMatch(args -> args.contains(downloadedFile)));
-
-            //noinspection ResultOfMethodCallIgnored
-            verify(mockedReader, times(3)).read(any());
-            verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-            assertEquals(downloadedFile, testDownloadManager.getDownloadedFile(configurationDeploymentElement));
-
-            verify(mockedClient).close();
-            mockedResponse.close();
-            mockedReader.close();
-            mockedWriter.close();
-        }
+        assertDownloads(configurationDeploymentElement, configurationDeploymentElementName + ".cfg");
     }
 
     @Test
@@ -259,29 +158,28 @@ public class DownloadManagerImplTest {
                         URL_1, "", 1L, DeploymentElementOperationType.INSTALL,
                         Collections.EMPTY_LIST, 0L, "0.0.9",
                         DeploymentElementOption.MANDATORY);
+
+        assertDownloads(otherDeploymentElement, otherTypeDeploymentElementName);
+    }
+
+    // Writes to a real temporary folder: mocking File or the JDK streams also intercepts the
+    // ones the JVM itself creates (class loading), which breaks other tests depending on order
+    private void assertDownloads(DeploymentElement element, String expectedFileName) throws Exception {
+        String downloadsPath = tempDir.toString() + File.separator;
+        testDownloadManager.loadConfig("rules/", "jslib/", "deploy/", "configuration/", downloadsPath);
+        byte[] content = new byte[6144];
+        new Random(42).nextBytes(content);
+
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
         CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
         HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
         StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + otherTypeDeploymentElementName;
 
         List<List<?>> httpGetArgs = new ArrayList<>();
-        List<List<?>> readerArgs = new ArrayList<>();
-        List<List<?>> fileArgs = new ArrayList<>();
         try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class,
                      (mock, mctx) -> httpGetArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class);
-             MockedConstruction<DataInputStream> readerCons = mockConstruction(DataInputStream.class,
-                     (mock, mctx) -> {
-                         readerArgs.add(new ArrayList<>(mctx.arguments()));
-                         when(mock.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
-                     });
-             MockedConstruction<File> fileCons = mockConstruction(File.class,
-                     (mock, mctx) -> fileArgs.add(new ArrayList<>(mctx.arguments())));
-             MockedConstruction<FileOutputStream> fileOutputStreamCons = mockConstruction(FileOutputStream.class);
-             MockedConstruction<DataOutputStream> writerCons = mockConstruction(DataOutputStream.class)) {
+             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class)) {
 
             when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
             mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
@@ -289,31 +187,21 @@ public class DownloadManagerImplTest {
             when(mockedBuilder.build()).thenReturn(mockedClient);
             when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
             when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-            when(mockedEntity.getContent()).thenReturn(mockedContent);
+            when(mockedEntity.getContent()).thenReturn(new ByteArrayInputStream(content));
             when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
             when(mockedStatusLine.getStatusCode()).thenReturn(200);
 
-            testDownloadManager.download(otherDeploymentElement);
+            testDownloadManager.download(element);
 
             HttpGet mockedHttpGet = httpGetCons.constructed().get(0);
-            DataInputStream mockedReader = readerCons.constructed().get(0);
-            DataOutputStream mockedWriter = writerCons.constructed().get(0);
-
             assertEquals(URL_1, httpGetArgs.get(0).get(0));
             verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
             verify(mockedClient).execute(eq(mockedHttpGet));
-            assertEquals(mockedContent, readerArgs.get(0).get(0));
-            assertTrue(fileArgs.stream().anyMatch(args -> args.contains(downloadedFile)));
-
-            //noinspection ResultOfMethodCallIgnored
-            verify(mockedReader, times(3)).read(any());
-            verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-            assertEquals(downloadedFile, testDownloadManager.getDownloadedFile(otherDeploymentElement));
-
             verify(mockedClient).close();
-            mockedResponse.close();
-            mockedReader.close();
-            mockedWriter.close();
+
+            String downloadedFile = downloadsPath + expectedFileName;
+            assertEquals(downloadedFile, testDownloadManager.getDownloadedFile(element));
+            assertArrayEquals(content, Files.readAllBytes(Paths.get(downloadedFile)));
         }
     }
 
@@ -337,19 +225,16 @@ public class DownloadManagerImplTest {
 
     @Test
     public void testDownloadHttpResponseError() throws Exception {
+        testDownloadManager.loadConfig("rules/", "jslib/", "deploy/", "configuration/",
+                tempDir.toString() + File.separator);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
         CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
         HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
         StatusLine mockedStatusLine = mock(StatusLine.class);
 
         try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class);
-             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class);
-             MockedConstruction<DataInputStream> readerCons = mockConstruction(DataInputStream.class);
-             MockedConstruction<File> fileCons = mockConstruction(File.class);
-             MockedConstruction<FileOutputStream> fileOutputStreamCons = mockConstruction(FileOutputStream.class);
-             MockedConstruction<DataOutputStream> writerCons = mockConstruction(DataOutputStream.class)) {
+             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class)) {
 
             when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
             mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
@@ -357,7 +242,7 @@ public class DownloadManagerImplTest {
             when(mockedBuilder.build()).thenReturn(mockedClient);
             when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
             when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-            when(mockedEntity.getContent()).thenReturn(mockedContent);
+            when(mockedEntity.getContent()).thenReturn(new ByteArrayInputStream(new byte[0]));
             when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
             when(mockedStatusLine.getStatusCode()).thenReturn(404);
 
