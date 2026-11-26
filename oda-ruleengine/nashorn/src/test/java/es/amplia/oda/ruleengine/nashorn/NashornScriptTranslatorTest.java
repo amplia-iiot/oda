@@ -1,6 +1,7 @@
 package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
@@ -121,9 +124,13 @@ public class NashornScriptTranslatorTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
-		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value, null);
+		// Antes devolvia el State de entrada como si fuera el resultado del script
+		ScriptExecutionException thrown = assertThrows(ScriptExecutionException.class,
+				() -> testTranslator.runMethod("rule.js", "nothing", mockedState, value, null));
 
-		assertEquals(mockedState, state);
+		assertEquals("rule.js", thrown.getScript());
+		assertEquals("nothing", thrown.getMethod());
+		assertNotNull(thrown.getCause());
 	}
 
 	@Test
@@ -136,9 +143,10 @@ public class NashornScriptTranslatorTest {
 				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
 		Whitebox.setInternalState(testTranslator, "engines", map);
 
-		State state = (State) testTranslator.runMethod("rule.js", "nothing", mockedState, value, null);
+		ScriptExecutionException thrown = assertThrows(ScriptExecutionException.class,
+				() -> testTranslator.runMethod("rule.js", "nothing", mockedState, value, null));
 
-		assertEquals(mockedState, state);
+		assertEquals("nothing", thrown.getMethod());
 	}
 
 	@Test

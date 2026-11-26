@@ -2,6 +2,7 @@ package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.OsgiContext;
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
@@ -182,6 +183,31 @@ public class RuleEngineNashornTest {
 
 		assertEquals(mockedState, state);
 		verify(mockedScriptTranslator, never()).runMethod("nameRule", "then", mockedState, value, mockedContext);
+	}
+
+	@Test
+	public void testEngineStartedScriptExecutionException() throws ScriptException {
+		// Un fallo del script no debe tumbar el motor ni saltarse las reglas siguientes
+		String path = "origin/path";
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
+				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		HashMap<String, Rule> rules = new HashMap<>();
+		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
+		Rule rule = new Rule(path + "testDatastream", Collections.singletonList("testDatastream"), mockedScriptTranslator);
+		rules.put(path + "testDatastream", rule);
+		watchers.put("testDatastream", mockedRuleWatcher);
+		when(mockedScriptTranslator.runMethod(path + "testDatastream", "when", mockedState, value, mockedContext))
+				.thenThrow(new ScriptExecutionException(path + "testDatastream", "when", new RuntimeException("boom")));
+		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(true);
+		Whitebox.setInternalState(testRuleEngine, "started", true);
+		Whitebox.setInternalState(testRuleEngine, "rules", rules);
+		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
+		Whitebox.setInternalState(testRuleEngine, "path", path);
+
+		State state = testRuleEngine.engine(mockedState, value, mockedContext);
+
+		assertEquals(mockedState, state);
+		verify(mockedScriptTranslator, never()).runMethod(path + "testDatastream", "then", mockedState, value, mockedContext);
 	}
 
 	@Test
