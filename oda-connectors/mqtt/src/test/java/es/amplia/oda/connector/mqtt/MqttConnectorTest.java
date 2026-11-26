@@ -4,28 +4,30 @@ import es.amplia.oda.comms.mqtt.api.*;
 import es.amplia.oda.connector.mqtt.configuration.ConnectorConfiguration;
 import es.amplia.oda.core.commons.entities.ContentType;
 import es.amplia.oda.core.commons.interfaces.Dispatcher;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 
 import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(MqttCounters.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class MqttConnectorTest {
 
     private static final String TEST_USERNAME = "testUser";
@@ -65,7 +67,9 @@ public class MqttConnectorTest {
     @Captor
     private ArgumentCaptor<Consumer<byte[]>> byteArrayConsumerCaptor;
 
-    @Before
+    private MockedStatic<MqttCounters> mqttCountersStatic;
+
+    @BeforeEach
     public void setUp() {
         Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, mockedMqttClient);
         Whitebox.setInternalState(testConnector, IOT_TOPIC_FIELD_NAME, TEST_IOT_TOPIC);
@@ -79,7 +83,12 @@ public class MqttConnectorTest {
                 TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         Whitebox.setInternalState(testConnector, "connectorConfiguration", testConfiguration);
 
-        PowerMockito.mockStatic(MqttCounters.class);
+        mqttCountersStatic = mockStatic(MqttCounters.class);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        mqttCountersStatic.close();
     }
 
     @Test
@@ -99,7 +108,7 @@ public class MqttConnectorTest {
         verifyConnection(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1);
         assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
         assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
-        assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
+        assertEquals(TEST_QOS, (int) Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
     }
 
@@ -132,7 +141,7 @@ public class MqttConnectorTest {
                 TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         MqttClient newMockedClient = mock(MqttClient.class);
 
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
 
@@ -141,7 +150,7 @@ public class MqttConnectorTest {
         verifyConnection(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1);
         assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
         assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
-        assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
+        assertEquals(TEST_QOS, (int) Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
     }
 
@@ -153,7 +162,7 @@ public class MqttConnectorTest {
                 TEST_INITIAL_DELAY, TEST_RETRY_DELAY, TEST_HAS_MAX_LENGTH, TEST_MAX_LENGTH);
         MqttClient newMockedClient = mock(MqttClient.class);
 
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         when(mockedFactory.createMqttClient(anyString(), anyString())).thenReturn(newMockedClient);
         doThrow(new MqttException("", 0)).when(newMockedClient).connect(any(MqttConnectOptions.class), any(MqttActionListener.class));
@@ -163,7 +172,7 @@ public class MqttConnectorTest {
         verifyConnectionRetry(testOptions, newMockedClient, TEST_INITIAL_DELAY + 1, TEST_RETRY_DELAY + 1);
         assertEquals(TEST_IOT_TOPIC, Whitebox.getInternalState(testConnector, IOT_TOPIC_FIELD_NAME));
         assertEquals(TEST_RESPONSE_TOPIC, Whitebox.getInternalState(testConnector, RESPONSE_TOPIC_FIELD_NAME));
-        assertEquals(TEST_QOS, Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
+        assertEquals(TEST_QOS, (int) Whitebox.getInternalState(testConnector, QOS_FIELD_NAME));
         assertEquals(TEST_RETAINED, Whitebox.getInternalState(testConnector, RETAINED_FIELD_NAME));
     }
 
@@ -215,7 +224,7 @@ public class MqttConnectorTest {
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
         verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
-        verifyZeroInteractions(mockedMqttClient);
+        verifyNoInteractions(mockedMqttClient);
     }
 
     @Test
@@ -225,7 +234,7 @@ public class MqttConnectorTest {
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
         verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
-        verifyZeroInteractions(mockedMqttClient);
+        verifyNoInteractions(mockedMqttClient);
     }
 
     @Test
@@ -239,7 +248,7 @@ public class MqttConnectorTest {
         testConnector.messageArrived(TEST_TOPIC, TEST_MESSAGE);
 
         verify(mockedDispatcher).process(aryEq(TEST_PAYLOAD), eq(ContentType.JSON));
-        verifyZeroInteractions(mockedMqttClient);
+        verifyNoInteractions(mockedMqttClient);
     }
 
     @Test
@@ -257,18 +266,18 @@ public class MqttConnectorTest {
     public void testUplinkMqttDisconnected() {
         byte[] payload = new byte[]{1, 2, 3, 4};
 
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         testConnector.uplink(payload);
 
-        verifyZeroInteractions(mockedMqttClient);
+        verifyNoInteractions(mockedMqttClient);
     }
 
     @Test
     public void testUplinkNullPayload() {
         testConnector.uplink(null);
 
-        verifyZeroInteractions(mockedMqttClient);
+        verifyNoInteractions(mockedMqttClient);
     }
 
     @Test
@@ -295,7 +304,7 @@ public class MqttConnectorTest {
 
     @Test
     public void testIsConnectedNullClient() {
-        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, null);
+        Whitebox.setInternalState(testConnector, CLIENT_FIELD_NAME, (Object) null);
 
         boolean connected = testConnector.isConnected();
 
@@ -320,11 +329,11 @@ public class MqttConnectorTest {
 
     @Test
     public void testCloseWithNullClient() {
-        Whitebox.setInternalState(testConnector, "client", null);
+        Whitebox.setInternalState(testConnector, "client", (Object) null);
 
         testConnector.close();
 
-        assertTrue("No exception is thrown", true);
+        assertTrue(true, "No exception is thrown");
     }
 
     @Test

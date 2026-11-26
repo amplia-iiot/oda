@@ -7,8 +7,9 @@ import es.amplia.oda.hardware.atmanager.api.ATEvent;
 import es.amplia.oda.hardware.atmanager.api.ATManager;
 import es.amplia.oda.hardware.atmanager.api.ATResponse;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class ATManagerImplTest {
@@ -57,9 +58,9 @@ public class ATManagerImplTest {
     private OutputStream outputStream;
     private ATManager atManager;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
 
         atManager = new ATManagerImpl(atParser, outputStream);
         when(atParser.process(AN_EVENT_STRING)).thenReturn(ATParser.Result.unsolicitedResponse(AN_EVENT, AN_EVENT_PARAMETERS));
@@ -84,28 +85,28 @@ public class ATManagerImplTest {
         }
     }
 
-    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    @Test
     public void canNotRegisterSameEventTwoTimes() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
-        atManager.registerEvent(AN_EVENT, eventHandler);
+        assertThrows(ATManager.AlreadyRegisteredException.class, () -> atManager.registerEvent(AN_EVENT, eventHandler));
     }
 
-    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    @Test
     public void canNotRegisterSameCommandTwoTimes() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
-        atManager.registerCommand(A_COMMAND, aCommandHandler);
+        assertThrows(ATManager.AlreadyRegisteredException.class, () -> atManager.registerCommand(A_COMMAND, aCommandHandler));
     }
 
-    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    @Test
     public void canNotRegisterEventIfACommandWithSameNameIsAlreadyRegistered() throws ATManager.AlreadyRegisteredException {
         atManager.registerCommand(A_COMMAND, aCommandHandler);
-        atManager.registerEvent(A_COMMAND, eventHandler);
+        assertThrows(ATManager.AlreadyRegisteredException.class, () -> atManager.registerEvent(A_COMMAND, eventHandler));
     }
 
-    @Test(expected = ATManager.AlreadyRegisteredException.class)
+    @Test
     public void canNotRegisterCommandIfAnEventWithSameNameIsAlreadyRegistered() throws ATManager.AlreadyRegisteredException {
         atManager.registerEvent(AN_EVENT, eventHandler);
-        atManager.registerCommand(AN_EVENT, aCommandHandler);
+        assertThrows(ATManager.AlreadyRegisteredException.class, () -> atManager.registerCommand(AN_EVENT, aCommandHandler));
     }
 
     @Test
@@ -192,7 +193,8 @@ public class ATManagerImplTest {
         verify(outputStream).write("\r\nERROR: 12\r\n".getBytes());
     }
 
-    @Test(timeout = 500)
+    @Test
+    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
     public void sendSendsTheCommandToTheWireAndWaitsForResponse() throws IOException, ExecutionException, InterruptedException {
         peerWillRespondWith(ATParser.Result.completeResponseOk());
 
@@ -202,7 +204,8 @@ public class ATManagerImplTest {
         assertTrue(actual.isOk());
     }
 
-    @Test(timeout = 500)
+    @Test
+    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
     public void sendSetsAtParserInResponseMode() throws IOException {
         peerWillRespondWith(ATParser.Result.completeResponseOk());
 
@@ -211,7 +214,8 @@ public class ATManagerImplTest {
         verify(atParser).setResponseMode(A_COMMAND);
     }
 
-    @Test(timeout = 500)
+    @Test
+    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
     public void partialResponsesAreAccumulatedAndReturned() throws IOException, ExecutionException, InterruptedException {
         List<String> responseParameters1 = Arrays.asList("1", "2");
         List<String> responseParameters2 = Arrays.asList("3", "4");
@@ -229,7 +233,8 @@ public class ATManagerImplTest {
         assertTrue(actual.getPartialResponses().contains(event2));
     }
 
-    @Test(timeout = 500)
+    @Test
+    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
     public void bodyLinesAreAccumulatedAndReturned() throws IOException, ExecutionException, InterruptedException {
         String line1 = "A line of text";
         String line2 = "Another text line";

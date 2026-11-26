@@ -2,9 +2,9 @@ package internal;
 
 import es.amplia.oda.core.commons.snmp.SnmpEntry;
 import es.amplia.oda.datastreams.snmp.internal.SnmpDatastreamsTranslator;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ public class SnmpDatastreamTranslatorTest {
 
     SnmpDatastreamsTranslator snmpDatastreamsTranslator;
 
-    @Before
+    @BeforeEach
     public void start(){
         SnmpEntry snmpEntry = new SnmpEntry(TEST_OID_VALUE, TEST_DATATYPE_VALUE, TEST_DATASTREAM_VALUE,
                 TEST_DEVICE_ID_VALUE, TEST_FEED_VALUE, TEST_PUBLISH_TYPE_VALUE);
@@ -37,17 +37,17 @@ public class SnmpDatastreamTranslatorTest {
     public void translateTest(){
         SnmpEntry actualSnmpEntry = snmpDatastreamsTranslator.translate(TEST_OID_VALUE, TEST_DEVICE_ID_VALUE);
 
-        Assert.assertEquals(TEST_DATASTREAM_VALUE, actualSnmpEntry.getDatastreamId());
-        Assert.assertEquals(TEST_OID_VALUE, actualSnmpEntry.getOID());
-        Assert.assertEquals(TEST_FEED_VALUE, actualSnmpEntry.getFeed());
-        Assert.assertEquals(TEST_DATATYPE_VALUE, actualSnmpEntry.getDataType());
-        Assert.assertEquals(TEST_DEVICE_ID_VALUE, actualSnmpEntry.getDeviceId());
+        Assertions.assertEquals(TEST_DATASTREAM_VALUE, actualSnmpEntry.getDatastreamId());
+        Assertions.assertEquals(TEST_OID_VALUE, actualSnmpEntry.getOID());
+        Assertions.assertEquals(TEST_FEED_VALUE, actualSnmpEntry.getFeed());
+        Assertions.assertEquals(TEST_DATATYPE_VALUE, actualSnmpEntry.getDataType());
+        Assertions.assertEquals(TEST_DEVICE_ID_VALUE, actualSnmpEntry.getDeviceId());
     }
 
     @Test
     public void translateTestNoMatch(){
         SnmpEntry actualSnmpEntry = snmpDatastreamsTranslator.translate(TEST_OID_VALUE_2, TEST_DEVICE_ID_VALUE);
 
-        Assert.assertNull(actualSnmpEntry);
+        Assertions.assertNull(actualSnmpEntry);
     }
 }

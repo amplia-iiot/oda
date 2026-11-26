@@ -18,7 +18,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.internal.security.SSLSocketFactoryFactory;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SubscriptionTest {
     //@Test

@@ -12,11 +12,10 @@
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.16.3-SNAPSHOT</version>
+        <version>4.17.0-SNAPSHOT</version>
     </parent>
 
     <modules>
-        <module>cborserializer</module>
         <module>jsonserializer</module>
         <module>scadatables</module>
 		<module>zipcompress</module>

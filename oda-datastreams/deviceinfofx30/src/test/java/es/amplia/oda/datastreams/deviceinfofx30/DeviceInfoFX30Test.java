@@ -4,32 +4,42 @@ import es.amplia.oda.core.commons.entities.Software;
 import es.amplia.oda.core.commons.utils.CommandExecutionException;
 import es.amplia.oda.core.commons.utils.CommandProcessor;
 import es.amplia.oda.datastreams.deviceinfofx30.configuration.DeviceInfoFX30Configuration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Version;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DeviceInfoFX30.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeviceInfoFX30Test {
 
 	private DeviceInfoFX30 deviceInfo;
 	private Bundle[] bundles;
 	private DeviceInfoFX30Configuration configuration;
+	// A real empty directory instead of mocking File: mocking java.io.File with the inline mock
+	// maker also intercepts the File instances the JDK class loader builds, which breaks class
+	// loading in whatever test runs next.
+	private Path scriptsDir;
+	private String scriptsPath;
 
 	@Mock
 	private CommandProcessor mockedCommandProcessor;
@@ -37,15 +47,24 @@ public class DeviceInfoFX30Test {
 	private CommandExecutionException mockedCommandExecutionException;
 	@Mock
 	private Bundle mockedBundle;
-	@Mock
-	private File mockedFile;
 
-	@Before
-	public void beforeTests() {
+	@BeforeEach
+	public void beforeTests() throws IOException {
+		scriptsDir = Files.createTempDirectory("oda-deviceinfofx30-test");
+		scriptsPath = scriptsDir.toString();
 		bundles = new Bundle[0];
-		configuration = new DeviceInfoFX30Configuration("deviceId", "apiKey", "source", "path");
+		configuration = new DeviceInfoFX30Configuration("deviceId", "apiKey", "source", scriptsPath);
 
 		deviceInfo = new DeviceInfoFX30(null, bundles);
+	}
+
+	@AfterEach
+	public void afterTests() throws IOException {
+		if (scriptsDir != null) {
+			try (java.util.stream.Stream<Path> paths = Files.walk(scriptsDir)) {
+				paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+			}
+		}
 	}
 
 	@Test
@@ -54,27 +73,25 @@ public class DeviceInfoFX30Test {
 		bundles[0] = mockedBundle;
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
 		Whitebox.setInternalState(deviceInfo, "bundles", bundles);
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
 		when(mockedBundle.getSymbolicName()).thenReturn("MyName");
 		when(mockedBundle.getVersion()).thenReturn(new Version("1"));
-		when(mockedFile.listFiles()).thenReturn(new File[0]);
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SERIAL_NUMBER_SCRIPT)).thenReturn("serialNumber");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.MODEL_SCRIPT)).thenReturn("model");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.IMEI_SCRIPT)).thenReturn("imei");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.IMSI_SCRIPT)).thenReturn("imsi");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.ICC_SCRIPT)).thenReturn("icc");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RSSI_SCRIPT)).thenReturn("rssi");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.SOFTWARE_SCRIPT)).thenReturn(" :  && Firmware Version:v");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.APN_SCRIPT)).thenReturn("apn");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_TOTAL_SCRIPT)).thenReturn("1000");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_TOTAL_SCRIPT)).thenReturn("2000");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.DISK_TOTAL_SCRIPT)).thenReturn("4000");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.SERIAL_NUMBER_SCRIPT)).thenReturn("serialNumber");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.MODEL_SCRIPT)).thenReturn("model");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.IMEI_SCRIPT)).thenReturn("imei");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.IMSI_SCRIPT)).thenReturn("imsi");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.ICC_SCRIPT)).thenReturn("icc");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.RSSI_SCRIPT)).thenReturn("rssi");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.SOFTWARE_SCRIPT)).thenReturn(" :  && Firmware Version:v");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.APN_SCRIPT)).thenReturn("apn");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CPU_TOTAL_SCRIPT)).thenReturn("1000");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.RAM_TOTAL_SCRIPT)).thenReturn("2000");
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.DISK_TOTAL_SCRIPT)).thenReturn("4000");
 
 		deviceInfo.loadConfiguration(configuration);
 
 		assertEquals("deviceId", deviceInfo.getDeviceId());
 		assertEquals("apiKey", deviceInfo.getApiKey());
-		assertEquals("path", deviceInfo.getPath());
+		assertEquals(scriptsPath, deviceInfo.getPath());
 		assertEquals("serialNumber", deviceInfo.getSerialNumber());
 		assertEquals("model", deviceInfo.getModel());
 		assertEquals("imei", deviceInfo.getImei());
@@ -97,8 +114,6 @@ public class DeviceInfoFX30Test {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
 		Whitebox.setInternalState(deviceInfo, "bundles", bundles);
 		when(mockedCommandProcessor.execute(any())).thenThrow(mockedCommandExecutionException);
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-		when(mockedFile.listFiles()).thenReturn(new File[0]);
 
 		deviceInfo.loadConfiguration(configuration);
 
@@ -118,8 +133,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetClock() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CLOCK_SCRIPT)).thenReturn("clock");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CLOCK_SCRIPT)).thenReturn("clock");
 
 		String clock = deviceInfo.getClock();
 
@@ -129,8 +144,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetClockException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CLOCK_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CLOCK_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		String clock = deviceInfo.getClock();
 
@@ -140,8 +155,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetUptime() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.UPTIME_SCRIPT)).thenReturn("200");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.UPTIME_SCRIPT)).thenReturn("200");
 
 		long uptime = deviceInfo.getUptime();
 
@@ -151,8 +166,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetUptimeException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.UPTIME_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.UPTIME_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		Long uptime = deviceInfo.getUptime();
 
@@ -162,8 +177,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetTemperatureValue() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.TEMPERATURE_VALUE_SCRIPT)).thenReturn("42");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.TEMPERATURE_VALUE_SCRIPT)).thenReturn("42");
 
 		int temperatureValue = deviceInfo.getTemperatureValue();
 
@@ -173,8 +188,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetTemperatureValueException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.TEMPERATURE_VALUE_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.TEMPERATURE_VALUE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		Integer temperatureValue = deviceInfo.getTemperatureValue();
 
@@ -184,8 +199,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetTemperatureStatus() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.TEMPERATURE_STATUS_SCRIPT)).thenReturn("OK");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.TEMPERATURE_STATUS_SCRIPT)).thenReturn("OK");
 
 		String temperatureStatus = deviceInfo.getTemperatureStatus();
 
@@ -195,8 +210,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetTemperatureStatusException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.TEMPERATURE_STATUS_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.TEMPERATURE_STATUS_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		String temperatureStatus = deviceInfo.getTemperatureStatus();
 
@@ -206,8 +221,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetCpuStatus() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_STATUS_SCRIPT)).thenReturn("OK");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CPU_STATUS_SCRIPT)).thenReturn("OK");
 
 		String cpu = deviceInfo.getCpuStatus();
 
@@ -217,8 +232,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetCpuStatusException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_STATUS_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CPU_STATUS_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		String cpu = deviceInfo.getCpuStatus();
 
@@ -228,8 +243,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetCpuUsage() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_USAGE_SCRIPT)).thenReturn("42");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CPU_USAGE_SCRIPT)).thenReturn("42");
 
 		int cpuUsage = deviceInfo.getCpuUsage();
 
@@ -239,8 +254,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetCpuUsageException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.CPU_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.CPU_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		Integer cpuUsage = deviceInfo.getCpuUsage();
 
@@ -250,8 +265,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetRamUsage() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_USAGE_SCRIPT)).thenReturn("42");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.RAM_USAGE_SCRIPT)).thenReturn("42");
 
 		int ramUsage = deviceInfo.getRamUsage();
 
@@ -261,8 +276,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetRamUsageException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.RAM_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.RAM_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		Integer ramUsage = deviceInfo.getRamUsage();
 
@@ -272,8 +287,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetDiskUsage() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.DISK_USAGE_SCRIPT)).thenReturn("42");
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.DISK_USAGE_SCRIPT)).thenReturn("42");
 
 		int diskUsage = deviceInfo.getDiskUsage();
 
@@ -283,8 +298,8 @@ public class DeviceInfoFX30Test {
 	@Test
 	public void testGetDiskUsageException() throws CommandExecutionException {
 		Whitebox.setInternalState(deviceInfo, "commandProcessor", mockedCommandProcessor);
-		Whitebox.setInternalState(deviceInfo, "path", "path");
-		when(mockedCommandProcessor.execute("path/" + DeviceInfoFX30.DISK_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
+		Whitebox.setInternalState(deviceInfo, "path", scriptsPath);
+		when(mockedCommandProcessor.execute(scriptsPath + "/" + DeviceInfoFX30.DISK_USAGE_SCRIPT)).thenThrow(mockedCommandExecutionException);
 
 		Integer diskUsage = deviceInfo.getDiskUsage();
 

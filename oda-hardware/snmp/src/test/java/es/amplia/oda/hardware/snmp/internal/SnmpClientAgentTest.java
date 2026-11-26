@@ -3,9 +3,9 @@ package es.amplia.oda.hardware.snmp.internal;
 import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientConfig;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientOptions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
@@ -18,7 +18,7 @@ import org.snmp4j.transport.DefaultUdpTransportMapping;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Talks to a real SNMP agent over UDP on localhost instead of mocking snmp4j.
@@ -36,7 +36,7 @@ public class SnmpClientAgentTest {
     private final AtomicReference<VariableBinding> lastSet = new AtomicReference<>();
     private SnmpClient client;
 
-    @Before
+    @BeforeEach
     public void startAgent() throws IOException {
         DefaultUdpTransportMapping transport = new DefaultUdpTransportMapping(new UdpAddress("127.0.0.1/0"));
         agent = new Snmp(transport);
@@ -45,7 +45,7 @@ public class SnmpClientAgentTest {
         agentPort = transport.getListenAddress().getPort();
     }
 
-    @After
+    @AfterEach
     public void stop() throws IOException {
         if (client != null) {
             client.disconnect();
@@ -57,7 +57,7 @@ public class SnmpClientAgentTest {
     public void getReturnsAgentValue() {
         client = createClient();
 
-        assertNotNull("factory must build a client for a device on the same host", client);
+        assertNotNull(client, "factory must build a client for a device on the same host");
         assertEquals(AGENT_VALUE, client.getValue(OID));
     }
 
@@ -68,7 +68,7 @@ public class SnmpClientAgentTest {
         client.setValue(OID, "STRING", "new-name");
 
         VariableBinding received = lastSet.get();
-        assertNotNull("agent did not receive the SET", received);
+        assertNotNull(received, "agent did not receive the SET");
         assertEquals(OID, received.getOid().toDottedString());
         assertEquals("new-name", received.getVariable().toString());
     }

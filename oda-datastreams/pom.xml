@@ -11,7 +11,6 @@
     <modules>
         <module>deviceinfo</module>
         <module>deviceinfofx30</module>
-        <module>deviceinfoowa450</module>
         <module>gpio</module>
         <module>modbus</module>
         <module>modbusslave</module>
@@ -21,13 +20,12 @@
         <module>i2c</module>
         <module>lora</module>
 		<module>iec104</module>
-		<module>opcua</module>
         <module>snmp</module>
     </modules>
 
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.16.3-SNAPSHOT</version>
+        <version>4.17.0-SNAPSHOT</version>
     </parent>
 </project>

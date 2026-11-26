@@ -9,21 +9,25 @@ import es.amplia.oda.core.commons.utils.*;
 import es.amplia.oda.datastreams.adc.configuration.DatastreamsAdcConfigurationHandler;
 import es.amplia.oda.datastreams.adc.datastreams.DatastreamsFactoryImpl;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertTrue;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
 	private final Activator activator = new Activator();
@@ -33,15 +37,7 @@ public class ActivatorTest {
 	@Mock
 	private EventPublisherProxy mockedEventPublisher;
 	@Mock
-	private DatastreamsFactoryImpl mockedDatastreamsFactory;
-	@Mock
-	private ServiceRegistrationManagerOsgi<DatastreamsGetter> mockedDatastreamsGetterRegistrationManager;
-	@Mock
 	private ConfigurableBundleImpl mockedConfigurableBundle;
-	@Mock
-	private DatastreamsRegistry mockedRegistry;
-	@Mock
-	private DatastreamsAdcConfigurationHandler mockedHandler;
 	@Mock
 	private ServiceListenerBundle mockedListener;
 	@Mock
@@ -50,29 +46,57 @@ public class ActivatorTest {
 	private ConfigurationUpdateHandler mockedConfigurationUpdateHandler;
 
 	@Test
-	public void testStart() throws Exception {
-		whenNew(AdcServiceProxy.class).withAnyArguments().thenReturn(mockedService);
-		whenNew(EventPublisherProxy.class).withAnyArguments().thenReturn(mockedEventPublisher);
-		whenNew(DatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedDatastreamsFactory);
-		whenNew(ServiceRegistrationManagerOsgi.class).withAnyArguments()
-				.thenReturn(mockedDatastreamsGetterRegistrationManager);
-		whenNew(DatastreamsRegistry.class).withAnyArguments().thenReturn(mockedRegistry);
-		whenNew(DatastreamsAdcConfigurationHandler.class).withAnyArguments().thenReturn(mockedHandler);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedListener);
-		
-		activator.start(mockedContext);
-		
-		verifyNew(AdcServiceProxy.class).withArguments(eq(mockedContext));
-		verifyNew(EventPublisherProxy.class).withArguments(eq(mockedContext));
-		verifyNew(DatastreamsFactoryImpl.class).withArguments(eq(mockedService), eq(mockedEventPublisher));
-		verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-		verifyNew(DatastreamsRegistry.class)
-				.withArguments(eq(mockedDatastreamsFactory), eq(mockedDatastreamsGetterRegistrationManager));
-		verifyNew(DatastreamsAdcConfigurationHandler.class).withArguments(eq(mockedRegistry), eq(mockedService));
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedHandler));
-		verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(AdcService.class), any());
-		verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any());
+	public void testStart() {
+		List<List<?>> factoryArgs = new ArrayList<>();
+		List<List<?>> registrationManagerArgs = new ArrayList<>();
+		List<List<?>> registryArgs = new ArrayList<>();
+		List<List<?>> handlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
+		List<List<?>> listenerArgs = new ArrayList<>();
+
+		try (MockedConstruction<AdcServiceProxy> serviceCons = mockConstruction(AdcServiceProxy.class);
+			 MockedConstruction<EventPublisherProxy> eventPublisherCons = mockConstruction(EventPublisherProxy.class);
+			 MockedConstruction<DatastreamsFactoryImpl> factoryCons = mockConstruction(DatastreamsFactoryImpl.class,
+					 (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+					 mockConstruction(ServiceRegistrationManagerOsgi.class,
+							 (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DatastreamsRegistry> registryCons = mockConstruction(DatastreamsRegistry.class,
+					 (mock, mctx) -> registryArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DatastreamsAdcConfigurationHandler> handlerCons =
+					 mockConstruction(DatastreamsAdcConfigurationHandler.class,
+							 (mock, mctx) -> handlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceListenerBundle> listenerCons = mockConstruction(ServiceListenerBundle.class,
+					 (mock, mctx) -> listenerArgs.add(new ArrayList<>(mctx.arguments())))) {
+
+			activator.start(mockedContext);
+
+			assertEquals(1, serviceCons.constructed().size());
+			assertEquals(1, eventPublisherCons.constructed().size());
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(serviceCons.constructed().get(0), factoryArgs.get(0).get(0));
+			assertEquals(eventPublisherCons.constructed().get(0), factoryArgs.get(0).get(1));
+			assertEquals(1, registrationManagerCons.constructed().size());
+			assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+			assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+			assertEquals(1, registryCons.constructed().size());
+			assertEquals(factoryCons.constructed().get(0), registryArgs.get(0).get(0));
+			assertEquals(registrationManagerCons.constructed().get(0), registryArgs.get(0).get(1));
+			assertEquals(1, handlerCons.constructed().size());
+			assertEquals(registryCons.constructed().get(0), handlerArgs.get(0).get(0));
+			assertEquals(serviceCons.constructed().get(0), handlerArgs.get(0).get(1));
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(handlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+			assertEquals(2, listenerCons.constructed().size());
+			assertEquals(mockedContext, listenerArgs.get(0).get(0));
+			assertEquals(AdcService.class, listenerArgs.get(0).get(1));
+			assertEquals(mockedContext, listenerArgs.get(1).get(0));
+			assertEquals(DeviceInfoProvider.class, listenerArgs.get(1).get(1));
+		}
 	}
 
 	@Test
@@ -90,7 +114,7 @@ public class ActivatorTest {
 
 		activator.onServiceChanged();
 
-		assertTrue("Exception should be caught", true);
+		assertTrue(true, "Exception should be caught");
 	}
 
 	@Test

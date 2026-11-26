@@ -8,12 +8,14 @@ import es.amplia.oda.operation.update.DeploymentElementOperation;
 import es.amplia.oda.operation.update.InstallManager.InstallException;
 import es.amplia.oda.operation.update.operations.DeploymentElementOperationFactory;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.Collections;
@@ -22,13 +24,14 @@ import java.util.Map;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class InstallManagerImplTest {
 
     private static final String TEST_NAME_1 = "test1";
@@ -82,7 +85,7 @@ public class InstallManagerImplTest {
     private Map<DeploymentElement, DeploymentElementOperation> spiedEmptyInstalledElements;
     private Map<DeploymentElement, DeploymentElementOperation> spiedInstalledElements;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         spiedEmptyInstalledElements = spy(new HashMap<>());
 
@@ -173,7 +176,7 @@ public class InstallManagerImplTest {
         verify(spiedEmptyInstalledElements).put(eq(uninstallSoftwareElement), eq(uninstallSoftwareOperation));
     }
 
-    @Test(expected = InstallException.class)
+    @Test
     public void testInstallInstallSoftwareException() throws InstallException, DeploymentElementOperationException {
         Whitebox.setInternalState(testInstallManager, INSTALLED_DEPLOYMENT_ELEMENTS_FIELD_NAME, spiedInstalledElements);
 
@@ -181,35 +184,23 @@ public class InstallManagerImplTest {
                 anyString(), anyString())).thenReturn(installSoftwareOperation);
         doThrow(new DeploymentElementOperationException("")).when(installSoftwareOperation).execute();
 
-        try {
-            testInstallManager.install(installSoftwareElement, LOCAL_FILE);
-        } finally {
-            verify(spiedInstalledElements).put(eq(installSoftwareElement), eq(installSoftwareOperation));
-        }
+        assertThrows(InstallException.class, () -> testInstallManager.install(installSoftwareElement, LOCAL_FILE));
 
-        fail(INSTALL_EXCEPTION_MESSAGE);
+        verify(spiedInstalledElements).put(eq(installSoftwareElement), eq(installSoftwareOperation));
     }
 
-    @Test(expected = InstallException.class)
+    @Test
     public void testInstallNotValidLocalFileInstall() throws InstallException {
-        try {
-            testInstallManager.install(installSoftwareElement, null);
-        } finally {
-            verifyZeroInteractions(spiedInstalledElements);
-        }
+        assertThrows(InstallException.class, () -> testInstallManager.install(installSoftwareElement, null));
 
-        fail(INSTALL_EXCEPTION_MESSAGE);
+        verifyNoInteractions(spiedInstalledElements);
     }
 
-    @Test(expected = InstallException.class)
+    @Test
     public void testInstallNotValidLocalFileUpgrade() throws InstallException {
-        try {
-            testInstallManager.install(upgradeConfigurationElement, null);
-        } finally {
-            verifyZeroInteractions(spiedInstalledElements);
-        }
+        assertThrows(InstallException.class, () -> testInstallManager.install(upgradeConfigurationElement, null));
 
-        fail(INSTALL_EXCEPTION_MESSAGE);
+        verifyNoInteractions(spiedInstalledElements);
     }
 
     @Test
@@ -232,7 +223,7 @@ public class InstallManagerImplTest {
 
         testInstallManager.rollback(notInstalledDeploymentElement, PATH_TO_BACKUP_JAR);
 
-        assertTrue("No exception is thrown", true);
+        assertTrue(true, "No exception is thrown");
     }
 
     @Test

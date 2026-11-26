@@ -2,22 +2,25 @@ package es.amplia.oda.core.commons.utils;
 
 import es.amplia.oda.core.commons.interfaces.DatastreamsGetter;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DatastreamsGettersFinderImplTest {
 
     private static final String TEST_DATASTREAM_ID_1 = "testDatastream1";
@@ -73,9 +76,9 @@ public class DatastreamsGettersFinderImplTest {
         assertEquals(Collections.singleton(TEST_DATASTREAM_ID_3), result.getNotFoundIds());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testGetGettersSatisfyingNullDevicePattern() {
-        testFinder.getGettersSatisfying(null, new HashSet<>());
+        assertThrows(IllegalArgumentException.class, () -> testFinder.getGettersSatisfying(null, new HashSet<>()));
     }
 
     @Test

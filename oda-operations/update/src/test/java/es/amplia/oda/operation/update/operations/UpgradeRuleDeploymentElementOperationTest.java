@@ -2,13 +2,15 @@ package es.amplia.oda.operation.update.operations;
 
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.reflect.Whitebox;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.io.File;
@@ -16,11 +18,13 @@ import java.io.File;
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 import static es.amplia.oda.operation.update.DeploymentElementOperation.DeploymentElementOperationException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UpgradeRuleDeploymentElementOperationTest {
 
     private static final String TEST_NAME = "testRule";
@@ -45,13 +49,13 @@ public class UpgradeRuleDeploymentElementOperationTest {
 
     private UpgradeRuleDeploymentElementOperation testUpgradeOperation;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testUpgradeOperation = new UpgradeRuleDeploymentElementOperation(UPGRADE_DEPLOYMENT_ELEMENT,
                 LOCAL_FILE, PATH_TO_RULES_FILE, mockedFileManager, mockedOperationConfirmationProcessor);
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         StringBuilder path = new StringBuilder(PATH_TO_RULES_FILE);
         do {
@@ -80,25 +84,21 @@ public class UpgradeRuleDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
     }
 
-    @Test(expected = DeploymentElementOperationException.class)
+    @Test
     public void testExecuteOldVersionNotFoundException() throws DeploymentElementOperationException, FileException {
         when(mockedFileManager.find(eq(PATH_TO_RULES_FILE), eq(TEST_NAME))).thenReturn(null);
 
-        testUpgradeOperation.executeSpecificOperation(mockedFileManager);
-
-        fail("Deployment Element Operation exception must be thrown");
+        assertThrows(DeploymentElementOperationException.class, () -> testUpgradeOperation.executeSpecificOperation(mockedFileManager));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testExecuteFileException() throws DeploymentElementOperationException, FileException {
         String oldVersion = "/path/to/last/version";
 
         when(mockedFileManager.find(eq(PATH_TO_RULES_FILE), eq(TEST_NAME))).thenReturn(oldVersion);
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(LOCAL_FILE), eq(PATH_TO_RULES_FILE));
 
-        testUpgradeOperation.executeSpecificOperation(mockedFileManager);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.executeSpecificOperation(mockedFileManager));
     }
 
     @Test
@@ -111,25 +111,21 @@ public class UpgradeRuleDeploymentElementOperationTest {
         verify(mockedFileManager).copy(eq(PATH_TO_BACKUP_JAR), eq(PATH_TO_RULES_FILE));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationDeleteFileException() throws FileException {
         Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_JAR);
 
         doThrow(new FileException("")).when(mockedFileManager).delete(eq(PATH_TO_UPGRADED_JAR));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR));
     }
 
-    @Test(expected = FileException.class)
+    @Test
     public void testRollbackSpecificOperationCopyFileException() throws FileException {
         Whitebox.setInternalState(testUpgradeOperation, UPGRADED_FILE_FIELD_NAME, PATH_TO_UPGRADED_JAR);
 
         doThrow(new FileException("")).when(mockedFileManager).copy(eq(PATH_TO_BACKUP_JAR), eq(PATH_TO_RULES_FILE));
 
-        testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR);
-
-        fail(FILE_EXCEPTION_MESSAGE);
+        assertThrows(FileException.class, () -> testUpgradeOperation.rollbackSpecificOperation(mockedFileManager, PATH_TO_BACKUP_JAR));
     }
 }

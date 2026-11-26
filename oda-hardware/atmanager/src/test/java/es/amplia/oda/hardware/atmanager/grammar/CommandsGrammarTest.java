@@ -3,21 +3,22 @@ package es.amplia.oda.hardware.atmanager.grammar;
 import es.amplia.oda.hardware.atmanager.api.ATCommand;
 import es.amplia.oda.hardware.atmanager.api.ATCommandType;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class CommandsGrammarTest {
     private CommandsGrammar commandsGrammar;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         commandsGrammar = new CommandsGrammar();
     }
@@ -146,26 +147,26 @@ public class CommandsGrammarTest {
         assertThat(actual, is(expected));
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void invalidCharacterAfterAT() {
-        commandsGrammar.parse("0");
+        assertThrows(GrammarException.class, () -> commandsGrammar.parse("0"));
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void invalidCharacterAfterEndOfCommand() {
-        commandsGrammar.parse("+P=?1");
+        assertThrows(GrammarException.class, () -> commandsGrammar.parse("+P=?1"));
 
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void invalidCharacterInBasicCommand() {
-        commandsGrammar.parse("D\"A\"");
+        assertThrows(GrammarException.class, () -> commandsGrammar.parse("D\"A\""));
 
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void atSemicolon() {
-        commandsGrammar.parse(";");
+        assertThrows(GrammarException.class, () -> commandsGrammar.parse(";"));
     }
 
     @Test

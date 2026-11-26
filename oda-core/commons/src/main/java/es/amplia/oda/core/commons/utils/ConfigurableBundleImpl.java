@@ -39,13 +39,24 @@ public class ConfigurableBundleImpl implements ConfigurableBundle {
 
     public ConfigurableBundleImpl(BundleContext bundleContext, ConfigurationUpdateHandler handler,
                                   List<ServiceRegistration<?>> serviceInterfacesToNotify) {
-        this.bundleName = bundleContext.getBundle().getSymbolicName();
+        this(bundleContext, handler, serviceInterfacesToNotify, bundleContext.getBundle().getSymbolicName());
+    }
+
+    /**
+     * Variant that registers the {@link ManagedService} under an explicit configuration PID instead of
+     * the bundle symbolic name. Needed when a single bundle exposes more than one independently
+     * configured service (e.g. a bundle merging two engines), so each keeps responding to its own
+     * {@code <pid>.cfg} file.
+     */
+    public ConfigurableBundleImpl(BundleContext bundleContext, ConfigurationUpdateHandler handler,
+                                  List<ServiceRegistration<?>> serviceInterfacesToNotify, String servicePid) {
+        this.bundleName = servicePid;
         this.eventAdmin = new EventAdminProxy(bundleContext);
         this.handler = handler;
         this.serviceRegistrations = serviceInterfacesToNotify;
 
         Dictionary<String, Object> managedServiceProps = new Hashtable<>();
-        managedServiceProps.put(Constants.SERVICE_PID, bundleName);
+        managedServiceProps.put(Constants.SERVICE_PID, servicePid);
         this.configServiceRegistration =
                 bundleContext.registerService(ManagedService.class, this, managedServiceProps);
     }

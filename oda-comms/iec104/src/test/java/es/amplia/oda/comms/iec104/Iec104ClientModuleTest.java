@@ -12,26 +12,27 @@ import org.eclipse.neoscada.protocol.iec60870.asdu.MessageManager;
 import org.eclipse.neoscada.protocol.iec60870.asdu.message.*;
 import org.eclipse.neoscada.protocol.iec60870.asdu.types.ASDU;
 import org.eclipse.neoscada.protocol.iec60870.client.Client;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Iec104ServerModule.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Iec104ClientModuleTest {
 
     private Iec104ClientModule clientModule;
@@ -54,7 +55,7 @@ public class Iec104ClientModuleTest {
     boolean qualityBitsNotify = true;
 
 
-    @Before
+    @BeforeEach
     public void prepareForTest() {
         clientModule = new Iec104ClientModule(caches, mockedOptions, deviceId, commonAddress, qualityBitsMask,
                 qualityBitsNotify, mockedEventDispatcher, mockedEventPublisher, mockedScadaTranslator);
@@ -184,15 +185,15 @@ public class Iec104ClientModuleTest {
 
         // call function
         ScheduledFuture<?> futureTask = clientModule.addInterrogationCommandScheduling(100, 2000);
-        Assert.assertNotNull(futureTask);
+        Assertions.assertNotNull(futureTask);
 
         ScheduledFuture<?> interrogationCommandTask = Whitebox.getInternalState(clientModule,"interrogationCommandTask");
-        Assert.assertFalse(interrogationCommandTask.isCancelled());
+        Assertions.assertFalse(interrogationCommandTask.isCancelled());
 
         // cancel tasks
         clientModule.cancelInterrogationCommandScheduling();
 
         interrogationCommandTask = Whitebox.getInternalState(clientModule,"interrogationCommandTask");
-        Assert.assertTrue(interrogationCommandTask.isCancelled());
+        Assertions.assertTrue(interrogationCommandTask.isCancelled());
     }
 }

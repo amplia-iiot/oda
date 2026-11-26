@@ -1,5 +1,6 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
@@ -61,8 +62,17 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
                         LOGGER.debug("Applying rule {} to datastream {}", rule, value.getDatastreamId());
                         state = rules.get(rule).then(state, value, ctx);
                     }
+                } catch (ScriptExecutionException e) {
+                    // El script fallo. Antes esto llegaba disfrazado de ClassCastException, porque
+                    // runMethod devolvia el State de entrada: el when reventaba al castear a boolean
+                    // y el then se daba por bueno sin haber hecho nada
+                    LOGGER.error("Rule {} failed on datastream {}: {}", rule, value.getDatastreamId(),
+                            e.getCause() != null ? e.getCause().getMessage() : e.getMessage(), e);
                 } catch (ClassCastException e) {
-                    LOGGER.error(e.getMessage());
+                    // El script se ejecuto pero devolvio un tipo que no toca (un when que no
+                    // devuelve booleano, un then que no devuelve el State)
+                    LOGGER.error("Rule {} returned an unexpected type on datastream {}: {}", rule,
+                            value.getDatastreamId(), e.getMessage());
                 }
             }
         }
@@ -215,8 +225,12 @@ public class RuleEngineNashorn implements es.amplia.oda.ruleengine.api.RuleEngin
     public void stop() {
         LOGGER.info("Stopping the rule engine");
         started = false;
-        this.rules.clear();
-        this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());
-        this.watcher.clear();
+        if (this.rules != null) {
+            this.rules.clear();
+        }
+        if (this.watcher != null) {
+            this.watcher.forEach((s, directoryWatcher) -> directoryWatcher.stop());
+            this.watcher.clear();
+        }
     }
 }

@@ -16,9 +16,7 @@
         <module>refreshinfo</module>
         <module>setclock</module>
         <module>synchronizeclock</module>
-        <module>localprotocoldiscovery</module>
 		<module>rebootequipment</module>
-		<module>nashorn</module>
     </modules>
     <dependencies>
         <dependency>
@@ -30,6 +28,6 @@
     <parent>
         <artifactId>oda-parent</artifactId>
         <groupId>es.amplia.oda</groupId>
-        <version>4.16.3-SNAPSHOT</version>
+        <version>4.17.0-SNAPSHOT</version>
     </parent>
 </project>

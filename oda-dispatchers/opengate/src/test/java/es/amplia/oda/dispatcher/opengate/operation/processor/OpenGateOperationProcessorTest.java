@@ -3,20 +3,23 @@ package es.amplia.oda.dispatcher.opengate.operation.processor;
 import es.amplia.oda.dispatcher.opengate.OperationProcessor;
 import es.amplia.oda.dispatcher.opengate.domain.general.RequestGeneralOperation;
 import es.amplia.oda.dispatcher.opengate.domain.interfaces.Request;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.util.Collections;
 import java.util.Map;
 
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OpenGateOperationProcessorTest {
 
     private static final String TEST_OPERATION = "TEST_OPERATION";
@@ -32,7 +35,7 @@ public class OpenGateOperationProcessorTest {
 
     private OpenGateOperationProcessor testProcessor;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Map<String, OperationProcessor> mockedOperationProcessors =
                 Collections.singletonMap(TEST_OPERATION, mockedOperationProcessor);
@@ -49,7 +52,7 @@ public class OpenGateOperationProcessorTest {
 
         verify(mockedOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
-        verifyZeroInteractions(mockedCustomOperationProcessor);
+        verifyNoInteractions(mockedCustomOperationProcessor);
     }
 
     @Test
@@ -61,6 +64,6 @@ public class OpenGateOperationProcessorTest {
 
         verify(mockedCustomOperationProcessor)
                 .process(eq(TEST_DEVICE_FOR_OPERATIONS), eq(TEST_DEVICE_FOR_RESPONSE), eq(testRequest), eq(90));
-        verifyZeroInteractions(mockedOperationProcessor);
+        verifyNoInteractions(mockedOperationProcessor);
     }
 }

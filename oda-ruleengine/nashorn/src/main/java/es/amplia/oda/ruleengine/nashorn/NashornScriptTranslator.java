@@ -1,37 +1,63 @@
 package es.amplia.oda.ruleengine.nashorn;
 
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
+import es.amplia.oda.operation.api.engine.OperationScriptTranslator;
+import es.amplia.oda.operation.nashorn.configuration.OperationEngineConfiguration;
 import es.amplia.oda.ruleengine.api.ScriptTranslator;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Scanner;
 
+/**
+ * Single nashorn script translator shared by the rule engine and the operation engine
+ * (previously duplicated in two bundles). Implements both service-specific interfaces; the
+ * only behavioural difference between the two engines is whether {@code utils.js} is preloaded
+ * into every script, controlled by {@link #preloadUtils} (rules: yes; operations: no).
+ */
 @Slf4j
-public class NashornScriptTranslator implements ScriptTranslator {
+public class NashornScriptTranslator implements ScriptTranslator, OperationScriptTranslator {
 
-    private static final String ENGINE_NAME = "nashorn";
+    // Nashorn ya no forma parte del JDK (JEP 372): el ServiceLoader de ScriptEngineManager no lo
+    // encuentra dentro de OSGi, así que se instancia la factoría del nashorn-core embebido
+    private static final NashornScriptEngineFactory ENGINE_FACTORY = new NashornScriptEngineFactory();
     private String jsUtilsPath;
 
+    private final boolean preloadUtils;
     private final HashMap<String,ScriptEngine> engines = new HashMap<>();
+
+    /** Default translator preloads utils.js (rule engine behaviour). */
+    public NashornScriptTranslator() {
+        this(true);
+    }
+
+    public NashornScriptTranslator(boolean preloadUtils) {
+        this.preloadUtils = preloadUtils;
+    }
 
     public void loadConfiguration(RuleEngineConfiguration config) {
         this.jsUtilsPath = config.getUtilsPath();
     }
 
+    public void loadConfiguration(OperationEngineConfiguration config) {
+        this.jsUtilsPath = config.getUtilsPath();
+    }
+
     @Override
     public void initScript(String script) throws ScriptException {
-        ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName(ENGINE_NAME);
+        ScriptEngine engine = ENGINE_FACTORY.getScriptEngine();
 
-        // all rules will have preloaded all the functions from utils.js
-        engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+        // rules preload all the functions from utils.js; operations do not (legacy behaviour)
+        if (preloadUtils) {
+            engine.eval("load('" + jsUtilsPath + "utils.js" + "')");
+        }
 
         // load rule
         engine.eval(readFile(script));
@@ -46,15 +72,15 @@ public class NashornScriptTranslator implements ScriptTranslator {
 
     @Override
     public Object runMethod(String script, String method, Object... params) {
+        Invocable rule = (Invocable) engines.get(script);
         try {
-            Invocable rule = (Invocable) engines.get(script);
-            params[0] = rule.invokeFunction(method, params);
-        } catch (ScriptException e) {
-            log.error("Error trying to execute script " + script + " method " + method, e);
-        } catch (NoSuchMethodException e) {
-            log.error("Method {} doesn't exists on script {}", method, script);
+            // No se asigna a params[0]: si invokeFunction lanza, devolver params[0] entregaria el
+            // primer parametro de entrada (el State en las reglas, el deviceId en las operaciones)
+            // como si fuera el resultado del script
+            return rule.invokeFunction(method, params);
+        } catch (ScriptException | NoSuchMethodException e) {
+            throw new ScriptExecutionException(script, method, e);
         }
-        return params[0];
     }
 
     @Override

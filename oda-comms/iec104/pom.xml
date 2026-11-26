@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-comms</artifactId>
         <groupId>es.amplia.oda.comms</groupId>
-        <version>4.16.3-SNAPSHOT</version>
+        <version>4.17.0-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -38,7 +38,8 @@
                         </Export-Package>
                         <Import-Package>!com.google.code.findbugs,!commons-logging,!log4j,!org.javassist,!commons-beanutils,
                             !com.google.protobuf,!javax.*,!com.jcraft.jzlib,!javassist,!org.apache.commons.*,
-                            !org.apache.log4j.*,!sun.*,!org.jboss.marshalling,*
+                            !org.apache.log4j.*,!sun.*,!org.jboss.marshalling,
+                            !com.google.appengine.*,!com.google.apphosting.*,!android.*,*
                         </Import-Package>
                         <Private-Package>${bundle.namespace}.*</Private-Package>
                         <Embed-Dependency>org.eclipse.neoscada.protocol.iec60870,guava,netty-transport,netty-buffer,netty-codec,
@@ -157,23 +158,8 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -194,8 +180,13 @@
         <dependency>
             <groupId>es.amplia.oda.service</groupId>
             <artifactId>scadatables</artifactId>
-            <version>4.16.3-SNAPSHOT</version>
+            <version>4.17.0-SNAPSHOT</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-reflect</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

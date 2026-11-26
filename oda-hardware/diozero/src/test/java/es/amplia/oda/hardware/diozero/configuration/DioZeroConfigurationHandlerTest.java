@@ -3,25 +3,29 @@ package es.amplia.oda.hardware.diozero.configuration;
 import com.diozero.api.AnalogInputDevice;
 import es.amplia.oda.core.commons.adc.AdcChannel;
 import es.amplia.oda.core.commons.adc.DeviceType;
+import es.amplia.oda.core.commons.gpio.GpioDirection;
 import es.amplia.oda.hardware.diozero.analog.DioZeroAdcService;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioPin;
+import es.amplia.oda.hardware.diozero.gpio.DioZeroGpioService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 
 import static es.amplia.oda.hardware.diozero.configuration.DioZeroConfigurationHandler.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DioZeroConfigurationHandler.class, AnalogInputDeviceBuilder.class})
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroConfigurationHandlerTest {
 
     private static final int TEST_ADC_CHANNEL_1_INDEX = 0;
@@ -32,9 +36,14 @@ public class DioZeroConfigurationHandlerTest {
     private static final int TEST_ADC_CHANNEL_2_INDEX = 1;
     private static final String TEST_ADC_CHANNEL_2_PATH = "path2";
 
+    private static final int TEST_GPIO_PIN_INDEX = 2;
+    private static final String TEST_GPIO_PIN_NAME = "GPIO2";
+
 
     @Mock
     private DioZeroAdcService mockedService;
+    @Mock
+    private DioZeroGpioService mockedGpioService;
     @InjectMocks
     private DioZeroConfigurationHandler testHandler;
 
@@ -47,12 +56,16 @@ public class DioZeroConfigurationHandlerTest {
     public void testLoadDefaultConfiguration() {
         List<AnalogInputDevice> configuredChannels = new ArrayList<>();
         configuredChannels.add(mockedAnalogInputDevice);
+        List<DioZeroGpioPin> configuredPins = new ArrayList<>();
+        configuredPins.add(mock(DioZeroGpioPin.class));
 
         Whitebox.setInternalState(testHandler, "configuredChannels", configuredChannels);
+        Whitebox.setInternalState(testHandler, "configuredPins", configuredPins);
 
         testHandler.loadDefaultConfiguration();
 
         assertTrue(configuredChannels.isEmpty());
+        assertTrue(configuredPins.isEmpty());
     }
 
     @Test
@@ -65,15 +78,14 @@ public class DioZeroConfigurationHandlerTest {
         props.put(Integer.toString(TEST_ADC_CHANNEL_2_INDEX), DEVICE_TYPE_PROPERTY_NAME + ":" + ADC_CHANNEL_DEVICE_TYPE + "," +
                 PATH_PROPERTY_NAME + ":" + TEST_ADC_CHANNEL_2_PATH);
 
-        PowerMockito.mockStatic(AnalogInputDeviceBuilder.class);
-        PowerMockito.when(AnalogInputDeviceBuilder.newBuilder()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedAnalogInputDevice);
+        try (MockedStatic<AnalogInputDeviceBuilder> mockedBuilderStatic = mockStatic(AnalogInputDeviceBuilder.class)) {
+            mockedBuilderStatic.when(AnalogInputDeviceBuilder::newBuilder).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedAnalogInputDevice);
 
-        testHandler.loadConfiguration(props);
+            testHandler.loadConfiguration(props);
 
-        PowerMockito.verifyStatic(AnalogInputDeviceBuilder.class, times(2));
-        //noinspection ResultOfMethodCallIgnored
-        AnalogInputDeviceBuilder.newBuilder();
+            mockedBuilderStatic.verify(AnalogInputDeviceBuilder::newBuilder, times(2));
+        }
         verify(mockedBuilder).setChannelIndex(eq(TEST_ADC_CHANNEL_1_INDEX));
         verify(mockedBuilder).setName(eq(TEST_ADC_CHANNEL_1_NAME));
         verify(mockedBuilder).setLowMode(eq(TEST_ADC_CHANNEL_1_LOW_MODE));
@@ -84,6 +96,25 @@ public class DioZeroConfigurationHandlerTest {
         List<AdcChannel> configuredChannels = Whitebox.getInternalState(testHandler, "configuredChannels");
         assertNotNull(configuredChannels);
         assertEquals(2, configuredChannels.size());
+    }
+
+    @Test
+    public void testLoadGpioConfiguration() {
+        Dictionary<String, String> props = new Hashtable<>();
+        props.put(Integer.toString(TEST_GPIO_PIN_INDEX), DEVICE_TYPE_PROPERTY_NAME + ":" + GPIO_PIN_DEVICE_TYPE + "," +
+                NAME_PROPERTY_NAME + ":" + TEST_GPIO_PIN_NAME + "," + DIRECTION_PROPERTY_NAME + ":OUTPUT," +
+                MODE_PROPERTY_NAME + ":PUSH_PULL," + ACTIVE_LOW_PROPERTY_NAME + ":false," +
+                INITIAL_VALUE_PROPERTY_NAME + ":false");
+
+        testHandler.loadConfiguration(props);
+
+        List<DioZeroGpioPin> configuredPins = Whitebox.getInternalState(testHandler, "configuredPins");
+        assertNotNull(configuredPins);
+        assertEquals(1, configuredPins.size());
+        DioZeroGpioPin pin = configuredPins.get(0);
+        assertEquals(TEST_GPIO_PIN_INDEX, pin.getIndex());
+        assertEquals(TEST_GPIO_PIN_NAME, pin.getName());
+        assertEquals(GpioDirection.OUTPUT, pin.getDirection());
     }
 
     @Test
@@ -98,6 +129,9 @@ public class DioZeroConfigurationHandlerTest {
         List<AdcChannel> configuredChannels = Whitebox.getInternalState(testHandler, "configuredChannels");
         assertNotNull(configuredChannels);
         assertTrue(configuredChannels.isEmpty());
+        List<DioZeroGpioPin> configuredPins = Whitebox.getInternalState(testHandler, "configuredPins");
+        assertNotNull(configuredPins);
+        assertTrue(configuredPins.isEmpty());
     }
 
     @Test
@@ -105,11 +139,14 @@ public class DioZeroConfigurationHandlerTest {
         AdcChannel mockedChannel1 = mock(AdcChannel.class);
         AdcChannel mockedChannel2 = mock(AdcChannel.class);
         List<AdcChannel> configuredChannels = Arrays.asList(mockedChannel1, mockedChannel2);
+        List<DioZeroGpioPin> configuredPins = Collections.singletonList(mock(DioZeroGpioPin.class));
 
         Whitebox.setInternalState(testHandler, "configuredChannels", configuredChannels);
+        Whitebox.setInternalState(testHandler, "configuredPins", configuredPins);
 
         testHandler.applyConfiguration();
 
         verify(mockedService).loadConfiguration(eq(configuredChannels));
+        verify(mockedGpioService).loadConfiguration(eq(configuredPins));
     }
 }

@@ -7,28 +7,18 @@ import org.snmp4j.smi.*;
 public class SnmpDataTypes {
 
     public static Variable formatValue(String type, String value) throws IllegalArgumentException {
-        switch (type.toUpperCase()) {
-            case "OID":
-                return new OID(value);
-            case "INTEGER":
-                return new Integer32(Integer.parseInt(value));
-            case "STRING":
-                return new OctetString(value);
-            case "GAUGE":
-                return new Gauge32(Long.parseLong(value));
-            case "COUNTER32":
-                return new Counter32(Long.parseLong(value));
-            case "COUNTER64":
-                return new Counter64(Long.parseLong(value));
-            case "TIMETICK":
-                return new TimeTicks(Long.parseLong(value));
-            case "OPAQUE":
-                return new Opaque(value.getBytes());
-            case "IP":
-                return new IpAddress(value);
-            default:
-                throw new IllegalArgumentException("Unsupported variable type " + type);
-        }
+        return switch (type.toUpperCase()) {
+            case "OID" -> new OID(value);
+            case "INTEGER" -> new Integer32(Integer.parseInt(value));
+            case "STRING" -> new OctetString(value);
+            case "GAUGE" -> new Gauge32(Long.parseLong(value));
+            case "COUNTER32" -> new Counter32(Long.parseLong(value));
+            case "COUNTER64" -> new Counter64(Long.parseLong(value));
+            case "TIMETICK" -> new TimeTicks(Long.parseLong(value));
+            case "OPAQUE" -> new Opaque(value.getBytes());
+            case "IP" -> new IpAddress(value);
+            default -> throw new IllegalArgumentException("Unsupported variable type " + type);
+        };
     }
 
     public static Object parseVariable(Variable value) {

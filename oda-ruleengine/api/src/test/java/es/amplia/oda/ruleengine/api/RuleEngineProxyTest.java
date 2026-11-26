@@ -4,26 +4,31 @@ import es.amplia.oda.core.commons.osgi.proxies.OsgiServiceProxy;
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.OsgiContext;
 import es.amplia.oda.core.commons.utils.State;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.BundleContext;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(RuleEngineProxy.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RuleEngineProxyTest {
 
 	private static final String TEST_NAME_RULE = "nameRule";
@@ -35,7 +40,8 @@ public class RuleEngineProxyTest {
 	private BundleContext mockedContext;
 	private RuleEngineProxy testProxy;
 
-	@Mock
+	private MockedConstruction<OsgiServiceProxy> proxyConstruction;
+	private final List<List<?>> proxyArgs = new ArrayList<>();
 	private OsgiServiceProxy<RuleEngine> mockedProxy;
 	@Mock
 	private RuleEngine mockedRuleEngine;
@@ -50,16 +56,26 @@ public class RuleEngineProxyTest {
 	private ArgumentCaptor<Consumer<RuleEngine>> ruleEngineConsumerCaptor;
 
 
-	@Before
+	@BeforeEach
+	@SuppressWarnings("unchecked")
 	public void setUp() throws Exception {
-		PowerMockito.whenNew(OsgiServiceProxy.class).withAnyArguments().thenReturn(mockedProxy);
+		proxyConstruction = mockConstruction(OsgiServiceProxy.class,
+				(mock, mctx) -> proxyArgs.add(new ArrayList<>(mctx.arguments())));
 
 		testProxy = new RuleEngineProxy(mockedContext);
+		mockedProxy = proxyConstruction.constructed().get(0);
+	}
+
+	@AfterEach
+	public void tearDown() {
+		proxyConstruction.close();
 	}
 
 	@Test
 	public void testConstructor() throws Exception {
-		PowerMockito.verifyNew(OsgiServiceProxy.class).withArguments(eq(RuleEngine.class), eq(mockedContext));
+		assertEquals(1, proxyConstruction.constructed().size());
+		assertEquals(RuleEngine.class, proxyArgs.get(0).get(0));
+		assertEquals(mockedContext, proxyArgs.get(0).get(1));
 	}
 
 	@Test

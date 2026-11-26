@@ -1,9 +1,10 @@
 package es.amplia.oda.comms.mqtt.api;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static es.amplia.oda.comms.mqtt.api.MqttConnectOptions.KeyManagerAlgorithm;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class KeyManagerAlgorithmTest {
 
@@ -27,8 +28,8 @@ public class KeyManagerAlgorithmTest {
         KeyManagerAlgorithm.from(KeyManagerAlgorithm.SUN_JSSE.toString());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testFromWithInvalidArgument() {
-        KeyManagerAlgorithm.from("Invalid");
+        assertThrows(IllegalArgumentException.class, () -> KeyManagerAlgorithm.from("Invalid"));
     }
 }

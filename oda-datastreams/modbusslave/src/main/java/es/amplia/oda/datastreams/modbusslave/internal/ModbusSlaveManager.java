@@ -11,6 +11,8 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class ModbusSlaveManager {
@@ -20,6 +22,8 @@ public class ModbusSlaveManager {
     private final Map<String, CustomModbusRequestHandler> modbusRequestHandlers = new HashMap<>();
     // <listenPort, tcpListener>
     private final Map<Integer, ModbusCustomTCPListener> modbusPortListeners = new HashMap<>();
+    // runs the tcp listeners on daemon threads with managed shutdown (was raw new Thread)
+    private ExecutorService listenersExecutor;
 
     public ModbusSlaveManager(StateManager stateManager) {
         this.stateManager = stateManager;
@@ -80,14 +84,18 @@ public class ModbusSlaveManager {
     }
 
     private void startListeners(){
+        listenersExecutor = Executors.newCachedThreadPool(runnable -> {
+            Thread thread = new Thread(runnable, "oda-modbusslave-listener");
+            thread.setDaemon(true);
+            return thread;
+        });
         for (Map.Entry<Integer, ModbusCustomTCPListener> entry : modbusPortListeners.entrySet()) {
             log.info("Starting tcp listener in port {}", entry.getKey());
             ModbusCustomTCPListener listener = entry.getValue();
 
-            // lanzar en un nuevo hilo el listener
+            // lanzar el listener en el pool de hilos daemon
             listener.setListening(true);
-            Thread listenerThread = new Thread(listener);
-            listenerThread.start();
+            listenersExecutor.submit(listener);
         }
     }
 
@@ -97,6 +105,10 @@ public class ModbusSlaveManager {
             ModbusCustomTCPListener listener = entry.getValue();
             // detener el listener
             listener.stop();
+        }
+        if (listenersExecutor != null) {
+            listenersExecutor.shutdownNow();
+            listenersExecutor = null;
         }
     }
 }

@@ -1,24 +1,26 @@
 package es.amplia.oda.hardware.diozero.analog.devices.fx30;
 
 import com.diozero.util.RuntimeIOException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({Fx30AnalogInputDevice.class, RandomAccessFile.class})
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class Fx30AnalogInputDeviceTest {
 
 	private static final double DELTA = 0.0001;
@@ -31,21 +33,23 @@ public class Fx30AnalogInputDeviceTest {
 	@Mock
 	private RandomAccessFile mockedRAF;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() throws Exception {
-		when(mockedFactory.getVRef()).thenReturn(10f);
-		whenNew(RandomAccessFile.class).withAnyArguments().thenReturn(mockedRAF);
-		device = new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, "", 10f);
+		String path = Files.createTempDirectory("fx30adc").toString() + File.separator;
+		File deviceFile = new File(path + 1);
+		deviceFile.deleteOnExit();
+		try (FileWriter writer = new FileWriter(deviceFile)) {
+			writer.write("10000000");
+		}
+
+		device = new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, path, 10f);
+		Whitebox.setInternalState(device, "value", mockedRAF);
 	}
 
-	@Test(expected = RuntimeIOException.class)
+	@Test
 	public void constructorThrowsException() throws Exception {
-		whenNew(RandomAccessFile.class).withParameterTypes(File.class, String.class)
-				.withArguments(any(File.class), anyString()).thenThrow(new FileNotFoundException());
-
-		new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, "", 10f);
-
-		fail("Runtime IO Exception should be thrown");
+		assertThrows(RuntimeIOException.class,
+				() -> new Fx30AnalogInputDevice(mockedFactory, "testDevice", 1, 1, "an/unknown/path/", 10f));
 	}
 
 	@Test
@@ -81,6 +85,6 @@ public class Fx30AnalogInputDeviceTest {
 
 		device.closeDevice();
 
-		assertTrue("IO Exception is not caught", true);
+		assertTrue(true, "IO Exception is not caught");
 	}
 }

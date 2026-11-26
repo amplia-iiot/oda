@@ -1,8 +1,7 @@
 package es.amplia.oda.datastreams.deviceinfo.configuration;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,26 +15,26 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class ScriptsLoaderPermissionsTest {
+class ScriptsLoaderPermissionsTest {
 
 	private static final String SCRIPT = "#!/bin/sh\necho SN-1234\n";
 
-	@Rule
-	public TemporaryFolder tmp = new TemporaryFolder();
+	@TempDir
+	Path tmp;
 
 	@Test
-	public void extractedScriptsAreReadableAndExecutable() throws IOException {
+	void extractedScriptsAreReadableAndExecutable() throws IOException {
 		assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
 
-		File bundles = tmp.newFolder("bundles");
-		writeJar(new File(bundles, "es.amplia.oda.datastreams.deviceinfo-4.16.2.jar"));
-		Path scripts = tmp.getRoot().toPath().resolve("scripts");
+		Path bundles = Files.createDirectory(tmp.resolve("bundles"));
+		writeJar(bundles.resolve("es.amplia.oda.datastreams.deviceinfo-4.17.0.jar").toFile());
+		Path scripts = tmp.resolve("scripts");
 
-		new ScriptsLoader().load(bundles.getPath(), scripts.toString());
+		new ScriptsLoader().load(bundles.toString(), scripts.toString());
 
 		Path script = scripts.resolve("obtainSerialNumber.sh");
 		Set<PosixFilePermission> perms = Files.getPosixFilePermissions(script);

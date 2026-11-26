@@ -10,22 +10,27 @@ import es.amplia.oda.core.commons.utils.ServiceRegistrationManagerOsgi;
 import es.amplia.oda.datastreams.i2c.configuration.DatastreamI2CConfigurationHandler;
 
 import es.amplia.oda.datastreams.i2c.datastreams.I2CDatastreamsFactoryImpl;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
 	private final Activator testActivator = new Activator();
@@ -34,12 +39,6 @@ public class ActivatorTest {
 	private BundleContext mockedContext;
 	@Mock
 	private I2CServiceProxy mockedI2CService;
-	@Mock
-	private I2CDatastreamsFactoryImpl mockedFactory;
-	@Mock
-	private ServiceRegistrationManagerOsgi<DatastreamsGetter> mockedGetterRegistrationManager;
-	@Mock
-	private ServiceRegistrationManagerOsgi<DatastreamsSetter> mockedSetterRegistrationManager;
 	@Mock
 	private I2CDatastreamsRegistry mockedRegistry;
 	@Mock
@@ -50,31 +49,56 @@ public class ActivatorTest {
 	private ServiceListenerBundle<I2CService> mockedI2CServiceListener;
 
 	@Test
-	public void testStart() throws Exception {
-		whenNew(I2CServiceProxy.class).withAnyArguments().thenReturn(mockedI2CService);
-		whenNew(I2CDatastreamsFactoryImpl.class).withAnyArguments().thenReturn(mockedFactory);
-		whenNew(ServiceRegistrationManagerOsgi.class)
-				.withArguments(any(BundleContext.class), eq(DatastreamsGetter.class))
-				.thenReturn(mockedGetterRegistrationManager);
-		whenNew(ServiceRegistrationManagerOsgi.class)
-				.withArguments(any(BundleContext.class), eq(DatastreamsSetter.class))
-				.thenReturn(mockedSetterRegistrationManager);
-		whenNew(I2CDatastreamsRegistry.class).withAnyArguments().thenReturn(mockedRegistry);
-		whenNew(DatastreamI2CConfigurationHandler.class).withAnyArguments().thenReturn(mockedConfigHandler);
-		whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigurableBundle);
-		whenNew(ServiceListenerBundle.class).withAnyArguments().thenReturn(mockedI2CServiceListener);
+	public void testStart() {
+		List<List<?>> factoryArgs = new ArrayList<>();
+		List<List<?>> registrationManagerArgs = new ArrayList<>();
+		List<List<?>> registryArgs = new ArrayList<>();
+		List<List<?>> configHandlerArgs = new ArrayList<>();
+		List<List<?>> configurableBundleArgs = new ArrayList<>();
+		List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-		testActivator.start(mockedContext);
+		try (MockedConstruction<I2CServiceProxy> proxyCons = mockConstruction(I2CServiceProxy.class);
+			 MockedConstruction<I2CDatastreamsFactoryImpl> factoryCons = mockConstruction(I2CDatastreamsFactoryImpl.class,
+					 (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceRegistrationManagerOsgi> registrationManagerCons =
+					 mockConstruction(ServiceRegistrationManagerOsgi.class,
+							 (mock, mctx) -> registrationManagerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<I2CDatastreamsRegistry> registryCons = mockConstruction(I2CDatastreamsRegistry.class,
+					 (mock, mctx) -> registryArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<DatastreamI2CConfigurationHandler> configHandlerCons =
+					 mockConstruction(DatastreamI2CConfigurationHandler.class,
+							 (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ConfigurableBundleImpl> configurableBundleCons =
+					 mockConstruction(ConfigurableBundleImpl.class,
+							 (mock, mctx) -> configurableBundleArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+					 mockConstruction(ServiceListenerBundle.class,
+							 (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		verifyNew(I2CServiceProxy.class).withArguments(eq(mockedContext));
-		verifyNew(I2CDatastreamsFactoryImpl.class).withArguments(eq(mockedI2CService));
-		verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsGetter.class));
-		verifyNew(ServiceRegistrationManagerOsgi.class).withArguments(eq(mockedContext), eq(DatastreamsSetter.class));
-		verifyNew(I2CDatastreamsRegistry.class).withArguments(eq(mockedFactory), eq(mockedGetterRegistrationManager),
-				eq(mockedSetterRegistrationManager));
-		verifyNew(DatastreamI2CConfigurationHandler.class).withArguments(eq(mockedRegistry), eq(mockedI2CService));
-		verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-		verifyNew(ServiceListenerBundle.class).withArguments(eq(mockedContext), eq(I2CService.class), any());
+			testActivator.start(mockedContext);
+
+			assertEquals(1, proxyCons.constructed().size());
+			assertEquals(1, factoryCons.constructed().size());
+			assertEquals(proxyCons.constructed().get(0), factoryArgs.get(0).get(0));
+			assertEquals(2, registrationManagerCons.constructed().size());
+			assertEquals(mockedContext, registrationManagerArgs.get(0).get(0));
+			assertEquals(DatastreamsGetter.class, registrationManagerArgs.get(0).get(1));
+			assertEquals(mockedContext, registrationManagerArgs.get(1).get(0));
+			assertEquals(DatastreamsSetter.class, registrationManagerArgs.get(1).get(1));
+			assertEquals(1, registryCons.constructed().size());
+			assertEquals(factoryCons.constructed().get(0), registryArgs.get(0).get(0));
+			assertEquals(registrationManagerCons.constructed().get(0), registryArgs.get(0).get(1));
+			assertEquals(registrationManagerCons.constructed().get(1), registryArgs.get(0).get(2));
+			assertEquals(1, configHandlerCons.constructed().size());
+			assertEquals(registryCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+			assertEquals(proxyCons.constructed().get(0), configHandlerArgs.get(0).get(1));
+			assertEquals(1, configurableBundleCons.constructed().size());
+			assertEquals(mockedContext, configurableBundleArgs.get(0).get(0));
+			assertEquals(configHandlerCons.constructed().get(0), configurableBundleArgs.get(0).get(1));
+			assertEquals(1, serviceListenerCons.constructed().size());
+			assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+			assertEquals(I2CService.class, serviceListenerArgs.get(0).get(1));
+		}
 	}
 
 	@Test
@@ -94,7 +118,7 @@ public class ActivatorTest {
 
 		testActivator.onServiceChanged();
 
-		assertTrue("Runtime Exception should be caught", true);
+		assertTrue(true, "Runtime Exception should be caught");
 		verify(mockedConfigHandler).applyConfiguration();
 	}
 

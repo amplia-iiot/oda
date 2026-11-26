@@ -1,23 +1,23 @@
 package es.amplia.oda.hardware.i2c;
 
 import com.diozero.api.I2CDevice;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.nio.ByteBuffer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DioZeroI2CDevice.class, I2CDevice.class})
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroI2CDeviceTest {
 	private DioZeroI2CDevice testDevice;
 
@@ -32,9 +32,8 @@ public class DioZeroI2CDeviceTest {
 	@Mock
 	I2CDevice mockedDevice;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
-		whenNew(I2CDevice.class).withAnyArguments().thenReturn(mockedDevice);
 		testDevice = new DioZeroI2CDevice(name, register, mockedDevice, minimum, maximum);
 	}
 
@@ -119,7 +118,7 @@ public class DioZeroI2CDeviceTest {
 		doNothing().when(mockedDevice).write(any(), any());
 
 		testDevice.write(42);
-		verify(mockedDevice).write(anyObject(), eq(4));
+		verify(mockedDevice).write(any(), eq(4));
 	}
 
 	@Test

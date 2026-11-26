@@ -2,9 +2,9 @@ package es.amplia.oda.datastreams.modbus.internal;
 
 import es.amplia.oda.core.commons.modbus.Register;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ModbusTypeToJavaTypeConverterTest {
 
@@ -43,7 +43,7 @@ public class ModbusTypeToJavaTypeConverterTest {
         assertEquals(testInteger, result);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testConvertRegistersToIntegerInvalidRegisterArraySize() {
         int testInteger = 12345678;
         Register[] testRegisters = new Register[] {
@@ -53,7 +53,7 @@ public class ModbusTypeToJavaTypeConverterTest {
                 new Register(0)
         };
 
-        testConverter.convertRegistersToInteger(testRegisters);
+        assertThrows(IllegalArgumentException.class, () -> testConverter.convertRegistersToInteger(testRegisters));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class ModbusTypeToJavaTypeConverterTest {
         assertEquals(testLong, result);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testConvertRegistersToLongInvalidRegisterArraySize() {
         long testLong = 123456789012345678L;
         Register[] testRegisters = new Register[] {
@@ -93,7 +93,7 @@ public class ModbusTypeToJavaTypeConverterTest {
                 new Register((int) testLong & 0x0000FFFF)
         };
 
-        testConverter.convertRegistersToLong(testRegisters);
+        assertThrows(IllegalArgumentException.class, () -> testConverter.convertRegistersToLong(testRegisters));
     }
 
     @Test

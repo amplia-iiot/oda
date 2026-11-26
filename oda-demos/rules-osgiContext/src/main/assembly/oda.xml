@@ -54,7 +54,6 @@
                 <include>es.amplia.oda.dispatcher:opengate</include>
                 <include>es.amplia.oda.event:api</include>
                 <include>es.amplia.oda.operation:api</include>
-                <include>es.amplia.oda.operation:nashorn</include>
                 <include>es.amplia.oda.ruleengine:api</include>
                 <include>es.amplia.oda.ruleengine:nashorn</include>
                 <include>es.amplia.oda.service:jsonserializer</include>

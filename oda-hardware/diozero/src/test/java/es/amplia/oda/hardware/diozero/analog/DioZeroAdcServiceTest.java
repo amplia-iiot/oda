@@ -2,21 +2,24 @@ package es.amplia.oda.hardware.diozero.analog;
 
 import es.amplia.oda.core.commons.adc.AdcChannel;
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DioZeroAdcServiceTest {
 
 	private DioZeroAdcService testService;
@@ -28,7 +31,7 @@ public class DioZeroAdcServiceTest {
 	@Mock
 	AdcChannel ADC2;
 
-	@Before
+	@BeforeEach
 	public void prepareForTest() {
 		when(ADC0.getName()).thenReturn("I'm not");
 		when(ADC1.getName()).thenReturn("I am");
@@ -47,9 +50,9 @@ public class DioZeroAdcServiceTest {
 		assertEquals(ADC1, testService.getChannelByName(ADC1.getName()));
 	}
 
-	@Test(expected = AdcDeviceException.class)
+	@Test
 	public void testGetChannelByNameWithException() {
-		testService.getChannelByName("No name");
+		assertThrows(AdcDeviceException.class, () -> testService.getChannelByName("No name"));
 	}
 
 	@Test
@@ -57,9 +60,9 @@ public class DioZeroAdcServiceTest {
 		assertEquals(ADC0, testService.getChannelByIndex(0));
 	}
 
-	@Test(expected = AdcDeviceException.class)
+	@Test
 	public void testGetChannelByIndexWithException() {
-		testService.getChannelByIndex(-1);
+		assertThrows(AdcDeviceException.class, () -> testService.getChannelByIndex(-1));
 	}
 
 	@Test

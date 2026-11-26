@@ -2,236 +2,135 @@ package es.amplia.oda.operation.update.internal;
 
 import es.amplia.oda.operation.update.FileManager;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ FileManagerImpl.class, Files.class })
+// Uses a real temporary folder: mocking File or Files also intercepts the JVM's own file access
+// (class loading), which makes results depend on test order
 public class FileManagerImplTest {
 
-    private static final String DIRECTORY_TO_SEARCH = "directory/to/search";
     private static final String SEARCHED_NAME = "test";
+
     private final FileManagerImpl testFileManager = new FileManagerImpl();
 
-    @Mock
-    private File mockedFile;
-    @Mock
-    private File mockedFile2;
-    @Mock
-    private Path mockedPath;
-    @Mock
-    private Path mockedPath2;
+    @TempDir
+    Path tmp;
 
     @Test
-    public void testExist() throws Exception {
-        String existingTest = "existing/test";
+    public void testExist() throws IOException {
+        Path existing = Files.createFile(tmp.resolve("existing"));
 
-        PowerMockito.whenNew(File.class).withArguments(existingTest).thenReturn(mockedFile);
-        when(mockedFile.exists()).thenReturn(true);
-
-        assertTrue(testFileManager.exist(existingTest));
+        assertTrue(testFileManager.exist(existing.toString()));
     }
 
-    public void testExistNoFile() throws Exception {
-        String noExistingTest = "no/existing/test";
-
-        PowerMockito.whenNew(File.class).withArguments(noExistingTest).thenReturn(mockedFile);
-        when(mockedFile.exists()).thenReturn(false);
-
-        assertFalse(testFileManager.exist(noExistingTest));
+    @Test
+    public void testExistNoFile() {
+        assertFalse(testFileManager.exist(tmp.resolve("no-existing").toString()));
     }
 
     @Test
     public void testCreateDirectory() throws Exception {
-        String newDirectory = "new/directory";
+        Path newDirectory = tmp.resolve("new");
 
-        PowerMockito.whenNew(File.class).withArguments(newDirectory).thenReturn(mockedFile);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        PowerMockito.mockStatic(Files.class);
+        testFileManager.createDirectory(newDirectory.toString());
 
-        testFileManager.createDirectory(newDirectory);
-
-        PowerMockito.verifyStatic(Files.class);
-        Files.createDirectory(eq(mockedPath));
+        assertTrue(Files.isDirectory(newDirectory));
     }
 
-    @Test(expected = FileManager.FileException.class)
-    public void testCreateDirectoryIOException() throws Exception {
-        String newDirectory = "new/directory";
+    @Test
+    public void testCreateDirectoryIOException() {
+        String missingParent = tmp.resolve("missing/parent/dir").toString();
 
-        PowerMockito.whenNew(File.class).withArguments(newDirectory).thenReturn(mockedFile);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        PowerMockito.mockStatic(Files.class);
-        PowerMockito.when(Files.createDirectory(eq(mockedPath))).thenThrow(new IOException(""));
-
-        testFileManager.createDirectory(newDirectory);
-
-        fail("File Exception must be thrown");
+        assertThrows(FileManager.FileException.class, () -> testFileManager.createDirectory(missingParent));
     }
 
     @Test
     public void testCopy() throws Exception {
-        String sourceFile = "test/source/file.jar";
-        String targetFile = "test/target/file.jar";
+        Path source = write(tmp.resolve("file.jar"), "content");
+        Path target = tmp.resolve("copy.jar");
 
-        PowerMockito.whenNew(File.class).withArguments(sourceFile).thenReturn(mockedFile);
-        PowerMockito.whenNew(File.class).withArguments(targetFile).thenReturn(mockedFile2);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        when(mockedFile2.toPath()).thenReturn(mockedPath2);
-        when(mockedFile2.getPath()).thenReturn(targetFile);
-        PowerMockito.mockStatic(Files.class);
+        String result = testFileManager.copy(source.toString(), target.toString());
 
-        String result = testFileManager.copy(sourceFile, targetFile);
-
-        assertEquals(targetFile, result);
-        PowerMockito.verifyStatic(Files.class);
-        Files.copy(eq(mockedPath), eq(mockedPath2));
+        assertEquals(target.toString(), result);
+        assertEquals("content", read(target));
     }
 
     @Test
     public void testCopyToDirectory() throws Exception {
-        String sourceFilename = "file.jar";
-        String sourceFile = "test/source/" + sourceFilename;
-        String targetFolder = "test/target/";
-        File mockedFinalTargetFile = mock(File.class);
-        Path mockedFinalTargetFilePath = mock(Path.class);
-        String resultPath = targetFolder + sourceFilename;
+        Path source = write(tmp.resolve("file.jar"), "content");
+        Path targetFolder = Files.createDirectory(tmp.resolve("target"));
 
-        PowerMockito.whenNew(File.class).withArguments(sourceFile).thenReturn(mockedFile);
-        PowerMockito.whenNew(File.class).withArguments(targetFolder).thenReturn(mockedFile2);
-        when(mockedFile2.isDirectory()).thenReturn(true);
-        when(mockedFile.getName()).thenReturn(sourceFilename);
-        PowerMockito.whenNew(File.class).withArguments(mockedFile2, sourceFilename).thenReturn(mockedFinalTargetFile);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        when(mockedFinalTargetFile.toPath()).thenReturn(mockedFinalTargetFilePath);
-        when(mockedFinalTargetFile.getPath()).thenReturn(resultPath);
-        PowerMockito.mockStatic(Files.class);
+        String result = testFileManager.copy(source.toString(), targetFolder.toString());
 
-        String result = testFileManager.copy(sourceFile, targetFolder);
-
-        assertEquals(targetFolder + sourceFilename, result);
-        PowerMockito.verifyStatic(Files.class);
-        Files.copy(eq(mockedPath), eq(mockedFinalTargetFilePath));
+        assertEquals(targetFolder + File.separator + "file.jar", result);
+        assertEquals("content", read(targetFolder.resolve("file.jar")));
     }
 
-    @Test(expected = FileManager.FileException.class)
-    public void testCopyIOException() throws Exception {
-        String sourceFile = "test/source/file.jar";
-        String targetFile = "test/target/file.jar";
+    @Test
+    public void testCopyIOException() {
+        String missingSource = tmp.resolve("missing.jar").toString();
+        String target = tmp.resolve("copy.jar").toString();
 
-        PowerMockito.whenNew(File.class).withArguments(sourceFile).thenReturn(mockedFile);
-        PowerMockito.whenNew(File.class).withArguments(targetFile).thenReturn(mockedFile2);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        when(mockedFile2.toPath()).thenReturn(mockedPath2);
-        PowerMockito.mockStatic(Files.class);
-        PowerMockito.when(Files.copy(eq(mockedPath), eq(mockedPath2))).thenThrow(new IOException(""));
-
-        testFileManager.copy(sourceFile, targetFile);
-
-        fail("File Exception must be thrown");
+        assertThrows(FileManager.FileException.class, () -> testFileManager.copy(missingSource, target));
     }
 
     @Test
     public void testDelete() throws Exception {
-        String deleteFile = "file/to/delete.jar";
+        Path file = write(tmp.resolve("delete.jar"), "content");
 
-        PowerMockito.whenNew(File.class).withArguments(deleteFile).thenReturn(mockedFile);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        PowerMockito.mockStatic(Files.class);
+        testFileManager.delete(file.toString());
 
-        testFileManager.delete(deleteFile);
-        PowerMockito.verifyStatic(Files.class);
-        Files.delete(eq(mockedPath));
-    }
-
-    @Test(expected = FileManager.FileException.class)
-    public void testDeleteIOException() throws Exception {
-        String deleteFile = "file/to/delete.jar";
-
-        PowerMockito.whenNew(File.class).withArguments(deleteFile).thenReturn(mockedFile);
-        when(mockedFile.toPath()).thenReturn(mockedPath);
-        PowerMockito.mockStatic(Files.class);
-        PowerMockito.doThrow(new IOException("")).when(Files.class);
-        Files.delete(eq(mockedPath));
-
-        testFileManager.delete(deleteFile);
-        PowerMockito.verifyStatic(Files.class);
-        Files.delete(eq(mockedPath));
+        assertFalse(Files.exists(file));
     }
 
     @Test
-    public void testFindHandleListFiles() throws Exception {
-        File mockedFindFile1 = mock(File.class);
-        File mockedFindFile2 = mock(File.class);
-        String expectedResult = "directory/to/search/test-1.0.0.jar";
+    public void testDeleteIOException() {
+        String missing = tmp.resolve("missing.jar").toString();
 
-        PowerMockito.whenNew(File.class).withArguments(DIRECTORY_TO_SEARCH).thenReturn(mockedFile);
-        when(mockedFile.listFiles(any(FilenameFilter.class))).thenReturn(new File[] {mockedFindFile1, mockedFindFile2});
-        when(mockedFindFile1.getPath()).thenReturn(expectedResult);
-
-        String result = testFileManager.find(DIRECTORY_TO_SEARCH, SEARCHED_NAME);
-
-        assertEquals(expectedResult, result);
+        assertThrows(FileManager.FileException.class, () -> testFileManager.delete(missing));
     }
 
     @Test
-    public void testFindHandleListFilesNull() throws Exception {
-        PowerMockito.whenNew(File.class).withArguments(DIRECTORY_TO_SEARCH).thenReturn(mockedFile);
-        when(mockedFile.listFiles(any(FilenameFilter.class))).thenReturn(null);
+    public void testFindHandleListFiles() throws IOException {
+        Path found = write(tmp.resolve("bundle-test-1.0.jar"), "");
+        write(tmp.resolve("other.jar"), "");
 
-        String searchedFile = testFileManager.find(DIRECTORY_TO_SEARCH, SEARCHED_NAME);
-
-        assertNull(searchedFile);
+        assertEquals(found.toString(), testFileManager.find(tmp.toString(), SEARCHED_NAME));
     }
 
     @Test
-    public void testFindHandleListFilesEmpty() throws Exception {
-        String searchedName = "test";
+    public void testFindHandleListFilesNull() {
+        assertNull(testFileManager.find(tmp.resolve("not-a-folder").toString(), SEARCHED_NAME));
+    }
 
-        PowerMockito.whenNew(File.class).withArguments(DIRECTORY_TO_SEARCH).thenReturn(mockedFile);
-        when(mockedFile.listFiles(any(FilenameFilter.class))).thenReturn(new File[]{});
-
-        String searchedFile = testFileManager.find(DIRECTORY_TO_SEARCH, searchedName);
-
-        assertNull(searchedFile);
+    @Test
+    public void testFindHandleListFilesEmpty() {
+        assertNull(testFileManager.find(tmp.toString(), SEARCHED_NAME));
     }
 
     @Test
     public void testInsertInFile() throws IOException {
-        File fileTest = new File("test.txt");
-        fileTest.createNewFile();
-        FileWriter fileWriterTest = new FileWriter(fileTest);
-        BufferedWriter bufferedWriter = new BufferedWriter(fileWriterTest);
-        bufferedWriter.write("Above this there should be something");
-        bufferedWriter.flush();
-        bufferedWriter.close();
+        Path file = write(tmp.resolve("insert.txt"), "Above this there should be something");
 
-        testFileManager.insertInFile("Correctly tested\n", 0, fileTest.getPath());
+        String result = testFileManager.insertInFile("Correctly tested\n", 0, file.toString());
 
-        FileReader fileReader = new FileReader(fileTest);
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
-        StringBuilder builder = new StringBuilder();
-        String line = "";
+        assertEquals(file.toString(), result);
+        assertEquals("Correctly tested\nAbove this there should be something", read(file));
+    }
 
-        while ((line = bufferedReader.readLine()) != null) {
-            builder.append(line + "\n");
-        }
-        builder.deleteCharAt(builder.length() - 1);
-        fileTest.delete();
-        assertEquals("Correctly tested\n" + "Above this there should be something", builder.toString());
+    private static Path write(Path path, String content) throws IOException {
+        return Files.write(path, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String read(Path path) throws IOException {
+        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
     }
 }

@@ -2,16 +2,20 @@ package es.amplia.oda.ruleengine.nashorn;
 
 import es.amplia.oda.core.commons.utils.DatastreamValue;
 import es.amplia.oda.core.commons.utils.OsgiContext;
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.core.commons.utils.State;
 import es.amplia.oda.ruleengine.api.*;
 import es.amplia.oda.ruleengine.nashorn.configuration.RuleEngineConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import javax.script.ScriptException;
@@ -19,16 +23,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyNew;
-import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(RuleEngineNashorn.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class RuleEngineNashornTest {
 
 	@Mock
@@ -45,10 +49,8 @@ public class RuleEngineNashornTest {
 	State mockedState;
 	@Mock
 	OsgiContext mockedContext;
-	@Mock
-	File mockedFile;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		testRuleEngine = new RuleEngineNashorn(mockedScriptTranslator);
 	}
@@ -58,23 +60,34 @@ public class RuleEngineNashornTest {
 		String root = new File(".").getCanonicalPath();
 		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory")
 				.utilsPath(root + "/src/test/java/testDirectory").build();
-		whenNew(MainDirectoryWatcher.class).withAnyArguments().thenReturn(mockedMainWatcher);
-		whenNew(RulesDirectoryWatcher.class).withAnyArguments().thenReturn(mockedRuleWatcher);
+		List<List<?>> mainWatcherArgs = new ArrayList<>();
+		List<List<?>> ruleWatcherArgs = new ArrayList<>();
+		try (MockedConstruction<MainDirectoryWatcher> mainWatcherConstruction =
+					 mockConstruction(MainDirectoryWatcher.class,
+							 (mock, mctx) -> mainWatcherArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<RulesDirectoryWatcher> ruleWatcherConstruction =
+					 mockConstruction(RulesDirectoryWatcher.class,
+							 (mock, mctx) -> ruleWatcherArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-		File mainDirToCreate = new File(config.getPath());
-		mainDirToCreate.mkdir();
-		File ruleDirToCreate = new File(config.getPath() + "/datastreamId");
-		ruleDirToCreate.mkdir();
-		File ruleFilToCreate = new File(config.getPath() + "/datastreamId/rule.js");
-		ruleFilToCreate.createNewFile();
-		testRuleEngine.loadConfiguration(config);
+			File mainDirToCreate = new File(config.getPath());
+			mainDirToCreate.mkdir();
+			File ruleDirToCreate = new File(config.getPath() + "/datastreamId");
+			ruleDirToCreate.mkdir();
+			File ruleFilToCreate = new File(config.getPath() + "/datastreamId/rule.js");
+			ruleFilToCreate.createNewFile();
+			testRuleEngine.loadConfiguration(config);
 
-		verifyNew(MainDirectoryWatcher.class).withArguments(Paths.get(root + "/src/test/java/testDirectory"), testRuleEngine);
-		verifyNew(RulesDirectoryWatcher.class).withArguments(Paths.get(root + "/src/test/java/testDirectory/datastreamId"), testRuleEngine);
-		assertNotNull(((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).get(config.getPath() + "/datastreamId/rule.js"));
-		ruleFilToCreate.delete();
-		ruleDirToCreate.delete();
-		mainDirToCreate.delete();
+			assertEquals(1, mainWatcherConstruction.constructed().size());
+			assertEquals(Paths.get(root + "/src/test/java/testDirectory"), mainWatcherArgs.get(0).get(0));
+			assertEquals(testRuleEngine, mainWatcherArgs.get(0).get(1));
+			assertEquals(1, ruleWatcherConstruction.constructed().size());
+			assertEquals(Paths.get(root + "/src/test/java/testDirectory/datastreamId"), ruleWatcherArgs.get(0).get(0));
+			assertEquals(testRuleEngine, ruleWatcherArgs.get(0).get(1));
+			assertNotNull(((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).get(config.getPath() + "/datastreamId/rule.js"));
+			ruleFilToCreate.delete();
+			ruleDirToCreate.delete();
+			mainDirToCreate.delete();
+		}
 	}
 
 	@Test
@@ -82,24 +95,35 @@ public class RuleEngineNashornTest {
 		String root = new File(".").getCanonicalPath();
 		RuleEngineConfiguration config = RuleEngineConfiguration.builder().path(root + "/src/test/java/testDirectory")
 				.utilsPath(root + "/src/test/java/testDirectory").build();
-		whenNew(MainDirectoryWatcher.class).withAnyArguments().thenReturn(mockedMainWatcher);
-		whenNew(RulesDirectoryWatcher.class).withAnyArguments().thenReturn(mockedRuleWatcher);
-		whenNew(Rule.class).withAnyArguments().thenThrow(ScriptException.class);
+		List<List<?>> mainWatcherArgs = new ArrayList<>();
+		List<List<?>> ruleWatcherArgs = new ArrayList<>();
+		try (MockedConstruction<MainDirectoryWatcher> mainWatcherConstruction =
+					 mockConstruction(MainDirectoryWatcher.class,
+							 (mock, mctx) -> mainWatcherArgs.add(new ArrayList<>(mctx.arguments())));
+			 MockedConstruction<RulesDirectoryWatcher> ruleWatcherConstruction =
+					 mockConstruction(RulesDirectoryWatcher.class,
+							 (mock, mctx) -> ruleWatcherArgs.add(new ArrayList<>(mctx.arguments())))) {
+			doThrow(new ScriptException("test")).when(mockedScriptTranslator).initScript(anyString());
 
-		File mainDirToCreate = new File(config.getPath());
-		mainDirToCreate.mkdir();
-		File ruleDirToCreate = new File(config.getPath() + "/datastreamId");
-		ruleDirToCreate.mkdir();
-		File ruleFilToCreate = new File(config.getPath() + "/datastreamId/rule.js");
-		ruleFilToCreate.createNewFile();
-		testRuleEngine.loadConfiguration(config);
+			File mainDirToCreate = new File(config.getPath());
+			mainDirToCreate.mkdir();
+			File ruleDirToCreate = new File(config.getPath() + "/datastreamId");
+			ruleDirToCreate.mkdir();
+			File ruleFilToCreate = new File(config.getPath() + "/datastreamId/rule.js");
+			ruleFilToCreate.createNewFile();
+			testRuleEngine.loadConfiguration(config);
 
-		verifyNew(MainDirectoryWatcher.class).withArguments(Paths.get(root + "/src/test/java/testDirectory"), testRuleEngine);
-		verifyNew(RulesDirectoryWatcher.class).withArguments(Paths.get(root + "/src/test/java/testDirectory/datastreamId"), testRuleEngine);
-		assertNull(((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).get(config.getPath() + "/datastreamId/rule.js"));
-		ruleFilToCreate.delete();
-		ruleDirToCreate.delete();
-		mainDirToCreate.delete();
+			assertEquals(1, mainWatcherConstruction.constructed().size());
+			assertEquals(Paths.get(root + "/src/test/java/testDirectory"), mainWatcherArgs.get(0).get(0));
+			assertEquals(testRuleEngine, mainWatcherArgs.get(0).get(1));
+			assertEquals(1, ruleWatcherConstruction.constructed().size());
+			assertEquals(Paths.get(root + "/src/test/java/testDirectory/datastreamId"), ruleWatcherArgs.get(0).get(0));
+			assertEquals(testRuleEngine, ruleWatcherArgs.get(0).get(1));
+			assertNull(((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).get(config.getPath() + "/datastreamId/rule.js"));
+			ruleFilToCreate.delete();
+			ruleDirToCreate.delete();
+			mainDirToCreate.delete();
+		}
 	}
 
 	@Test
@@ -162,14 +186,41 @@ public class RuleEngineNashornTest {
 	}
 
 	@Test
-	public void testCreateDatastreamDirectory() throws Exception {
-		whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-		when(mockedFile.isDirectory()).thenReturn(true);
-		Whitebox.setInternalState(testRuleEngine, "watcher", new HashMap<>());
+	public void testEngineStartedScriptExecutionException() throws ScriptException {
+		// Un fallo del script no debe tumbar el motor ni saltarse las reglas siguientes
+		String path = "origin/path";
+		DatastreamValue value = new DatastreamValue("testDevice", "testDatastream", "testFeed",
+				System.currentTimeMillis(), true, DatastreamValue.Status.OK, "", false, false);
+		HashMap<String, Rule> rules = new HashMap<>();
+		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
+		Rule rule = new Rule(path + "testDatastream", Collections.singletonList("testDatastream"), mockedScriptTranslator);
+		rules.put(path + "testDatastream", rule);
+		watchers.put("testDatastream", mockedRuleWatcher);
+		when(mockedScriptTranslator.runMethod(path + "testDatastream", "when", mockedState, value, mockedContext))
+				.thenThrow(new ScriptExecutionException(path + "testDatastream", "when", new RuntimeException("boom")));
+		when(mockedState.isRefreshed("testDevice", "testDatastream")).thenReturn(true);
+		Whitebox.setInternalState(testRuleEngine, "started", true);
+		Whitebox.setInternalState(testRuleEngine, "rules", rules);
+		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
+		Whitebox.setInternalState(testRuleEngine, "path", path);
+
+		State state = testRuleEngine.engine(mockedState, value, mockedContext);
+
+		assertEquals(mockedState, state);
+		verify(mockedScriptTranslator, never()).runMethod(path + "testDatastream", "then", mockedState, value, mockedContext);
+	}
+
+	@Test
+	public void testCreateDatastreamDirectory(@TempDir java.nio.file.Path root) throws Exception {
+		HashMap<String, DirectoryWatcher> watchers = new HashMap<>();
+		Whitebox.setInternalState(testRuleEngine, "watcher", watchers);
+		Whitebox.setInternalState(testRuleEngine, "path", root.toString() + File.separator);
+		java.nio.file.Files.createDirectory(root.resolve("testDatastream"));
 
 		testRuleEngine.createDatastreamDirectory("testDatastream");
 
-		assertTrue(((HashMap) Whitebox.getInternalState(testRuleEngine, "watcher")).size() > 0);
+		assertTrue(watchers.size() > 0);
+		watchers.values().forEach(DirectoryWatcher::stop);
 	}
 
 	@Test
@@ -222,7 +273,7 @@ public class RuleEngineNashornTest {
 
 		assertEquals(0, ((HashMap) Whitebox.getInternalState(testRuleEngine, "rules")).size());
 		assertEquals(0, ((HashMap) Whitebox.getInternalState(testRuleEngine, "watcher")).size());
-		assertFalse(Whitebox.getInternalState(testRuleEngine, "started"));
+		assertFalse((boolean) Whitebox.getInternalState(testRuleEngine, "started"));
 	}
 
 	@Test

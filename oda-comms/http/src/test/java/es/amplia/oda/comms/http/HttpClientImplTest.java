@@ -3,11 +3,10 @@ package es.amplia.oda.comms.http;
 import com.sun.net.httpserver.HttpServer;
 import es.amplia.oda.comms.http.configuration.HttpClientConfiguration;
 import es.amplia.oda.core.commons.http.HttpResponse;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
@@ -20,20 +19,20 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class HttpClientImplTest {
 
     private static final String BODY = "ok";
 
-    @Rule
-    public TemporaryFolder tmp = new TemporaryFolder();
+    @TempDir
+    File tmp;
 
     private HttpServer server;
     private String url;
 
-    @Before
+    @BeforeEach
     public void startServer() throws Exception {
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/", exchange -> {
@@ -47,7 +46,7 @@ public class HttpClientImplTest {
         url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
     }
 
-    @After
+    @AfterEach
     public void stopServer() {
         server.stop(0);
     }
@@ -84,7 +83,7 @@ public class HttpClientImplTest {
                 .trustStorePassword("secret")
                 .build();
 
-        assertNotNull("keystore must be optional", new HttpClientImpl(null, false).httpClientSSL(config));
+        assertNotNull(new HttpClientImpl(null, false).httpClientSSL(config), "keystore must be optional");
     }
 
     @Test
@@ -99,7 +98,7 @@ public class HttpClientImplTest {
         assertNull(client.httpClientSSL(config));
 
         HttpResponse response = client.get(url, Collections.emptyMap());
-        assertNotNull("a broken SSL config must not leave a null client", response);
+        assertNotNull(response, "a broken SSL config must not leave a null client");
         assertEquals(200, response.getStatusCode());
     }
 
@@ -116,7 +115,7 @@ public class HttpClientImplTest {
         verify(jvmDefault).checkServerTrusted(chain, "RSA");
     }
 
-    @Test(expected = CertificateException.class)
+    @Test
     public void compositeRejectsWhenBothReject() throws Exception {
         X509TrustManager configured = mock(X509TrustManager.class);
         X509TrustManager jvmDefault = mock(X509TrustManager.class);
@@ -124,13 +123,15 @@ public class HttpClientImplTest {
         doThrow(new CertificateException("a")).when(configured).checkServerTrusted(chain, "RSA");
         doThrow(new CertificateException("b")).when(jvmDefault).checkServerTrusted(chain, "RSA");
 
-        new HttpClientImpl.CompositeTrustManager(configured, jvmDefault).checkServerTrusted(chain, "RSA");
+        assertThrows(CertificateException.class,
+                () -> new HttpClientImpl.CompositeTrustManager(configured, jvmDefault)
+                        .checkServerTrusted(chain, "RSA"));
     }
 
     private File emptyStore(String type, String password) throws Exception {
         KeyStore store = KeyStore.getInstance(type);
         store.load(null, null);
-        File file = tmp.newFile("store." + type.toLowerCase());
+        File file = new File(tmp, "store." + type.toLowerCase());
         try (FileOutputStream out = new FileOutputStream(file)) {
             store.store(out, password.toCharArray());
         }

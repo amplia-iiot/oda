@@ -3,25 +3,28 @@ package es.amplia.oda.operation.update.operations;
 import es.amplia.oda.operation.update.FileManager;
 import es.amplia.oda.operation.update.OperationConfirmationProcessor;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.io.File;
 
 import static es.amplia.oda.operation.api.OperationUpdate.*;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockConstruction;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(DeploymentElementOperationFactory.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DeploymentElementOperationFactoryTest {
 
     private static final String LOCAL_FILE_JAR = "path/to/local/file.jar";
@@ -39,7 +42,7 @@ public class DeploymentElementOperationFactoryTest {
 
 
 
-    @After
+    @AfterEach
     public void cleanUp() {
         StringBuilder path = new StringBuilder(PATH_TO_RULES);
         do {
@@ -62,16 +65,22 @@ public class DeploymentElementOperationFactoryTest {
                 new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "", 1L,
                         DeploymentElementOperationType.INSTALL, Collections.EMPTY_LIST,
                         0L, "0.0.9", DeploymentElementOption.MANDATORY);
-        InstallDeploymentElementOperation mockedInstallOp = mock(InstallDeploymentElementOperation.class);
 
-        PowerMockito.whenNew(InstallDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedInstallOp);
+        List<List<?>> installOpArgs = new ArrayList<>();
+        try (MockedConstruction<InstallDeploymentElementOperation> installOpCons =
+                     mockConstruction(InstallDeploymentElementOperation.class,
+                             (mock, mctx) -> installOpArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testFactory.createDeploymentElementOperation(installDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
-                PATH_TO_RULES, PATH_TO_RULES_UTILS);
+            testFactory.createDeploymentElementOperation(installDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                    PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
-        PowerMockito.verifyNew(InstallDeploymentElementOperation.class)
-                .withArguments(eq(installDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
-                        eq(mockedOperationConfirmationProcessor));
+            assertEquals(1, installOpCons.constructed().size());
+            assertEquals(installDeploymentElement, installOpArgs.get(0).get(0));
+            assertEquals(LOCAL_FILE_JAR, installOpArgs.get(0).get(1));
+            assertEquals(INSTALL_FOLDER, installOpArgs.get(0).get(2));
+            assertEquals(mockedFileManager, installOpArgs.get(0).get(3));
+            assertEquals(mockedOperationConfirmationProcessor, installOpArgs.get(0).get(4));
+        }
     }
 
     @Test
@@ -80,16 +89,22 @@ public class DeploymentElementOperationFactoryTest {
                 new DeploymentElement("","", DeploymentElementType.CONFIGURATION, "", "", 1L,
                         DeploymentElementOperationType.UPGRADE,Collections.EMPTY_LIST,
                         0L, "0.0.9", DeploymentElementOption.OPTIONAL);
-        UpgradeDeploymentElementOperation mockedUpgradeOp = mock(UpgradeDeploymentElementOperation.class);
 
-        PowerMockito.whenNew(UpgradeDeploymentElementOperation.class).withAnyArguments().thenReturn(mockedUpgradeOp);
+        List<List<?>> upgradeOpArgs = new ArrayList<>();
+        try (MockedConstruction<UpgradeDeploymentElementOperation> upgradeOpCons =
+                     mockConstruction(UpgradeDeploymentElementOperation.class,
+                             (mock, mctx) -> upgradeOpArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testFactory.createDeploymentElementOperation(upgradeDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
-                PATH_TO_RULES, PATH_TO_RULES_UTILS);
+            testFactory.createDeploymentElementOperation(upgradeDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                    PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
-        PowerMockito.verifyNew(UpgradeDeploymentElementOperation.class)
-                .withArguments(eq(upgradeDeploymentElement), eq(LOCAL_FILE_JAR), eq(INSTALL_FOLDER), eq(mockedFileManager),
-                        eq(mockedOperationConfirmationProcessor));
+            assertEquals(1, upgradeOpCons.constructed().size());
+            assertEquals(upgradeDeploymentElement, upgradeOpArgs.get(0).get(0));
+            assertEquals(LOCAL_FILE_JAR, upgradeOpArgs.get(0).get(1));
+            assertEquals(INSTALL_FOLDER, upgradeOpArgs.get(0).get(2));
+            assertEquals(mockedFileManager, upgradeOpArgs.get(0).get(3));
+            assertEquals(mockedOperationConfirmationProcessor, upgradeOpArgs.get(0).get(4));
+        }
     }
 
     @Test
@@ -98,16 +113,20 @@ public class DeploymentElementOperationFactoryTest {
                 new DeploymentElement("","", DeploymentElementType.SOFTWARE, "", "", 1L,
                         DeploymentElementOperationType.UNINSTALL,Collections.EMPTY_LIST,
                         0L, "0.0.9", DeploymentElementOption.OPTIONAL);
-        UninstallDeploymentElementOperation mockedUninstallOp = mock(UninstallDeploymentElementOperation.class);
 
-        PowerMockito.whenNew(UninstallDeploymentElementOperation.class).withAnyArguments()
-                .thenReturn(mockedUninstallOp);
+        List<List<?>> uninstallOpArgs = new ArrayList<>();
+        try (MockedConstruction<UninstallDeploymentElementOperation> uninstallOpCons =
+                     mockConstruction(UninstallDeploymentElementOperation.class,
+                             (mock, mctx) -> uninstallOpArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testFactory.createDeploymentElementOperation(uninstallDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
-                PATH_TO_RULES, PATH_TO_RULES_UTILS);
+            testFactory.createDeploymentElementOperation(uninstallDeploymentElement, LOCAL_FILE_JAR, INSTALL_FOLDER,
+                    PATH_TO_RULES, PATH_TO_RULES_UTILS);
 
-        PowerMockito.verifyNew(UninstallDeploymentElementOperation.class)
-                .withArguments(eq(uninstallDeploymentElement), eq(INSTALL_FOLDER), eq(mockedFileManager),
-                        eq(mockedOperationConfirmationProcessor));
+            assertEquals(1, uninstallOpCons.constructed().size());
+            assertEquals(uninstallDeploymentElement, uninstallOpArgs.get(0).get(0));
+            assertEquals(INSTALL_FOLDER, uninstallOpArgs.get(0).get(1));
+            assertEquals(mockedFileManager, uninstallOpArgs.get(0).get(2));
+            assertEquals(mockedOperationConfirmationProcessor, uninstallOpArgs.get(0).get(3));
+        }
     }
 }

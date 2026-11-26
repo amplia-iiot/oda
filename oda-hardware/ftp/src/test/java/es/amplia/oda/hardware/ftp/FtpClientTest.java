@@ -2,16 +2,16 @@ package es.amplia.oda.hardware.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,8 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(FtpClient.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class FtpClientTest {
 
     private static final String FTP_IP = "127.0.0.1";
@@ -34,18 +34,21 @@ public class FtpClientTest {
     private static final String FTP_USER = "test";
     private static final String FTP_PASSWD = "passwd";
 
-    @Mock
     FTPClient mockedApacheFtpClient;
     FtpClient ftpClient = new FtpClient(FTP_IP, FTP_PORT, FTP_USER, FTP_PASSWD, false);
 
-    @Before()
+    @BeforeEach()
     public void setup() throws Exception {
-        PowerMockito.whenNew(FTPClient.class).withAnyArguments().thenReturn(mockedApacheFtpClient);
-        Mockito.when(mockedApacheFtpClient.getReplyCode()).thenReturn(200);
-        Mockito.when(mockedApacheFtpClient.login(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        try (MockedConstruction<FTPClient> ftpClientCons = Mockito.mockConstruction(FTPClient.class,
+                (mock, mctx) -> {
+                    Mockito.when(mock.getReplyCode()).thenReturn(200);
+                    Mockito.when(mock.login(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+                })) {
+            boolean connectResult = ftpClient.connect();
+            Assertions.assertTrue(connectResult);
 
-        boolean connectResult = ftpClient.connect();
-        Assert.assertTrue(connectResult);
+            mockedApacheFtpClient = ftpClientCons.constructed().get(0);
+        }
 
         Path destPath = Paths.get("src/test/resources/downloadedTest.txt");
         if(Files.exists(destPath)) {
@@ -67,9 +70,9 @@ public class FtpClientTest {
 
         List<FtpFile> ftpFilesReturned = ftpClient.listFiles("");
 
-        Assert.assertEquals(ftpFilesExpected.length, ftpFilesReturned.size());
-        Assert.assertEquals("testFile", ftpFilesReturned.get(0).getName());
-        Assert.assertEquals(calendar.getTimeInMillis(), ftpFilesReturned.get(0).getTimestamp());
+        Assertions.assertEquals(ftpFilesExpected.length, ftpFilesReturned.size());
+        Assertions.assertEquals("testFile", ftpFilesReturned.get(0).getName());
+        Assertions.assertEquals(calendar.getTimeInMillis(), ftpFilesReturned.get(0).getTimestamp());
     }
 
     @Test
@@ -79,7 +82,7 @@ public class FtpClientTest {
         ftpClient.changeDir("");
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void testDownloadFile() throws IOException {
         String source = "src/test/resources/test.txt";
@@ -88,11 +91,11 @@ public class FtpClientTest {
         ftpClient.downloadFile(source, dest);
 
         Path destPath = Paths.get(dest);
-        Assert.assertTrue(Files.exists(destPath));
+        Assertions.assertTrue(Files.exists(destPath));
         Files.delete(destPath);
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void testDownloadFileKeepDate() throws Exception {
         FtpFile source = new FtpFile();
@@ -105,7 +108,7 @@ public class FtpClientTest {
 
         // check file exists
         Path destPath = Paths.get(dest);
-        Assert.assertTrue(Files.exists(destPath));
+        Assertions.assertTrue(Files.exists(destPath));
 
         // format current date
         Date expectedDate = new Date(currentTime);
@@ -118,7 +121,7 @@ public class FtpClientTest {
         LocalDateTime date = LocalDateTime.parse(resultDate, formatter);
         Date returnedDate = Date.from(date.atZone(TimeZone.getTimeZone("UTC").toZoneId()).toInstant());
 
-        Assert.assertEquals(dateFormatter.format(expectedDate), dateFormatter.format(returnedDate));
+        Assertions.assertEquals(dateFormatter.format(expectedDate), dateFormatter.format(returnedDate));
         Files.delete(destPath);
     }
 

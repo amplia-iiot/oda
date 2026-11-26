@@ -3,22 +3,28 @@ package es.amplia.oda.operation.set;
 import es.amplia.oda.core.commons.osgi.proxies.StateManagerProxy;
 import es.amplia.oda.operation.api.OperationSetDeviceParameters;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -28,22 +34,28 @@ public class ActivatorTest {
     @Mock
     private StateManagerProxy mockedStateManager;
     @Mock
-    private OperationSetDeviceParametersImpl mockedSetDeviceParameters;
-    @Mock
     private ServiceRegistration<OperationSetDeviceParameters> mockedRegistration;
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(StateManagerProxy.class).withAnyArguments().thenReturn(mockedStateManager);
-        PowerMockito.whenNew(OperationSetDeviceParametersImpl.class).withAnyArguments()
-                .thenReturn(mockedSetDeviceParameters);
+        List<List<?>> stateManagerArgs = new ArrayList<>();
+        List<List<?>> setDeviceParametersArgs = new ArrayList<>();
+        try (MockedConstruction<StateManagerProxy> stateManagerCons = mockConstruction(StateManagerProxy.class,
+                     (mock, mctx) -> stateManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<OperationSetDeviceParametersImpl> setDeviceParametersCons =
+                     mockConstruction(OperationSetDeviceParametersImpl.class,
+                             (mock, mctx) -> setDeviceParametersArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        testActivator.start(mockedContext);
+            testActivator.start(mockedContext);
 
-        PowerMockito.verifyNew(StateManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(OperationSetDeviceParametersImpl.class).withArguments(eq(mockedStateManager));
-        verify(mockedContext)
-                .registerService(eq(OperationSetDeviceParameters.class), eq(mockedSetDeviceParameters), any());
+            assertEquals(1, stateManagerCons.constructed().size());
+            assertEquals(mockedContext, stateManagerArgs.get(0).get(0));
+            assertEquals(1, setDeviceParametersCons.constructed().size());
+            assertEquals(stateManagerCons.constructed().get(0), setDeviceParametersArgs.get(0).get(0));
+            verify(mockedContext)
+                    .registerService(eq(OperationSetDeviceParameters.class),
+                            eq(setDeviceParametersCons.constructed().get(0)), any());
+        }
     }
 
     @Test

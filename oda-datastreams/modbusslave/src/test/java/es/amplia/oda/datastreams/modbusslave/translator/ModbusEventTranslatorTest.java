@@ -1,7 +1,8 @@
 package es.amplia.oda.datastreams.modbusslave.translator;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -13,6 +14,12 @@ public class ModbusEventTranslatorTest {
     private static final String TEST_DATATYPE = "Short";
     private static final int TEST_START_MODBUS_ADDRESS = 254;
     private static final int TEST_END_MODBUS_ADDRESS = 286;
+
+    // The translator keeps its entries in static state shared with other test classes
+    @BeforeEach
+    void clearTranslator() {
+        ModbusEventTranslator.clearAllEntries();
+    }
 
     @Test
     public void testAddEntry() {
@@ -28,8 +35,8 @@ public class ModbusEventTranslatorTest {
         List<TranslationEntry> currentTranslationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(1, currentTranslationEntries.size());
-        Assert.assertEquals(expectedTranslationEntry, currentTranslationEntries.get(0));
+        Assertions.assertEquals(1, currentTranslationEntries.size());
+        Assertions.assertEquals(expectedTranslationEntry, currentTranslationEntries.get(0));
     }
 
     @Test
@@ -46,7 +53,7 @@ public class ModbusEventTranslatorTest {
         List<TranslationEntry> currentTranslationEntry = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(expectedTranslationEntry, currentTranslationEntry.get(0));
+        Assertions.assertEquals(expectedTranslationEntry, currentTranslationEntry.get(0));
     }
 
     @Test
@@ -56,7 +63,7 @@ public class ModbusEventTranslatorTest {
         // retrieve loaded entries before
         List<TranslationEntry> beforeTranslationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
         // assertions
-        Assert.assertEquals(0, beforeTranslationEntries.size());
+        Assertions.assertEquals(0, beforeTranslationEntries.size());
 
         // create new translation entry
         TranslationEntry expectedTranslationEntry = new TranslationEntry(TEST_START_MODBUS_ADDRESS, TEST_START_MODBUS_ADDRESS,
@@ -69,7 +76,7 @@ public class ModbusEventTranslatorTest {
         List<TranslationEntry> currentTranslationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(1, currentTranslationEntries.size());
+        Assertions.assertEquals(1, currentTranslationEntries.size());
 
         // call method to test
         ModbusEventTranslator.clearAllEntries();
@@ -78,7 +85,7 @@ public class ModbusEventTranslatorTest {
         List<TranslationEntry> afterTranslationEntries = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(0, afterTranslationEntries.size());
+        Assertions.assertEquals(0, afterTranslationEntries.size());
     }
 
     @Test
@@ -90,6 +97,6 @@ public class ModbusEventTranslatorTest {
         List<TranslationEntry> currentTranslationEntry = ModbusEventTranslator.getExistingNonBlockTranslations(TEST_START_MODBUS_ADDRESS, TEST_DEVICE_ID);
 
         // assertions
-        Assert.assertEquals(0, currentTranslationEntry.size());
+        Assertions.assertEquals(0, currentTranslationEntry.size());
     }
 }

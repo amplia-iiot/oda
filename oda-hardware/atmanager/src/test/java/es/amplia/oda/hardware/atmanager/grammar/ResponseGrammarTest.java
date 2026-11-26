@@ -2,15 +2,16 @@ package es.amplia.oda.hardware.atmanager.grammar;
 
 import es.amplia.oda.hardware.atmanager.api.ATEvent;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ResponseGrammarTest {
     private ResponseGrammar responseGrammar;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         responseGrammar = new ResponseGrammar();
     }
@@ -23,9 +24,9 @@ public class ResponseGrammarTest {
         assertEquals(actual, expected);
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void responseLineWithoutColon() {
-        responseGrammar.parse("+CREG");
+        assertThrows(GrammarException.class, () -> responseGrammar.parse("+CREG"));
     }
 
     @Test
@@ -60,14 +61,14 @@ public class ResponseGrammarTest {
         assertEquals(actual, expected);
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void responseLineWithErrorInParameters() {
-        responseGrammar.parse("+CREG: ");
+        assertThrows(GrammarException.class, () -> responseGrammar.parse("+CREG: "));
     }
 
-    @Test(expected = GrammarException.class)
+    @Test
     public void responseLineWithErrorInName() {
-        responseGrammar.parse("+CREG+");
+        assertThrows(GrammarException.class, () -> responseGrammar.parse("+CREG+"));
     }
 
 }

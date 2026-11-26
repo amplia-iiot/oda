@@ -9,23 +9,29 @@ import es.amplia.oda.core.commons.osgi.proxies.DeviceInfoProviderProxy;
 import es.amplia.oda.core.commons.utils.ServiceListenerBundle;
 import es.amplia.oda.connector.coap.configuration.ConfigurationUpdateHandlerImpl;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Activator.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ActivatorTest {
 
     private final Activator testActivator = new Activator();
@@ -34,8 +40,6 @@ public class ActivatorTest {
     private DeviceInfoProviderProxy mockedDeviceInfoProvider;
     @Mock
     private ATManagerProxy mockedATManager;
-    @Mock
-    private COAPClientFactory mockedCOAPClientFactory;
     @Mock
     private COAPConnector mockedConnector;
     @Mock
@@ -53,32 +57,60 @@ public class ActivatorTest {
 
     @Test
     public void testStart() throws Exception {
-        PowerMockito.whenNew(DeviceInfoProviderProxy.class).withAnyArguments().thenReturn(mockedDeviceInfoProvider);
-        PowerMockito.whenNew(ATManagerProxy.class).withAnyArguments().thenReturn(mockedATManager);
-        PowerMockito.whenNew(COAPClientFactory.class).withAnyArguments().thenReturn(mockedCOAPClientFactory);
-        PowerMockito.whenNew(COAPConnector.class).withAnyArguments().thenReturn(mockedConnector);
-        PowerMockito.whenNew(ConfigurationUpdateHandlerImpl.class).withAnyArguments().thenReturn(mockedConfigHandler);
-        PowerMockito.whenNew(ConfigurableBundleImpl.class).withAnyArguments().thenReturn(mockedConfigBundle);
-        PowerMockito.whenNew(ServiceListenerBundle.class)
-                .withArguments(any(BundleContext.class), eq(DeviceInfoProvider.class), any())
-                .thenReturn(mockedDeviceInfoServiceListener);
-        PowerMockito.whenNew(ServiceListenerBundle.class)
-                .withArguments(any(BundleContext.class), eq(ATManager.class), any())
-                .thenReturn(mockedATManagerServiceListener);
+        List<List<?>> deviceInfoProviderArgs = new ArrayList<>();
+        List<List<?>> atManagerArgs = new ArrayList<>();
+        List<List<?>> coapClientFactoryArgs = new ArrayList<>();
+        List<List<?>> connectorArgs = new ArrayList<>();
+        List<List<?>> configHandlerArgs = new ArrayList<>();
+        List<List<?>> configBundleArgs = new ArrayList<>();
+        List<List<?>> serviceListenerArgs = new ArrayList<>();
 
-        testActivator.start(mockedContext);
+        try (MockedConstruction<DeviceInfoProviderProxy> deviceInfoProviderCons =
+                     mockConstruction(DeviceInfoProviderProxy.class,
+                             (mock, mctx) -> deviceInfoProviderArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ATManagerProxy> atManagerCons =
+                     mockConstruction(ATManagerProxy.class,
+                             (mock, mctx) -> atManagerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<COAPClientFactory> coapClientFactoryCons =
+                     mockConstruction(COAPClientFactory.class,
+                             (mock, mctx) -> coapClientFactoryArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<COAPConnector> connectorCons =
+                     mockConstruction(COAPConnector.class,
+                             (mock, mctx) -> connectorArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurationUpdateHandlerImpl> configHandlerCons =
+                     mockConstruction(ConfigurationUpdateHandlerImpl.class,
+                             (mock, mctx) -> configHandlerArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ConfigurableBundleImpl> configBundleCons =
+                     mockConstruction(ConfigurableBundleImpl.class,
+                             (mock, mctx) -> configBundleArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedConstruction<ServiceListenerBundle> serviceListenerCons =
+                     mockConstruction(ServiceListenerBundle.class,
+                             (mock, mctx) -> serviceListenerArgs.add(new ArrayList<>(mctx.arguments())))) {
 
-        PowerMockito.verifyNew(DeviceInfoProviderProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(ATManagerProxy.class).withArguments(eq(mockedContext));
-        PowerMockito.verifyNew(COAPClientFactory.class).withArguments(eq(mockedDeviceInfoProvider), eq(mockedATManager));
-        PowerMockito.verifyNew(COAPConnector.class).withArguments(eq(mockedCOAPClientFactory));
-        PowerMockito.verifyNew(ConfigurationUpdateHandlerImpl.class).withArguments(eq(mockedConnector));
-        PowerMockito.verifyNew(ConfigurableBundleImpl.class).withArguments(eq(mockedContext), eq(mockedConfigHandler));
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(DeviceInfoProvider.class), any());
-        PowerMockito.verifyNew(ServiceListenerBundle.class)
-                .withArguments(eq(mockedContext), eq(ATManager.class), any());
-        verify(mockedContext).registerService(eq(OpenGateConnector.class), eq(mockedConnector), any());
+            testActivator.start(mockedContext);
+
+            assertEquals(1, deviceInfoProviderCons.constructed().size());
+            assertEquals(mockedContext, deviceInfoProviderArgs.get(0).get(0));
+            assertEquals(1, atManagerCons.constructed().size());
+            assertEquals(mockedContext, atManagerArgs.get(0).get(0));
+            assertEquals(1, coapClientFactoryCons.constructed().size());
+            assertEquals(deviceInfoProviderCons.constructed().get(0), coapClientFactoryArgs.get(0).get(0));
+            assertEquals(atManagerCons.constructed().get(0), coapClientFactoryArgs.get(0).get(1));
+            assertEquals(1, connectorCons.constructed().size());
+            assertEquals(coapClientFactoryCons.constructed().get(0), connectorArgs.get(0).get(0));
+            assertEquals(1, configHandlerCons.constructed().size());
+            assertEquals(connectorCons.constructed().get(0), configHandlerArgs.get(0).get(0));
+            assertEquals(1, configBundleCons.constructed().size());
+            assertEquals(mockedContext, configBundleArgs.get(0).get(0));
+            assertEquals(configHandlerCons.constructed().get(0), configBundleArgs.get(0).get(1));
+            assertEquals(2, serviceListenerCons.constructed().size());
+            assertEquals(mockedContext, serviceListenerArgs.get(0).get(0));
+            assertEquals(DeviceInfoProvider.class, serviceListenerArgs.get(0).get(1));
+            assertEquals(mockedContext, serviceListenerArgs.get(1).get(0));
+            assertEquals(ATManager.class, serviceListenerArgs.get(1).get(1));
+            verify(mockedContext).registerService(eq(OpenGateConnector.class),
+                    eq(connectorCons.constructed().get(0)), any());
+        }
     }
 
     @Test

@@ -12,34 +12,44 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.internal.util.reflection.Whitebox;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.powermock.reflect.Whitebox;
+
+import javax.net.ssl.SSLContext;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import static es.amplia.oda.operation.update.DownloadManager.DownloadException;
 import static es.amplia.oda.operation.update.FileManager.FileException;
 import static es.amplia.oda.operation.update.internal.DownloadManagerImpl.API_KEY_HEADER;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ DownloadManagerImpl.class, HttpClientBuilder.class, DataInputStream.class })
-@PowerMockIgnore({ "javax.net.ssl.*", "javax.security.*" })
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class DownloadManagerImplTest {
 
     private static final String DOWNLOAD_FOLDER = "downloads/";
@@ -75,15 +85,24 @@ public class DownloadManagerImplTest {
     @InjectMocks
     private DownloadManagerImpl testDownloadManager;
 
-    private Map<DeploymentElement, String> spiedDownloadedFiles;
+    private Map<DeploymentElement, String> testDownloadedFiles;
 
-    @Before
+    @TempDir
+    Path tempDir;
+
+    @BeforeAll
+    public static void loadClassesUsedInsideMockedScopes() throws Exception {
+        Class.forName(DownloadManagerImpl.class.getName() + "$1");
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, null, null);
+    }
+
+    @BeforeEach
     public void setUp() {
-        Map<DeploymentElement, String> downloadedFiles = new HashMap<>();
-        downloadedFiles.put(deploymentElement1, DOWNLOADED_FILE_1);
-        downloadedFiles.put(deploymentElement2, DOWNLOADED_FILE_2);
-        downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
-        spiedDownloadedFiles = spy(downloadedFiles);
+        testDownloadedFiles = new HashMap<>();
+        testDownloadedFiles.put(deploymentElement1, DOWNLOADED_FILE_1);
+        testDownloadedFiles.put(deploymentElement2, DOWNLOADED_FILE_2);
+        testDownloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
 
         testDownloadManager.loadConfig("rules/", "jslib/", "deploy/",
                 "configuration/", "downloads/");
@@ -107,64 +126,17 @@ public class DownloadManagerImplTest {
         verify(mockedFileManager, never()).createDirectory(eq(DOWNLOAD_FOLDER));
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testCreateDownloadDirectoryFileException() throws FileException, DownloadException {
         when(mockedFileManager.exist(eq(DOWNLOAD_FOLDER))).thenReturn(false);
         doThrow(new FileException("")).when(mockedFileManager).createDirectory(eq(DOWNLOAD_FOLDER));
 
-        testDownloadManager.createDownloadDirectory();
-
-        fail("File exception must be thrown");
+        assertThrows(DownloadException.class, () -> testDownloadManager.createDownloadDirectory());
     }
 
     @Test
     public void testDownloadSoftware() throws Exception {
-        HttpGet mockedHttpGet = mock(HttpGet.class);
-        HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
-        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
-        CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-        HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        DataInputStream mockedReader = PowerMockito.mock(DataInputStream.class);
-        File mockedFile = mock(File.class);
-        FileOutputStream mockedFileOutputStream = mock(FileOutputStream.class);
-        DataOutputStream mockedWriter = mock(DataOutputStream.class);
-        StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + NAME_1 + "-" + VERSION_1 + ".jar";
-
-        PowerMockito.whenNew(HttpGet.class).withAnyArguments().thenReturn(mockedHttpGet);
-        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        PowerMockito.when(HttpClientBuilder.create()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-        when(mockedEntity.getContent()).thenReturn(mockedContent);
-        PowerMockito.whenNew(DataInputStream.class).withAnyArguments().thenReturn(mockedReader);
-        PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        PowerMockito.whenNew(FileOutputStream.class).withAnyArguments().thenReturn(mockedFileOutputStream);
-        PowerMockito.whenNew(DataOutputStream.class).withAnyArguments().thenReturn(mockedWriter);
-        when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(200);
-        PowerMockito.when(mockedReader.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
-
-        testDownloadManager.download(deploymentElement1);
-
-        PowerMockito.verifyNew(HttpGet.class).withArguments(eq(URL_1));
-        verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
-        verify(mockedClient).execute(eq(mockedHttpGet));
-        PowerMockito.verifyNew(DataInputStream.class).withArguments(mockedContent);
-        PowerMockito.verifyNew(File.class).withArguments(downloadedFile);
-
-        //noinspection ResultOfMethodCallIgnored
-        verify(mockedReader, times(3)).read(any());
-        verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-        spiedDownloadedFiles.put(eq(deploymentElement1), eq(downloadedFile));
-
-        verify(mockedClient).close();
-        mockedResponse.close();
-        mockedReader.close();
-        mockedWriter.close();
+        assertDownloads(deploymentElement1, NAME_1 + "-" + VERSION_1 + ".jar");
     }
 
     @Test
@@ -174,52 +146,8 @@ public class DownloadManagerImplTest {
                 new DeploymentElement(configurationDeploymentElementName, TEST_VERSION, DeploymentElementType.CONFIGURATION,
                         URL_1, "configuration/", 1L, DeploymentElementOperationType.INSTALL,
                         Collections.EMPTY_LIST, 0L, "0.0.9", DeploymentElementOption.MANDATORY);
-        HttpGet mockedHttpGet = mock(HttpGet.class);
-        HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
-        CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
-        CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
-        HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        DataInputStream mockedReader = PowerMockito.mock(DataInputStream.class);
-        File mockedFile = mock(File.class);
-        FileOutputStream mockedFileOutputStream = mock(FileOutputStream.class);
-        DataOutputStream mockedWriter = mock(DataOutputStream.class);
-        StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + configurationDeploymentElementName + ".cfg";
 
-        PowerMockito.whenNew(HttpGet.class).withAnyArguments().thenReturn(mockedHttpGet);
-        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        PowerMockito.when(HttpClientBuilder.create()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-        when(mockedEntity.getContent()).thenReturn(mockedContent);
-        PowerMockito.whenNew(DataInputStream.class).withAnyArguments().thenReturn(mockedReader);
-        PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        PowerMockito.whenNew(FileOutputStream.class).withAnyArguments().thenReturn(mockedFileOutputStream);
-        PowerMockito.whenNew(DataOutputStream.class).withAnyArguments().thenReturn(mockedWriter);
-        when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(200);
-        PowerMockito.when(mockedReader.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
-
-        testDownloadManager.download(configurationDeploymentElement);
-
-        PowerMockito.verifyNew(HttpGet.class).withArguments(eq(URL_1));
-        verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
-        verify(mockedClient).execute(eq(mockedHttpGet));
-        PowerMockito.verifyNew(DataInputStream.class).withArguments(mockedContent);
-        PowerMockito.verifyNew(File.class).withArguments(downloadedFile);
-
-        //noinspection ResultOfMethodCallIgnored
-        verify(mockedReader, times(3)).read(any());
-        verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-        spiedDownloadedFiles.put(eq(configurationDeploymentElement), eq(downloadedFile));
-
-        verify(mockedClient).close();
-        mockedResponse.close();
-        mockedReader.close();
-        mockedWriter.close();
+        assertDownloads(configurationDeploymentElement, configurationDeploymentElementName + ".cfg");
     }
 
     @Test
@@ -230,109 +158,101 @@ public class DownloadManagerImplTest {
                         URL_1, "", 1L, DeploymentElementOperationType.INSTALL,
                         Collections.EMPTY_LIST, 0L, "0.0.9",
                         DeploymentElementOption.MANDATORY);
-        HttpGet mockedHttpGet = mock(HttpGet.class);
+
+        assertDownloads(otherDeploymentElement, otherTypeDeploymentElementName);
+    }
+
+    // Writes to a real temporary folder: mocking File or the JDK streams also intercepts the
+    // ones the JVM itself creates (class loading), which breaks other tests depending on order
+    private void assertDownloads(DeploymentElement element, String expectedFileName) throws Exception {
+        String downloadsPath = tempDir.toString() + File.separator;
+        testDownloadManager.loadConfig("rules/", "jslib/", "deploy/", "configuration/", downloadsPath);
+        byte[] content = new byte[6144];
+        new Random(42).nextBytes(content);
+
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
         CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
         HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        DataInputStream mockedReader = PowerMockito.mock(DataInputStream.class);
-        File mockedFile = mock(File.class);
-        FileOutputStream mockedFileOutputStream = mock(FileOutputStream.class);
-        DataOutputStream mockedWriter = mock(DataOutputStream.class);
         StatusLine mockedStatusLine = mock(StatusLine.class);
-        String downloadedFile = DOWNLOAD_FOLDER + otherTypeDeploymentElementName;
 
-        PowerMockito.whenNew(HttpGet.class).withAnyArguments().thenReturn(mockedHttpGet);
-        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        PowerMockito.when(HttpClientBuilder.create()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-        when(mockedEntity.getContent()).thenReturn(mockedContent);
-        PowerMockito.whenNew(DataInputStream.class).withAnyArguments().thenReturn(mockedReader);
-        PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        PowerMockito.whenNew(FileOutputStream.class).withAnyArguments().thenReturn(mockedFileOutputStream);
-        PowerMockito.whenNew(DataOutputStream.class).withAnyArguments().thenReturn(mockedWriter);
-        when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(200);
-        PowerMockito.when(mockedReader.read(any())).thenReturn(4096).thenReturn(2048).thenReturn(-1);
+        List<List<?>> httpGetArgs = new ArrayList<>();
+        try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class,
+                     (mock, mctx) -> httpGetArgs.add(new ArrayList<>(mctx.arguments())));
+             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class)) {
 
-        testDownloadManager.download(otherDeploymentElement);
+            when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
+            mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
+            when(mockedBuilder.setSSLContext(any())).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getEntity()).thenReturn(mockedEntity);
+            when(mockedEntity.getContent()).thenReturn(new ByteArrayInputStream(content));
+            when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(200);
 
-        PowerMockito.verifyNew(HttpGet.class).withArguments(eq(URL_1));
-        verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
-        verify(mockedClient).execute(eq(mockedHttpGet));
-        PowerMockito.verifyNew(DataInputStream.class).withArguments(mockedContent);
-        PowerMockito.verifyNew(File.class).withArguments(downloadedFile);
+            testDownloadManager.download(element);
 
-        //noinspection ResultOfMethodCallIgnored
-        verify(mockedReader, times(3)).read(any());
-        verify(mockedWriter, times(2)).write(any(), anyInt(), anyInt());
-        spiedDownloadedFiles.put(eq(otherDeploymentElement), eq(downloadedFile));
+            HttpGet mockedHttpGet = httpGetCons.constructed().get(0);
+            assertEquals(URL_1, httpGetArgs.get(0).get(0));
+            verify(mockedHttpGet).addHeader(eq(API_KEY_HEADER), eq(TEST_API_KEY));
+            verify(mockedClient).execute(eq(mockedHttpGet));
+            verify(mockedClient).close();
 
-        verify(mockedClient).close();
-        mockedResponse.close();
-        mockedReader.close();
-        mockedWriter.close();
+            String downloadedFile = downloadsPath + expectedFileName;
+            assertEquals(downloadedFile, testDownloadManager.getDownloadedFile(element));
+            assertArrayEquals(content, Files.readAllBytes(Paths.get(downloadedFile)));
+        }
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testDownloadHttpGetExecuteError() throws Exception {
-        HttpGet mockedHttpGet = mock(HttpGet.class);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
 
-        PowerMockito.whenNew(HttpGet.class).withAnyArguments().thenReturn(mockedHttpGet);
-        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        PowerMockito.when(HttpClientBuilder.create()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpGet.class))).thenThrow(new IOException(""));
+        try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class);
+             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class)) {
 
-        testDownloadManager.download(deploymentElement1);
+            when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
+            mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
+            when(mockedBuilder.setSSLContext(any())).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpGet.class))).thenThrow(new IOException(""));
 
-        fail("Download exception must be thrown");
+            assertThrows(DownloadException.class, () -> testDownloadManager.download(deploymentElement1));
+        }
     }
 
-    @Test(expected = DownloadException.class)
+    @Test
     public void testDownloadHttpResponseError() throws Exception {
-        HttpGet mockedHttpGet = mock(HttpGet.class);
+        testDownloadManager.loadConfig("rules/", "jslib/", "deploy/", "configuration/",
+                tempDir.toString() + File.separator);
         HttpClientBuilder mockedBuilder = mock(HttpClientBuilder.class);
         CloseableHttpClient mockedClient = mock(CloseableHttpClient.class);
         CloseableHttpResponse mockedResponse = mock(CloseableHttpResponse.class);
         HttpEntity mockedEntity = mock(HttpEntity.class);
-        InputStream mockedContent = mock(InputStream.class);
-        DataInputStream mockedReader = PowerMockito.mock(DataInputStream.class);
-        File mockedFile = mock(File.class);
-        FileOutputStream mockedFileOutputStream = mock(FileOutputStream.class);
-        DataOutputStream mockedWriter = mock(DataOutputStream.class);
         StatusLine mockedStatusLine = mock(StatusLine.class);
 
-        PowerMockito.whenNew(HttpGet.class).withAnyArguments().thenReturn(mockedHttpGet);
-        when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
-        PowerMockito.mockStatic(HttpClientBuilder.class);
-        PowerMockito.when(HttpClientBuilder.create()).thenReturn(mockedBuilder);
-        when(mockedBuilder.build()).thenReturn(mockedClient);
-        when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
-        when(mockedResponse.getEntity()).thenReturn(mockedEntity);
-        when(mockedEntity.getContent()).thenReturn(mockedContent);
-        PowerMockito.whenNew(DataInputStream.class).withAnyArguments().thenReturn(mockedReader);
-        PowerMockito.whenNew(File.class).withAnyArguments().thenReturn(mockedFile);
-        PowerMockito.whenNew(FileOutputStream.class).withAnyArguments().thenReturn(mockedFileOutputStream);
-        PowerMockito.whenNew(DataOutputStream.class).withAnyArguments().thenReturn(mockedWriter);
-        when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
-        when(mockedStatusLine.getStatusCode()).thenReturn(404);
+        try (MockedConstruction<HttpGet> httpGetCons = mockConstruction(HttpGet.class);
+             MockedStatic<HttpClientBuilder> mockedHttpClientBuilder = mockStatic(HttpClientBuilder.class)) {
 
-        testDownloadManager.download(deploymentElement1);
+            when(mockedDeviceInfoProvider.getApiKey()).thenReturn(TEST_API_KEY);
+            mockedHttpClientBuilder.when(HttpClientBuilder::create).thenReturn(mockedBuilder);
+            when(mockedBuilder.setSSLContext(any())).thenReturn(mockedBuilder);
+            when(mockedBuilder.build()).thenReturn(mockedClient);
+            when(mockedClient.execute(any(HttpGet.class))).thenReturn(mockedResponse);
+            when(mockedResponse.getEntity()).thenReturn(mockedEntity);
+            when(mockedEntity.getContent()).thenReturn(new ByteArrayInputStream(new byte[0]));
+            when(mockedResponse.getStatusLine()).thenReturn(mockedStatusLine);
+            when(mockedStatusLine.getStatusCode()).thenReturn(404);
 
-        fail("Download exception must be thrown");
+            assertThrows(DownloadException.class, () -> testDownloadManager.download(deploymentElement1));
+        }
     }
 
     @Test
     public void testGetDownloadedFile() {
-        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, testDownloadedFiles);
 
         assertEquals(DOWNLOADED_FILE_3, testDownloadManager.getDownloadedFile(deploymentElement3));
         assertEquals(DOWNLOADED_FILE_1, testDownloadManager.getDownloadedFile(deploymentElement1));
@@ -347,26 +267,26 @@ public class DownloadManagerImplTest {
                         Collections.EMPTY_LIST, 0L, "0.0.9",
                         DeploymentElementOption.OPTIONAL);
 
-        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, testDownloadedFiles);
 
         assertNull(testDownloadManager.getDownloadedFile(nonExistentDeploymentElement));
     }
 
     @Test
     public void testDeleteDownloadedFiles() throws FileException {
-        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, testDownloadedFiles);
 
         testDownloadManager.deleteDownloadedFiles();
 
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_1));
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_2));
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_3));
-        verify(spiedDownloadedFiles).clear();
+        assertTrue(testDownloadedFiles.isEmpty());
     }
 
     @Test
     public void testDeleteDownloadedFilesCatchException() throws FileException {
-        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, testDownloadedFiles);
 
         doThrow(new FileManager.FileException("")).when(mockedFileManager).delete(eq(DOWNLOADED_FILE_2));
 
@@ -375,7 +295,7 @@ public class DownloadManagerImplTest {
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_1));
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_2));
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_3));
-        verify(spiedDownloadedFiles).clear();
+        assertTrue(testDownloadedFiles.isEmpty());
     }
 
     @Test
@@ -384,7 +304,7 @@ public class DownloadManagerImplTest {
 
         testDownloadManager.deleteDownloadedFiles();
 
-        verifyZeroInteractions(mockedFileManager);
+        verifyNoInteractions(mockedFileManager);
     }
 
     @Test
@@ -393,14 +313,13 @@ public class DownloadManagerImplTest {
         downloadedFiles.put(deploymentElement1, DOWNLOADED_FILE_1);
         downloadedFiles.put(deploymentElement2, null);
         downloadedFiles.put(deploymentElement3, DOWNLOADED_FILE_3);
-        spiedDownloadedFiles = spy(downloadedFiles);
 
-        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, spiedDownloadedFiles);
+        Whitebox.setInternalState(testDownloadManager, DOWNLOADED_FILES_FIELD_NAME, downloadedFiles);
 
         testDownloadManager.deleteDownloadedFiles();
 
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_1));
         verify(mockedFileManager).delete(eq(DOWNLOADED_FILE_3));
-        verify(spiedDownloadedFiles).clear();
+        assertTrue(downloadedFiles.isEmpty());
     }
 }

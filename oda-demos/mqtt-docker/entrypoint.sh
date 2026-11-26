@@ -11,7 +11,7 @@ rm -rf deploy
 rm -rf configuration
 rm conf/config.properties
 
-PARAMS=" -Dname=$CURRENT_PATH -Djava.net.preferIPv4Stack=true -Djava.security.policy=security/dio.policy -Dfelix.config.properties=file:confDocker/config.properties -Dlogback.configurationFile=conf/logback.xml -Dgosh.args=--nointeractive -Dorg.jline.terminal.dumb=true"
+PARAMS=" -Dname=$CURRENT_PATH -Djava.net.preferIPv4Stack=true -Dfelix.config.properties=file:confDocker/config.properties -Dlogback.configurationFile=conf/logback.xml -Dgosh.args=--nointeractive -Dorg.jline.terminal.dumb=true"
 
 # launch java
 java ${PARAMS} -cp 'bin/*' org.apache.felix.main.Main

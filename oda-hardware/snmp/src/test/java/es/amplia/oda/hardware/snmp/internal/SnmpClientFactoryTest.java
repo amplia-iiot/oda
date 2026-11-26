@@ -4,18 +4,20 @@ import es.amplia.oda.core.commons.snmp.SnmpClient;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientConfig;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientOptions;
 import es.amplia.oda.hardware.snmp.configuration.SnmpClientV3Options;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.Snmp;
 import org.snmp4j.UserTarget;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SnmpClientFactoryTest {
 
     private static final String VERSION_PROPERTY_NAME = "version";
@@ -60,8 +62,6 @@ public class SnmpClientFactoryTest {
 
     @Mock
     private Snmp mockedSnmp;
-    @Mock
-    private Snmp mockedSnmpClient;
     @InjectMocks
     private SnmpClientFactory testClientFactory;
 
@@ -74,7 +74,7 @@ public class SnmpClientFactoryTest {
         // disconnect to allow other test to use same ports
         actualSnmpClient.disconnect();
 
-        Assert.assertEquals(actualSnmpClient.getDeviceId(), expectedSnmpClient.getDeviceId());
+        Assertions.assertEquals(actualSnmpClient.getDeviceId(), expectedSnmpClient.getDeviceId());
     }
 
     @Test
@@ -82,13 +82,11 @@ public class SnmpClientFactoryTest {
         SnmpClientImpl expectedSnmpClient = new SnmpClientImpl(mockedSnmp, TEST_VERSION_3_VALUE, new UserTarget(),
                 TEST_CONTEXT_NAME_VALUE, TEST_DEVICE_ID_VALUE);
 
-        PowerMockito.whenNew(Snmp.class).withNoArguments().thenReturn(mockedSnmpClient);
-
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(TEST_SNMP_V3_COMPLETE_CONFIGURATION);
         // disconnect to allow other test to use same ports
         actualSnmpClient.disconnect();
 
-        Assert.assertEquals(actualSnmpClient.getDeviceId(), expectedSnmpClient.getDeviceId());
+        Assertions.assertEquals(actualSnmpClient.getDeviceId(), expectedSnmpClient.getDeviceId());
     }
 
     @Test
@@ -100,7 +98,7 @@ public class SnmpClientFactoryTest {
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(snmpClientConfig);
 
-        Assert.assertNull(actualSnmpClient);
+        Assertions.assertNull(actualSnmpClient);
     }
 
     @Test
@@ -112,6 +110,6 @@ public class SnmpClientFactoryTest {
 
         SnmpClient actualSnmpClient = testClientFactory.createSnmpClient(snmpClientConfig);
 
-        Assert.assertNull(actualSnmpClient);
+        Assertions.assertNull(actualSnmpClient);
     }
 }

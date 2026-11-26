@@ -6,25 +6,28 @@ import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
 import es.amplia.oda.operation.api.CustomOperation;
 import es.amplia.oda.operation.api.engine.OperationEngineProxy;
 import lombok.Value;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.powermock.reflect.Whitebox;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 import static es.amplia.oda.core.commons.utils.OdaCommonConstants.OPENGATE_VERSION;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class CustomOperationProcessorTest {
 
     @Value
@@ -64,7 +67,7 @@ public class CustomOperationProcessorTest {
     @Mock
     private CustomOperation mockedOperation2;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         TEST_STRING_PARAM.put("string", TEST_STRING_VALUE);
         TEST_INVALID_PARAM.put("invalidParam", TEST_INVALID_VALUE);
@@ -82,11 +85,9 @@ public class CustomOperationProcessorTest {
         assertEquals(TEST_CUSTOM_OPERATION_NAME, Whitebox.getInternalState(testProcessor, "customOperationName"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testParseParametersInvalidParam() {
-        testProcessor.parseParameters(TEST_INVALID_REQUEST);
-
-        fail("Illegal Argument Exception is thrown");
+        assertThrows(IllegalArgumentException.class, () -> testProcessor.parseParameters(TEST_INVALID_REQUEST));
     }
 
     @Test

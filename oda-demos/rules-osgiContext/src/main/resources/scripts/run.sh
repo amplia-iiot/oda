@@ -30,7 +30,7 @@ check_process_active () {
 launch_java () {
 
         # normal parameters
-        PARAMS=" -Dname=$CURRENT_PATH -Djava.net.preferIPv4Stack=true -Djava.security.policy=security/dio.policy -Dlogback.configurationFile=conf/logback.xml -Dgosh.args=--nointeractive -Dorg.jline.terminal.dumb=true"
+        PARAMS=" -Dname=$CURRENT_PATH -Djava.net.preferIPv4Stack=true -Dlogback.configurationFile=conf/logback.xml -Dgosh.args=--nointeractive -Dorg.jline.terminal.dumb=true"
 
         #add debug mode if -d option present
         if [ "$1" = "-d" ] ; then

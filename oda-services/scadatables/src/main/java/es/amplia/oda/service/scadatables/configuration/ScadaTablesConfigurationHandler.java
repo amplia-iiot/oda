@@ -8,8 +8,9 @@ import java.util.function.Supplier;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+
+import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 
 import es.amplia.oda.core.commons.exceptions.ConfigurationException;
@@ -39,7 +40,9 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
     private static final String FEED_PROPERTY_NAME = "feed";
     private static final String TRANSFORMATION_PROPERTY_NAME = "transformation";
     private static final String EVENT_PUBLISH_PROPERTY_NAME = "eventPublish";
-    private static final String NASHORN_ENGINE_NAME = "nashorn";
+    // Nashorn ya no forma parte del JDK (JEP 372): el ServiceLoader de ScriptEngineManager no lo
+    // encuentra dentro de OSGi, así que se instancia la factoría del nashorn-core embebido
+    private static final NashornScriptEngineFactory NASHORN_ENGINE_FACTORY = new NashornScriptEngineFactory();
 
     /**
      * SCADA table information service.
@@ -128,8 +131,7 @@ public class ScadaTablesConfigurationHandler implements ConfigurationUpdateHandl
 
     private void registerScript(ScadaTableEntryConfiguration newConfig, String script, String datastreamId, int index) {
         try {
-            final ScriptEngineManager manager = new ScriptEngineManager();
-            ScriptEngine engine = manager.getEngineByName(NASHORN_ENGINE_NAME);
+            ScriptEngine engine = NASHORN_ENGINE_FACTORY.getScriptEngine();
             engine.eval(REVERSE_ENDIAN_FUNCTION + "\r\n function run(x) { return " + script + "; }");
             newConfig.setScript((Invocable) engine);
         } catch (ScriptException e) {
