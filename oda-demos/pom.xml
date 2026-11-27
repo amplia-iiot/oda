@@ -10,7 +10,6 @@
     <description>Demos of the OpenGate Device Agent</description>
     <modules>
         <module>mqtt</module>
-        <module>fx30-mqtt</module>
         <module>coap</module>
         <module>udp-south</module>
 		<module>rules</module>

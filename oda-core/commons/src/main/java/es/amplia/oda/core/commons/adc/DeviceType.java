@@ -2,7 +2,6 @@ package es.amplia.oda.core.commons.adc;
 
 public enum DeviceType {
 	OWASYS("owasys"),
-	FX30("fx30"),
 	DEFAULT("default");
 
 	private final String displayName;
@@ -21,9 +20,6 @@ public enum DeviceType {
 			case "owasys":
 			case "OWASYS":
 				return OWASYS;
-			case "fx30":
-			case "FX30":
-				return FX30;
 			default:
 				return DEFAULT;
 		}

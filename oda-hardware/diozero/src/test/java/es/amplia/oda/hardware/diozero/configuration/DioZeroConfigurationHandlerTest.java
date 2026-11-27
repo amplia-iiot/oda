@@ -32,7 +32,7 @@ public class DioZeroConfigurationHandlerTest {
     private static final String TEST_ADC_CHANNEL_1_NAME = "test1";
     private static final boolean TEST_ADC_CHANNEL_1_LOW_MODE = true;
     private static final String TEST_ADC_CHANNEL_1_PATH = "path1";
-    private static final String TEST_ADC_CHANNEL_1_DEVICE_TYPE = "FX30";
+    private static final String TEST_ADC_CHANNEL_1_DEVICE_TYPE = "OWASYS";
     private static final int TEST_ADC_CHANNEL_2_INDEX = 1;
     private static final String TEST_ADC_CHANNEL_2_PATH = "path2";
 
@@ -90,7 +90,7 @@ public class DioZeroConfigurationHandlerTest {
         verify(mockedBuilder).setName(eq(TEST_ADC_CHANNEL_1_NAME));
         verify(mockedBuilder).setLowMode(eq(TEST_ADC_CHANNEL_1_LOW_MODE));
         verify(mockedBuilder).setPath(eq(TEST_ADC_CHANNEL_1_PATH));
-        verify(mockedBuilder).setDeviceType(eq(DeviceType.FX30));
+        verify(mockedBuilder).setDeviceType(eq(DeviceType.OWASYS));
         verify(mockedBuilder).setChannelIndex(eq(TEST_ADC_CHANNEL_2_INDEX));
         verify(mockedBuilder).setPath(eq(TEST_ADC_CHANNEL_2_PATH));
         List<AdcChannel> configuredChannels = Whitebox.getInternalState(testHandler, "configuredChannels");
