@@ -11,7 +11,7 @@
     <parent>
         <artifactId>oda-comms</artifactId>
         <groupId>es.amplia.oda.comms</groupId>
-        <version>4.17.1-SNAPSHOT</version>
+        <version>4.17.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -180,7 +180,7 @@
         <dependency>
             <groupId>es.amplia.oda.service</groupId>
             <artifactId>scadatables</artifactId>
-            <version>4.17.1-SNAPSHOT</version>
+            <version>4.17.2-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
