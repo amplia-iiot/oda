@@ -55,7 +55,7 @@ Consola remota: `ssh oda@localhost -p 50000` (contraseña por defecto `oda`). `r
 ODA es un conjunto de **bundles OSGi** independientes (`packaging=bundle`) que registran y consumen servicios en el registro de servicios de Felix. El runtime es Felix + ConfigAdmin + EventAdmin + FileInstall + consola Gogo + Logback. Los datos fluyen por estas etapas, cada una un grupo de módulos bajo el reactor padre:
 
 1. **oda-hardware** — abstracción del acceso físico (GPIO, I2C, Modbus, SNMP, OPC-UA, serie/AT, UDP, FTP).
-2. **oda-datastreams** — modelan los puntos de dato del dispositivo; exponen `DatastreamsGetter` / `DatastreamsSetter`. (`deviceinfofx30`, `deviceinfoowa450` son específicos de esos equipos.)
+2. **oda-datastreams** — modelan los puntos de dato del dispositivo; exponen `DatastreamsGetter` / `DatastreamsSetter`. (`deviceinfoowa450` es específico de ese equipo.)
 3. **oda-statemanagers** — mantienen el estado de los datastreams (`inmemory` usa Apache Derby embebido; `realtime`). Implementan `StateManager`.
 4. **oda-subsystems** — `poller` (sondeo periódico), `collector` (recopilación/envío), `sshserver` (consola remota), `countermanager`.
 5. **oda-ruleengine** — reglas de edge computing; `api` + `nashorn` (reglas en JavaScript).

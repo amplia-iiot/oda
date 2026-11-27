@@ -10,7 +10,6 @@
     <description>Datastreams of the OpenGate Device Agent</description>
     <modules>
         <module>deviceinfo</module>
-        <module>deviceinfofx30</module>
         <module>gpio</module>
         <module>modbus</module>
         <module>modbusslave</module>

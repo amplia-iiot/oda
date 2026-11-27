@@ -4,7 +4,6 @@ import com.diozero.api.AnalogInputDevice;
 import es.amplia.oda.core.commons.adc.AdcDeviceException;
 import es.amplia.oda.core.commons.adc.DeviceType;
 
-import es.amplia.oda.hardware.diozero.analog.devices.fx30.Fx30AnalogInputDeviceFactory;
 import es.amplia.oda.hardware.diozero.analog.devices.owasys.OwasysAnalogInputDeviceFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,58 +89,6 @@ public class AnalogInputDeviceBuilderTest {
 	}
 
 	@Test
-	public void testBuildFx30() throws Exception {
-		builder.setChannelIndex(TEST_CHANNEL_INDEX);
-		builder.setName(TEST_NAME);
-		builder.setPath(TEST_PATH);
-		builder.setLowMode(TEST_LOW_MODE);
-		builder.setDeviceType(DeviceType.FX30);
-
-		List<List<?>> factoryArgs = new ArrayList<>();
-		List<List<?>> deviceArgs = new ArrayList<>();
-		try (MockedConstruction<Fx30AnalogInputDeviceFactory> factoryCons =
-					 mockConstruction(Fx30AnalogInputDeviceFactory.class,
-							 (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
-			 MockedConstruction<AnalogInputDevice> deviceCons = mockConstruction(AnalogInputDevice.class,
-					 (mock, mctx) -> deviceArgs.add(new ArrayList<>(mctx.arguments())))) {
-
-			AnalogInputDevice device = builder.build();
-
-			assertEquals(1, factoryCons.constructed().size());
-			assertEquals(Arrays.asList(TEST_NAME, TEST_PATH, TEST_LOW_MODE, DeviceType.FX30), factoryArgs.get(0));
-			assertEquals(1, deviceCons.constructed().size());
-			assertEquals(deviceCons.constructed().get(0), device);
-			assertEquals(Arrays.asList(factoryCons.constructed().get(0), TEST_CHANNEL_INDEX, TEST_SCALE),
-					deviceArgs.get(0));
-		}
-	}
-
-	@Test
-	public void testBuildFx30Default() throws Exception {
-		builder.setChannelIndex(TEST_CHANNEL_INDEX);
-		builder.setPath(TEST_PATH);
-		builder.setDeviceType(DeviceType.FX30);
-
-		List<List<?>> factoryArgs = new ArrayList<>();
-		List<List<?>> deviceArgs = new ArrayList<>();
-		try (MockedConstruction<Fx30AnalogInputDeviceFactory> factoryCons =
-					 mockConstruction(Fx30AnalogInputDeviceFactory.class,
-							 (mock, mctx) -> factoryArgs.add(new ArrayList<>(mctx.arguments())));
-			 MockedConstruction<AnalogInputDevice> deviceCons = mockConstruction(AnalogInputDevice.class,
-					 (mock, mctx) -> deviceArgs.add(new ArrayList<>(mctx.arguments())))) {
-
-			AnalogInputDevice device = builder.build();
-
-			assertEquals(1, factoryCons.constructed().size());
-			assertEquals(Arrays.asList(null, TEST_PATH, DEFAULT_LOW_MODE, DeviceType.FX30), factoryArgs.get(0));
-			assertEquals(1, deviceCons.constructed().size());
-			assertEquals(deviceCons.constructed().get(0), device);
-			assertEquals(Arrays.asList(factoryCons.constructed().get(0), TEST_CHANNEL_INDEX, TEST_SCALE),
-					deviceArgs.get(0));
-		}
-	}
-
-	@Test
 	public void testBuildOwa() throws Exception {
 		builder.setChannelIndex(TEST_CHANNEL_INDEX);
 		builder.setName(TEST_NAME);
@@ -209,9 +156,9 @@ public class AnalogInputDeviceBuilderTest {
 
 	@Test
 	public void testBuildIncompatibleParams() {
-		builder.setChannelIndex(3);
+		builder.setChannelIndex(5);
 		builder.setPath("path");
-		builder.setDeviceType(DeviceType.FX30);
+		builder.setDeviceType(DeviceType.OWASYS);
 
 		assertThrows(AdcDeviceException.class, () -> builder.build());
 	}
