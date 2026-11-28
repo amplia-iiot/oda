@@ -19,9 +19,17 @@ abstract class OperationProcessorTemplate<T, R> implements OperationProcessor {
 
     @Override
     public CompletableFuture<Output> process(String deviceIdForOperations, String deviceIdForResponse, Request request, int timeout) {
-        return processRequest(deviceIdForOperations, deviceIdForResponse, request, timeout)
-                .exceptionally(e -> translateThrowableToOutput(request.getName(), request.getId(), deviceIdForResponse,
-                        request.getPath(), e));
+        CompletableFuture<Output> future;
+        try {
+            future = processRequest(deviceIdForOperations, deviceIdForResponse, request, timeout);
+        } catch (RuntimeException e) {
+            // Synchronous failures (e.g. a JS operation that throws) must also answer OpenGate,
+            // otherwise the dispatcher swallows them and the platform waits until its timeout
+            future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+        }
+        return future.exceptionally(e -> translateThrowableToOutput(request.getName(), request.getId(),
+                deviceIdForResponse, request.getPath(), e));
     }
 
     private CompletableFuture<Output> processRequest(String deviceIdForOperations, String deviceIdForResponse, Request request, int timeout) {

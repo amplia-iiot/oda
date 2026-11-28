@@ -1,5 +1,6 @@
 package es.amplia.oda.dispatcher.opengate.operation.processor;
 
+import es.amplia.oda.core.commons.exceptions.ScriptExecutionException;
 import es.amplia.oda.core.commons.utils.ServiceLocator;
 import es.amplia.oda.dispatcher.opengate.domain.*;
 import es.amplia.oda.dispatcher.opengate.domain.custom.RequestCustomOperation;
@@ -130,6 +131,27 @@ public class CustomOperationProcessorTest {
         verify(mockedOperation2).getOperationSatisfied();
         verify(mockedOperation1, never()).execute(anyString(), anyString(), any());
         verify(mockedOperation2, never()).execute(anyString(), anyString(), any());
+    }
+
+    @Test
+    public void testFailingScriptAnswersErrorToOpenGate() throws InterruptedException, ExecutionException {
+        RequestCustomOperation request = new RequestCustomOperation(new HashMap<>());
+        request.setId(TEST_ID);
+        request.setName(TEST_CUSTOM_OPERATION_NAME);
+        request.setPath(TEST_PATH);
+        when(mockedOperationServiceLocator.findAll()).thenReturn(Collections.emptyList());
+        when(mockedEngine.engine(anyString(), anyString(), anyString(), any(), any()))
+                .thenThrow(new ScriptExecutionException(TEST_CUSTOM_OPERATION_NAME, "execute",
+                        new RuntimeException("boom")));
+
+        Output output = testProcessor.process(TEST_DEVICE_ID, TEST_DEVICE_ID, request, 90).get();
+
+        assertNotNull(output);
+        Response response = output.getOperation().getResponse();
+        assertEquals(TEST_ID, response.getId());
+        assertEquals(TEST_CUSTOM_OPERATION_NAME, response.getName());
+        assertEquals(OperationResultCode.ERROR_PROCESSING, response.getResultCode());
+        assertTrue(response.getResultDescription().contains("ScriptExecutionException"));
     }
 
     @Test

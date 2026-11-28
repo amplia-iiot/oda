@@ -156,6 +156,47 @@ public class OperationProcessorTemplateTest {
                 .translateToOutput(any(TestResult.class),anyString(), anyString(), any(String[].class));
     }
 
+    private static class ThrowingInnerProcessor extends InnerProcessor {
+        @Override
+        CompletableFuture<TestResult> processOperation(String deviceIdForOperation, TestParams testParams) {
+            throw new IllegalStateException("script failed");
+        }
+    }
+
+    private static class ThrowingParseInnerProcessor extends InnerProcessor {
+        @Override
+        TestParams parseParameters(Request request) {
+            throw new IllegalArgumentException("bad params");
+        }
+    }
+
+    @Test
+    public void testProcessOperationThrowingSynchronouslyAnswersError() throws ExecutionException, InterruptedException {
+        assertSynchronousFailureAnswersError(new ThrowingInnerProcessor(), "script failed");
+    }
+
+    @Test
+    public void testParseParametersThrowingSynchronouslyAnswersError() throws ExecutionException, InterruptedException {
+        assertSynchronousFailureAnswersError(new ThrowingParseInnerProcessor(), "bad params");
+    }
+
+    private void assertSynchronousFailureAnswersError(InnerProcessor inner, String message)
+            throws ExecutionException, InterruptedException {
+        TEST_REQUEST.setId(TEST_ID);
+        TEST_REQUEST.setName(TEST_OPERATION);
+        TEST_REQUEST.setPath(TEST_PATH);
+
+        CompletableFuture<Output> future = new TestOperationProcessor(inner)
+                .process(TEST_DEVICE_ID_FOR_OPERATION, TEST_DEVICE_ID_FOR_RESPONSE, TEST_REQUEST, 90);
+        Response response = future.get().getOperation().getResponse();
+
+        assertEquals(TEST_ID, response.getId());
+        assertEquals(TEST_DEVICE_ID_FOR_RESPONSE, response.getDeviceId());
+        assertEquals(OperationResultCode.ERROR_PROCESSING, response.getResultCode());
+        assertTrue(response.getResultDescription().contains(message));
+        assertEquals(StepResultCode.ERROR, response.getSteps().get(0).getResult());
+    }
+
     private static class FailInnerProcessor extends InnerProcessor {
         @Override
         Output translateToOutput(TestResult result, String requestId, String deviceId, String[] path) {
